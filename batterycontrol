@@ -31,9 +31,9 @@ while true; do
                                                                                         fi                                                                                                                         
                                                                                                                                                                                                                    
                                                                                             if [ "$AC_ON" -eq 1 ]; then                                                                                            
-                                                                                                    if [ "$CHARGE" -ge 78 ]; then                                                                                  
+                                                                                                    if [ "$CHARGE" -ge 76 ]; then                                                                                  
                                                                                                                 sudo ectool chargecontrol idle >/dev/null 2>&1 # suppress output                                   
-                                                                                                                        elif [ "$CHARGE" -le 74 ]; then                                                            
+                                                                                                                        elif [ "$CHARGE" -le 73 ]; then                                                            
                                                                                                                                     sudo ectool chargecontrol normal >/dev/null 2>&1 # suppress output             
                                                                                                                                        fi                                                                          
                                                                                                                                    else                                                                            
