@@ -15,6 +15,7 @@ curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_BatteryControl/refs
 echo " /usr/local/bin/ChromeOS_BatteryControl/no_turbo.conf downloaded."
 
 sudo chmod +x /usr/local/bin/ChromeOS_BatteryControl/batterycontrol
+sudo chmod +x /usr/local/bin/Uninstall_ChromeOS_BatteryControl.sh
 
 read -rp "Do you want ChromeOS_BatteryControl to start on boot? to /etc/init? (y/n): " move_batterycontrol
 if [[ "$move_batterycontrol" =~ ^[Yy]$ ]]; then
