@@ -1,6 +1,6 @@
 # **ChromeOS Battery Control - created for ChromeOS 136+**
 
-## Adjust the Chromebook's battery charging limit on any device instead of relying on Adaptive Charging or Enterprise Group Policies.
+## Adjust the Chromebook's battery charging limit instead of relying on Adaptive Charging or Enterprise Group Policies.
 
 ### How to Install - paste the below command in a Crosh Shell:
 
