@@ -20,8 +20,8 @@
  ### To kill ChromeOS_BatteryControl without restarting run:
  `ps aux | grep batterycontrol.sh` and then `sudo kill (process id)`
  
-By default this script will prevent ChromeOS from charging the device beyond ~80%. 
-Use your favorite text editor to tweak the battery charge limit! 
+__By default this script will prevent ChromeOS from charging the device beyond ~80%. 
+Use your favorite text editor to tweak the battery charge limit!__ 
 
 ### Bonus: Disable Intel Turbo Boost:
 VT-2: `echo 1 | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo > /dev/null`
