@@ -11,7 +11,7 @@
 
  `sudo mv ~/tmp/ChromeOS_BatteryControl /usr/local/bin/`
 
- Run the batterycontrol once and it'll stay active until the machine restarts:
+ ### Run the batterycontrol once and it'll stay active until the machine restarts:
  `sudo bash batterycontrol.sh &`
 
 By default this script will prevent ChromeOS from charging the device beyond ~80%. 
