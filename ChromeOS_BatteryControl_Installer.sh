@@ -8,7 +8,7 @@ sudo install -Dt /usr/local/bin -m 755 ~/tmp/ChromeOS_BatteryControl/batterycont
 read -p "Do you want to run ChromeOS_BatteryControl  now? (y/n): " choice
 if [[ "$choice" == "y" || "$choice" == "Y" ]]; then
     echo "Running ChromeOS_BatteryControl!"
-    sudo /usr/local/bin/batterycontrol.sh
+    sudo bash /usr/local/bin/batterycontrol.sh &
 else
     echo "ChromeOS_BatteryControl is ready to run at /usr/local/bin"
 fi
