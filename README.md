@@ -2,7 +2,7 @@
 
 ## Limit your Chromebook's battery charging limit to your liking instead of relying on Adaptive Charging or Enterprise Group Policies.
 
-### How to Install - Paste the below command in a Crosh Shell:
+### How to Install - paste the below command in a Crosh Shell:
 
 `bash <(curl -s https://raw.githubusercontent.com/shadowed1/ChromeOS_BatteryControl/refs/heads/main/ChromeOS_BatteryControl_Downloader.sh)`
 
