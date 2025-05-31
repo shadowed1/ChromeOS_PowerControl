@@ -62,6 +62,28 @@ elif [ "$1" == "toggle" ]; then
     exit 0
 fi
 
+elif [ "$1" == "no_turbo" ]; then
+    if [[ "$2" != "0" && "$2" != "1" ]]; then
+        echo "Usage: $0 no_turbo [1|0]"
+        echo "1 = Disable Turbo Boost (no_turbo ON)"
+        echo "0 = Enable Turbo Boost (no_turbo OFF)"
+        exit 1
+    fi
+
+    if [ -w /sys/devices/system/cpu/intel_pstate/no_turbo ]; then
+        echo "$2" | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo > /dev/null
+        if [ "$2" == "1" ]; then
+            echo "Turbo Boost disabled (no_turbo = 1)"
+        else
+            echo "Turbo Boost enabled (no_turbo = 0)"
+        fi
+    else
+        echo "Permission denied or Turbo Boost control not available."
+        exit 1
+    fi
+    exit 0
+
+
 load_config
 
 while true; do
