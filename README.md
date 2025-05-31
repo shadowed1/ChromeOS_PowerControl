@@ -8,4 +8,7 @@
 
 This will download the installer.sh to ~/tmp. Open up the VT-2 console command and run:
 
-sudo 
+`sudo bash ~/tmp/ChromeOS_BatteryControl/installer.sh`
+
+After installing, cd to /usr/local/bin/ and run:
+`sudo bash batterycontrol.sh &` to have it run in the background. 
