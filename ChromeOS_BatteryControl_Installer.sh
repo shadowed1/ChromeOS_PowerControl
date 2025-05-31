@@ -9,8 +9,8 @@ curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_BatteryControl/refs
 curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_BatteryControl/refs/heads/main/no_turbo.conf -o /usr/local/bin/ChromeOS_BatteryControl/no_turbo.conf
 sudo chmod +x /usr/local/bin/ChromeOS_BatteryControl/batterycontrol
 
-read -rp "Do you want ChromeOS_BatteryControl to start on boot? to /etc/init? (y/n): " move_confs
-if [[ "$move_confs" =~ ^[Yy]$ ]]; then
+read -rp "Do you want ChromeOS_BatteryControl to start on boot? to /etc/init? (y/n): " move_batterycontrol
+if [[ "$move_batterycontrol" =~ ^[Yy]$ ]]; then
     sudo mv /usr/local/bin/ChromeOS_BatteryControl/batterycontrol.conf /etc/init/
     echo "Configuration files moved to /etc/init."
 else
@@ -18,10 +18,10 @@ else
 fi
     sudo mv /usr/local/bin/ChromeOS_BatteryControl/no_turbo.conf /etc/init/
 
-read -rp "Do you Intel Turbo Boost disabled on boot? (y/n): " move_confs
-if [[ "$move_confs" =~ ^[Yy]$ ]]; then
+read -rp "Do you Intel Turbo Boost disabled on boot? (y/n): " move_no_turbo
+if [[ "$move_no_turbo" =~ ^[Yy]$ ]]; then
     sudo mv /usr/local/bin/ChromeOS_BatteryControl/batterycontrol.conf /etc/init/
-    echo "Configuration files moved to /etc/init."
+    echo "Turbo Boost will be disabled when restarting."
 else
     echo "Turbo Boost will be enabled on restart."
 fi
@@ -36,10 +36,17 @@ else
 fi
 
 # Ask to run batterycontrol now
-read -rp "Do you want to run batterycontrol now? (y/n): " run_now
-if [[ "$run_now" =~ ^[Yy]$ ]]; then
+read -rp "Do you want to run batterycontrol now? (y/n): " run_batterycontrol
+if [[ "$run_batterycontrol" =~ ^[Yy]$ ]]; then
     sudo /usr/local/bin/ChromeOS_BatteryControl/batterycontrol
 else
     echo "You can run it later with: sudo /usr/local/bin/ChromeOS_BatteryControl/batterycontrol"
+fi
+
+read -rp "Do you want to disable Intel Turbo Boost now? (y/n): " run_no_turbo
+if [[ "$run_no_turbo" =~ ^[Yy]$ ]]; then
+    echo 1 | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo > /dev/null
+else
+    echo "Turbo Boost will remain enabled."
 fi
 
