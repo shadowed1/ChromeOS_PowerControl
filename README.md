@@ -23,6 +23,12 @@ __Commands:__
 - `sudo batterycontrol uninstall`
 - Alternative uninstall method: `sudo /usr/local/bin/ChromeOS_BatteryControl/Uninstall_ChromeOS_BatteryControl.sh`
 
+
+__Bonus:__
+
+- Enable sudo for crosh:
+`https://gist.github.com/velzie/a5088c9ade6ec4d35435b9826b45d7a3`
+
  __Credits:__
 
 Thanks to WesBosch (Wisteria for helping me learn to make an installer:
