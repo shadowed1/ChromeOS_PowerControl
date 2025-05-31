@@ -5,12 +5,12 @@
 ### Features global commands and have BatteryControl + disabling Intel Turbo Boost boot automatically.
 
 __How to Install:__
+-Open crosh shell and run:
 
-- Go to Releases and download ChromeOS_BatteryControl_Installer wherever you want.
-- Run it in VT-2 or with sudo enabled in crosh:
+`bash <(curl -s https://raw.githubusercontent.com/shadowed1/ChromeOS_BatteryControl/refs/heads/main/ChromeOS_BatteryControl_Downloader.sh)`
 
-`sudo bash ChromeOS_BatteryControl_Installer.sh`
-
+- The installer will be placed: /home/chronos/ChromeOS_BatteryControl/ChromeOS_BatteryControl_Installer.sh
+- In *VT-2* run: `sudo bash /home/chronos/ChromeOS_BatteryControl/ChromeOS_BatteryControl_Installer.sh
 - Choose the options you want.
 
 __Commands:__
