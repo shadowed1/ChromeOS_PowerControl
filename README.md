@@ -1,5 +1,6 @@
 # **ChromeOS Battery Control - created for ChromeOS 136+**
-## Requires Developer Mode Enabled. 
+## Requires Developer Mode. 
+
 ### Clamp battery charging limit to preference instead of relying on Adaptive Charging and Policies.
 
 __How to Install - paste the below command in a crosh shell:__
