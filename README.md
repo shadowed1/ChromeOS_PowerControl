@@ -6,13 +6,9 @@
 
 `bash <(curl -s https://raw.githubusercontent.com/shadowed1/ChromeOS_BatteryControl/refs/heads/main/ChromeOS_BatteryControl_Downloader.sh)`
 
-### This will download ChromeOS_BatteryControl but it cannot run without VT-2!
+### This will download ChromeOS_BatteryControl to ~/tmp/ but it cannot run without VT-2!
 ### Open up the VT-2 console command and run:
 
-
-`sudo bash ~/tmp/ChromeOS_BatteryControl/installer.sh`
-
-### After installing, cd to /usr/local/bin/ and run:
  `sudo mv ~/tmp/ChromeOS_BatteryControl /usr/local/bin/`
  `sudo bash batterycontrol.sh &`
 
