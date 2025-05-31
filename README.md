@@ -3,34 +3,18 @@
 
 ### Clamp battery charging limit to preference instead of relying on Adaptive Charging and Policies.
 
-__How to Install - paste the below command in a crosh shell:__
+__How to Install:__
 
-`bash <(curl -s https://raw.githubusercontent.com/shadowed1/ChromeOS_BatteryControl/refs/heads/main/ChromeOS_BatteryControl_Downloader.sh)`
+- Go to Releases and download ChromeOS_BatteryControl_Installer wherever you want.
+- and run it in VT-2 or with sudo enabled in crosh.
+`
+ sudo bash ChromeOS_BatteryControl_Installer.sh`
 
-- __This will download ChromeOS_BatteryControl to /home/chronos/ but it cannot run without VT-2:__
-
-`sudo mv /home/chronos/ChromeOS_BatteryControl/ /usr/local/bin/`
-
-- __Set it as executable in VT-2:__
-
-`sudo chmod +x /usr/local/bin/ChromeOS_BatteryControl/batterycontrol.sh`
-
-- __Running ChromeOS_BatteryControl:__
-
-`sudo bash /usr/local/bin//ChromeOS_BatteryControl/batterycontrol.sh &`
-
-- __To kill ChromeOS_BatteryControl without restarting run:__
-
-`ps aux | grep batterycontrol.sh` and then `sudo kill (process id)`
- 
-- __By default this script will prevent ChromeOS from charging the device beyond ~80%.__ 
-- __Use your favorite text editor to tweak the battery charge limit!__ 
-
-- __Bonus: Disable Intel Turbo Boost in VT-2:__
-
-`echo 1 | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo > /dev/null`
+- This will install ChromeOS_BatteryControl to /sys/local/bin.
 
 - __Credits:__
 
-Thanks to WesBosch (Wisteria for helping me learn!
+Thanks to WesBosch (Wisteria for helping me learn to make an installer:
 https://github.com/WesBosch
+
+Thanks to DennyL for showing me how to enable sudo on crosh which gave me a lot of ideas. 
