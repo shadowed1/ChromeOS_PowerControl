@@ -21,9 +21,9 @@ while true; do
     fi
 
     if [ "$AC_ON" -eq 1 ]; then
-        if [ "$CHARGE" -ge 78 ]; then
+        if [ "$CHARGE" -ge 77 ]; then
             sudo ectool chargecontrol idle >/dev/null 2>&1
-        elif [ "$CHARGE" -le 75 ]; then
+        elif [ "$CHARGE" -le 74 ]; then
             sudo ectool chargecontrol normal >/dev/null 2>&1
         fi
     else
