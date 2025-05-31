@@ -4,5 +4,8 @@
 
 ### How to Install - Paste the below command in a Crosh Shell:
 
-`bash <(curl -s https://github.com/shadowed1/ChromeOS_BatteryControl/edit/main/ChromeOS_BatteryControl_Downloader.sh)`
+`bash <(curl -s https://raw.githubusercontent.com/shadowed1/ChromeOS_BatteryControl/refs/heads/main/ChromeOS_BatteryControl_Downloader.sh)`
 
+This will download the installer.sh to ~/tmp. Open up the VT-2 console command and run:
+
+sudo 
