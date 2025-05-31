@@ -27,7 +27,7 @@ else
 fi
 
 # Ask to create a symlink to run 'batterycontrol' globally
-read -rp "Do you want to create a global command 'batterycontrol'? (y/n): " link_cmd
+read -rp "Do you want to create a global command 'batterycontrol' for faster changes? (y/n): " link_cmd
 if [[ "$link_cmd" =~ ^[Yy]$ ]]; then
     sudo ln -sf /usr/local/bin/ChromeOS_BatteryControl/batterycontrol /usr/local/bin/batterycontrol
     echo "'batterycontrol' command is now available system-wide."
