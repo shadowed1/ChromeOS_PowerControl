@@ -103,14 +103,14 @@ case "$1" in
         exit 0
         ;;
     uninstall)
-        if [ -x "/usr/local/bin/ChromeOS_BatteryControl/Uninstall_ChromeOS_BatteryControl.sh" ]; then
-            /usr/local/bin/ChromeOS_BatteryControl/Uninstall_ChromeOS_BatteryControl.sh
-        else
-            echo "Uninstall script not found or not executable."
-            exit 1
-        fi
-        exit 0
-        ;;
+    if [ -x "/usr/local/bin/ChromeOS_BatteryControl/Uninstall_ChromeOS_BatteryControl.sh" ]; then
+        sudo bash /usr/local/bin/ChromeOS_BatteryControl/Uninstall_ChromeOS_BatteryControl.sh
+    else
+        echo "Uninstall script not found or not executable."
+        exit 1
+    fi
+    exit 0
+    ;;
     help | --help | -h)
         show_help
         exit 0
