@@ -8,7 +8,7 @@ if [ -f /etc/init/no_turbo.conf ]; then
 else
     echo "Not found: /etc/init/no_turbo.conf"
 fi
-if [ -f /etc/init/batterycontrol.conf ]; thenelif [ "$1" == "uninstall" ]; then
+if [ -f /etc/init/batterycontrol.conf ]; then elif [ "$1" == "uninstall" ]; then
     echo "Choose an  option:"
     echo "0: Quit"
     echo "1: Remove no_turbo.conf in /etc/init (Turbo Boost will start enabled)"
