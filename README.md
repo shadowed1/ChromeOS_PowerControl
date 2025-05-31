@@ -1,4 +1,4 @@
-# **ChromeOS Battery Control**
+# **ChromeOS Battery Control - created for ChromeOS 136+ **
 
 ## Limit your Chromebook's battery charging limit to your liking instead of relying on Adaptive Charging or Enterprise Group Policies.
 
@@ -19,7 +19,7 @@
 
  ### To kill ChromeOS_BatteryControl without restarting run:
  `ps aux | grep batterycontrol.sh` and then `sudo kill (process id)`
-`
+ 
 By default this script will prevent ChromeOS from charging the device beyond ~80%. 
 Use your favorite text editor to tweak the battery charge limit! 
 
