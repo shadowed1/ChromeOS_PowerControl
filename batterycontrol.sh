@@ -83,6 +83,15 @@ elif [ "$1" == "no_turbo" ]; then
     fi
     exit 0
 
+elif [ "$1" == "uninstall" ]; then
+    if [ -x "/usr/local/bin/ChromeOS_BatteryControl/Uninstall_ChromeOS_BatteryControl.sh" ]; then
+        /usr/local/bin/ChromeOS_BatteryControl/Uninstall_ChromeOS_BatteryControl.sh
+    else
+        echo "Uninstall script not found or not executable."
+        exit 1
+    fi
+    exit 0
+
 
 load_config
 
