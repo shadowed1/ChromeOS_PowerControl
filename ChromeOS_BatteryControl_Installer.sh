@@ -2,11 +2,18 @@
 sudo mkdir -p /usr/local/bin/ChromeOS_BatteryControl
 echo "Enabling sudo in crosh or run in VT-2 is required!"
 curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_BatteryControl/refs/heads/main/batterycontrol -o /usr/local/bin/ChromeOS_BatteryControl/batterycontrol
+echo " /usr/local/bin/ChromeOS_BatteryControl/batterycontrol downloaded."
 curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_BatteryControl/refs/heads/main/Uninstall_ChromeOS_BatteryControl.sh -o /usr/local/bin/ChromeOS_BatteryControl/Uninstall_ChromeOS_BatteryControl.sh
+echo " /usr/local/bin/ChromeOS_BatteryControl/Uninstall_ChromeOS_BatteryControl.sh downloaded."
 curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_BatteryControl/refs/heads/main/LICENSE -o /usr/local/bin/ChromeOS_BatteryControl/LICENSE
+echo " /usr/local/bin/ChromeOS_BatteryControl/LICENSE downloaded."
 curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_BatteryControl/refs/heads/main/README.md -o /usr/local/bin/ChromeOS_BatteryControl/README.md
+echo " /usr/local/bin/ChromeOS_BatteryControl/README.md downloaded."
 curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_BatteryControl/refs/heads/main/batterycontrol.conf -o /usr/local/bin/ChromeOS_BatteryControl/batterycontrol.conf
+echo " /usr/local/bin/ChromeOS_BatteryControl/batterycontrol.conf downloaded."
 curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_BatteryControl/refs/heads/main/no_turbo.conf -o /usr/local/bin/ChromeOS_BatteryControl/no_turbo.conf
+echo " /usr/local/bin/ChromeOS_BatteryControl/no_turbo.conf downloaded."
+
 sudo chmod +x /usr/local/bin/ChromeOS_BatteryControl/batterycontrol
 
 read -rp "Do you want ChromeOS_BatteryControl to start on boot? to /etc/init? (y/n): " move_batterycontrol
