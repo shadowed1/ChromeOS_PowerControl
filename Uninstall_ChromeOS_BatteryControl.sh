@@ -9,13 +9,13 @@ else
     echo "Not found: /etc/init/no_turbo.conf"
 fi
 if [ -f /etc/init/batterycontrol.conf ]; thenelif [ "$1" == "uninstall" ]; then
-    echo "Choose an uninstall option:"
-    echo "0: Quit uninstaller"
-    echo "1: Remove no_turbo.conf in /etc/init"
-    echo "2: Remove batterycontrol.conf in /etc/init"
-    echo "3: Remove everything (recommended full uninstall)"
+    echo "Choose an  option:"
+    echo "0: Quit"
+    echo "1: Remove no_turbo.conf in /etc/init (Turbo Boost will start enabled)"
+    echo "2: Remove batterycontrol.conf in /etc/init (BatteryControl will not start automatically)"
+    echo "3: Full Uninstall."
 
-    read -rp "Enter your choice (0-3): " choice
+    read -rp "Enter (0-3): " choice
 
     case "$choice" in
         0)
