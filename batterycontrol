@@ -71,7 +71,7 @@ show_help() {
     echo
     echo "  no_turbo [1|0]"
     echo "    Toggle Intel Turbo Boost (1=disable, 0=enable)."
-    echo "    Example: sudo batterycontrol no_turbo 1 "
+    echo "    Example: sudo batterycontrol no_turbo 1"
     echo
     echo "  uninstall"
     echo "    Launch the uninstaller for ChromeOS_BatteryControl."
@@ -115,13 +115,20 @@ case "$1" in
         show_help
         exit 0
         ;;
+    "")
+        # No argument given, continue to monitoring loop below
+        ;;
     *)
-        # If script is run with no command, just continue to loop
+        echo "Unknown command: $1"
+        echo "Use '$0 help' to see available commands."
+        exit 1
         ;;
 esac
 
-# Load config and begin monitoring loop
+# Load config and begin monitoring loop ONLY if no command was given
 load_config
+
+echo "Starting battery control monitoring loop. Press Ctrl+C to exit."
 
 while true; do
     if [ ! -f "$RUN_FLAG" ]; then
