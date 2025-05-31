@@ -18,7 +18,8 @@ __Commands:__
 - `batterycontrol toggle on           # off to disable`
 - `batterycontrol set 80 75           # 80 is when charging stops; 75 is when charging may begin`
 - `batterycontrol no_turbo 1          # 0 is default Intel Turbo Boost On behavior.`
-- `batterycontrol uninstall           # Or run sudo /usr/local/bin/ChromeOS_BatteryControl/Uninstall_ChromeOS_BatteryControl.sh`
+- `batterycontrol uninstall`
+- Alternative uninstall method: `sudo /usr/local/bin/ChromeOS_BatteryControl/Uninstall_ChromeOS_BatteryControl.sh`
 
  __Credits:__
 
