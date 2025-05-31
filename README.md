@@ -11,6 +11,9 @@
 
  `sudo cp ~/tmp/batterycontrol.sh /usr/local/bin/`
 
+### Set it as executable:
+`sudo chmod +x /usr/local/bin/batterycontrol.sh`
+
  ### Running ChromeOS_BatteryControl will stay active until the machine restarts:
  `sudo bash /usr/local/bin/batterycontrol.sh &`
 
