@@ -11,7 +11,7 @@
 
  `sudo mv ~/tmp/ChromeOS_BatteryControl /usr/local/bin/`
 
- ### Runing ChromeOS_BatteryControl will stay active until the machine restarts:
+ ### Running ChromeOS_BatteryControl will stay active until the machine restarts:
  `sudo bash batterycontrol.sh &`
 
  ### To kill ChromeOS_BatteryControl without restarting run:
