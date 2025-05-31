@@ -22,7 +22,10 @@
 `
 By default this script will prevent ChromeOS from charging the device beyond ~80%.
 
+### Bonus: Disable Intel Turbo Boost:
+VT-2: `echo 1 | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo > /dev/null`
+
 ### Credits:
 
-Thanks to WesBosch (Wisteria for helping me learn!
+ Thanks to WesBosch (Wisteria for helping me learn!
 https://github.com/WesBosch
