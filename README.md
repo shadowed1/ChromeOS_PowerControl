@@ -4,11 +4,11 @@
 
 ### How to Install - Paste the below command in a Crosh Shell:
 
-`bash <(curl -s https://raw.githubusercontent.com/shadowed1/ChromeOS_BatteryControl/refs/heads/main/ChromeOS_BatteryControl_Downloader.sh)`
+## `bash <(curl -s https://raw.githubusercontent.com/shadowed1/ChromeOS_BatteryControl/refs/heads/main/ChromeOS_BatteryControl_Downloader.sh)`
 
-This will download the installer.sh to ~/tmp. Open up the VT-2 console command and run:
+This will download the installer.sh to /home/chronos/ChromeOS_BatteryControl. Open up the VT-2 console command and run:
 
-`sudo bash ~/tmp/ChromeOS_BatteryControl/installer.sh`
+## `sudo bash ~/tmp/ChromeOS_BatteryControl/installer.sh`
 
 After installing, cd to /usr/local/bin/ and run:
-`sudo bash batterycontrol.sh &` to have it run in the background. 
+## `sudo bash batterycontrol.sh &` ## to have it run in the background. 
