@@ -21,3 +21,8 @@
  `ps aux | grep batterycontrol.sh` and then `sudo kill (process id)`
 `
 By default this script will prevent ChromeOS from charging the device beyond ~80%.
+
+### Credits:
+
+Thanks to WesBosch (Wisteria for helping me learn!
+https://github.com/WesBosch
