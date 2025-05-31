@@ -1,7 +1,6 @@
 #!/bin/bash
-echo "If blank it will go to /home/chronos/user/tmp/"
 echo "Choose location for ChromeOS_BatteryControl_Installer.sh:"
-read -rp "Enter full path (or press Enter for default [/usr/local/bin/ChromeOS_BatteryControl]): " custom_path
+read -rp "Enter full path (or press Enter for [/home/chronos/user/tmp/ChromeOS_BatteryControl]): " custom_path
 
 # Use default if input is empty
 if [ -z "$custom_path" ]; then
