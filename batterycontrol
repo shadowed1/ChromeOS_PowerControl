@@ -57,10 +57,10 @@ toggle_script() {
 if [ "$1" == "set" ]; then
     set_thresholds "$2" "$3"
     exit 0
+
 elif [ "$1" == "toggle" ]; then
     toggle_script "$2"
     exit 0
-fi
 
 elif [ "$1" == "no_turbo" ]; then
     if [[ "$2" != "0" && "$2" != "1" ]]; then
@@ -81,6 +81,18 @@ elif [ "$1" == "no_turbo" ]; then
         echo "Permission denied or Turbo Boost control not available."
         exit 1
     fi
+    exit 0
+
+elif [ "$1" == "uninstall" ]; then
+    if [ -x "/usr/local/bin/ChromeOS_BatteryControl/Uninstall_ChromeOS_BatteryControl.sh" ]; then
+        /usr/local/bin/ChromeOS_BatteryControl/Uninstall_ChromeOS_BatteryControl.sh
+    else
+        echo "Uninstall script not found or not executable."
+        exit 1
+    fi
+    exit 0
+fi
+
     exit 0
 
 elif [ "$1" == "uninstall" ]; then
