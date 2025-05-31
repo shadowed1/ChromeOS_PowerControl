@@ -1,11 +1,12 @@
-# **ChromeOS Battery Control - created for ChromeOS 136+**
+# **ChromeOS Battery Control**
 ## Requires Developer Mode. 
 
-### Customize battery charging limit to preference instead of relying on Adaptive Charging and Policies.
-### Features global commands and can optionally allow BatteryControl + disabling Intel Turbo Boost boot automatically.
+### - Customize battery charging limit to preference instead of relying on Adaptive Charging and Policies.
+### - Features global commands and can optionally allow BatteryControl + disabling Intel Turbo Boost boot automatically.
 
-__How to Install:__
--Open crosh shell and run:
+### __How to Install:__
+
+- Open crosh shell and run:
 
 `bash <(curl -s https://raw.githubusercontent.com/shadowed1/ChromeOS_BatteryControl/refs/heads/main/ChromeOS_BatteryControl_Downloader.sh)`
 
@@ -15,10 +16,11 @@ __How to Install:__
 
 __Commands:__
 
-- `batterycontrol toggle on           # off to disable`
-- `batterycontrol set 80 75           # 80 is when charging stops; 75 is when charging may begin`
-- `batterycontrol no_turbo 1          # 0 is default Intel Turbo Boost On behavior.`
-- `batterycontrol uninstall`
+- `sudo batterycontrol help`
+- `sudo batterycontrol toggle on           # off to disable`
+- `sudo batterycontrol set 80 75           # 80 is when charging stops; 75 is when charging may begin`
+- `sudo batterycontrol no_turbo 1          # 0 is default Intel Turbo Boost On behavior.`
+- `sudo batterycontrol uninstall`
 - Alternative uninstall method: `sudo /usr/local/bin/ChromeOS_BatteryControl/Uninstall_ChromeOS_BatteryControl.sh`
 
  __Credits:__
