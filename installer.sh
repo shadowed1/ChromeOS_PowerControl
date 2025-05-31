@@ -1,10 +1,10 @@
 #!/bin/bash
-if [ -f ~/tmp/ChromeOS_BatteryControl/batterycontrol.sh ]; then
-    sudo install -Dt /usr/local/bin -m 755 ~/tmp/ChromeOS_BatteryControl/batterycontrol.sh
+if [ -f /home/chronos/ChromeOS_BatteryControl/batterycontrol.sh ]; then
+    sudo install -Dt /usr/local/bin -m 755 /home/chronos/ChromeOS_BatteryControl/batterycontrol.sh
     sudo chmod +x /usr/local/bin/batterycontrol.sh
     echo "ChromeOS_BatteryControl script installed to /usr/local/bin."
 else
-    echo "Error: batterycontrol.sh script does not exist in ~/tmp/ChromeOS_BatteryControl."
+    echo "Error: batterycontrol.sh script does not exist in /home/chronos/ChromeOS_BatteryControl."
     exit 1
     
 read -p "Would you like to run ChromeOS_BatteryControl now? (y/n): " run_choice
