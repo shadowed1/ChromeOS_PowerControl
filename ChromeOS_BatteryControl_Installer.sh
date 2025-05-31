@@ -23,11 +23,10 @@ if [[ "$move_batterycontrol" =~ ^[Yy]$ ]]; then
 else
     echo "BatteryControl will not start with ChromeOS."
 fi
-    sudo mv /usr/local/bin/ChromeOS_BatteryControl/no_turbo.conf /etc/init/
 
 read -rp "Do you Intel Turbo Boost disabled on boot? (y/n): " move_no_turbo
 if [[ "$move_no_turbo" =~ ^[Yy]$ ]]; then
-    sudo mv /usr/local/bin/ChromeOS_BatteryControl/batterycontrol.conf /etc/init/
+    sudo mv /usr/local/bin/ChromeOS_BatteryControl/no_turbo.conf /etc/init/
     echo "Turbo Boost will be disabled when restarting."
 else
     echo "Turbo Boost will be enabled on restart."
