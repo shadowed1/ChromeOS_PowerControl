@@ -9,10 +9,10 @@
 ### This will download ChromeOS_BatteryControl to ~/tmp/ but it cannot run without VT-2!
 ### Open up the VT-2 console:
 
- `sudo mv ~/tmp/ChromeOS_BatteryControl /usr/local/bin/`
+ `sudo cp ~/tmp/batterycontrol.sh /usr/local/bin/`
 
  ### Running ChromeOS_BatteryControl will stay active until the machine restarts:
- `sudo bash batterycontrol.sh &`
+ `sudo bash /usr/local/bin/batterycontrol.sh &`
 
  ### To kill ChromeOS_BatteryControl without restarting run:
  `ps aux | grep batterycontrol.sh` and then `sudo kill (process id)`
