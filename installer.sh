@@ -10,7 +10,7 @@ else
 read -p "Would you like to run ChromeOS_BatteryControl now? (y/n): " run_choice
 
 if [[ "$run_choice" == "y" || "$run_choice" == "Y" ]]; then
-    echo "Running the ChromeOS_BatteryControl script..."
+    echo "Running ChromeOS_BatteryControl..."
     sudo bash /usr/local/bin/batterycontrol.sh &
 else
     echo "ChromeOS_BatteryControl is ready to run with sudo bash /usr/local/bin/batterycontrol.sh."
