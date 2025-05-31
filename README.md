@@ -15,7 +15,7 @@ __How to Install - paste the below command in a crosh shell:__
 
 `sudo chmod +x /usr/local/bin/ChromeOS_BatteryControl/batterycontrol.sh`
 
-- __Running ChromeOS_BatteryControl will stay active until the machine restarts:__
+- __Running ChromeOS_BatteryControl:__
 
 `sudo bash /usr/local/bin//ChromeOS_BatteryControl/batterycontrol.sh &`
 
