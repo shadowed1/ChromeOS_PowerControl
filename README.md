@@ -6,11 +6,12 @@
 __How to Install:__
 
 - Go to Releases and download ChromeOS_BatteryControl_Installer wherever you want.
-- and run it in VT-2 or with sudo enabled in crosh.
-`
- sudo bash ChromeOS_BatteryControl_Installer.sh`
+- Run it in VT-2 or with sudo enabled in crosh.
+
+`sudo bash ChromeOS_BatteryControl_Installer.sh`
 
 - This will install ChromeOS_BatteryControl to /sys/local/bin.
+- Run the uninstaller.sh file in /sys/local/bin/ChromeOS_BatteryControl to uninstall.
 
 - __Credits:__
 
