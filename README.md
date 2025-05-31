@@ -1,5 +1,6 @@
 # **ChromeOS Battery Control - created for ChromeOS 136+**
-## Adjust the Chromebook's battery charging limit instead of relying on Adaptive Charging or Enterprise Group Policies.
+## Requires Developer Mode Enabled. 
+### Clamp battery charging limit to preference instead of relying on Adaptive Charging or Enterprise Group Policies.
 
 __How to Install - paste the below command in a crosh shell:__
 
