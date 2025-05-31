@@ -2,8 +2,7 @@
 ## Requires Developer Mode. 
 
 ### Clamp battery charging limit to preference instead of relying on Adaptive Charging and Policies.
-### Features global commands and can have BatteryControl + disabling Intel Turbo Boost boot automatically.
-### Includes uninstaller
+### Features global commands and have BatteryControl + disabling Intel Turbo Boost boot automatically.
 
 __How to Install:__
 
@@ -16,10 +15,10 @@ __How to Install:__
 
 __Commands:__
 
-batterycontrol toggle on           # off to disable
-batterycontrol set 80 75           # 80 is when charging stops; 75 is when charging may begin
-batterycontrol no_turbo 1          # 0 is default Intel Turbo Boost On behavior.
-batterycontrol uninstall           # Or run sudo /usr/local/bin/ChromeOS_BatteryControl/Uninstall_ChromeOS_BatteryControl.sh
+- `batterycontrol toggle on           # off to disable`
+- `batterycontrol set 80 75           # 80 is when charging stops; 75 is when charging may begin`
+- `batterycontrol no_turbo 1          # 0 is default Intel Turbo Boost On behavior.`
+- `batterycontrol uninstall           # Or run sudo /usr/local/bin/ChromeOS_BatteryControl/Uninstall_ChromeOS_BatteryControl.sh`
 
  __Credits:__
 
