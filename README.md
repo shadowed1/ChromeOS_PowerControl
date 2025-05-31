@@ -21,8 +21,8 @@ __How to Install - paste the below command in a crosh shell:__
 
 `ps aux | grep batterycontrol.sh` and then `sudo kill (process id)`
  
-- __By default this script will prevent ChromeOS from charging the device beyond ~80%. 
-- Use your favorite text editor to tweak the battery charge limit!__ 
+- __By default this script will prevent ChromeOS from charging the device beyond ~80%.__ 
+- __Use your favorite text editor to tweak the battery charge limit!__ 
 
 - __Bonus: Disable Intel Turbo Boost in VT-2:__
 
