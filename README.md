@@ -7,9 +7,11 @@
 `bash <(curl -s https://raw.githubusercontent.com/shadowed1/ChromeOS_BatteryControl/refs/heads/main/ChromeOS_BatteryControl_Downloader.sh)`
 
 ### This will download ChromeOS_BatteryControl to ~/tmp/ but it cannot run without VT-2!
-### Open up the VT-2 console command and run:
+### Open up the VT-2 console:
 
  `sudo mv ~/tmp/ChromeOS_BatteryControl /usr/local/bin/`
+
+ Run the batterycontrol once and it'll stay active until the machine restarts:
  `sudo bash batterycontrol.sh &`
 
 By default this script will prevent ChromeOS from charging the device beyond ~80%. 
