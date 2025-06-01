@@ -173,7 +173,7 @@ case "$1" in
         fi
         if [ -w "$TURBO_PATH" ]; then
             echo "$2" | sudo tee "$TURBO_PATH" > /dev/null
-            echo "Turbo Boost is now set to: $2"
+            echo "no_turbo is now set to: $2"
         else
             echo "Permission denied or Turbo Boost control not available."
             exit 1
