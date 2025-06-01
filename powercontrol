@@ -4,6 +4,8 @@ CONFIG_FILE="$HOME/.powercontrol_config"
 RUN_FLAG="$HOME/.powercontrol_enabled"
 PID_FILE="$HOME/.powercontrol_pid"
 PERF_PATH="/sys/devices/system/cpu/intel_pstate/max_perf_pct"
+TURBO_PATH="/sys/devices/system/cpu/intel_pstate/no_turbo"
+TEMP_SENSOR_ID=2
 
 DEFAULT_MAX_TEMP_K=358
 DEFAULT_MAX_PERF_PCT=80
@@ -28,7 +30,7 @@ save_config() {
 }
 
 get_temp_kelvin() {
-    ectool temps 2 2>/dev/null | grep -oP '[0-9]+(?= K)' | head -n 1
+    ectool temps "$TEMP_SENSOR_ID" 2>/dev/null | grep -oP '[0-9]+(?= K)' | head -n 1
 }
 
 set_max_perf_pct() {
@@ -55,6 +57,27 @@ set_temp_threshold() {
     echo "Max temperature threshold set to $MAX_TEMP_K K"
 }
 
+set_no_turbo() {
+    local value="$1"
+    if [[ "$value" != "0" && "$value" != "1" ]]; then
+        echo "Usage: $0 no_turbo {0|1}"
+        exit 1
+    fi
+
+    if [ ! -w "$TURBO_PATH" ]; then
+        echo "Permission denied: Cannot write to $TURBO_PATH" >&2
+        exit 1
+    fi
+
+    echo "$value" | sudo tee "$TURBO_PATH" > /dev/null
+
+    if [ "$value" -eq 1 ]; then
+        echo "Turbo Boost Disabled"
+    else
+        echo "Turbo Boost Enabled"
+    fi
+}
+
 start_monitoring_loop() {
     if [ -f "$RUN_FLAG" ]; then
         echo "PowerControl is already running."
@@ -72,7 +95,7 @@ start_monitoring_loop() {
     while [ -f "$RUN_FLAG" ]; do
         temp_k=$(get_temp_kelvin)
         if ! [[ "$temp_k" =~ ^[0-9]+$ ]]; then
-            echo "Failed to read temperature sensor."
+            echo "Failed to read temperature sensor $TEMP_SENSOR_ID."
             sleep 1
             continue
         fi
@@ -126,4 +149,54 @@ show_status() {
         current_pct=$(cat "$PERF_PATH")
         echo "  Current max_perf_pct: $current_pct%"
     else
-        echo "  max_perf_pc
+        echo "  max_perf_pct path not found."
+    fi
+
+    if [ -f "$TURBO_PATH" ]; then
+        turbo_val=$(cat "$TURBO_PATH")
+        if [[ "$turbo_val" -eq 1 ]]; then
+            echo "  Turbo Boost: Disabled"
+        else
+            echo "  Turbo Boost: Enabled"
+        fi
+    fi
+
+    echo
+    echo "=== ectool temps output ==="
+    ectool temps "$TEMP_SENSOR_ID" 2>/dev/null || echo "Failed to read ectool temps"
+}
+
+case "$1" in
+    start)
+        start_monitoring_loop
+        ;;
+    stop)
+        if [ -f "$RUN_FLAG" ]; then
+            rm -f "$RUN_FLAG"
+            echo "Stopping PowerControl..."
+        else
+            echo "PowerControl is not running."
+        fi
+        ;;
+    settemp)
+        if [ -z "$2" ]; then
+            echo "Usage: $0 settemp <temp_in_Kelvin>"
+            exit 1
+        fi
+        set_temp_threshold "$2"
+        ;;
+    no_turbo)
+        if [ -z "$2" ]; then
+            echo "Usage: $0 no_turbo {0|1}"
+            exit 1
+        fi
+        set_no_turbo "$2"
+        ;;
+    "")
+        show_status
+        ;;
+    *)
+        echo "Usage: $0 {start|stop|settemp|no_turbo}"
+        exit 1
+        ;;
+esac
