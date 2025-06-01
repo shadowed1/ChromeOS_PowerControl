@@ -24,6 +24,10 @@ echo " /usr/local/bin/ChromeOS_PowerControl/no_turbo.conf downloaded."
 sudo chmod +x /usr/local/bin/ChromeOS_PowerControl/powercontrol
 sudo chmod +x /usr/local/bin/ChromeOS_PowerControl/batterycontrol
 sudo chmod +x /usr/local/bin/ChromeOS_PowerControl/Uninstall_ChromeOS_PowerControl.sh
+sudo touch /usr/local/bin/ChromeOS_BatteryControl/.batterycontrol_enabled
+sudo touch /usr/local/bin/ChromeOS_BatteryControl/.powercontrol_enabled
+
+
 
 # Use the invoking user's home directory, which should be /home/chronos
 USER_HOME="/home/chronos"
