@@ -9,46 +9,58 @@ echo "Choose an option:"
 echo "0: Quit"
 echo "1: Remove no_turbo.conf from /etc/init"
 echo "2: Remove batterycontrol.conf from /etc/init"
-echo "3: Full Uninstall (remove all files and symlinks)"
+echo "3: Full Uninstall (remove all files, symlinks, and user config)"
 
 read -rp "Enter (0-3): " choice
+
+remove_file_with_message() {
+    local file="$1"
+    if [ -f "$file" ]; then
+        sudo rm "$file" && echo "Removed: $file"
+    elif [ -L "$file" ]; then
+        sudo rm "$file" && echo "Removed symlink: $file"
+    else
+        echo "Not found: $file"
+    fi
+}
 
 case "$choice" in
     0)
         echo "Uninstall canceled."
         ;;
     1)
-        if [ -f /etc/init/no_turbo.conf ]; then
-            sudo rm /etc/init/no_turbo.conf && echo "Removed: /etc/init/no_turbo.conf"
-        else
-            echo "Not found: /etc/init/no_turbo.conf"
-        fi
+        remove_file_with_message /etc/init/no_turbo.conf
         ;;
     2)
-        if [ -f /etc/init/batterycontrol.conf ]; then
-            sudo rm /etc/init/batterycontrol.conf && echo "Removed: /etc/init/batterycontrol.conf"
-        else
-            echo "Not found: /etc/init/batterycontrol.conf"
-        fi
+        remove_file_with_message /etc/init/batterycontrol.conf
         ;;
     3)
         # Stop services
         sudo initctl stop no_turbo 2>/dev/null
         sudo initctl stop batterycontrol 2>/dev/null
 
-        # Remove init configs
-        sudo rm -f /etc/init/no_turbo.conf
-        sudo rm -f /etc/init/batterycontrol.conf
+        echo "Stopping background services..."
 
-        # Remove symlink if exists
-        if [ -L /usr/local/bin/batterycontrol ]; then
-            sudo rm /usr/local/bin/batterycontrol && echo "Removed symlink: /usr/local/bin/batterycontrol"
-        fi
+        # System files
+        echo "Removing system files..."
+        remove_file_with_message /etc/init/no_turbo.conf
+        remove_file_with_message /etc/init/batterycontrol.conf
 
-        # Remove script directory
+        # Symlink
+        echo "Removing symlink..."
+        remove_file_with_message /usr/local/bin/batterycontrol
+
+        # Script directory
         if [ -d /usr/local/bin/ChromeOS_BatteryControl ]; then
             sudo rm -rf /usr/local/bin/ChromeOS_BatteryControl && echo "Removed: /usr/local/bin/ChromeOS_BatteryControl"
+        else
+            echo "Not found: /usr/local/bin/ChromeOS_BatteryControl"
         fi
+
+        # User config and state
+        echo "Removing user config files..."
+        remove_file_with_message "$HOME/.batterycontrol_config"
+        remove_file_with_message "$HOME/.batterycontrol_enabled"
 
         echo "Full uninstall complete."
         ;;
