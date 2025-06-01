@@ -62,14 +62,15 @@ show_help() {
     echo "Battery Control Script - Available Commands:"
     echo
     echo "  help"
-    echo "    Show this help message."
+    echo "    Blank command will activate batterycontrol"
+    echo "    Example: sudo batterycontrol"
     echo
     echo "  set <MAX> <MIN>"
     echo "    Set battery charge thresholds. Max and Min."
     echo "    Example: sudo batterycontrol set 80 75"
     echo
     echo "  toggle [on|off]"
-    echo "    Enable or disable the control loop."
+    echo "    Enable or disable."
     echo "    Example: sudo batterycontrol toggle on"
     echo
     echo "  no_turbo [1|0]"
@@ -119,7 +120,6 @@ case "$1" in
         exit 0
         ;;
     "")
-        # No argument given, continue to monitoring loop below
         ;;
     *)
         echo "Unknown command: $1"
@@ -131,7 +131,7 @@ esac
 # Load config and begin monitoring loop ONLY if no command was given
 load_config
 
-echo "Starting battery control monitoring loop. Press Ctrl+C to exit."
+echo "Starting battery control monitoring. Open a new tab to keep this running."
 
 while true; do
     if [ ! -f "$RUN_FLAG" ]; then
