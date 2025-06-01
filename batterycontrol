@@ -202,7 +202,7 @@ case "$1" in
             echo "$2" | sudo tee "$PERF_PATH" > /dev/null
             echo "max_perf_pct set to $2%"
         else
-            echo "Error: Cannot write to $PERF_PATH. Are you running with sudo?"
+            echo "Permission denied or Cannot write to $PERF_PATH."
             exit 1
         fi
         ;;
