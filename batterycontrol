@@ -4,9 +4,8 @@ CONFIG_FILE="$HOME/.batterycontrol_config"
 CHARGER_PATH="/sys/class/power_supply/CROS_USBPD_CHARGER0/online"
 BATTERY_PATH="/sys/class/power_supply/BAT0/capacity"
 RUN_FLAG="$HOME/.batterycontrol_enabled"
+PID_FILE="$HOME/.batterycontrol_pid"
 TURBO_PATH="/sys/devices/system/cpu/intel_pstate/no_turbo"
-
-# ChromeOS reports slightly higher values than what is displayed. 
 
 DEFAULT_CHARGE_MAX=77
 DEFAULT_CHARGE_MIN=74
@@ -51,28 +50,13 @@ set_thresholds() {
 show_help() {
     echo "Battery Control Script - Available Commands:"
     echo
-    echo "  help"
-    echo "    Show this help message."
-    echo
-    echo "  set <MAX> <MIN>"
-    echo "    Set battery charge thresholds. Max and Min."
-    echo "    Example: sudo batterycontrol set 80 75"
-    echo
-    echo "  start"
-    echo "    Start BatteryControl monitoring."
-    echo
-    echo "  stop"
-    echo "    Disable BatteryControl monitoring."
-    echo
-    echo "  no_turbo [1|0]"
-    echo "    Toggle Intel Turbo Boost (1=disable, 0=enable)."
-    echo "    Example: sudo batterycontrol no_turbo 1"
-    echo
-    echo "  uninstall"
-    echo "    Launch the uninstaller for ChromeOS_BatteryControl."
-    echo
-    echo "  status"
-    echo "    Show BatteryControl status."
+    echo "  help            Show this help message."
+    echo "  set <MAX> <MIN> Set battery charge thresholds."
+    echo "  start           Start BatteryControl monitoring."
+    echo "  stop            Stop BatteryControl monitoring."
+    echo "  status          Show BatteryControl status."
+    echo "  no_turbo [1|0]  Toggle Intel Turbo Boost."
+    echo "  uninstall       Run the uninstaller script."
     echo
 }
 
@@ -80,7 +64,16 @@ show_status() {
     echo "BatteryControl Status:"
 
     if [ -f "$RUN_FLAG" ]; then
-        echo "  BatteryControl is: ENABLED"
+        if [ -f "$PID_FILE" ]; then
+            PID=$(cat "$PID_FILE")
+            if ps -p "$PID" > /dev/null 2>&1; then
+                echo "  BatteryControl is: ENABLED (running, PID $PID)"
+            else
+                echo "  BatteryControl is: ENABLED (but process is NOT running)"
+            fi
+        else
+            echo "  BatteryControl is: ENABLED (PID not found)"
+        fi
     else
         echo "  BatteryControl is: DISABLED"
     fi
@@ -101,54 +94,77 @@ show_status() {
     fi
 }
 
+start_monitoring_loop() {
+    touch "$RUN_FLAG"
+    load_config
+    echo $$ > "$PID_FILE"
+
+    echo "BatteryControl monitoring started (PID $$)."
+
+    while true; do
+        if [ ! -f "$RUN_FLAG" ]; then
+            echo "BatteryControl disabled, exiting monitoring loop."
+            rm -f "$PID_FILE"
+            exit 0
+        fi
+
+        if [ -f "$BATTERY_PATH" ]; then
+            CHARGE=$(cat "$BATTERY_PATH" 2>/dev/null)
+        else
+            sleep 120
+            continue
+        fi
+
+        if [ -f "$CHARGER_PATH" ]; then
+            AC_ON=$(cat "$CHARGER_PATH" 2>/dev/null)
+        else
+            sleep 120
+            continue
+        fi
+
+        if [ "$AC_ON" -eq 1 ]; then
+            if [ "$CHARGE" -ge "$CHARGE_MAX" ]; then
+                sudo ectool chargecontrol idle >/dev/null 2>&1
+            elif [ "$CHARGE" -le "$CHARGE_MIN" ]; then
+                sudo ectool chargecontrol normal >/dev/null 2>&1
+            fi
+        else
+            sudo ectool chargecontrol normal >/dev/null 2>&1
+        fi
+
+        sleep 120
+    done
+}
+
+stop_monitoring() {
+    if [ -f "$PID_FILE" ]; then
+        PID=$(cat "$PID_FILE")
+        if ps -p "$PID" > /dev/null 2>&1; then
+            kill "$PID"
+            echo "Stopped BatteryControl process (PID $PID)."
+        fi
+        rm -f "$PID_FILE"
+    fi
+    rm -f "$RUN_FLAG"
+    echo "BatteryControl disabled."
+}
+
 case "$1" in
     set)
         set_thresholds "$2" "$3"
-        exit 0
         ;;
     start)
-        touch "$RUN_FLAG"
-        echo "BatteryControl enabled."
-        echo "Starting BatteryControl monitoring. Keep this program running or else monitoring will stop."
-        load_config
-        while true; do
-            if [ ! -f "$RUN_FLAG" ]; then
-                echo "BatteryControl disabled, exiting monitoring loop."
-                exit 0
-            fi
-
-            if [ -f "$BATTERY_PATH" ]; then
-                CHARGE=$(cat "$BATTERY_PATH" 2>/dev/null)
-            else
-                sleep 120
-                continue
-            fi
-
-            if [ -f "$CHARGER_PATH" ]; then
-                AC_ON=$(cat "$CHARGER_PATH" 2>/dev/null)
-            else
-                sleep 120
-                continue
-            fi
-
-            if [ "$AC_ON" -eq 1 ]; then
-                if [ "$CHARGE" -ge "$CHARGE_MAX" ]; then
-                    sudo ectool chargecontrol idle >/dev/null 2>&1
-                elif [ "$CHARGE" -le "$CHARGE_MIN" ]; then
-                    sudo ectool chargecontrol normal >/dev/null 2>&1
-                fi
-            else
-                sudo ectool chargecontrol normal >/dev/null 2>&1
-            fi
-
-            sleep 120
-        done
+        if [ -f "$RUN_FLAG" ]; then
+            echo "BatteryControl is already running."
+            exit 0
+        fi
+        start_monitoring_loop
         ;;
     stop)
-        rm -f "$RUN_FLAG"
-        echo "BatteryControl disabled."
-        echo "BatteryControl monitoring loop will stop shortly."
-        exit 0
+        stop_monitoring
+        ;;
+    status)
+        show_status
         ;;
     no_turbo)
         if [[ "$2" != "0" && "$2" != "1" ]]; then
@@ -162,7 +178,6 @@ case "$1" in
             echo "Permission denied or Turbo Boost control not available."
             exit 1
         fi
-        exit 0
         ;;
     uninstall)
         if [ -x "/usr/local/bin/ChromeOS_BatteryControl/Uninstall_ChromeOS_BatteryControl.sh" ]; then
@@ -171,20 +186,13 @@ case "$1" in
             echo "Uninstall script not found or not executable."
             exit 1
         fi
-        exit 0
         ;;
     help | --help | -h)
         show_help
-        exit 0
-        ;;
-    status)
-        show_status
-        exit 0
         ;;
     "")
         show_status
         echo "Run 'batterycontrol start' to enable monitoring, or 'batterycontrol stop' to disable."
-        exit 0
         ;;
     *)
         echo "Unknown command: $1"
