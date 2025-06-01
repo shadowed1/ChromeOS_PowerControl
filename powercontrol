@@ -1,8 +1,10 @@
 #!/bin/bash
 
-CONFIG_FILE="$HOME/.powercontrol_config"
-RUN_FLAG="$HOME/.powercontrol_enabled"
-PID_FILE="$HOME/.powercontrol_pid"
+# Set the configuration and flag files in the user's home directory
+USER_HOME="/home/chronos"
+CONFIG_FILE="$USER_HOME/.powercontrol_config"
+RUN_FLAG="$USER_HOME/.powercontrol_enabled"
+PID_FILE="$USER_HOME/.powercontrol_pid"
 PERF_PATH="/sys/devices/system/cpu/intel_pstate/max_perf_pct"
 TURBO_PATH="/sys/devices/system/cpu/intel_pstate/no_turbo"
 TEMP_SENSOR_ID=2
@@ -14,6 +16,7 @@ MAX_TEMP_LIMIT_K=363
 MAX_TEMP_K=
 MAX_PERF_PCT=
 
+# Load configuration or create a new one if it doesn't exist
 load_config() {
     if [ -f "$CONFIG_FILE" ]; then
         source "$CONFIG_FILE"
@@ -24,24 +27,23 @@ load_config() {
     fi
 }
 
+# Save current configuration to the user's home directory
 save_config() {
     echo "MAX_TEMP_K=$MAX_TEMP_K" > "$CONFIG_FILE"
     echo "MAX_PERF_PCT=$MAX_PERF_PCT" >> "$CONFIG_FILE"
 }
 
+# Get the current temperature from the sensor
 get_temp_kelvin() {
-    # Ensure a valid response from ectool
     temp_k=$(ectool temps "$TEMP_SENSOR_ID" 2>/dev/null | grep ' K' | head -n1 | sed -n 's/.* \([0-9]\+\) K.*/\1/p')
-    
-    # Check if the temperature was successfully read
     if ! [[ "$temp_k" =~ ^[0-9]+$ ]]; then
         echo "Failed to read temperature sensor $TEMP_SENSOR_ID."
         return 1
     fi
-
     echo "$temp_k"
 }
 
+# Set the max performance percentage
 set_max_perf_pct() {
     local pct=$1
     if [ -w "$PERF_PATH" ]; then
@@ -52,9 +54,10 @@ set_max_perf_pct() {
     fi
 }
 
+# Set the maximum temperature threshold
 set_temp_threshold() {
     if ! [[ "$1" =~ ^[0-9]+$ ]]; then
-        echo "Error: Temperature threshold must be an integer ()."
+        echo "Error: Temperature threshold must be an integer."
         exit 1
     fi
     if (( $1 > MAX_TEMP_LIMIT_K )); then
@@ -66,6 +69,7 @@ set_temp_threshold() {
     echo "Max temperature threshold set to $MAX_TEMP_K K"
 }
 
+# Enable or disable turbo boost
 set_no_turbo() {
     local value="$1"
     if [[ "$value" != "0" && "$value" != "1" ]]; then
@@ -87,6 +91,7 @@ set_no_turbo() {
     fi
 }
 
+# Start the monitoring loop
 start_monitoring_loop() {
     if [ -f "$RUN_FLAG" ]; then
         echo "PowerControl is already running."
@@ -141,6 +146,7 @@ start_monitoring_loop() {
     rm -f "$PID_FILE"
 }
 
+# Show the current status of the system
 show_status() {
     echo "PowerControl Status:"
     if [ -f "$RUN_FLAG" ]; then
@@ -174,6 +180,7 @@ show_status() {
     ectool temps "$TEMP_SENSOR_ID" 2>/dev/null || echo "Failed to read ectool temps"
 }
 
+# Uninstall the PowerControl script
 uninstall_script() {
     local script="/usr/local/bin/ChromeOS_PowerControl/Uninstall_ChromeOS_PowerControl.sh"
     if [ -x "$script" ]; then
@@ -184,6 +191,7 @@ uninstall_script() {
     fi
 }
 
+# Main command handling
 case "$1" in
     start)
         start_monitoring_loop
