@@ -2,9 +2,7 @@
 
 # Create the necessary directory for installation
 sudo mkdir -p /usr/local/bin/ChromeOS_PowerControl
-echo "Enabling sudo in crosh or run in VT-2 is required!"
-
-# Download required files
+echo "Enabling sudo in crosh or run in VT-2 is required for this to download successfully."
 curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/powercontrol -o /usr/local/bin/ChromeOS_PowerControl/powercontrol
 echo " /usr/local/bin/ChromeOS_PowerControl/powercontrol downloaded."
 
@@ -23,7 +21,6 @@ echo " /usr/local/bin/ChromeOS_PowerControl/README.md downloaded."
 curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/no_turbo.conf -o /usr/local/bin/ChromeOS_PowerControl/no_turbo.conf
 echo " /usr/local/bin/ChromeOS_PowerControl/no_turbo.conf downloaded."
 
-# Set execute permissions on downloaded files
 sudo chmod +x /usr/local/bin/ChromeOS_PowerControl/powercontrol
 sudo chmod +x /usr/local/bin/ChromeOS_PowerControl/batterycontrol
 sudo chmod +x /usr/local/bin/ChromeOS_PowerControl/Uninstall_ChromeOS_PowerControl.sh
@@ -32,8 +29,8 @@ sudo chmod +x /usr/local/bin/ChromeOS_PowerControl/Uninstall_ChromeOS_PowerContr
 USER_HOME="/home/chronos"
 
 # Battery control files location
-BATTERY_CONFIG="$USER_HOME/.batterycontrol_config"
-BATTERY_RUN_FLAG="$USER_HOME/.batterycontrol_enabled"
+BATTERY_CONFIG="/usr/local/bin/ChromeOS_PowerControl/.batterycontrol_config"
+BATTERY_RUN_FLAG="/usr/local/bin/ChromeOS_PowerControl/.batterycontrol_enabled"
 
 # Create battery control config if not already present
 if [ ! -f "$BATTERY_CONFIG" ]; then
@@ -51,8 +48,8 @@ if [ ! -f "$BATTERY_RUN_FLAG" ]; then
 fi
 
 # Power control files location
-POWER_CONFIG="$USER_HOME/.powercontrol_config"
-POWER_RUN_FLAG="$USER_HOME/.powercontrol_enabled"
+POWER_CONFIG="/usr/local/bin/ChromeOS_PowerControl/.powercontrol_config"
+POWER_RUN_FLAG="/usr/local/bin/ChromeOS_PowerControl/.powercontrol_enabled"
 
 # Create power control config if not already present
 if [ ! -f "$POWER_CONFIG" ]; then
@@ -103,3 +100,6 @@ if [[ "$link_cmd" =~ ^[Yy]$ ]]; then
 else
     echo "Skipped creating global command."
 fi
+
+# Final message
+echo "Installation complete. Please check your configuration files in /usr/local/bin/ChromeOS_PowerControl/."
