@@ -118,7 +118,6 @@ set_no_turbo() {
     fi
 }
 
-# Start the monitoring loop
 start_monitoring_loop() {
     if [ -f "$RUN_FLAG" ]; then
         echo "PowerControl is already running."
@@ -134,12 +133,17 @@ start_monitoring_loop() {
     throttled=0
 
     while [ -f "$RUN_FLAG" ]; do
+        # Get the current CPU temperature in Kelvin
         temp_k=$(get_temp_kelvin)
+        
+        # If temperature couldn't be fetched, continue to retry
         if [ $? -ne 0 ]; then
+            echo "Error fetching temperature. Retrying..."
             sleep 1
             continue
         fi
 
+        # Check if the temperature threshold is 0 (no temp limit)
         if (( MAX_TEMP_K <= 0 )); then
             current_pct=$(cat "$PERF_PATH" 2>/dev/null || echo "0")
             if [[ "$current_pct" != "$MAX_PERF_PCT" ]]; then
@@ -148,15 +152,20 @@ start_monitoring_loop() {
             fi
             throttled=0
         else
+            # Define the threshold where performance will be restored
             restore_temp_k=$(( MAX_TEMP_K - 5 ))
+
+            # Get current performance percentage
             current_pct=$(cat "$PERF_PATH" 2>/dev/null || echo "0")
 
+            # Throttling check: If the temperature exceeds max threshold
             if (( temp_k >= MAX_TEMP_K )); then
                 if (( throttled == 0 || current_pct != 50 )); then
                     echo "Temperature $temp_k K >= max threshold $MAX_TEMP_K K -> Throttling CPU (50%)"
                     set_max_perf_pct 50
                     throttled=1
                 fi
+            # Restoring performance when the temperature drops below restore threshold
             elif (( temp_k <= restore_temp_k )); then
                 if (( throttled == 1 || current_pct != MAX_PERF_PCT )); then
                     echo "Temperature $temp_k K <= restore threshold $restore_temp_k K -> Restoring max_perf_pct to $MAX_PERF_PCT%"
@@ -166,12 +175,14 @@ start_monitoring_loop() {
             fi
         fi
 
+        # Sleep for a second before checking the temperature again
         sleep 1
     done
 
     echo "PowerControl stopped."
     rm -f "$PID_FILE"
 }
+
 
 # Show the current status of the system
 show_status() {
@@ -217,9 +228,6 @@ uninstall_script() {
         exit 1
     fi
 }
-
-# Trap the SIGINT (Ctrl+C) and SIGTERM signals to ensure cleanup
-trap 'rm -f "$RUN_FLAG" "$PID_FILE"; echo "PowerControl stopped (via Ctrl+C)."' SIGINT SIGTERM
 
 # Main command handling
 case "$1" in
