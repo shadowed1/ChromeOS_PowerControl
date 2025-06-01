@@ -1,12 +1,13 @@
 #!/bin/bash
 
-# Define paths using the user's home directory
+# Define paths using the new install folder
+INSTALL_DIR="/usr/local/bin/ChromeOS_BatteryControl"
 USER_HOME="/home/chronos"
-CONFIG_FILE="$USER_HOME/.batterycontrol_config"
+CONFIG_FILE="$INSTALL_DIR/.batterycontrol_config"
 CHARGER_PATH="/sys/class/power_supply/CROS_USBPD_CHARGER0/online"
 BATTERY_PATH="/sys/class/power_supply/BAT0/capacity"
-RUN_FLAG="$USER_HOME/.batterycontrol_enabled"
-PID_FILE="$USER_HOME/.batterycontrol_pid"
+RUN_FLAG="$INSTALL_DIR/.batterycontrol_enabled"
+PID_FILE="$INSTALL_DIR/.batterycontrol_pid"
 
 DEFAULT_CHARGE_MAX=77
 DEFAULT_CHARGE_MIN=74
@@ -14,7 +15,7 @@ DEFAULT_CHARGE_MIN=74
 CHARGE_MAX=
 CHARGE_MIN=
 
-# Load the configuration from the user's home directory
+# Load the configuration from the install directory
 load_config() {
     if [ -f "$CONFIG_FILE" ]; then
         source "$CONFIG_FILE"
@@ -24,7 +25,7 @@ load_config() {
     fi
 }
 
-# Save the configuration to the user's home directory
+# Save the configuration to the install directory
 save_config() {
     echo "CHARGE_MAX=$CHARGE_MAX" > "$CONFIG_FILE"
     echo "CHARGE_MIN=$CHARGE_MIN" >> "$CONFIG_FILE"
@@ -166,8 +167,8 @@ case "$1" in
         show_status
         ;;
     uninstall)
-        if [ -x "/usr/local/bin/ChromeOS_BatteryControl/Uninstall_ChromeOS_BatteryControl.sh" ]; then
-            sudo bash /usr/local/bin/ChromeOS_BatteryControl/Uninstall_ChromeOS_BatteryControl.sh
+        if [ -x "$INSTALL_DIR/Uninstall_ChromeOS_BatteryControl.sh" ]; then
+            sudo bash "$INSTALL_DIR/Uninstall_ChromeOS_BatteryControl.sh"
         else
             echo "Uninstall script not found or not executable."
             exit 1
