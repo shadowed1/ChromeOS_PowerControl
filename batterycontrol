@@ -60,7 +60,6 @@ show_help() {
 
 show_status() {
     echo "BatteryControl Status:"
-
     if [ -f "$RUN_FLAG" ]; then
         if [ -f "$PID_FILE" ]; then
             PID=$(cat "$PID_FILE")
@@ -166,6 +165,10 @@ case "$1" in
         ;;
     "")
         show_status
+        echo
+        echo "=== ectool battery ==="
+        ectool battery 2>/dev/null || echo "Failed to run ectool battery (is ectool installed and available?)"
+        echo
         echo "Run 'batterycontrol start' to enable monitoring, or 'batterycontrol stop' to disable."
         ;;
     *)
