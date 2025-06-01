@@ -4,7 +4,6 @@ CONFIG_FILE="$HOME/.powercontrol_config"
 RUN_FLAG="$HOME/.powercontrol_enabled"
 PID_FILE="$HOME/.powercontrol_pid"
 PERF_PATH="/sys/devices/system/cpu/intel_pstate/max_perf_pct"
-TEMP_SENSOR_ID=2
 
 DEFAULT_MAX_TEMP_K=358
 DEFAULT_MAX_PERF_PCT=80
@@ -29,8 +28,7 @@ save_config() {
 }
 
 get_temp_kelvin() {
-    ectool temps $TEMP_SENSOR_ID 2>/dev/null | grep -oP '[0-9]+(?= K)' | head -n 1
-
+    ectool temps 2 2>/dev/null | grep -oP '[0-9]+(?= K)' | head -n 1
 }
 
 set_max_perf_pct() {
@@ -74,7 +72,7 @@ start_monitoring_loop() {
     while [ -f "$RUN_FLAG" ]; do
         temp_k=$(get_temp_kelvin)
         if ! [[ "$temp_k" =~ ^[0-9]+$ ]]; then
-            echo "Failed to read temperature sensor $TEMP_SENSOR_ID."
+            echo "Failed to read temperature sensor."
             sleep 1
             continue
         fi
@@ -112,27 +110,20 @@ start_monitoring_loop() {
     rm -f "$PID_FILE"
 }
 
-case "$1" in
-    start)
-        start_monitoring_loop
-        ;;
-    stop)
-        if [ -f "$RUN_FLAG" ]; then
-            rm -f "$RUN_FLAG"
-            echo "Stopping PowerControl..."
-        else
-            echo "PowerControl is not running."
-        fi
-        ;;
-    settemp)
-        if [ -z "$2" ]; then
-            echo "Usage: $0 settemp <temp_in_Kelvin>"
-            exit 1
-        fi
-        set_temp_threshold "$2"
-        ;;
-    *)
-        echo "Usage: $0 {start|stop|settemp}"
-        exit 1
-        ;;
-esac
+show_status() {
+    echo "PowerControl Status:"
+    if [ -f "$RUN_FLAG" ]; then
+        echo "  Status: ENABLED"
+    else
+        echo "  Status: DISABLED"
+    fi
+
+    load_config
+    echo "  Configured max temperature: $MAX_TEMP_K K"
+    echo "  Configured max_perf_pct: $MAX_PERF_PCT%"
+
+    if [ -f "$PERF_PATH" ]; then
+        current_pct=$(cat "$PERF_PATH")
+        echo "  Current max_perf_pct: $current_pct%"
+    else
+        echo "  max_perf_pc
