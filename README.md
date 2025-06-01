@@ -1,7 +1,7 @@
 # **ChromeOS Battery Control**
 ## Requires Developer Mode. 
 
-### - Customize battery charging limit to preference instead of relying on Adaptive Charging and Policies.
+### - Customize battery charging limit to preference instead of relying on Adaptive Charging to maximize battery longevity. 
 ### - Features global commands and can optionally allow BatteryControl + disabling Intel Turbo Boost to boot automatically.
 
 ### __How to Install:__
@@ -30,6 +30,12 @@ __Commands:__
 - `sudo batterycontrol uninstall`
 - Alternative uninstall method: `sudo /usr/local/bin/ChromeOS_BatteryControl/Uninstall_ChromeOS_BatteryControl.sh`
 
+__How It Works:__
+
+- Uses ectool's chargecontrol to toggle between normal or idle.
+- Check's CROS_USBPD_CHARGER0/online to see if it is plugged in or not
+- Check's BAT0/capacity to measure when to control chargecontrol.
+- Due to an ectool limitation, batterycontrol will require keeping the terminal active.
 
 __Bonus:__
 
