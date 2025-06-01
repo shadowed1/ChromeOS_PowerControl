@@ -1,3 +1,7 @@
+#!/bin/bash
+
+INSTALL_DIR="/usr/local/bin/ChromeOS_PowerControl"
+
 echo "0: Quit"
 echo "1: Remove no_turbo.conf from /etc/init"
 echo "2: Full Uninstall (remove all files, symlinks, and user config for powercontrol & batterycontrol)"
@@ -30,23 +34,23 @@ case "$choice" in
         remove_file_with_message /etc/init/no_turbo.conf
 
         echo "Removing installer..."
-        remove_file_with_message /usr/local/bin/ChromeOS_PowerControl_Installer.sh
+        remove_file_with_message "$INSTALL_DIR/ChromeOS_PowerControl_Installer.sh"
 
         echo "Removing symlinks..."
-        remove_file_with_message /usr/local/bin/ChromeOS_PowerControl/powercontrol
-        remove_file_with_message /usr/local/bin/ChromeOS_PowerControl/batterycontrol
+        remove_file_with_message "$INSTALL_DIR/powercontrol"
+        remove_file_with_message "$INSTALL_DIR/batterycontrol"
 
-        if [ -d /usr/local/bin/ChromeOS_PowerControl ]; then
-            sudo rm -rf /usr/local/bin/ChromeOS_PowerControl && echo "Removed: /usr/local/bin/ChromeOS_PowerControl"
+        if [ -d "$INSTALL_DIR" ]; then
+            sudo rm -rf "$INSTALL_DIR" && echo "Removed: $INSTALL_DIR"
         else
-            echo "Not found: /usr/local/bin/ChromeOS_PowerControl"
+            echo "Not found: $INSTALL_DIR"
         fi
 
         echo "Removing user config files..."
-        remove_file_with_message "$HOME/.powercontrol_config"
-        remove_file_with_message "$HOME/.powercontrol_enabled"
-        remove_file_with_message "$HOME/.batterycontrol_config"
-        remove_file_with_message "$HOME/.batterycontrol_enabled"
+        remove_file_with_message "$INSTALL_DIR/.powercontrol_config"
+        remove_file_with_message "$INSTALL_DIR/.powercontrol_enabled"
+        remove_file_with_message "$INSTALL_DIR/.batterycontrol_config"
+        remove_file_with_message "$INSTALL_DIR/.batterycontrol_enabled"
 
         echo "Full uninstall complete."
         ;;
