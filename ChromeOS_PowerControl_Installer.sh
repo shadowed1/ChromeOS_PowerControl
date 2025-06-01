@@ -25,9 +25,11 @@ sudo chmod +x /usr/local/bin/ChromeOS_PowerControl/powercontrol
 sudo chmod +x /usr/local/bin/ChromeOS_PowerControl/batterycontrol
 sudo chmod +x /usr/local/bin/ChromeOS_PowerControl/Uninstall_ChromeOS_PowerControl.sh
 
-# BatteryControl config and RUN_FLAG
-BATTERY_CONFIG="$HOME/.batterycontrol_config"
-BATTERY_RUN_FLAG="$HOME/.batterycontrol_enabled"
+# Use the invoking user's home directory, even when running with sudo
+USER_HOME=$(eval echo "~$SUDO_USER")
+
+BATTERY_CONFIG="$USER_HOME/.batterycontrol_config"
+BATTERY_RUN_FLAG="$USER_HOME/.batterycontrol_enabled"
 
 if [ ! -f "$BATTERY_CONFIG" ]; then
     echo "CHARGE_MAX=77" > "$BATTERY_CONFIG"
@@ -37,15 +39,13 @@ else
     echo "BatteryControl config file already exists at $BATTERY_CONFIG"
 fi
 
-# Create RUN_FLAG for BatteryControl
 if [ ! -f "$BATTERY_RUN_FLAG" ]; then
     touch "$BATTERY_RUN_FLAG"
     echo "BatteryControl enabled flag created at $BATTERY_RUN_FLAG"
 fi
 
-# PowerControl config and RUN_FLAG
-POWER_CONFIG="$HOME/.powercontrol_config"
-POWER_RUN_FLAG="$HOME/.powercontrol_enabled"
+POWER_CONFIG="$USER_HOME/.powercontrol_config"
+POWER_RUN_FLAG="$USER_HOME/.powercontrol_enabled"
 
 if [ ! -f "$POWER_CONFIG" ]; then
     echo "MAX_TEMP_K=358" > "$POWER_CONFIG"    # 85°C in Kelvin
@@ -55,7 +55,6 @@ else
     echo "PowerControl config file already exists at $POWER_CONFIG"
 fi
 
-# Create RUN_FLAG for PowerControl
 if [ ! -f "$POWER_RUN_FLAG" ]; then
     touch "$POWER_RUN_FLAG"
     echo "PowerControl enabled flag created at $POWER_RUN_FLAG"
