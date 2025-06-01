@@ -237,7 +237,6 @@ case "$1" in
     stop)
         if [ -f "$RUN_FLAG" ]; then
             rm -f "$RUN_FLAG"
-            echo "PowerControl disabled"
         else
             echo "PowerControl is not running."
         fi
