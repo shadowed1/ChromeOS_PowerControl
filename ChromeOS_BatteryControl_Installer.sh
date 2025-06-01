@@ -35,7 +35,7 @@ fi
 
 read -rp "Do you want to create a global command 'batterycontrol' for faster changes? (y/n): " link_cmd
 if [[ "$link_cmd" =~ ^[Yy]$ ]]; then
-    sudo ln -sf /usr/local/bin/ChromeOS_BatteryControl/batterycontrol /usr/local/bin/batterycontrol
+    sudo ln -sf /usr/local/bin/ChromeOS_BatteryControl/batterycontrol /usr/local/bin/ChromeOS_BatteryControl/batterycontrol
     echo "'batterycontrol' command is now available system-wide."
 else
     echo "Skipped creating global command."
