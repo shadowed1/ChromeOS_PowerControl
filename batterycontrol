@@ -4,8 +4,7 @@ CONFIG_FILE="$HOME/.batterycontrol_config"
 CHARGER_PATH="/sys/class/power_supply/CROS_USBPD_CHARGER0/online"
 BATTERY_PATH="/sys/class/power_supply/BAT0/capacity"
 RUN_FLAG="$HOME/.batterycontrol_enabled"
-
-# Expect ChromeOS to report slightly different values. 
+TURBO_PATH="/sys/devices/system/cpu/intel_pstate/no_turbo"
 
 DEFAULT_CHARGE_MAX=77
 DEFAULT_CHARGE_MIN=74
@@ -13,6 +12,7 @@ DEFAULT_CHARGE_MIN=74
 CHARGE_MAX=
 CHARGE_MIN=
 
+# --- Functions ---
 load_config() {
     if [ -f "$CONFIG_FILE" ]; then
         source "$CONFIG_FILE"
@@ -72,7 +72,7 @@ show_help() {
     echo "    Example: sudo batterycontrol set 80 75"
     echo
     echo "  toggle [on|off]"
-    echo "    Enable or disable."
+    echo "    Enable or disable ChromeOS_BatteryControl."
     echo "    Example: sudo batterycontrol toggle on"
     echo
     echo "  no_turbo [1|0]"
@@ -84,6 +84,32 @@ show_help() {
     echo
 }
 
+show_status() {
+    echo "BatteryControl Status:"
+
+    if [ -f "$RUN_FLAG" ]; then
+        echo "  BatteryControl is: ENABLED"
+    else
+        echo "  BatteryControl is: DISABLED"
+    fi
+
+    load_config
+    echo "  CHARGE_MAX: $CHARGE_MAX"
+    echo "  CHARGE_MIN: $CHARGE_MIN"
+
+    if [ -f "$TURBO_PATH" ]; then
+        TURBO_STATUS=$(cat "$TURBO_PATH")
+        if [ "$TURBO_STATUS" -eq 1 ]; then
+            echo "  Intel Turbo Boost: DISABLED (no_turbo = 1)"
+        else
+            echo "  Intel Turbo Boost: ENABLED (no_turbo = 0)"
+        fi
+    else
+        echo "  Intel Turbo Boost status: Not available"
+    fi
+}
+
+# --- Command dispatcher ---
 case "$1" in
     set)
         set_thresholds "$2" "$3"
@@ -98,8 +124,8 @@ case "$1" in
             echo "Usage: $0 no_turbo [1|0]"
             exit 1
         fi
-        if [ -w /sys/devices/system/cpu/intel_pstate/no_turbo ]; then
-            echo "$2" | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo > /dev/null
+        if [ -w "$TURBO_PATH" ]; then
+            echo "$2" | sudo tee "$TURBO_PATH" > /dev/null
             echo "Turbo Boost is now set to: $2"
         else
             echo "Permission denied or Turbo Boost control not available."
@@ -121,6 +147,15 @@ case "$1" in
         exit 0
         ;;
     "")
+        show_status
+        echo
+        read -rp "Do you want to start the BatteryControl monitor now? (y/n): " start_monitor
+        if [[ "$start_monitor" =~ ^[Yy]$ ]]; then
+            echo "Starting battery control monitoring loop..."
+        else
+            echo "Monitor not started. Exiting."
+            exit 0
+        fi
         ;;
     *)
         echo "Unknown command: $1"
@@ -129,9 +164,8 @@ case "$1" in
         ;;
 esac
 
+# Load config and begin monitoring loop ONLY if no command was given
 load_config
-
-echo "Starting battery control monitoring. Open a new tab to keep this running."
 
 while true; do
     if [ ! -f "$RUN_FLAG" ]; then
