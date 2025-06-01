@@ -47,9 +47,8 @@ __Bonus:__
 
  __Credits:__
 
-Thanks to WesBosch (Wisteria for helping me learn to make an installer:
-https://github.com/WesBosch
-
-Thanks to DennyL for showing me how to enable sudo on crosh which gave me a lot of ideas. 
+- Thanks to WesBosch for helping me learn to make an installer:
+  https://github.com/WesBosch
+- Thanks to DennyL for showing me how to enable sudo on crosh which gave me a lot of ideas. 
 
 
