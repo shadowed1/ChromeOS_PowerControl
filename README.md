@@ -9,28 +9,29 @@
 
 - Open crosh shell and run:
 
-`bash <(curl -s https://raw.githubusercontent.com/shadowed1/ChromeOS_BatteryControl/refs/heads/main/ChromeOS_BatteryControl_Downloader.sh)`
+`bash <(curl -s https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/ChromeOS_PowerControl_Installer.sh)`
 
-- The installer will be placed: `~/tmp/ChromeOS_BatteryControl/ChromeOS_BatteryControl_Installer.sh`
+- The installer will be placed: `~/tmp/ChromeOS_PowerControl/ChromeOS_PowerControl_Installer.sh`
 
 - In *VT-2* run:
 - 
-  `sudo mv ~/tmp/ChromeOS_BatteryControl/ChromeOS_BatteryControl_Installer.sh /usr/local/bin`
-- `sudo bash /usr/local/bin/ChromeOS_BatteryControl_Installer.sh`
+  `sudo mv ~/tmp/ChromeOS_PowerControl/ChromeOS_PowerControl_Installer.sh /usr/local/bin`
+- `sudo bash /usr/local/bin/ChromeOS_PowerControl_Installer.sh`
   
 - The installer will have options to choose from.
 
 __Commands:__
 - `Examples:`
-- `sudo batterycontrol start               # starts batterycontrolmonitoring`
-- `sudo batterycontrol stop                # stops batterycontrolmonitoring`
+- `sudo powercontrol no_turbo 1          # 0 is default Intel Turbo Boost On behavior.`
+- `sudo powercontrol max_perf_pct 75     # 10 - 100% of CPU clock speed range. More granular than no_turbo`
+- `sudo batterycontrol help`
+- `sudo batterycontrol start               # starts batterycontrol`
+- `sudo batterycontrol stop                # stops batterycontrol`
 - `sudo batterycontrol status              # shows status`
 - `sudo batterycontrol set 80 75           # 80 is when charging stops; 75 is when charging may begin`
-- `sudo batterycontrol no_turbo 1          # 0 is default Intel Turbo Boost On behavior.`
-- `sudo batterycontrol max_perf_pct 75     # 10 - 100% of CPU clock speed range. More granular than no_turbo`
 - `sudo batterycontrol help`
-- `sudo batterycontrol uninstall`
-- Alternative uninstall method: `sudo /usr/local/bin/ChromeOS_BatteryControl/Uninstall_ChromeOS_BatteryControl.sh`
+- `sudo powercontrol uninstall            # Contains options`
+- Alternative uninstall method: `sudo /usr/local/bin/ChromeOS_PowerControl/Uninstall_ChromeOS_PowerControl.sh`
 
 __How It Works:__
 
@@ -38,7 +39,7 @@ __How It Works:__
 - Check's CROS_USBPD_CHARGER0/online to see if it is plugged in or not
 - Check's BAT0/capacity to measure when to control chargecontrol.
 - Due to an ectool limitation, batterycontrol will require keeping the terminal active.
-- ChromeOS reports slightly higher values than what ChromeOS_BatteryControl sets the charge limit to. 
+- ChromeOS reports slightly higher values than what ChromeOS_PowerControl sets the charge limit to. 
 
 __Bonus:__
 
