@@ -5,8 +5,6 @@ CHARGER_PATH="/sys/class/power_supply/CROS_USBPD_CHARGER0/online"
 BATTERY_PATH="/sys/class/power_supply/BAT0/capacity"
 RUN_FLAG="$HOME/.batterycontrol_enabled"
 PID_FILE="$HOME/.batterycontrol_pid"
-TURBO_PATH="/sys/devices/system/cpu/intel_pstate/no_turbo"
-PERF_PATH="/sys/devices/system/cpu/intel_pstate/max_perf_pct"
 
 DEFAULT_CHARGE_MAX=77
 DEFAULT_CHARGE_MIN=74
@@ -56,8 +54,6 @@ show_help() {
     echo "  start              Start BatteryControl monitoring."
     echo "  stop               Stop BatteryControl monitoring."
     echo "  status             Show BatteryControl status."
-    echo "  no_turbo [1|0]     Toggle Intel Turbo Boost."
-    echo "  max_perf_pct <VAL> Set CPU max_perf_pct (performance cap 10–100%)."
     echo "  uninstall          Run the uninstaller script."
     echo
 }
@@ -83,24 +79,6 @@ show_status() {
     load_config
     echo "  CHARGE_MAX: $CHARGE_MAX"
     echo "  CHARGE_MIN: $CHARGE_MIN"
-
-    if [ -f "$TURBO_PATH" ]; then
-        TURBO_STATUS=$(cat "$TURBO_PATH")
-        if [ "$TURBO_STATUS" -eq 1 ]; then
-            echo "  Intel Turbo Boost: DISABLED (no_turbo = 1)"
-        else
-            echo "  Intel Turbo Boost: ENABLED (no_turbo = 0)"
-        fi
-    else
-        echo "  Intel Turbo Boost status: Not available"
-    fi
-
-    if [ -f "$PERF_PATH" ]; then
-        PERF_VAL=$(cat "$PERF_PATH")
-        echo "  max_perf_pct: $PERF_VAL%"
-    else
-        echo "  max_perf_pct status: Not available"
-    fi
 }
 
 start_monitoring_loop() {
@@ -174,37 +152,6 @@ case "$1" in
         ;;
     status)
         show_status
-        ;;
-    no_turbo)
-        if [[ "$2" != "0" && "$2" != "1" ]]; then
-            echo "Usage: $0 no_turbo [1|0]"
-            exit 1
-        fi
-        if [ -w "$TURBO_PATH" ]; then
-            echo "$2" | sudo tee "$TURBO_PATH" > /dev/null
-            echo "no_turbo is now set to: $2"
-        else
-            echo "Permission denied or Turbo Boost control not available."
-            exit 1
-        fi
-        ;;
-    max_perf_pct)
-        if ! [[ "$2" =~ ^[0-9]+$ ]]; then
-            echo "Error: Argument must be an integer between 10 and 100."
-            exit 1
-        fi
-        if [ "$2" -lt 10 ] || [ "$2" -gt 100 ]; then
-            echo "Error: Value must be between 10 and 100."
-            exit 1
-        fi
-
-        if [ -w "$PERF_PATH" ]; then
-            echo "$2" | sudo tee "$PERF_PATH" > /dev/null
-            echo "max_perf_pct set to $2%"
-        else
-            echo "Permission denied or Cannot write to $PERF_PATH."
-            exit 1
-        fi
         ;;
     uninstall)
         if [ -x "/usr/local/bin/ChromeOS_BatteryControl/Uninstall_ChromeOS_BatteryControl.sh" ]; then
