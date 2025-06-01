@@ -29,7 +29,8 @@ save_config() {
 }
 
 get_temp_kelvin() {
-    ectool temps $TEMP_SENSOR_ID 2>/dev/null | awk '/K/ {print $1}'
+    ectool temps $TEMP_SENSOR_ID 2>/dev/null | grep -oP '[0-9]+(?= K)' | head -n 1
+
 }
 
 set_max_perf_pct() {
