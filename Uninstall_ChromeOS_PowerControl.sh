@@ -1,6 +1,6 @@
 echo "0: Quit"
 echo "1: Remove no_turbo.conf from /etc/init"
-echo "2: Full Uninstall (remove all files, symlinks, and user config)"
+echo "2: Full Uninstall (remove all files, symlinks, and user config for powercontrol & batterycontrol)"
 
 read -rp "Enter (0-2): " choice
 
@@ -23,14 +23,18 @@ case "$choice" in
         remove_file_with_message /etc/init/no_turbo.conf
         ;;
     2)
-        sudo initctl stop no_turbo 2>/dev/null
         echo "Stopping background services..."
-        echo "Removing system files..."
-        remove_file_with_message /etc/init/no_turbo.conf
+        sudo initctl stop no_turbo 2>/dev/null
+
         echo "Removing startup files..."
+        remove_file_with_message /etc/init/no_turbo.conf
+
+        echo "Removing installer..."
         remove_file_with_message /usr/local/bin/ChromeOS_PowerControl_Installer.sh
-        echo "Removing symlink..."
-        remove_file_with_message /usr/local/bin/powercontrol
+
+        echo "Removing symlinks..."
+        remove_file_with_message /usr/local/bin/ChromeOS_PowerControl/powercontrol
+        remove_file_with_message /usr/local/bin/ChromeOS_PowerControl/batterycontrol
 
         if [ -d /usr/local/bin/ChromeOS_PowerControl ]; then
             sudo rm -rf /usr/local/bin/ChromeOS_PowerControl && echo "Removed: /usr/local/bin/ChromeOS_PowerControl"
@@ -41,6 +45,8 @@ case "$choice" in
         echo "Removing user config files..."
         remove_file_with_message "$HOME/.powercontrol_config"
         remove_file_with_message "$HOME/.powercontrol_enabled"
+        remove_file_with_message "$HOME/.batterycontrol_config"
+        remove_file_with_message "$HOME/.batterycontrol_enabled"
 
         echo "Full uninstall complete."
         ;;
