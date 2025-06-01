@@ -191,6 +191,9 @@ uninstall_script() {
     fi
 }
 
+# Trap the SIGINT (Ctrl+C) and SIGTERM signals to ensure cleanup
+trap 'rm -f "$RUN_FLAG" "$PID_FILE"; echo "PowerControl stopped (via Ctrl+C)."' SIGINT SIGTERM
+
 # Main command handling
 case "$1" in
     start)
