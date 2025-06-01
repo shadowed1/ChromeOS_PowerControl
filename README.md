@@ -15,7 +15,7 @@
 - In *VT-2* run:
 - 
   `sudo mv ~/tmp/ChromeOS_BatteryControl/ChromeOS_BatteryControl_Installer.sh /usr/local/bin`
-- `sudo bash /usr/local/bin/ChromeOS_BatteryControl_Installer.sh`\
+- `sudo bash /usr/local/bin/ChromeOS_BatteryControl_Installer.sh`
   
 - The installer will have options to choose from.
 
