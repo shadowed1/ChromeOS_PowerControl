@@ -22,15 +22,19 @@
 
 __Commands:__
 - `Examples:`
+- `sudo powercontrol start               # Throttle CPU based on temperature`
+- `sudo powercontrol stop                # Default CPU temperature curve`  
 - `sudo powercontrol no_turbo 1          # 0 is default Intel Turbo Boost On behavior.`
 - `sudo powercontrol max_perf_pct 75     # 10 - 100% of CPU clock speed range. More granular.`
 - `sudo batterycontrol help`
+- 
 - `sudo batterycontrol start               # starts batterycontrol`
 - `sudo batterycontrol stop                # stops batterycontrol`
 - `sudo batterycontrol status              # shows status`
 - `sudo batterycontrol set 80 75           # 80 is when charging stops; 75 is when charging may begin`
 - `sudo batterycontrol help`
-- `sudo powercontrol uninstall            # Contains options`
+-
+- `sudo powercontrol uninstall            # Global uninstaller`
 - Alternative uninstall method: `sudo /usr/local/bin/ChromeOS_PowerControl/Uninstall_ChromeOS_PowerControl.sh`
 
 __How It Works:__
