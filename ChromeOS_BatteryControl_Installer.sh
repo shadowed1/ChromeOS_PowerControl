@@ -31,6 +31,13 @@
     else
         echo "Turbo Boost will be enabled on restart."
     fi
+
+    read -rp "Do you want to disable Intel Turbo Boost now? (y/n): " run_no_turbo
+    if [[ "$run_no_turbo" =~ ^[Yy]$ ]]; then
+        echo 1 | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo > /dev/null
+    else
+        echo "Turbo Boost will remain enabled."
+    fi
     
     read -rp "Do you want to create a global command 'batterycontrol' for faster changes? (y/n): " link_cmd
     if [[ "$link_cmd" =~ ^[Yy]$ ]]; then
@@ -38,13 +45,6 @@
         echo "'batterycontrol' command is now available system-wide."
     else
         echo "Skipped creating global command."
-    fi
-    
-    read -rp "Do you want to disable Intel Turbo Boost now? (y/n): " run_no_turbo
-    if [[ "$run_no_turbo" =~ ^[Yy]$ ]]; then
-        echo 1 | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo > /dev/null
-    else
-        echo "Turbo Boost will remain enabled."
     fi
     
    read -rp "Do you want to run batterycontrol now? (y/n): " run_batterycontrol
