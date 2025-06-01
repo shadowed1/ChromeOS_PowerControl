@@ -51,7 +51,8 @@ fi
 
 read -rp "Do you want to run batterycontrol now? (y/n): " run_batterycontrol
 if [[ "$run_batterycontrol" =~ ^[Yy]$ ]]; then
-    sudo /usr/local/bin/ChromeOS_BatteryControl/batterycontrol nohup
+    sudo /usr/local/bin/ChromeOS_BatteryControl/batterycontrol &
+     echo "batterycontrol is Running! open a new tab to let this continue running in te background."
 else
     echo "You can run it later with: sudo /usr/local/bin/ChromeOS_BatteryControl/batterycontrol"
 fi
