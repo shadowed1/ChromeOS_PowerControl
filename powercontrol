@@ -7,7 +7,6 @@ RUN_FLAG="$INSTALL_DIR/.powercontrol_enabled"
 PID_FILE="$INSTALL_DIR/.powercontrol_pid"
 PERF_PATH="/sys/devices/system/cpu/intel_pstate/max_perf_pct"
 TURBO_PATH="/sys/devices/system/cpu/intel_pstate/no_turbo"
-TEMP_SENSOR_ID=2
 
 DEFAULT_MAX_TEMP_K=358
 DEFAULT_MAX_PERF_PCT=80
@@ -33,14 +32,42 @@ save_config() {
     echo "MAX_PERF_PCT=$MAX_PERF_PCT" >> "$CONFIG_FILE"
 }
 
-# Get the current temperature from the sensor
-get_temp_kelvin() {
-    temp_k=$(ectool temps "$TEMP_SENSOR_ID" 2>/dev/null | grep ' K' | head -n1 | sed -n 's/.* \([0-9]\+\) K.*/\1/p')
-    if ! [[ "$temp_k" =~ ^[0-9]+$ ]]; then
-        echo "Failed to read temperature sensor $TEMP_SENSOR_ID."
-        return 1
+#!/bin/bash
+
+INSTALL_DIR="/usr/local/bin/ChromeOS_PowerControl"
+USER_HOME="/home/chronos"
+CONFIG_FILE="$INSTALL_DIR/.powercontrol_config"
+RUN_FLAG="$INSTALL_DIR/.powercontrol_enabled"
+PID_FILE="$INSTALL_DIR/.powercontrol_pid"
+PERF_PATH="/sys/devices/system/cpu/intel_pstate/max_perf_pct"
+TURBO_PATH="/sys/devices/system/cpu/intel_pstate/no_turbo"
+
+DEFAULT_MAX_TEMP_K=358
+DEFAULT_MAX_PERF_PCT=80
+MAX_TEMP_LIMIT_K=363
+
+MAX_TEMP_K=
+MAX_PERF_PCT=
+
+# Load configuration or create a new one if it doesn't exist
+load_config() {
+    if [ -f "$CONFIG_FILE" ]; then
+        source "$CONFIG_FILE"
+    else
+        MAX_TEMP_K=$DEFAULT_MAX_TEMP_K
+        MAX_PERF_PCT=$DEFAULT_MAX_PERF_PCT
+        save_config
     fi
-    echo "$temp_k"
+}
+
+# Save current configuration to the install directory
+save_config() {
+    echo "MAX_TEMP_K=$MAX_TEMP_K" > "$CONFIG_FILE"
+    echo "MAX_PERF_PCT=$MAX_PERF_PCT" >> "$CONFIG_FILE"
+}
+
+get_temp_kelvin() {
+    ectool temps 2 2>/dev/null | grep ' K' | head -n1 | sed -n 's/.* \([0-9]\+\) K.*/\1/p'
 }
 
 # Set the max performance percentage
@@ -177,7 +204,197 @@ show_status() {
 
     echo
     echo "=== ectool temps output ==="
-    ectool temps "$TEMP_SENSOR_ID" 2>/dev/null || echo "Failed to read ectool temps"
+    ectool temps 2 2>/dev/null || echo "Failed to read ectool temps"
+}
+
+# Uninstall the PowerControl script
+uninstall_script() {
+    local script="$INSTALL_DIR/Uninstall_ChromeOS_PowerControl.sh"
+    if [ -x "$script" ]; then
+        sudo bash "$script"
+    else
+        echo "Uninstall script not found or not executable at: $script"
+        exit 1
+    fi
+}
+
+# Trap the SIGINT (Ctrl+C) and SIGTERM signals to ensure cleanup
+trap 'rm -f "$RUN_FLAG" "$PID_FILE"; echo "PowerControl stopped (via Ctrl+C)."' SIGINT SIGTERM
+
+# Main command handling
+case "$1" in
+    start)
+        start_monitoring_loop
+        ;;
+    stop)
+        if [ -f "$RUN_FLAG" ]; then
+            rm -f "$RUN_FLAG"
+            echo "PowerControl disabled"
+        else
+            echo "PowerControl is not running."
+        fi
+        ;;
+    settemp)
+        if [ -z "$2" ]; then
+            echo "Usage: $0 settemp <temp_in_Kelvin>"
+            exit 1
+        fi
+        set_temp_threshold "$2"
+        ;;
+    no_turbo)
+        if [ -z "$2" ]; then
+            echo "Usage: $0 no_turbo {0|1}"
+            exit 1
+        fi
+        set_no_turbo "$2"
+        ;;
+    uninstall)
+        uninstall_script
+        ;;
+    "")
+        show_status
+        ;;
+    *)
+        echo "Usage: $0 {start|stop|settemp|no_turbo|uninstall}"
+        exit 1
+        ;;
+esac
+
+# Set the max performance percentage
+set_max_perf_pct() {
+    local pct=$1
+    if [ -w "$PERF_PATH" ]; then
+        echo "$pct" | tee "$PERF_PATH" > /dev/null
+    else
+        echo "Permission denied: Cannot write to $PERF_PATH" >&2
+        exit 1
+    fi
+}
+
+# Set the maximum temperature threshold
+set_temp_threshold() {
+    if ! [[ "$1" =~ ^[0-9]+$ ]]; then
+        echo "Error: Temperature threshold must be an integer."
+        exit 1
+    fi
+    if (( $1 > MAX_TEMP_LIMIT_K )); then
+        echo "Error: Temperature threshold cannot exceed 90°C ($MAX_TEMP_LIMIT_K K)."
+        exit 1
+    fi
+    MAX_TEMP_K=$1
+    save_config
+    echo "Max temperature threshold set to $MAX_TEMP_K K"
+}
+
+# Enable or disable turbo boost
+set_no_turbo() {
+    local value="$1"
+    if [[ "$value" != "0" && "$value" != "1" ]]; then
+        echo "Usage: $0 no_turbo {0|1}"
+        exit 1
+    fi
+
+    if [ ! -w "$TURBO_PATH" ]; then
+        echo "Permission denied: Cannot write to $TURBO_PATH" >&2
+        exit 1
+    fi
+
+    echo "$value" | sudo tee "$TURBO_PATH" > /dev/null
+
+    if [ "$value" -eq 1 ]; then
+        echo "Turbo Boost Disabled"
+    else
+        echo "Turbo Boost Enabled"
+    fi
+}
+
+# Start the monitoring loop
+start_monitoring_loop() {
+    if [ -f "$RUN_FLAG" ]; then
+        echo "PowerControl is already running."
+        exit 1
+    fi
+
+    load_config
+
+    touch "$RUN_FLAG"
+    echo $$ > "$PID_FILE"
+    echo "Starting PowerControl (PID $$)."
+
+    throttled=0
+
+    while [ -f "$RUN_FLAG" ]; do
+        temp_k=$(get_temp_kelvin)
+        if [ $? -ne 0 ]; then
+            sleep 1
+            continue
+        fi
+
+        if (( MAX_TEMP_K <= 0 )); then
+            current_pct=$(cat "$PERF_PATH" 2>/dev/null || echo "0")
+            if [[ "$current_pct" != "$MAX_PERF_PCT" ]]; then
+                echo "Temp throttling disabled -> Setting max_perf_pct to $MAX_PERF_PCT%"
+                set_max_perf_pct "$MAX_PERF_PCT"
+            fi
+            throttled=0
+        else
+            restore_temp_k=$(( MAX_TEMP_K - 5 ))
+            current_pct=$(cat "$PERF_PATH" 2>/dev/null || echo "0")
+
+            if (( temp_k >= MAX_TEMP_K )); then
+                if (( throttled == 0 || current_pct != 50 )); then
+                    echo "Temperature $temp_k K >= max threshold $MAX_TEMP_K K -> Throttling CPU (50%)"
+                    set_max_perf_pct 50
+                    throttled=1
+                fi
+            elif (( temp_k <= restore_temp_k )); then
+                if (( throttled == 1 || current_pct != MAX_PERF_PCT )); then
+                    echo "Temperature $temp_k K <= restore threshold $restore_temp_k K -> Restoring max_perf_pct to $MAX_PERF_PCT%"
+                    set_max_perf_pct "$MAX_PERF_PCT"
+                    throttled=0
+                fi
+            fi
+        fi
+
+        sleep 1
+    done
+
+    echo "PowerControl stopped."
+    rm -f "$PID_FILE"
+}
+
+# Show the current status of the system
+show_status() {
+    echo "PowerControl Status:"
+    if [ -f "$RUN_FLAG" ]; then
+        echo "  Status: ENABLED"
+    else
+        echo "  Status: DISABLED"
+    fi
+
+    load_config
+    echo "  Configured max temperature: $MAX_TEMP_K K"
+    echo "  Configured max_perf_pct: $MAX_PERF_PCT%"
+
+    if [ -f "$PERF_PATH" ]; then
+        current_pct=$(cat "$PERF_PATH")
+        echo "  Current max_perf_pct: $current_pct%"
+    else
+        echo "  max_perf_pct path not found."
+    fi
+
+    if [ -f "$TURBO_PATH" ]; then
+        turbo_val=$(cat "$TURBO_PATH")
+        if [[ "$turbo_val" -eq 1 ]]; then
+            echo "  Turbo Boost: Disabled"
+        else
+            echo "  Turbo Boost: Enabled"
+        fi
+    fi
+
+    echo
+    echo "=== ectool temps output ==="
+    ectool temps 2 2>/dev/null || echo "Failed to read ectool temps"
 }
 
 # Uninstall the PowerControl script
