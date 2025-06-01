@@ -26,7 +26,7 @@ __Commands:__
 - `sudo batterycontrol status              # shows status`
 - `sudo batterycontrol set 80 75           # 80 is when charging stops; 75 is when charging may begin`
 - `sudo batterycontrol no_turbo 1          # 0 is default Intel Turbo Boost On behavior.`
-- `sudo batterycontrol max_perf_cap 75     # 10 - 100% of CPU clock speed range. More granular than no_turbo`
+- `sudo batterycontrol max_perf_pct 75     # 10 - 100% of CPU clock speed range. More granular than no_turbo`
 - `sudo batterycontrol help`
 - `sudo batterycontrol uninstall`
 - Alternative uninstall method: `sudo /usr/local/bin/ChromeOS_BatteryControl/Uninstall_ChromeOS_BatteryControl.sh`
