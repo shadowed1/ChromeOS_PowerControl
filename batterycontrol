@@ -144,6 +144,9 @@ stop_monitoring() {
     echo "BatteryControl disabled."
 }
 
+# Trap the SIGINT (Ctrl+C) and SIGTERM signals to ensure cleanup
+trap 'stop_monitoring' SIGINT SIGTERM
+
 # Main command handling
 case "$1" in
     set)
