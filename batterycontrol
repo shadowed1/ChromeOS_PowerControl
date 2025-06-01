@@ -1,10 +1,12 @@
 #!/bin/bash
 
-CONFIG_FILE="$HOME/.batterycontrol_config"
+# Define paths using the user's home directory
+USER_HOME="/home/chronos"
+CONFIG_FILE="$USER_HOME/.batterycontrol_config"
 CHARGER_PATH="/sys/class/power_supply/CROS_USBPD_CHARGER0/online"
 BATTERY_PATH="/sys/class/power_supply/BAT0/capacity"
-RUN_FLAG="$HOME/.batterycontrol_enabled"
-PID_FILE="$HOME/.batterycontrol_pid"
+RUN_FLAG="$USER_HOME/.batterycontrol_enabled"
+PID_FILE="$USER_HOME/.batterycontrol_pid"
 
 DEFAULT_CHARGE_MAX=77
 DEFAULT_CHARGE_MIN=74
@@ -12,6 +14,7 @@ DEFAULT_CHARGE_MIN=74
 CHARGE_MAX=
 CHARGE_MIN=
 
+# Load the configuration from the user's home directory
 load_config() {
     if [ -f "$CONFIG_FILE" ]; then
         source "$CONFIG_FILE"
@@ -21,11 +24,13 @@ load_config() {
     fi
 }
 
+# Save the configuration to the user's home directory
 save_config() {
     echo "CHARGE_MAX=$CHARGE_MAX" > "$CONFIG_FILE"
     echo "CHARGE_MIN=$CHARGE_MIN" >> "$CONFIG_FILE"
 }
 
+# Set the charge thresholds (max and min)
 set_thresholds() {
     if ! [[ "$1" =~ ^[0-9]+$ && "$2" =~ ^[0-9]+$ ]]; then
         echo "Error: Both thresholds must be integers."
@@ -46,6 +51,7 @@ set_thresholds() {
     save_config
 }
 
+# Show the help message
 show_help() {
     echo "Battery Control Script - Available Commands:"
     echo
@@ -58,6 +64,7 @@ show_help() {
     echo
 }
 
+# Show the current status of BatteryControl
 show_status() {
     echo "BatteryControl Status:"
     if [ -f "$RUN_FLAG" ]; then
@@ -80,6 +87,7 @@ show_status() {
     echo "  CHARGE_MIN: $CHARGE_MIN"
 }
 
+# Start the monitoring loop
 start_monitoring_loop() {
     touch "$RUN_FLAG"
     load_config
@@ -122,6 +130,7 @@ start_monitoring_loop() {
     done
 }
 
+# Stop the monitoring loop
 stop_monitoring() {
     if [ -f "$PID_FILE" ]; then
         PID=$(cat "$PID_FILE")
@@ -135,6 +144,7 @@ stop_monitoring() {
     echo "BatteryControl disabled."
 }
 
+# Main command handling
 case "$1" in
     set)
         set_thresholds "$2" "$3"
