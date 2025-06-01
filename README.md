@@ -21,10 +21,12 @@
 
 __Commands:__
 
-- `sudo batterycontrol help`
-- `sudo batterycontrol toggle on           # off to disable`
+- `sudo batterycontrol start               # starts batterycontrolmonitoring`
+- `sudo batterycontrol stop                # stops batterycontrolmonitoring`
+- `sudo batterycontrol status              # shows status`
 - `sudo batterycontrol set 80 75           # 80 is when charging stops; 75 is when charging may begin`
 - `sudo batterycontrol no_turbo 1          # 0 is default Intel Turbo Boost On behavior.`
+- `sudo batterycontrol help`
 - `sudo batterycontrol uninstall`
 - Alternative uninstall method: `sudo /usr/local/bin/ChromeOS_BatteryControl/Uninstall_ChromeOS_BatteryControl.sh`
 
