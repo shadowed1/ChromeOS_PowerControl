@@ -26,6 +26,8 @@ sudo chmod +x /usr/local/bin/ChromeOS_PowerControl/batterycontrol
 sudo chmod +x /usr/local/bin/ChromeOS_PowerControl/Uninstall_ChromeOS_PowerControl.sh
 sudo touch /usr/local/bin/ChromeOS_BatteryControl/.batterycontrol_enabled
 sudo touch /usr/local/bin/ChromeOS_BatteryControl/.powercontrol_enabled
+sudo touch /usr/local/bin/ChromeOS_BatteryControl/.batterycontrol_config
+sudo touch /usr/local/bin/ChromeOS_BatteryControl/.powercontrol_config
 
 
 
