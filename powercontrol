@@ -1,10 +1,10 @@
 #!/bin/bash
 
-# Set the configuration and flag files in the user's home directory
+INSTALL_DIR="/usr/local/bin/ChromeOS_PowerControl"
 USER_HOME="/home/chronos"
-CONFIG_FILE="$USER_HOME/.powercontrol_config"
-RUN_FLAG="$USER_HOME/.powercontrol_enabled"
-PID_FILE="$USER_HOME/.powercontrol_pid"
+CONFIG_FILE="$INSTALL_DIR/.powercontrol_config"
+RUN_FLAG="$INSTALL_DIR/.powercontrol_enabled"
+PID_FILE="$INSTALL_DIR/.powercontrol_pid"
 PERF_PATH="/sys/devices/system/cpu/intel_pstate/max_perf_pct"
 TURBO_PATH="/sys/devices/system/cpu/intel_pstate/no_turbo"
 TEMP_SENSOR_ID=2
@@ -27,7 +27,7 @@ load_config() {
     fi
 }
 
-# Save current configuration to the user's home directory
+# Save current configuration to the install directory
 save_config() {
     echo "MAX_TEMP_K=$MAX_TEMP_K" > "$CONFIG_FILE"
     echo "MAX_PERF_PCT=$MAX_PERF_PCT" >> "$CONFIG_FILE"
@@ -182,7 +182,7 @@ show_status() {
 
 # Uninstall the PowerControl script
 uninstall_script() {
-    local script="/usr/local/bin/ChromeOS_PowerControl/Uninstall_ChromeOS_PowerControl.sh"
+    local script="$INSTALL_DIR/Uninstall_ChromeOS_PowerControl.sh"
     if [ -x "$script" ]; then
         sudo bash "$script"
     else
