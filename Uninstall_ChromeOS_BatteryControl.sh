@@ -1,43 +1,55 @@
-#!/bin/bash
+echo "0: Quit"
+echo "1: Remove no_turbo.conf from /etc/init"
+echo "2: Remove batterycontrol.conf from /etc/init"
+echo "3: Full Uninstall (remove all files, symlinks, and user config)"
 
-echo "Uninstalling ChromeOS_BatteryControl..."
+read -rp "Enter (0-3): " choice
 
-if [ -f "$HOME/.batterycontrol_pid" ]; then
-    PID=$(cat "$HOME/.batterycontrol_pid")
-    if ps -p "$PID" > /dev/null 2>&1; then
-        echo "Stopping running BatteryControl process (PID $PID)..."
-        kill "$PID"
+remove_file_with_message() {
+    local file="$1"
+    if [ -f "$file" ]; then
+        sudo rm "$file" && echo "Removed: $file"
+    elif [ -L "$file" ]; then
+        sudo rm "$file" && echo "Removed symlink: $file"
+    else
+        echo "Not found: $file"
     fi
-    rm -f "$HOME/.batterycontrol_pid"
+}
+
+case "$choice" in
+0)
+echo "Uninstall canceled."
+;;
+1)
+
+        remove_file_with_message /etc/init/no_turbo.conf
+;;
+2)
+
+        remove_file_with_message /etc/init/batterycontrol.conf
+;;
+3)
+        sudo initctl stop no_turbo 2>/dev/null
+        sudo initctl stop batterycontrol 2>/dev/null
+        echo "Stopping background services..."
+        echo "Removing system files..."
+        remove_file_with_message /etc/init/no_turbo.conf
+        remove_file_with_message /etc/init/batterycontrol.conf
+        echo "Removing startup files..."
+        remove_file_with_message /usr/local/bin/ChromeOS_BatteryControl_Installer.sh
+        echo "Removing symlink..."
+        remove_file_with_message /usr/local/bin/batterycontrol
+
+if [ -d /usr/local/bin/ChromeOS_BatteryControl ]; then
+sudo rm -rf /usr/local/bin/ChromeOS_BatteryControl && echo "Removed: /usr/local/bin/ChromeOS_BatteryControl"
+        else
+            echo "Not found: /usr/local/bin/ChromeOS_BatteryControl"
 fi
 
-rm -f "$HOME/.batterycontrol_enabled"
+        echo "Removing user config files..."
+        remove_file_with_message "$HOME/.batterycontrol_config"
+        remove_file_with_message "$HOME/.batterycontrol_enabled"
 
-rm -f "$HOME/.batterycontrol_config"
-
-if [ -L "/usr/local/bin/batterycontrol" ]; then
-    echo "Removing global 'batterycontrol' command link..."
-    sudo rm -f /usr/local/bin/batterycontrol
-fi
-
-if [ -f "/etc/init/batterycontrol.conf" ]; then
-    echo "Removing batterycontrol.conf from /etc/init..."
-    sudo rm -f /etc/init/batterycontrol.conf
-fi
-
-if [ -f "/etc/init/no_turbo.conf" ]; then
-    echo "Removing no_turbo.conf from /etc/init..."
-    sudo rm -f /etc/init/no_turbo.conf
-fi
-
-if [ -f "/usr/local/bin/ChromeOS_BatteryControl_Installer.sh" ]; then
-    echo "Removing installer script..."
-    sudo rm -f /usr/local/bin/ChromeOS_BatteryControl_Installer.sh
-fi
-
-if [ -d "/usr/local/bin/ChromeOS_BatteryControl" ]; then
-    echo "Removing ChromeOS_BatteryControl directory..."
-    sudo rm -rf /usr/local/bin/ChromeOS_BatteryControl
-fi
-
-echo "ChromeOS_BatteryControl has been fully uninstalled."
+echo "Full uninstall complete."
+;;
+*)
