@@ -9,8 +9,6 @@
     echo " /usr/local/bin/ChromeOS_BatteryControl/LICENSE downloaded."
     curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_BatteryControl/main/README.md -o /usr/local/bin/ChromeOS_BatteryControl/README.md
     echo " /usr/local/bin/ChromeOS_BatteryControl/README.md downloaded."
-    curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_BatteryControl/main/batterycontrol.conf -o /usr/local/bin/ChromeOS_BatteryControl/batterycontrol.conf
-    echo " /usr/local/bin/ChromeOS_BatteryControl/batterycontrol.conf downloaded."
     curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_BatteryControl/main/no_turbo.conf -o /usr/local/bin/ChromeOS_BatteryControl/no_turbo.conf
     echo " /usr/local/bin/ChromeOS_BatteryControl/no_turbo.conf downloaded."
     
@@ -24,14 +22,6 @@
         echo "Default config created at $CONFIG_FILE"
     else
         echo "Config file already exists at $CONFIG_FILE"
-    fi
-    
-    read -rp "Do you want ChromeOS_BatteryControl to start on boot? to /etc/init? (y/n): " move_batterycontrol
-    if [[ "$move_batterycontrol" =~ ^[Yy]$ ]]; then
-        sudo mv /usr/local/bin/ChromeOS_BatteryControl/batterycontrol.conf /etc/init/
-        echo "ChromeOS_BatteryControl will start with ChromeOS."
-    else
-        echo "BatteryControl will not start with ChromeOS."
     fi
     
     read -rp "Do you Intel Turbo Boost disabled on boot? (y/n): " move_no_turbo
