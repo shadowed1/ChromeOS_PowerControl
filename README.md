@@ -36,6 +36,7 @@ __How It Works:__
 - Check's CROS_USBPD_CHARGER0/online to see if it is plugged in or not
 - Check's BAT0/capacity to measure when to control chargecontrol.
 - Due to an ectool limitation, batterycontrol will require keeping the terminal active.
+- ChromeOS reports slightly higher values than what ChromeOS_BatteryControl sets the charge limit to. 
 
 __Bonus:__
 
