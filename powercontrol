@@ -6,11 +6,9 @@ PID_FILE="$HOME/.powercontrol_pid"
 PERF_PATH="/sys/devices/system/cpu/intel_pstate/max_perf_pct"
 TEMP_SENSOR_ID=2
 
-# Updated default max temp 85°C = 358K
 DEFAULT_MAX_TEMP_K=358
 DEFAULT_MAX_PERF_PCT=80
-MIN_TEMP_K=0           # Go ahead and try it.
-MAX_TEMP_LIMIT_K=363   # 90°C max allowed threshold.
+MAX_TEMP_LIMIT_K=363
 
 MAX_TEMP_K=
 MAX_PERF_PCT=
@@ -28,6 +26,20 @@ load_config() {
 save_config() {
     echo "MAX_TEMP_K=$MAX_TEMP_K" > "$CONFIG_FILE"
     echo "MAX_PERF_PCT=$MAX_PERF_PCT" >> "$CONFIG_FILE"
+}
+
+get_temp_kelvin() {
+    ectool temps $TEMP_SENSOR_ID 2>/dev/null | awk '/K/ {print $1}'
+}
+
+set_max_perf_pct() {
+    local pct=$1
+    if [ -w "$PERF_PATH" ]; then
+        echo "$pct" | tee "$PERF_PATH" > /dev/null
+    else
+        echo "Permission denied: Cannot write to $PERF_PATH" >&2
+        exit 1
+    fi
 }
 
 set_temp_threshold() {
@@ -56,7 +68,6 @@ start_monitoring_loop() {
     echo $$ > "$PID_FILE"
     echo "Starting PowerControl (PID $$)."
 
-    # State to track if perf cap is currently enforced
     throttled=0
 
     while [ -f "$RUN_FLAG" ]; do
@@ -68,7 +79,6 @@ start_monitoring_loop() {
         fi
 
         if (( MAX_TEMP_K <= 0 )); then
-            # Temp throttling disabled: always set to max perf pct
             current_pct=$(cat "$PERF_PATH" 2>/dev/null || echo "0")
             if [[ "$current_pct" != "$MAX_PERF_PCT" ]]; then
                 echo "Temp throttling disabled -> Setting max_perf_pct to $MAX_PERF_PCT%"
@@ -76,30 +86,21 @@ start_monitoring_loop() {
             fi
             throttled=0
         else
-            # Temp throttling enabled
-            # Calculate restore threshold: 5K below max temp
             restore_temp_k=$(( MAX_TEMP_K - 5 ))
-
             current_pct=$(cat "$PERF_PATH" 2>/dev/null || echo "0")
 
             if (( temp_k >= MAX_TEMP_K )); then
-                # Above max temp - enforce throttling (50%)
                 if (( throttled == 0 || current_pct != 50 )); then
                     echo "Temperature $temp_k K >= max threshold $MAX_TEMP_K K -> Throttling CPU (50%)"
                     set_max_perf_pct 50
                     throttled=1
                 fi
             elif (( temp_k <= restore_temp_k )); then
-                # Temp dropped 5K below max - restore max perf pct
                 if (( throttled == 1 || current_pct != MAX_PERF_PCT )); then
                     echo "Temperature $temp_k K <= restore threshold $restore_temp_k K -> Restoring max_perf_pct to $MAX_PERF_PCT%"
                     set_max_perf_pct "$MAX_PERF_PCT"
                     throttled=0
                 fi
-            else
-                # Between restore threshold and max threshold: keep current state
-                # No action needed here
-                :
             fi
         fi
 
@@ -109,3 +110,28 @@ start_monitoring_loop() {
     echo "PowerControl stopped."
     rm -f "$PID_FILE"
 }
+
+case "$1" in
+    start)
+        start_monitoring_loop
+        ;;
+    stop)
+        if [ -f "$RUN_FLAG" ]; then
+            rm -f "$RUN_FLAG"
+            echo "Stopping PowerControl..."
+        else
+            echo "PowerControl is not running."
+        fi
+        ;;
+    settemp)
+        if [ -z "$2" ]; then
+            echo "Usage: $0 settemp <temp_in_Kelvin>"
+            exit 1
+        fi
+        set_temp_threshold "$2"
+        ;;
+    *)
+        echo "Usage: $0 {start|stop|settemp}"
+        exit 1
+        ;;
+esac
