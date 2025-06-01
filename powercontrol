@@ -67,14 +67,13 @@ save_config() {
 }
 
 get_temp_kelvin() {
-    temp=$(ectool temps 2>/dev/null | tee /tmp/ectool_output.txt | grep ' K' | head -n1 | sed -n 's/.* \([0-9]\+\) K.*/\1/p')
-    if [ -z "$temp" ]; then
-        echo "Failed to fetch temperature" >&2
-        echo "ectool output: $(cat /tmp/ectool_output.txt)" >&2
-        return 1
-    fi
-    echo $temp
+
+    ectool temps 2 2>/dev/null | grep ' K' | head -n1 | sed -n 's/.* \([0-9]\+\) K.*/\1/p'
+
+
 }
+
+
 
 
 
