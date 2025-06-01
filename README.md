@@ -23,7 +23,7 @@
 __Commands:__
 - `Examples:`
 - `sudo powercontrol no_turbo 1          # 0 is default Intel Turbo Boost On behavior.`
-- `sudo powercontrol max_perf_pct 75     # 10 - 100% of CPU clock speed range. More granular than no_turbo`
+- `sudo powercontrol max_perf_pct 75     # 10 - 100% of CPU clock speed range. More granular.`
 - `sudo batterycontrol help`
 - `sudo batterycontrol start               # starts batterycontrol`
 - `sudo batterycontrol stop                # stops batterycontrol`
