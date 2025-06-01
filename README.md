@@ -34,6 +34,7 @@ __Commands:__
 __Bonus:__
 
 - Enable sudo for crosh:
+  
 `https://gist.github.com/velzie/a5088c9ade6ec4d35435b9826b45d7a3`
 
  __Credits:__
