@@ -10,8 +10,13 @@
 
 `bash <(curl -s https://raw.githubusercontent.com/shadowed1/ChromeOS_BatteryControl/refs/heads/main/ChromeOS_BatteryControl_Downloader.sh)`
 
-- The installer will be placed: `/home/chronos/ChromeOS_BatteryControl/ChromeOS_BatteryControl_Installer.sh`
-- In *VT-2* run: `sudo bash /home/chronos/ChromeOS_BatteryControl/ChromeOS_BatteryControl_Installer.sh`
+- The installer will be placed: `~/tmp/ChromeOS_BatteryControl/ChromeOS_BatteryControl_Installer.sh`
+
+- In *VT-2* run:
+- 
+  `sudo mv ~/tmp/ChromeOS_BatteryControl/ChromeOS_BatteryControl_Installer.sh /usr/local/bin`
+- `sudo bash /usr/local/bin/ChromeOS_BatteryControl_Installer.sh`\
+  
 - The installer will have options to choose from.
 
 __Commands:__
