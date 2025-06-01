@@ -6,6 +6,8 @@ BATTERY_PATH="/sys/class/power_supply/BAT0/capacity"
 RUN_FLAG="$HOME/.batterycontrol_enabled"
 TURBO_PATH="/sys/devices/system/cpu/intel_pstate/no_turbo"
 
+# ChromeOS reports values slightly higher than what is set:
+
 DEFAULT_CHARGE_MAX=77
 DEFAULT_CHARGE_MIN=74
 
@@ -109,7 +111,6 @@ show_status() {
     fi
 }
 
-# --- Command dispatcher ---
 case "$1" in
     set)
         set_thresholds "$2" "$3"
@@ -148,14 +149,7 @@ case "$1" in
         ;;
     "")
         show_status
-        echo
-        read -rp "Do you want to start the BatteryControl monitor now? (y/n): " start_monitor
-        if [[ "$start_monitor" =~ ^[Yy]$ ]]; then
-            echo "Starting battery control monitoring loop..."
-        else
-            echo "Monitor not started. Exiting."
-            exit 0
-        fi
+        echo "Starting battery control monitoring loop..."
         ;;
     *)
         echo "Unknown command: $1"
@@ -164,8 +158,10 @@ case "$1" in
         ;;
 esac
 
-# Load config and begin monitoring loop ONLY if no command was given
-load_config
+if [ ! -f "$RUN_FLAG" ]; then
+    echo "BatteryControl toggle file not found. Enabling by default..."
+    touch "$RUN_FLAG"
+fi
 
 while true; do
     if [ ! -f "$RUN_FLAG" ]; then
