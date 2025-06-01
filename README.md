@@ -1,7 +1,7 @@
 # **ChromeOS Battery Control**
 ## Requires Developer Mode. 
 
-### - Customize battery charging limit to preference instead of relying on Adaptive Charging to maximize battery longevity. 
+### - Customize battery charging limit instead of relying on Adaptive Charging to maximize battery longevity. 
 ### - Features global commands and can optionally allow BatteryControl + disabling Intel Turbo Boost to boot automatically.
 
 ### __How to Install:__
