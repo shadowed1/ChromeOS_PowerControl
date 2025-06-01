@@ -1,21 +1,21 @@
     #!/bin/bash
-    sudo mkdir -p /usr/local/bin/ChromeOS_BatteryControl
+    sudo mkdir -p /usr/local/bin/ChromeOS_PowerControl
     echo "Enabling sudo in crosh or run in VT-2 is required!"
-    curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_BatteryControl/main/batterycontrol -o /usr/local/bin/ChromeOS_BatteryControl/batterycontrol
-    echo " /usr/local/bin/ChromeOS_BatteryControl/batterycontrol downloaded."
-    curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_BatteryControl/main/Uninstall_ChromeOS_BatteryControl.sh -o /usr/local/bin/ChromeOS_BatteryControl/Uninstall_ChromeOS_BatteryControl.sh
-    echo " /usr/local/bin/ChromeOS_BatteryControl/Uninstall_ChromeOS_BatteryControl.sh downloaded."
-    curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_BatteryControl/main/LICENSE -o /usr/local/bin/ChromeOS_BatteryControl/LICENSE
-    echo " /usr/local/bin/ChromeOS_BatteryControl/LICENSE downloaded."
-    curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_BatteryControl/main/README.md -o /usr/local/bin/ChromeOS_BatteryControl/README.md
-    echo " /usr/local/bin/ChromeOS_BatteryControl/README.md downloaded."
-    curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_BatteryControl/main/no_turbo.conf -o /usr/local/bin/ChromeOS_BatteryControl/no_turbo.conf
-    echo " /usr/local/bin/ChromeOS_BatteryControl/no_turbo.conf downloaded."
+    curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/powercontrol -o /usr/local/bin/ChromeOS_PowerControl/powercontrol
+    echo " /usr/local/bin/ChromeOS_PowerControl/powercontrol downloaded."
+    curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/Uninstall_ChromeOS_PowerControl.sh -o /usr/local/bin/ChromeOS_PowerControl/Uninstall_ChromeOS_PowerControl.sh
+    echo " /usr/local/bin/ChromeOS_PowerControl/Uninstall_ChromeOS_PowerControl.sh downloaded."
+    curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/LICENSE -o /usr/local/bin/ChromeOS_PowerControl/LICENSE
+    echo " /usr/local/bin/ChromeOS_PowerControl/LICENSE downloaded."
+    curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/README.md -o /usr/local/bin/ChromeOS_PowerControl/README.md
+    echo " /usr/local/bin/ChromeOS_PowerControl/README.md downloaded."
+    curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/no_turbo.conf -o /usr/local/bin/ChromeOS_PowerControl/no_turbo.conf
+    echo " /usr/local/bin/ChromeOS_PowerControl/no_turbo.conf downloaded."
     
-    sudo chmod +x /usr/local/bin/ChromeOS_BatteryControl/batterycontrol
-    sudo chmod +x /usr/local/bin/ChromeOS_BatteryControl/Uninstall_ChromeOS_BatteryControl.sh
+    sudo chmod +x /usr/local/bin/ChromeOS_PowerControl/powercontrol
+    sudo chmod +x /usr/local/bin/ChromeOS_PowerControl/Uninstall_ChromeOS_PowerControl.sh
 
-    CONFIG_FILE="$HOME/.batterycontrol_config"
+    CONFIG_FILE="$HOME/.powercontrol_config"
     if [ ! -f "$CONFIG_FILE" ]; then
         echo "CHARGE_MAX=77" > "$CONFIG_FILE"
         echo "CHARGE_MIN=74" >> "$CONFIG_FILE"
@@ -26,7 +26,7 @@
     
     read -rp "Do you Intel Turbo Boost disabled on boot? (y/n): " move_no_turbo
     if [[ "$move_no_turbo" =~ ^[Yy]$ ]]; then
-        sudo mv /usr/local/bin/ChromeOS_BatteryControl/no_turbo.conf /etc/init/
+        sudo mv /usr/local/bin/ChromeOS_PowerControl/no_turbo.conf /etc/init/
         echo "Turbo Boost will be disabled when restarting."
     else
         echo "Turbo Boost will be enabled on restart."
@@ -39,18 +39,18 @@
         echo "Turbo Boost will remain enabled."
     fi
     
-    read -rp "Do you want to create a global command 'batterycontrol' for faster changes? (y/n): " link_cmd
+    read -rp "Do you want to create a global command 'powercontrol' for faster changes? (y/n): " link_cmd
     if [[ "$link_cmd" =~ ^[Yy]$ ]]; then
-        sudo ln -sf /usr/local/bin/ChromeOS_BatteryControl/batterycontrol /usr/local/bin//batterycontrol
-        echo "'batterycontrol' command is now available system-wide."
+        sudo ln -sf /usr/local/bin/ChromeOS_PowerControl/powercontrol /usr/local/bin//powercontrol
+        echo "'powercontrol' command is now available system-wide."
     else
         echo "Skipped creating global command."
     fi
     
-   read -rp "Do you want to run batterycontrol now? (y/n): " run_batterycontrol
-if [[ "$run_batterycontrol" =~ ^[Yy]$ ]]; then
-    sudo /usr/local/bin/ChromeOS_BatteryControl/batterycontrol start
+   read -rp "Do you want to run powercontrol now? (y/n): " run_powercontrol
+if [[ "$run_powercontrol" =~ ^[Yy]$ ]]; then
+    sudo /usr/local/bin/ChromeOS_PowerControl/powercontrol start
     sleep 1
 else
-    echo "You can run it later with: sudo /usr/local/bin/ChromeOS_BatteryControl/batterycontrol start"
+    echo "You can run it later with: sudo /usr/local/bin/ChromeOS_PowerControl/powercontrol start"
 fi
