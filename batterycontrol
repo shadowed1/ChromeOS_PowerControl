@@ -8,6 +8,9 @@ RUN_FLAG="$HOME/.batterycontrol_enabled"
 DEFAULT_CHARGE_MAX=77
 DEFAULT_CHARGE_MIN=74
 
+CHARGE_MAX=
+CHARGE_MIN=
+
 load_config() {
     if [ -f "$CONFIG_FILE" ]; then
         source "$CONFIG_FILE"
@@ -103,14 +106,14 @@ case "$1" in
         exit 0
         ;;
     uninstall)
-    if [ -x "/usr/local/bin/ChromeOS_BatteryControl/Uninstall_ChromeOS_BatteryControl.sh" ]; then
-        sudo bash /usr/local/bin/ChromeOS_BatteryControl/Uninstall_ChromeOS_BatteryControl.sh
-    else
-        echo "Uninstall script not found or not executable."
-        exit 1
-    fi
-    exit 0
-    ;;
+        if [ -x "/usr/local/bin/ChromeOS_BatteryControl/Uninstall_ChromeOS_BatteryControl.sh" ]; then
+            sudo bash /usr/local/bin/ChromeOS_BatteryControl/Uninstall_ChromeOS_BatteryControl.sh
+        else
+            echo "Uninstall script not found or not executable."
+            exit 1
+        fi
+        exit 0
+        ;;
     help | --help | -h)
         show_help
         exit 0
