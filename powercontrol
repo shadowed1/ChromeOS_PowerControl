@@ -166,6 +166,16 @@ show_status() {
     ectool temps "$TEMP_SENSOR_ID" 2>/dev/null || echo "Failed to read ectool temps"
 }
 
+uninstall_script() {
+    local script="/usr/local/bin/ChromeOS_PowerControl/Uninstall_ChromeOS_PowerControl.sh"
+    if [ -x "$script" ]; then
+        sudo bash "$script"
+    else
+        echo "Uninstall script not found or not executable at: $script"
+        exit 1
+    fi
+}
+
 case "$1" in
     start)
         start_monitoring_loop
@@ -192,11 +202,14 @@ case "$1" in
         fi
         set_no_turbo "$2"
         ;;
+    uninstall)
+        uninstall_script
+        ;;
     "")
         show_status
         ;;
     *)
-        echo "Usage: $0 {start|stop|settemp|no_turbo}"
+        echo "Usage: $0 {start|stop|settemp|no_turbo|uninstall}"
         exit 1
         ;;
 esac
