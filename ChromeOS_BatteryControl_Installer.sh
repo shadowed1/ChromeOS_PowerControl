@@ -29,7 +29,7 @@
     read -rp "Do you want ChromeOS_BatteryControl to start on boot? to /etc/init? (y/n): " move_batterycontrol
     if [[ "$move_batterycontrol" =~ ^[Yy]$ ]]; then
         sudo mv /usr/local/bin/ChromeOS_BatteryControl/batterycontrol.conf /etc/init/
-        echo "Configuration files moved to /etc/init."
+        echo "ChromeOS_BatteryControl will start with ChromeOS."
     else
         echo "BatteryControl will not start with ChromeOS."
     fi
