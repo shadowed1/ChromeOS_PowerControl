@@ -2,7 +2,7 @@
 ## Requires Developer Mode. 
 
 ### - Customize battery charging limit to preference instead of relying on Adaptive Charging and Policies.
-### - Features global commands and can optionally allow BatteryControl + disabling Intel Turbo Boost boot automatically.
+### - Features global commands and can optionally allow BatteryControl + disabling Intel Turbo Boost to boot automatically.
 
 ### __How to Install:__
 
