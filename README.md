@@ -3,6 +3,7 @@
 
 ### - Customize battery charging limit instead of relying on Adaptive Charging to maximize battery longevity. 
 ### - Features global commands and can optionally disable Intel Turbo Boost on boot automatically.
+### - [In-progress] Customize CPU clock speed in relation to temperature; unlike Intel's spicier approach.
 
 ### __How to Install:__
 
