@@ -98,6 +98,7 @@ start_monitoring_loop() {
     touch "$RUN_FLAG"
     load_config
     echo $$ > "$PID_FILE"
+
     echo "BatteryControl monitoring started (PID $$)."
 
     while true; do
@@ -153,20 +154,10 @@ case "$1" in
         set_thresholds "$2" "$3"
         ;;
     start)
-        if [ -f "$RUN_FLAG" ] && [ -f "$PID_FILE" ]; then
-            PID=$(cat "$PID_FILE")
-            if ps -p "$PID" > /dev/null 2>&1; then
-                echo "BatteryControl is already running (PID $PID)."
-                exit 0
-            else
-                echo "Stale PID file found. Cleaning up and restarting..."
-                rm -f "$PID_FILE"
-            fi
+        if [ -f "$RUN_FLAG" ]; then
+            echo "BatteryControl is already running."
+            exit 0
         fi
-        nohup "$0" __run_monitor__ > /dev/null 2>&1 &
-        echo "BatteryControl started in the background."
-        ;;
-    __run_monitor__)
         start_monitoring_loop
         ;;
     stop)
