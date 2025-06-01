@@ -20,7 +20,7 @@
 - The installer will have options to choose from.
 
 __Commands:__
-
+- `Examples:`
 - `sudo batterycontrol start               # starts batterycontrolmonitoring`
 - `sudo batterycontrol stop                # stops batterycontrolmonitoring`
 - `sudo batterycontrol status              # shows status`
