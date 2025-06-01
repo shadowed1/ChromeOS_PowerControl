@@ -1,0 +1,150 @@
+#!/bin/bash
+
+RUN_FLAG="$HOME/.powercontrol_enabled"
+PID_FILE="$HOME/.powercontrol_pid"
+PERF_PATH="/sys/devices/system/cpu/intel_pstate/max_perf_pct"
+TEMP_SENSOR_ID=2
+
+show_help() {
+    cat <<EOF
+PowerControl Script - Commands:
+
+  help            Show this help message.
+  start           Start temperature monitoring and perf control.
+  stop            Stop the monitoring loop.
+  status          Show current status and temperature.
+EOF
+}
+
+get_temp_kelvin() {
+    # Extract Kelvin temperature from ectool output (e.g. "312 K (= 39 C)")
+    ectool temps $TEMP_SENSOR_ID 2>/dev/null | awk '/K/ {print $1}'
+}
+
+set_max_perf_pct() {
+    local pct=$1
+    if [ -w "$PERF_PATH" ]; then
+        echo "$pct" | sudo tee "$PERF_PATH" > /dev/null
+    else
+        echo "Permission denied: Cannot write to $PERF_PATH" >&2
+        exit 1
+    fi
+}
+
+show_status() {
+    if [ -f "$RUN_FLAG" ]; then
+        if [ -f "$PID_FILE" ]; then
+            PID=$(cat "$PID_FILE")
+            if ps -p "$PID" > /dev/null 2>&1; then
+                echo "PowerControl: ENABLED (PID $PID)"
+            else
+                echo "PowerControl: ENABLED but process NOT running"
+            fi
+        else
+            echo "PowerControl: ENABLED (PID file missing)"
+        fi
+    else
+        echo "PowerControl: DISABLED"
+    fi
+
+    local temp_k
+    temp_k=$(get_temp_kelvin)
+    if [[ "$temp_k" =~ ^[0-9]+$ ]]; then
+        temp_c=$((temp_k - 273))
+        echo "Current temperature (DDR and SOC): $temp_k K (= $temp_c °C)"
+    else
+        echo "Temperature sensor data unavailable."
+    fi
+
+    if [ -f "$PERF_PATH" ]; then
+        echo "Current max_perf_pct: $(cat $PERF_PATH)%"
+    else
+        echo "max_perf_pct control not available."
+    fi
+}
+
+start_monitoring_loop() {
+    if [ -f "$RUN_FLAG" ]; then
+        echo "PowerControl is already running."
+        exit 1
+    fi
+
+    touch "$RUN_FLAG"
+    echo $$ > "$PID_FILE"
+    echo "Starting PowerControl (PID $$)."
+
+    while [ -f "$RUN_FLAG" ]; do
+        temp_k=$(get_temp_kelvin)
+        if ! [[ "$temp_k" =~ ^[0-9]+$ ]]; then
+            echo "Failed to read temperature sensor $TEMP_SENSOR_ID."
+            sleep 1
+            continue
+        fi
+
+        # Thresholds in Kelvin
+        # 60°C = 333K, 65°C = 338K, 70°C = 343K, 75°C = 348K, 80°C = 353K, 85°C = 358K
+        if (( temp_k < 333 )); then
+            pct=100
+        elif (( temp_k < 338 )); then
+            pct=90
+        elif (( temp_k < 343 )); then
+            pct=85
+        elif (( temp_k < 348 )); then
+            pct=80
+        elif (( temp_k < 353 )); then
+            pct=75
+        elif (( temp_k < 358 )); then
+            pct=70
+        else
+            pct=70
+        fi
+
+        current_pct=$(cat "$PERF_PATH" 2>/dev/null || echo "0")
+        if [[ "$current_pct" != "$pct" ]]; then
+            echo "Temperature: $temp_k K -> Setting max_perf_pct to $pct%"
+            set_max_perf_pct "$pct"
+        fi
+
+        sleep 1
+    done
+
+    echo "PowerControl stopped."
+    rm -f "$PID_FILE"
+}
+
+stop_monitoring() {
+    if [ -f "$RUN_FLAG" ]; then
+        rm -f "$RUN_FLAG"
+        echo "Stopping PowerControl..."
+        if [ -f "$PID_FILE" ]; then
+            PID=$(cat "$PID_FILE")
+            if ps -p "$PID" > /dev/null 2>&1; then
+                kill "$PID"
+                echo "Sent SIGTERM to PID $PID"
+            fi
+            rm -f "$PID_FILE"
+        fi
+    else
+        echo "PowerControl is not running."
+    fi
+}
+
+case "$1" in
+    start)
+        start_monitoring_loop
+        ;;
+    stop)
+        stop_monitoring
+        ;;
+    status)
+        show_status
+        ;;
+    help|--help|-h|"")
+        show_help
+        ;;
+    *)
+        echo "Unknown command: $1"
+        echo "Use '$0 help' for available commands."
+        exit 1
+        ;;
+esac
