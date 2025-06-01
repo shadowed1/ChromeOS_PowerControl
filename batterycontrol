@@ -7,9 +7,6 @@ RUN_FLAG="$HOME/.batterycontrol_enabled"
 PID_FILE="$HOME/.batterycontrol_pid"
 TURBO_PATH="/sys/devices/system/cpu/intel_pstate/no_turbo"
 PERF_PATH="/sys/devices/system/cpu/intel_pstate/max_perf_pct"
-THERMAL_CONTROL_RUN_FLAG="$HOME/.thermalcontrol_enabled"
-THERMAL_CONTROL_PID_FILE="$HOME/.thermalcontrol_pid"
-CPU_TEMP_SENSOR=""
 
 DEFAULT_CHARGE_MAX=77
 DEFAULT_CHARGE_MIN=74
@@ -61,7 +58,6 @@ show_help() {
     echo "  status             Show BatteryControl status."
     echo "  no_turbo [1|0]     Toggle Intel Turbo Boost."
     echo "  max_perf_pct <VAL> Set CPU max_perf_pct (performance cap 10–100%)."
-    echo "  thermal_control <start|stop|status>   Start/stop/status thermal-based max_perf_pct scaling."
     echo "  uninstall          Run the uninstaller script."
     echo
 }
@@ -104,21 +100,6 @@ show_status() {
         echo "  max_perf_pct: $PERF_VAL%"
     else
         echo "  max_perf_pct status: Not available"
-    fi
-
-    if [ -f "$THERMAL_CONTROL_RUN_FLAG" ]; then
-        if [ -f "$THERMAL_CONTROL_PID_FILE" ]; then
-            T_PID=$(cat "$THERMAL_CONTROL_PID_FILE")
-            if ps -p "$T_PID" > /dev/null 2>&1; then
-                echo "  Thermal Control: ENABLED (running, PID $T_PID)"
-            else
-                echo "  Thermal Control: ENABLED (but process is NOT running)"
-            fi
-        else
-            echo "  Thermal Control: ENABLED (PID not found)"
-        fi
-    else
-        echo "  Thermal Control: DISABLED"
     fi
 }
 
@@ -177,117 +158,6 @@ stop_monitoring() {
     echo "BatteryControl disabled."
 }
 
-# --- Thermal control functions ---
-
-find_cpu_temp_sensor() {
-    for ZONE in /sys/class/thermal/thermal_zone*; do
-        if grep -q "x86_pkg_temp" "$ZONE/type" 2>/dev/null; then
-            echo "$ZONE/temp"
-            return 0
-        fi
-    done
-    # fallback
-    echo "/sys/class/thermal/thermal_zone0/temp"
-}
-
-get_max_perf_pct_by_temp() {
-    local TEMP="$1"
-    if [ "$TEMP" -le 60000 ]; then
-        echo 100
-    elif [ "$TEMP" -le 68000 ]; then
-        echo 90
-    elif [ "$TEMP" -le 74000 ]; then
-        echo 80
-    elif [ "$TEMP" -le 80000 ]; then
-        echo 70
-    elif [ "$TEMP" -le 86000 ]; then
-        echo 60
-    else
-        echo 50
-    fi
-}
-
-thermal_control_start() {
-    if [ -f "$THERMAL_CONTROL_RUN_FLAG" ]; then
-        echo "Thermal Control is already running."
-        exit 0
-    fi
-
-    CPU_TEMP_SENSOR=$(find_cpu_temp_sensor)
-    if [ ! -f "$CPU_TEMP_SENSOR" ]; then
-        echo "CPU temperature sensor not found."
-        exit 1
-    fi
-
-    touch "$THERMAL_CONTROL_RUN_FLAG"
-    echo $$ > "$THERMAL_CONTROL_PID_FILE"
-    echo "Thermal Control started - PID $$"
-
-    last_applied=-1
-    while true; do
-        if [ ! -f "$THERMAL_CONTROL_RUN_FLAG" ]; then
-            echo "Thermal Control disabled, exiting."
-            rm -f "$THERMAL_CONTROL_PID_FILE"
-            exit 0
-        fi
-
-        TEMP_RAW=$(cat "$CPU_TEMP_SENSOR" 2>/dev/null)
-        if ! [[ "$TEMP_RAW" =~ ^[0-9]+$ ]]; then
-            echo "Failed to read CPU temperature."
-            sleep 30
-            continue
-        fi
-
-        NEW_MAX=$(get_max_perf_pct_by_temp "$TEMP_RAW")
-
-        if [ "$NEW_MAX" -ne "$last_applied" ]; then
-            if [ -w "$PERF_PATH" ]; then
-                echo "$NEW_MAX" | sudo tee "$PERF_PATH" > /dev/null
-                echo "$(date): Temp: $((TEMP_RAW / 1000))°C -> max_perf_pct: $NEW_MAX"
-                last_applied="$NEW_MAX"
-            else
-                echo "Permission denied: cannot write to $PERF_PATH"
-                rm -f "$THERMAL_CONTROL_RUN_FLAG" "$THERMAL_CONTROL_PID_FILE"
-                exit 1
-            fi
-        fi
-
-        sleep 30
-    done
-}
-
-thermal_control_stop() {
-    if [ -f "$THERMAL_CONTROL_PID_FILE" ]; then
-        PID=$(cat "$THERMAL_CONTROL_PID_FILE")
-        if ps -p "$PID" > /dev/null 2>&1; then
-            kill "$PID"
-            echo "Stopped Thermal Control process (PID $PID)."
-        fi
-        rm -f "$THERMAL_CONTROL_PID_FILE"
-    fi
-    rm -f "$THERMAL_CONTROL_RUN_FLAG"
-    echo "Thermal Control disabled."
-}
-
-thermal_control_status() {
-    if [ -f "$THERMAL_CONTROL_RUN_FLAG" ]; then
-        if [ -f "$THERMAL_CONTROL_PID_FILE" ]; then
-            PID=$(cat "$THERMAL_CONTROL_PID_FILE")
-            if ps -p "$PID" > /dev/null 2>&1; then
-                echo "Thermal Control is: ENABLED (running, PID $PID)"
-            else
-                echo "Thermal Control is: ENABLED (but process NOT running)"
-            fi
-        else
-            echo "Thermal Control is: ENABLED (PID file not found)"
-        fi
-    else
-        echo "Thermal Control is: DISABLED"
-    fi
-}
-
-# --- Main command dispatcher ---
-
 case "$1" in
     set)
         set_thresholds "$2" "$3"
@@ -335,23 +205,6 @@ case "$1" in
             echo "Permission denied or Cannot write to $PERF_PATH."
             exit 1
         fi
-        ;;
-    thermal_control)
-        case "$2" in
-            start)
-                thermal_control_start
-                ;;
-            stop)
-                thermal_control_stop
-                ;;
-            status)
-                thermal_control_status
-                ;;
-            *)
-                echo "Usage: $0 thermal_control <start|stop|status>"
-                exit 1
-                ;;
-        esac
         ;;
     uninstall)
         if [ -x "/usr/local/bin/ChromeOS_BatteryControl/Uninstall_ChromeOS_BatteryControl.sh" ]; then
