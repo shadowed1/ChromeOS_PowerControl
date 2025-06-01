@@ -6,15 +6,12 @@ BATTERY_PATH="/sys/class/power_supply/BAT0/capacity"
 RUN_FLAG="$HOME/.batterycontrol_enabled"
 TURBO_PATH="/sys/devices/system/cpu/intel_pstate/no_turbo"
 
-# ChromeOS reports values slightly higher than what is set:
-
 DEFAULT_CHARGE_MAX=77
 DEFAULT_CHARGE_MIN=74
 
 CHARGE_MAX=
 CHARGE_MIN=
 
-# --- Functions ---
 load_config() {
     if [ -f "$CONFIG_FILE" ]; then
         source "$CONFIG_FILE"
@@ -49,33 +46,21 @@ set_thresholds() {
     save_config
 }
 
-toggle_script() {
-    if [ "$1" == "on" ]; then
-        touch "$RUN_FLAG"
-        echo "Script enabled."
-    elif [ "$1" == "off" ]; then
-        rm -f "$RUN_FLAG"
-        echo "Script disabled."
-    else
-        echo "Usage: $0 toggle [on|off]"
-        exit 1
-    fi
-}
-
 show_help() {
     echo "Battery Control Script - Available Commands:"
     echo
     echo "  help"
-    echo "    Blank command will activate batterycontrol"
-    echo "    Example: sudo batterycontrol"
+    echo "    Show this help message."
     echo
     echo "  set <MAX> <MIN>"
     echo "    Set battery charge thresholds. Max and Min."
     echo "    Example: sudo batterycontrol set 80 75"
     echo
-    echo "  toggle [on|off]"
-    echo "    Enable or disable ChromeOS_BatteryControl."
-    echo "    Example: sudo batterycontrol toggle on"
+    echo "  start"
+    echo "    Enable and start the BatteryControl monitoring loop."
+    echo
+    echo "  stop"
+    echo "    Disable the BatteryControl monitoring loop."
     echo
     echo "  no_turbo [1|0]"
     echo "    Toggle Intel Turbo Boost (1=disable, 0=enable)."
@@ -83,6 +68,9 @@ show_help() {
     echo
     echo "  uninstall"
     echo "    Launch the uninstaller for ChromeOS_BatteryControl."
+    echo
+    echo "  status"
+    echo "    Show BatteryControl status."
     echo
 }
 
@@ -111,13 +99,54 @@ show_status() {
     fi
 }
 
+# --- Command dispatcher ---
 case "$1" in
     set)
         set_thresholds "$2" "$3"
         exit 0
         ;;
-    toggle)
-        toggle_script "$2"
+    start)
+        touch "$RUN_FLAG"
+        echo "BatteryControl enabled."
+        echo "Starting BatteryControl monitoring loop..."
+        load_config
+        while true; do
+            if [ ! -f "$RUN_FLAG" ]; then
+                echo "BatteryControl disabled, exiting monitoring loop."
+                exit 0
+            fi
+
+            if [ -f "$BATTERY_PATH" ]; then
+                CHARGE=$(cat "$BATTERY_PATH" 2>/dev/null)
+            else
+                sleep 120
+                continue
+            fi
+
+            if [ -f "$CHARGER_PATH" ]; then
+                AC_ON=$(cat "$CHARGER_PATH" 2>/dev/null)
+            else
+                sleep 120
+                continue
+            fi
+
+            if [ "$AC_ON" -eq 1 ]; then
+                if [ "$CHARGE" -ge "$CHARGE_MAX" ]; then
+                    sudo ectool chargecontrol idle >/dev/null 2>&1
+                elif [ "$CHARGE" -le "$CHARGE_MIN" ]; then
+                    sudo ectool chargecontrol normal >/dev/null 2>&1
+                fi
+            else
+                sudo ectool chargecontrol normal >/dev/null 2>&1
+            fi
+
+            sleep 120
+        done
+        ;;
+    stop)
+        rm -f "$RUN_FLAG"
+        echo "BatteryControl disabled."
+        echo "BatteryControl monitoring loop will stop shortly."
         exit 0
         ;;
     no_turbo)
@@ -147,9 +176,14 @@ case "$1" in
         show_help
         exit 0
         ;;
+    status)
+        show_status
+        exit 0
+        ;;
     "")
         show_status
-        echo "Starting battery control monitoring loop..."
+        echo "Run 'batterycontrol start' to enable monitoring, or 'batterycontrol stop' to disable."
+        exit 0
         ;;
     *)
         echo "Unknown command: $1"
@@ -157,41 +191,3 @@ case "$1" in
         exit 1
         ;;
 esac
-
-if [ ! -f "$RUN_FLAG" ]; then
-    echo "BatteryControl toggle file not found. Enabling by default..."
-    touch "$RUN_FLAG"
-fi
-
-while true; do
-    if [ ! -f "$RUN_FLAG" ]; then
-        sleep 120
-        continue
-    fi
-
-    if [ -f "$BATTERY_PATH" ]; then
-        CHARGE=$(cat "$BATTERY_PATH" 2>/dev/null)
-    else
-        sleep 120
-        continue
-    fi
-
-    if [ -f "$CHARGER_PATH" ]; then
-        AC_ON=$(cat "$CHARGER_PATH" 2>/dev/null)
-    else
-        sleep 120
-        continue
-    fi
-
-    if [ "$AC_ON" -eq 1 ]; then
-        if [ "$CHARGE" -ge "$CHARGE_MAX" ]; then
-            sudo ectool chargecontrol idle >/dev/null 2>&1
-        elif [ "$CHARGE" -le "$CHARGE_MIN" ]; then
-            sudo ectool chargecontrol normal >/dev/null 2>&1
-        fi
-    else
-        sudo ectool chargecontrol normal >/dev/null 2>&1
-    fi
-
-    sleep 120
-done
