@@ -5,6 +5,8 @@ CHARGER_PATH="/sys/class/power_supply/CROS_USBPD_CHARGER0/online"
 BATTERY_PATH="/sys/class/power_supply/BAT0/capacity"
 RUN_FLAG="$HOME/.batterycontrol_enabled"
 
+# Expect ChromeOS to report slightly different values. 
+
 DEFAULT_CHARGE_MAX=77
 DEFAULT_CHARGE_MIN=74
 
@@ -82,7 +84,6 @@ show_help() {
     echo
 }
 
-# --- Command dispatcher ---
 case "$1" in
     set)
         set_thresholds "$2" "$3"
@@ -128,7 +129,6 @@ case "$1" in
         ;;
 esac
 
-# Load config and begin monitoring loop ONLY if no command was given
 load_config
 
 echo "Starting battery control monitoring. Open a new tab to keep this running."
