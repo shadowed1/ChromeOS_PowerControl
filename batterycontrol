@@ -6,6 +6,7 @@ BATTERY_PATH="/sys/class/power_supply/BAT0/capacity"
 RUN_FLAG="$HOME/.batterycontrol_enabled"
 PID_FILE="$HOME/.batterycontrol_pid"
 TURBO_PATH="/sys/devices/system/cpu/intel_pstate/no_turbo"
+PERF_PATH="/sys/devices/system/cpu/intel_pstate/max_perf_pct"
 
 DEFAULT_CHARGE_MAX=77
 DEFAULT_CHARGE_MIN=74
@@ -50,13 +51,14 @@ set_thresholds() {
 show_help() {
     echo "Battery Control Script - Available Commands:"
     echo
-    echo "  help            Show this help message."
-    echo "  set <MAX> <MIN> Set battery charge thresholds."
-    echo "  start           Start BatteryControl monitoring."
-    echo "  stop            Stop BatteryControl monitoring."
-    echo "  status          Show BatteryControl status."
-    echo "  no_turbo [1|0]  Toggle Intel Turbo Boost."
-    echo "  uninstall       Run the uninstaller script."
+    echo "  help               Show this help message."
+    echo "  set <MAX> <MIN>    Set battery charge thresholds."
+    echo "  start              Start BatteryControl monitoring."
+    echo "  stop               Stop BatteryControl monitoring."
+    echo "  status             Show BatteryControl status."
+    echo "  no_turbo [1|0]     Toggle Intel Turbo Boost."
+    echo "  max_perf_pct <VAL> Set CPU max_perf_pct (performance cap 10–100%)."
+    echo "  uninstall          Run the uninstaller script."
     echo
 }
 
@@ -92,6 +94,13 @@ show_status() {
     else
         echo "  Intel Turbo Boost status: Not available"
     fi
+
+    if [ -f "$PERF_PATH" ]; then
+        PERF_VAL=$(cat "$PERF_PATH")
+        echo "  max_perf_pct: $PERF_VAL%"
+    else
+        echo "  max_perf_pct status: Not available"
+    fi
 }
 
 start_monitoring_loop() {
@@ -99,7 +108,7 @@ start_monitoring_loop() {
     load_config
     echo $$ > "$PID_FILE"
 
-    echo "BatteryControl  started - keep it running for it to remain functioning. (PID $$)."
+    echo "BatteryControl started - keep it running for it to remain functioning. (PID $$)."
 
     while true; do
         if [ ! -f "$RUN_FLAG" ]; then
@@ -176,6 +185,24 @@ case "$1" in
             echo "no_turbo is now set to: $2"
         else
             echo "Permission denied or Turbo Boost control not available."
+            exit 1
+        fi
+        ;;
+    max_perf_pct)
+        if ! [[ "$2" =~ ^[0-9]+$ ]]; then
+            echo "Error: Argument must be an integer between 10 and 100."
+            exit 1
+        fi
+        if [ "$2" -lt 10 ] || [ "$2" -gt 100 ]; then
+            echo "Error: Value must be between 10 and 100."
+            exit 1
+        fi
+
+        if [ -w "$PERF_PATH" ]; then
+            echo "$2" | sudo tee "$PERF_PATH" > /dev/null
+            echo "max_perf_pct set to $2%"
+        else
+            echo "Error: Cannot write to $PERF_PATH. Are you running with sudo?"
             exit 1
         fi
         ;;
