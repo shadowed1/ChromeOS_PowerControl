@@ -50,7 +50,6 @@
         echo "Skipped creating global command."
     fi
     
-    
     read -rp "Do you want to disable Intel Turbo Boost now? (y/n): " run_no_turbo
     if [[ "$run_no_turbo" =~ ^[Yy]$ ]]; then
         echo 1 | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo > /dev/null
