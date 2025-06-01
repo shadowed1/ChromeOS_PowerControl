@@ -1,4 +1,4 @@
-# **ChromeOS Battery Control**
+# **ChromeOS PowerControl**
 ## Requires Developer Mode. 
 
 ### - Customize battery charging limit instead of relying on Adaptive Charging to maximize battery longevity. 
