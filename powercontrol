@@ -30,9 +30,17 @@ save_config() {
 }
 
 get_temp_kelvin() {
-    ectool temps 2 2>/dev/null | grep ' K' | head -n1 | sed -n 's/.* \([0-9]\+\) K.*/\1/p'
-}
+    # Ensure a valid response from ectool
+    temp_k=$(ectool temps "$TEMP_SENSOR_ID" 2>/dev/null | grep ' K' | head -n1 | sed -n 's/.* \([0-9]\+\) K.*/\1/p')
+    
+    # Check if the temperature was successfully read
+    if ! [[ "$temp_k" =~ ^[0-9]+$ ]]; then
+        echo "Failed to read temperature sensor $TEMP_SENSOR_ID."
+        return 1
+    fi
 
+    echo "$temp_k"
+}
 
 set_max_perf_pct() {
     local pct=$1
@@ -46,7 +54,7 @@ set_max_perf_pct() {
 
 set_temp_threshold() {
     if ! [[ "$1" =~ ^[0-9]+$ ]]; then
-        echo "Error: Temperature threshold must be an integer (Kelvin)."
+        echo "Error: Temperature threshold must be an integer ()."
         exit 1
     fi
     if (( $1 > MAX_TEMP_LIMIT_K )); then
@@ -95,8 +103,7 @@ start_monitoring_loop() {
 
     while [ -f "$RUN_FLAG" ]; do
         temp_k=$(get_temp_kelvin)
-        if ! [[ "$temp_k" =~ ^[0-9]+$ ]]; then
-            echo "Failed to read temperature sensor $TEMP_SENSOR_ID."
+        if [ $? -ne 0 ]; then
             sleep 1
             continue
         fi
