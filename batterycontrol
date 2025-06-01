@@ -6,6 +6,8 @@ BATTERY_PATH="/sys/class/power_supply/BAT0/capacity"
 RUN_FLAG="$HOME/.batterycontrol_enabled"
 TURBO_PATH="/sys/devices/system/cpu/intel_pstate/no_turbo"
 
+# ChromeOS reports slightly higher values than what is displayed. 
+
 DEFAULT_CHARGE_MAX=77
 DEFAULT_CHARGE_MIN=74
 
@@ -57,10 +59,10 @@ show_help() {
     echo "    Example: sudo batterycontrol set 80 75"
     echo
     echo "  start"
-    echo "    Enable and start the BatteryControl monitoring loop."
+    echo "    Start BatteryControl monitoring."
     echo
     echo "  stop"
-    echo "    Disable the BatteryControl monitoring loop."
+    echo "    Disable BatteryControl monitoring."
     echo
     echo "  no_turbo [1|0]"
     echo "    Toggle Intel Turbo Boost (1=disable, 0=enable)."
@@ -99,7 +101,6 @@ show_status() {
     fi
 }
 
-# --- Command dispatcher ---
 case "$1" in
     set)
         set_thresholds "$2" "$3"
@@ -108,7 +109,7 @@ case "$1" in
     start)
         touch "$RUN_FLAG"
         echo "BatteryControl enabled."
-        echo "Starting BatteryControl monitoring loop..."
+        echo "Starting BatteryControl monitoring. Keep this program running or else monitoring will stop."
         load_config
         while true; do
             if [ ! -f "$RUN_FLAG" ]; then
