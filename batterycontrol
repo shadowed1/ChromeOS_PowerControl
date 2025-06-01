@@ -99,7 +99,7 @@ start_monitoring_loop() {
     load_config
     echo $$ > "$PID_FILE"
 
-    echo "BatteryControl monitoring started (PID $$)."
+    echo "BatteryControl monitoring started - keep it running for it to remain functioning. (PID $$)."
 
     while true; do
         if [ ! -f "$RUN_FLAG" ]; then
