@@ -28,19 +28,19 @@ case "$choice" in
         echo "Removing system files..."
         remove_file_with_message /etc/init/no_turbo.conf
         echo "Removing startup files..."
-        remove_file_with_message /usr/local/bin/ChromeOS_BatteryControl_Installer.sh
+        remove_file_with_message /usr/local/bin/ChromeOS_PowerControl_Installer.sh
         echo "Removing symlink..."
-        remove_file_with_message /usr/local/bin/batterycontrol
+        remove_file_with_message /usr/local/bin/powercontrol
 
-        if [ -d /usr/local/bin/ChromeOS_BatteryControl ]; then
-            sudo rm -rf /usr/local/bin/ChromeOS_BatteryControl && echo "Removed: /usr/local/bin/ChromeOS_BatteryControl"
+        if [ -d /usr/local/bin/ChromeOS_PowerControl ]; then
+            sudo rm -rf /usr/local/bin/ChromeOS_PowerControl && echo "Removed: /usr/local/bin/ChromeOS_PowerControl"
         else
-            echo "Not found: /usr/local/bin/ChromeOS_BatteryControl"
+            echo "Not found: /usr/local/bin/ChromeOS_PowerControl"
         fi
 
         echo "Removing user config files..."
-        remove_file_with_message "$HOME/.batterycontrol_config"
-        remove_file_with_message "$HOME/.batterycontrol_enabled"
+        remove_file_with_message "$HOME/.powercontrol_config"
+        remove_file_with_message "$HOME/.powercontrol_enabled"
 
         echo "Full uninstall complete."
         ;;
