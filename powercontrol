@@ -314,9 +314,8 @@ show_help() {
 
 handle_max_perf_pct() {
     if [ -f "$RUN_FLAG" ]; then
-        echo "Error: Cannot manually set max_perf_pct while PowerControl is running."
-        exit 1
-    fi
+fi
+
 
     if [ -z "$2" ]; then
         if [ -f "$PERF_PATH" ]; then
