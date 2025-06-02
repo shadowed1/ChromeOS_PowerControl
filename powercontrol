@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# Require script to be run as root
+if [ "$EUID" -ne 0 ]; then
+    echo "This script must be run with sudo or as root."
+    exit 1
+fi
+
 INSTALL_DIR="/usr/local/bin/ChromeOS_PowerControl"
 USER_HOME="/home/chronos"
 CONFIG_FILE="$INSTALL_DIR/.powercontrol_config"
@@ -32,7 +38,7 @@ save_config() {
 
 get_temp_kelvin() {
     local temp_line
-    temp_line=$(ectool temps 2 2>/dev/null | grep -m1 ' K (=') || return 1
+    temp_line=$(sudo ectool temps 2 2>/dev/null | grep -m1 ' K (=') || return 1
     echo "$temp_line" | awk '{ for(i=1;i<=NF;i++) if ($i == "K") { print $(i-1); exit } }'
 }
 
@@ -102,9 +108,9 @@ start_monitoring_loop() {
 
         current_pct=$(cat "$PERF_PATH" 2>/dev/null || echo "0")
 
-        # Linear throttling parameters
-        low_temp_k=333      # 60°C
-        high_temp_k=359     # 86°C
+        # Linear throttling: 60°C (333K) => 100%, 86°C (359K) => 50%
+        low_temp_k=333
+        high_temp_k=359
         min_perf_pct=50
         max_perf_pct=100
 
@@ -170,7 +176,7 @@ show_status() {
 
     echo
     echo "=== ectool temps output ==="
-    ectool temps 2 2>/dev/null || echo "Failed to read ectool temps"
+    sudo ectool temps 2 2>/dev/null || echo "Failed to read ectool temps"
 }
 
 stop_monitoring() {
