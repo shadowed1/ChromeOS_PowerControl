@@ -75,6 +75,7 @@ show_status() {
                 echo "  BatteryControl is: ENABLED (running, PID $PID)"
             else
                 echo "  BatteryControl is: ENABLED (but process is NOT running)"
+                rm -f "$PID_FILE"
             fi
         else
             echo "  BatteryControl is: ENABLED (PID not found)"
@@ -138,6 +139,8 @@ stop_monitoring() {
         if ps -p "$PID" > /dev/null 2>&1; then
             kill "$PID"
             echo "Stopped BatteryControl process (PID $PID)."
+        else
+            echo "Process with PID $PID not found. Cleaning up stale PID file."
         fi
         rm -f "$PID_FILE"
     fi
@@ -155,7 +158,9 @@ case "$1" in
             echo "BatteryControl is already running."
             exit 0
         fi
-        start_monitoring_loop
+        # Start monitoring loop in background
+        nohup "$0" __monitor__ > /dev/null 2>&1 &
+        echo "BatteryControl monitoring started in background."
         ;;
     stop)
         stop_monitoring
@@ -173,6 +178,9 @@ case "$1" in
         ;;
     help | --help | -h)
         show_help
+        ;;
+    __monitor__)
+        start_monitoring_loop
         ;;
     "")
         show_status
