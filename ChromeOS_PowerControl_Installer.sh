@@ -77,6 +77,7 @@ fi
 
 # Disable Intel Turbo Boost on boot option
 read -rp "Do you want Intel Turbo Boost disabled on boot? (y/n): " move_no_turbo
+echo ""
 if [[ "$move_no_turbo" =~ ^[Yy]$ ]]; then
     sudo mv /usr/local/bin/ChromeOS_PowerControl/no_turbo.conf /etc/init/
     echo "Turbo Boost will be disabled on restart."
@@ -87,6 +88,7 @@ fi
 
 # Disable Intel Turbo Boost now option
 read -rp "Do you want to disable Intel Turbo Boost now? (y/n): " run_no_turbo
+echo ""
 if [[ "$run_no_turbo" =~ ^[Yy]$ ]]; then
     echo 1 | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo > /dev/null
 else
@@ -96,6 +98,7 @@ fi
 
 # Create global 'powercontrol' command for easier use
 read -rp "Do you want to create a global command 'powercontrol' for faster changes? (y/n): " link_cmd
+echo ""
 if [[ "$link_cmd" =~ ^[Yy]$ ]]; then
     sudo ln -sf /usr/local/bin/ChromeOS_PowerControl/powercontrol /usr/local/bin/powercontrol
     echo "'powercontrol' command is now available system-wide."
@@ -107,6 +110,7 @@ fi
 
 # Create global 'batterycontrol' command for easier use
 read -rp "Do you want to create a global command 'batterycontrol' for faster changes? (y/n): " link_cmd
+echo ""
 if [[ "$link_cmd" =~ ^[Yy]$ ]]; then
     sudo ln -sf /usr/local/bin/ChromeOS_PowerControl/batterycontrol /usr/local/bin/batterycontrol
     echo "'batterycontrol' command is now available system-wide."
