@@ -115,7 +115,7 @@ else
     echo "sudo batterycontrol start to run it later."
     echo ""
 fi
-
+echo ""
 echo "Commands:"
 echo ""
 echo "sudo powercontrol start               # Throttle CPU based on temperature"
