@@ -221,7 +221,6 @@ show_status() {
         if ps -p "$PID" > /dev/null 2>&1; then
             echo "  Status: RUNNING (PID $PID)"
         else
-            echo "  Status: PID file exists but process not found. Cleaning up stale PID file."
             rm -f "$PID_FILE"
             rm -f "$RUN_FLAG"
             echo "  Status: STOPPED"
