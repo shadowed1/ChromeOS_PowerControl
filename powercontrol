@@ -99,6 +99,14 @@ set_min_perf_pct() {
     echo "Minimum performance percentage set to $MIN_PERF_PCT%"
 }
 
+validate_config() {
+    if [[ -z "$MAX_TEMP" ]]; then MAX_TEMP=$DEFAULT_MAX_TEMP; fi
+    if [[ -z "$MAX_PERF_PCT" ]]; then MAX_PERF_PCT=$DEFAULT_MAX_PERF_PCT; fi
+    if [[ -z "$LOW_TEMP" ]]; then LOW_TEMP=$DEFAULT_LOW_TEMP; fi
+    if [[ -z "$MIN_PERF_PCT" ]]; then MIN_PERF_PCT=$DEFAULT_MIN_PERF_PCT; fi
+}
+
+
 set_no_turbo() {
     local value="$1"
     if [[ "$value" != "0" && "$value" != "1" ]]; then
@@ -122,12 +130,7 @@ set_no_turbo() {
 
 start_monitoring_loop() {
     load_config
-validate_config() {
-    if [[ -z "$MAX_TEMP" ]]; then MAX_TEMP=$DEFAULT_MAX_TEMP; fi
-    if [[ -z "$MAX_PERF_PCT" ]]; then MAX_PERF_PCT=$DEFAULT_MAX_PERF_PCT; fi
-    if [[ -z "$LOW_TEMP" ]]; then LOW_TEMP=60; fi
-    if [[ -z "$MIN_PERF_PCT" ]]; then MIN_PERF_PCT=50; fi
-}
+    validate_config
     touch "$RUN_FLAG"
     echo $$ > "$PID_FILE"
     echo "Starting PowerControl (PID $$)."
