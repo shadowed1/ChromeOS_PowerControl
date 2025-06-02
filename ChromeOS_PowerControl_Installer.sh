@@ -60,15 +60,17 @@ POWER_CONFIG="/usr/local/bin/ChromeOS_PowerControl/.powercontrol_config"
 POWER_RUN_FLAG="/usr/local/bin/ChromeOS_PowerControl/.powercontrol_enabled"
 
 # Create power control config if not already present
-if [ ! -f "$POWER_CONFIG" ]; then
-    echo "MAX_TEMP_K=358" > "$POWER_CONFIG"    # 85°C in Kelvin
-    echo "MAX_PERF_PCT=85" >> "$POWER_CONFIG" # Default max performance %
-    echo "/usr/local/bin/ChromeOS_PowerControl/powercontrol config created."
-    echo""
-else
-    echo "PowerControl config file already exists at $POWER_CONFIG"
-fi
-
+load_config() {
+    if [ -f "$POWER_CONFIG" ]; then
+        source "$POWER_CONFIG"
+    else
+        MAX_TEMP=$DEFAULT_MAX_TEMP
+        MAX_PERF_PCT=$DEFAULT_MAX_PERF_PCT
+        LOW_TEMP=$DEFAULT_LOW_TEMP
+        MIN_PERF_PCT=$DEFAULT_MIN_PERF_PCT
+        save_config
+    fi
+}
 # Create power run flag if not already present
 if [ ! -f "$POWER_RUN_FLAG" ]; then
     touch "$POWER_RUN_FLAG"
