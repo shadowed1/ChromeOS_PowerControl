@@ -71,7 +71,6 @@ load_config() {
         save_config
     fi
 }
-}
 # Create power run flag if not already present
 if [ ! -f "$POWER_RUN_FLAG" ]; then
     touch "$POWER_RUN_FLAG"
