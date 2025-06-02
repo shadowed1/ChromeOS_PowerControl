@@ -40,7 +40,7 @@ BATTERY_RUN_FLAG="/usr/local/bin/ChromeOS_PowerControl/.batterycontrol_enabled"
 if [ ! -f "$BATTERY_CONFIG" ]; then
     echo "CHARGE_MAX=77" > "$BATTERY_CONFIG"
     echo "CHARGE_MIN=74" >> "$BATTERY_CONFIG"
-    echo "Default batterycontrol config created at $BATTERY_CONFIG"
+    echo "/usr/local/bin/ChromeOS_PowerControl/batterycontrol config created"
 else
     echo "BatteryControl config file already exists at $BATTERY_CONFIG"
 fi
@@ -59,7 +59,7 @@ POWER_RUN_FLAG="/usr/local/bin/ChromeOS_PowerControl/.powercontrol_enabled"
 if [ ! -f "$POWER_CONFIG" ]; then
     echo "MAX_TEMP_K=358" > "$POWER_CONFIG"    # 85°C in Kelvin
     echo "MAX_PERF_PCT=85" >> "$POWER_CONFIG" # Default max performance %
-    echo "Default powercontrol config created at $POWER_CONFIG"
+    echo "/usr/local/bin/ChromeOS_PowerControl/powercontrol config created."
 else
     echo "PowerControl config file already exists at $POWER_CONFIG"
 fi
