@@ -255,6 +255,11 @@ show_status() {
 }
 
 stop_monitoring() {
+    if [ -n "$POWERCONTROL_STOPPING" ]; then
+        return
+    fi
+    POWERCONTROL_STOPPING=1
+
     if [ ! -f "$PID_FILE" ]; then
         return
     fi
@@ -274,8 +279,6 @@ stop_monitoring() {
             fi
             sleep 1
         done
-
-        echo "Process did not terminate, sending SIGKILL..."
         kill -9 "$PID"
         rm -f "$PID_FILE"
         restore_no_turbo
