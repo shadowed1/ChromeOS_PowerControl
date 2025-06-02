@@ -134,6 +134,15 @@ backup_no_turbo() {
     fi
 }
 
+cleanup() {
+    echo "Caught interrupt signal, stopping PowerControl and restoring Turbo Boost..."
+    stop_monitoring
+    exit 0
+}
+
+trap cleanup SIGINT SIGTERM
+
+
 restore_no_turbo() {
     if [ -f "$NO_TURBO_BACKUP" ]; then
         saved_val=$(cat "$NO_TURBO_BACKUP")
