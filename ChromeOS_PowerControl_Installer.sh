@@ -115,16 +115,6 @@ else
     echo ""
 fi
 
-# Run BatteryControl now
-read -rp "Do you want to run batterycontrol? (y/n): " run_no_turbo
-echo ""
-if [[ "$run_batterycontrol" =~ ^[Yy]$ ]]; then
-   sudo batterycontrol start
-else
-    echo "sudo batterycontrol start to run it later!"
-    echo ""
-fi
-
 
 # Final message
 echo "Installation complete. ChromeOS_PowerControl ready to use run! Use the commands:"
