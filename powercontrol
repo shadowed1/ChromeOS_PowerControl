@@ -134,6 +134,10 @@ start_monitoring_loop() {
     touch "$RUN_FLAG"
     echo $$ > "$PID_FILE"
     echo "Starting PowerControl (PID $$)."
+        low_temp_c=$LOW_TEMP
+        high_temp_c=$MAX_TEMP
+        min_perf_pct=$MIN_PERF_PCT
+        max_perf_pct=$MAX_PERF_PCT
 
     while [ -f "$RUN_FLAG" ]; do
         temp_c=$(get_temp)
@@ -157,11 +161,6 @@ fi
 
 
         current_pct=$(cat "$PERF_PATH" 2>/dev/null || echo "0")
-
-        low_temp_c=$LOW_TEMP
-        high_temp_c=$MAX_TEMP
-        min_perf_pct=$MIN_PERF_PCT
-        max_perf_pct=$MAX_PERF_PCT
 
         if (( temp_c <= low_temp_c )); then
             pct=$max_perf_pct
