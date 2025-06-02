@@ -174,7 +174,6 @@ fi
         fi
 
         if [[ "$current_pct" != "$pct" ]]; then
-            echo "SOC Temperature $temp_c°C -> Setting max_perf_pct to $pct%"
             set_max_perf_pct "$pct"
         fi
 
