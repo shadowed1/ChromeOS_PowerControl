@@ -66,10 +66,11 @@ load_config() {
     else
         MAX_TEMP=$DEFAULT_MAX_TEMP
         MAX_PERF_PCT=$DEFAULT_MAX_PERF_PCT
-        LOW_TEMP=$DEFAULT_LOW_TEMP
+        MIN_TEMP=$DEFAULT_MIN_TEMP
         MIN_PERF_PCT=$DEFAULT_MIN_PERF_PCT
         save_config
     fi
+}
 }
 # Create power run flag if not already present
 if [ ! -f "$POWER_RUN_FLAG" ]; then
