@@ -75,6 +75,30 @@ set_temp_threshold() {
     echo "Max temperature threshold set to $MAX_TEMP°C"
 }
 
+set_low_temp() {
+    if ! [[ "$1" =~ ^[0-9]+$ ]]; then
+        echo "Error: Low temperature must be an integer."
+        exit 1
+    fi
+    LOW_TEMP=$1
+    save_config
+    echo "Low temperature threshold set to $LOW_TEMP°C"
+}
+
+set_min_perf_pct() {
+    if ! [[ "$1" =~ ^[0-9]+$ ]]; then
+        echo "Error: min_perf_pct must be an integer."
+        exit 1
+    fi
+    if (( $1 < 10 || $1 > 100 )); then
+        echo "Error: min_perf_pct must be between 10 and 100."
+        exit 1
+    fi
+    MIN_PERF_PCT=$1
+    save_config
+    echo "Minimum performance percentage set to $MIN_PERF_PCT%"
+}
+
 set_no_turbo() {
     local value="$1"
     if [[ "$value" != "0" && "$value" != "1" ]]; then
@@ -165,8 +189,8 @@ show_status() {
 
     load_config
     echo "  Configured max temperature: $MAX_TEMP°C"
-    echo "  Configured max_perf_pct: $MAX_PERF_PCT%"
     echo "  Configured low temperature: $LOW_TEMP°C"
+    echo "  Configured max_perf_pct: $MAX_PERF_PCT%"
     echo "  Configured min_perf_pct: $MIN_PERF_PCT%"
 
     if [ -f "$PERF_PATH" ]; then
@@ -230,14 +254,16 @@ uninstall_script() {
 show_help() {
     echo "PowerControl Script - Available Commands:"
     echo
-    echo "  help               Show this help message."
-    echo "  start              Start PowerControl monitoring in the background."
-    echo "  stop               Stop PowerControl monitoring and restore Turbo Boost."
-    echo "  max_temp <temp_in_Celsius> Set maximum allowed CPU temperature in Celsius."
-    echo "  no_turbo {0|1}     Enable (0) or disable (1) Intel Turbo Boost manually."
-    echo "  max_perf_pct [PCT] Show or set max_perf_pct (minimum 10%)."
-    echo "  uninstall          Run the PowerControl uninstaller script."
-    echo "  (no command)       Show PowerControl status."
+    echo "  help                  Show this help message."
+    echo "  start                 Start PowerControl monitoring in the background."
+    echo "  stop                  Stop PowerControl monitoring and restore Turbo Boost."
+    echo "  max_temp <°C>         Set maximum allowed CPU temperature."
+    echo "  low_temp <°C>         Set minimum CPU temperature before throttling begins."
+    echo "  min_perf_pct <PCT>    Set minimum performance percentage (10–100)."
+    echo "  max_perf_pct [PCT]    Show or set max performance percentage (10–100)."
+    echo "  no_turbo {0|1}        Enable (0) or disable (1) Intel Turbo Boost manually."
+    echo "  uninstall             Run the PowerControl uninstaller script."
+    echo "  (no command)          Show PowerControl status."
     echo
 }
 
@@ -268,4 +294,46 @@ handle_max_perf_pct() {
 
         MAX_PERF_PCT=$2
         save_config
-        echo "Setting max
+        echo "Setting max_perf_pct to $MAX_PERF_PCT%"
+        set_max_perf_pct "$MAX_PERF_PCT"
+    fi
+}
+
+case "$1" in
+    start)
+        stop_monitoring >/dev/null 2>&1
+        start_monitoring_loop
+        nohup "$0" __monitor__ > /dev/null 2>&1 &
+        echo "PowerControl monitoring started in background."
+        ;;
+    stop)
+        stop_monitoring
+        ;;
+    max_temp)
+        set_temp_threshold "$2"
+        ;;
+    low_temp)
+        set_low_temp "$2"
+        ;;
+    min_perf_pct)
+        set_min_perf_pct "$2"
+        ;;
+    max_perf_pct)
+        handle_max_perf_pct "$@"
+        ;;
+    no_turbo)
+        set_no_turbo "$2"
+        ;;
+    uninstall)
+        uninstall_script
+        ;;
+    help)
+        show_help
+        ;;
+    __monitor__)
+        start_monitoring_loop
+        ;;
+    *)
+        show_status
+        ;;
+esac
