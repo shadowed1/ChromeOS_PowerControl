@@ -30,7 +30,7 @@ save_config() {
     echo "MAX_PERF_PCT=$MAX_PERF_PCT" >> "$CONFIG_FILE"
 }
 
-# Renamed get_temp_kelvin to get_temp for Celsius temperature
+# Celsius 
 get_temp() {
     local temp_celsius
     temp_celsius=$(cat /sys/class/thermal/thermal_zone0/temp 2>/dev/null)
@@ -109,9 +109,6 @@ start_monitoring_loop() {
             sleep 1
             continue
         fi
-
-        # Print current temp for debugging
-        echo "Current SOC Temperature: $temp_c°C"
 
         current_pct=$(cat "$PERF_PATH" 2>/dev/null || echo "0")
 
@@ -271,7 +268,10 @@ handle_max_perf_pct() {
 
 case "$1" in
     start)
+        stop_monitoring >/dev/null 2>&1
         start_monitoring_loop
+        nohup "$0" __monitor__ > /dev/null 2>&1 &
+        echo "PowerControl monitoring started in background."
         ;;
     stop)
         stop_monitoring
@@ -290,6 +290,9 @@ case "$1" in
         ;;
     help)
         show_help
+        ;;
+__monitor__)
+        start_monitoring_loop
         ;;
     *)
         show_status
