@@ -21,16 +21,13 @@
 - BatteryControl is able to run in the background but PowerControl is not. Both can be utilized by one terminal simultaneously!
 
 __Commands:__
-
-- `sudo powercontrol start               # Throttle CPU based on temperature`
-- `sudo powercontrol stop                # Default CPU temperature curve`  
+- `sudo powercontrol start               # Throttle CPU based on temperature curve`
+- `sudo powercontrol stop                # Default CPU temperature curve. no_turbo setting restored.`
 - `sudo powercontrol no_turbo 1          # 0 is default Intel Turbo Boost On behavior.`
 - `sudo powercontrol max_perf_pct 75     # 10 to 100%. 100 is default behavior; can be run standalone.`
 - `sudo powercontrol min_perf_pct 50     # Minimum clockspeed CPU can reach at max_temp.`
-- `sudo powercontrol max_temp            # Controls the lower clockspeed part of the curve.`
-- `sudo powercontrol min_temp            # Controls the higher clockspeed part of the curve.`
-- `sudo powercontrol help`
-
+- `sudo powercontrol max_temp 86         # Threshold when min_perf_pct is reached. Limit is 90 Celcius.`
+- `sudo powercontrol min_temp 65         # Threshold when max_perf_pct is reached.`
 ----------------------------------------------------------------------------------------------
   
 - `sudo batterycontrol start               # starts batterycontrol`
