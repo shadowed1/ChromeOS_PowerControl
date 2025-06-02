@@ -7,6 +7,7 @@ RUN_FLAG="$INSTALL_DIR/.powercontrol_enabled"
 PID_FILE="$INSTALL_DIR/.powercontrol_pid"
 PERF_PATH="/sys/devices/system/cpu/intel_pstate/max_perf_pct"
 TURBO_PATH="/sys/devices/system/cpu/intel_pstate/no_turbo"
+NO_TURBO_BACKUP="$INSTALL_DIR/.no_turbo_backup"
 
 DEFAULT_MAX_TEMP=86
 DEFAULT_MAX_PERF_PCT=100
@@ -106,7 +107,6 @@ validate_config() {
     if [[ -z "$MIN_PERF_PCT" ]]; then MIN_PERF_PCT=$DEFAULT_MIN_PERF_PCT; fi
 }
 
-
 set_no_turbo() {
     local value="$1"
     if [[ "$value" != "0" && "$value" != "1" ]]; then
@@ -128,16 +128,36 @@ set_no_turbo() {
     fi
 }
 
+backup_no_turbo() {
+    if [ -f "$TURBO_PATH" ]; then
+        sudo cat "$TURBO_PATH" > "$NO_TURBO_BACKUP"
+    fi
+}
+
+restore_no_turbo() {
+    if [ -f "$NO_TURBO_BACKUP" ]; then
+        saved_val=$(cat "$NO_TURBO_BACKUP")
+        if [[ "$saved_val" == "0" || "$saved_val" == "1" ]]; then
+            set_no_turbo "$saved_val"
+        fi
+        rm -f "$NO_TURBO_BACKUP"
+    fi
+}
+
 start_monitoring_loop() {
     load_config
     validate_config
+
+    backup_no_turbo
+    set_no_turbo 0
+
     touch "$RUN_FLAG"
     echo $$ > "$PID_FILE"
     echo "Starting PowerControl (PID $$)."
-        min_temp_c=$MIN_TEMP
-        high_temp_c=$MAX_TEMP
-        min_perf_pct=$MIN_PERF_PCT
-        max_perf_pct=$MAX_PERF_PCT
+    min_temp_c=$MIN_TEMP
+    high_temp_c=$MAX_TEMP
+    min_perf_pct=$MIN_PERF_PCT
+    max_perf_pct=$MAX_PERF_PCT
 
     while [ -f "$RUN_FLAG" ]; do
         temp_c=$(get_temp)
@@ -153,12 +173,11 @@ start_monitoring_loop() {
             continue
         fi
 
-if ! [[ "$min_temp_c" =~ ^[0-9]+$ && "$high_temp_c" =~ ^[0-9]+$ && "$max_perf_pct" =~ ^[0-9]+$ && "$min_perf_pct" =~ ^[0-9]+$ ]]; then
-    echo "Invalid configuration values detected. Skipping throttling for this cycle."
-    sleep 1
-    continue
-fi
-
+        if ! [[ "$min_temp_c" =~ ^[0-9]+$ && "$high_temp_c" =~ ^[0-9]+$ && "$max_perf_pct" =~ ^[0-9]+$ && "$min_perf_pct" =~ ^[0-9]+$ ]]; then
+            echo "Invalid configuration values detected. Skipping throttling for this cycle."
+            sleep 1
+            continue
+        fi
 
         current_pct=$(cat "$PERF_PATH" 2>/dev/null || echo "0")
 
@@ -242,6 +261,7 @@ stop_monitoring() {
             if ! ps -p "$PID" > /dev/null 2>&1; then
                 echo "PowerControl stopped."
                 rm -f "$PID_FILE"
+                restore_no_turbo
                 return
             fi
             sleep 1
@@ -250,9 +270,11 @@ stop_monitoring() {
         echo "Process did not terminate, sending SIGKILL..."
         kill -9 "$PID"
         rm -f "$PID_FILE"
+        restore_no_turbo
     else
         rm -f "$PID_FILE"
         rm -f "$RUN_FLAG"
+        restore_no_turbo
     fi
 }
 
