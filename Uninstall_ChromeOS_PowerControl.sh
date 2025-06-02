@@ -34,7 +34,7 @@ case "$choice" in
         remove_file_with_message /etc/init/no_turbo.conf
 
         echo "Removing installer..."
-        remove_file_with_message "$INSTALL_DIR/ChromeOS_PowerControl_Installer.sh"
+        remove_file_with_message usr/local/bin/ChromeOS_PowerControl_Installer.sh
 
         echo "Removing symlinks..."
         remove_file_with_message "$INSTALL_DIR/powercontrol"
