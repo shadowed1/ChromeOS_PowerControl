@@ -39,11 +39,13 @@ __Commands:__
 
 __How It Works:__
 
+__BatteryControl:__
 - Uses ectool's chargecontrol to toggle between normal or idle.
 - Check's CROS_USBPD_CHARGER0/online to see if it is plugged in or not
 - Check's BAT0/capacity to measure when to control chargecontrol.
-- Due to an ectool limitation, batterycontrol will require keeping the terminal active.
-- ChromeOS reports slightly higher values than what ChromeOS_PowerControl sets the charge limit to. 
+- ChromeOS reports slightly higher values than what batterycontrol sets the charge limit to. 
+
+__PowerControl:__
 
 __Bonus:__
 
