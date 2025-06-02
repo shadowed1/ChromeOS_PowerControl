@@ -32,9 +32,12 @@ save_config() {
 
 get_temp_kelvin() {
     local temp_line
-    temp_line=$(sudo ectool temps 2 2>/dev/null | grep -m1 -E 'K\s*\(=') || return 1
-    echo "$temp_line" | awk '{ for(i=1;i<=NF;i++) if ($i == "K") { print $(i-1); exit } }'
+    temp_line=$(sudo ectool temps 2 2>/dev/null | grep -m1 'SOC' || return 1)
+    # Extract the temperature in Kelvin (first column)
+    echo "$temp_line" | awk '{ print $1 }'
 }
+
+
 
 
 set_max_perf_pct() {
@@ -83,10 +86,6 @@ set_no_turbo() {
 }
 
 start_monitoring_loop() {
-    if [ -f "$RUN_FLAG" ]; then
-        echo "PowerControl is already running."
-        exit 1
-    fi
 
     load_config
 
@@ -103,9 +102,9 @@ start_monitoring_loop() {
 
         current_pct=$(cat "$PERF_PATH" 2>/dev/null || echo "0")
 
-        # Linear throttling: 60°C (333K) => 100%, 86°C (359K) => 50%
-        low_temp_k=333
-        high_temp_k=359
+        # Linear throttling based on SOC temperature
+        low_temp_k=333  # 60°C
+        high_temp_k=359 # 86°C
         min_perf_pct=50
         max_perf_pct=100
 
@@ -121,7 +120,7 @@ start_monitoring_loop() {
         fi
 
         if [[ "$current_pct" != "$pct" ]]; then
-            echo "Temperature $temp_k K -> Setting max_perf_pct to $pct%"
+            echo "SOC Temperature $temp_k K -> Setting max_perf_pct to $pct%"
             set_max_perf_pct "$pct"
         fi
 
