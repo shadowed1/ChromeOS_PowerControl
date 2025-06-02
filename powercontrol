@@ -226,7 +226,7 @@ show_help() {
     echo "  help               Show this help message."
     echo "  start              Start PowerControl monitoring in the background."
     echo "  stop               Stop PowerControl monitoring and restore Turbo Boost."
-    echo "  settemp <temp_in_Celsius> Set maximum allowed CPU temperature in Celsius."
+    echo "  max_temp <temp_in_Celsius> Set maximum allowed CPU temperature in Celsius."
     echo "  no_turbo {0|1}     Enable (0) or disable (1) Intel Turbo Boost manually."
     echo "  max_perf_pct [PCT] Show or set max_perf_pct (minimum 10%)."
     echo "  uninstall          Run the PowerControl uninstaller script."
@@ -276,7 +276,7 @@ case "$1" in
     stop)
         stop_monitoring
         ;;
-    settemp)
+    max_temp)
         set_temp_threshold "$2"
         ;;
     no_turbo)
