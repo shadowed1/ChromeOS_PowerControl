@@ -18,7 +18,7 @@
   `sudo mv ~/tmp/ChromeOS_PowerControl/ChromeOS_PowerControl_Installer.sh /usr/local/bin`
 - `sudo bash /usr/local/bin/ChromeOS_PowerControl_Installer.sh`
   
-- BatteryControl is able to run in the background but powercontrol is not. Both can be utilized by one terminal.
+- BatteryControl is able to run in the background but PowerControl is not. Both can be utilized by one terminal simultaneously!
 
 __Commands:__
 
@@ -39,7 +39,7 @@ __Commands:__
 - `sudo batterycontrol set 80 75           # 80 is when charging stops; 75 is when charging may begin`
 - `sudo batterycontrol help`
 
-- `sudo powercontrol uninstall            # Global uninstaller`
+- `sudo powercontrol uninstall            # Global uninstaller that will clean up after itself`
 - Alternative uninstall method: `sudo /usr/local/bin/ChromeOS_PowerControl/Uninstall_ChromeOS_PowerControl.sh`
 
 __How It Works:__
