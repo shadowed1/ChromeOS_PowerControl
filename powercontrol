@@ -221,17 +221,7 @@ uninstall_script() {
 
 case "$1" in
     start)
-        if [ -f "$PID_FILE" ]; then
-            PID=$(cat "$PID_FILE")
-            if ps -p "$PID" > /dev/null 2>&1; then
-                echo "PowerControl is already running (PID $PID)."
-                exit 0
-            else
-                echo "Found stale PID file. Removing."
-                rm -f "$PID_FILE"
-                rm -f "$RUN_FLAG"
-            fi
-        fi
+        stop_monitoring >/dev/null 2>&1
 
         # Start monitoring loop in background
         nohup "$0" __monitor__ > /dev/null 2>&1 &
