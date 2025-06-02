@@ -18,7 +18,7 @@
   `sudo mv ~/tmp/ChromeOS_PowerControl/ChromeOS_PowerControl_Installer.sh /usr/local/bin`
 - `sudo bash /usr/local/bin/ChromeOS_PowerControl_Installer.sh`
   
-- The installer will have options to choose from.
+- BatteryControl is able to run in the background but powercontrol is not. Both can be utilized by one terminal.
 
 __Commands:__
 - `Examples:`
