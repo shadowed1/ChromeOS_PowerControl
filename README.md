@@ -15,7 +15,7 @@
 
 - In *VT-2* run:
 - 
-  `sudo mv ~/tmp/ChromeOS_PowerControl/ChromeOS_PowerControl_Installer.sh /usr/local/bin`
+  `sudo mv ~/tmp/ChromeOS_PowerControl_Installer.sh /usr/local/bin`
 - `sudo bash /usr/local/bin/ChromeOS_PowerControl_Installer.sh`
   
 - BatteryControl is able to run in the background but PowerControl is not. Both can be utilized by one terminal simultaneously!
