@@ -48,11 +48,6 @@ case "$choice" in
         fi
 
         echo "Removing user config files..."
-        remove_file_with_message "$INSTALL_DIR/.powercontrol_config"
-        remove_file_with_message "$INSTALL_DIR/.powercontrol_enabled"
-        remove_file_with_message "$INSTALL_DIR/.batterycontrol_config"
-        remove_file_with_message "$INSTALL_DIR/.batterycontrol_enabled"
-
         echo "Full uninstall complete."
         ;;
     *)
