@@ -105,7 +105,16 @@ else
     echo ""
 fi
 
-echo "Examples:"
+read -rp "Do you want to start BatteryControl now in the background? (y/n): " run_batterycontrol
+echo ""
+if [[ "$run_batterycontrol" =~ ^[Yy]$ ]]; then
+    nohup /usr/local/bin/ChromeOS_PowerControl/batterycontrol __monitor__ > /dev/null 2>&1 &
+    echo "BatteryControl started in the background."
+else
+    echo "sudo batterycontrol start to run it later."
+    echo ""
+fi
+
 echo "sudo powercontrol start               # Throttle CPU based on temperature"
 echo "sudo powercontrol stop                # Default CPU temperature curve"
 echo "sudo powercontrol no_turbo 1          # 0 is default Intel Turbo Boost On behavior."
