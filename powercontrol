@@ -318,7 +318,6 @@ case "$1" in
     start)
         stop_monitoring >/dev/null 2>&1
         start_monitoring_loop
-        nohup "$0" __monitor__ > /dev/null 2>&1 &
         echo "PowerControl monitoring started in background."
         ;;
     stop)
