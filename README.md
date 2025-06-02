@@ -46,6 +46,8 @@ __BatteryControl:__
 - ChromeOS reports slightly higher values than what batterycontrol sets the charge limit to. 
 
 __PowerControl:__
+- Uses Intel's native no_turbo and max_perf_pct easy user control.
+- Pairs max_perf_pct and x86_pkg_tmp for a user adjustable clockspeed-temperature curve.
 
 __Bonus:__
 
