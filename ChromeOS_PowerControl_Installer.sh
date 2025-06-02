@@ -1,6 +1,5 @@
 #!/bin/bash
 
-# Create the necessary directory for installation
 sudo mkdir -p /usr/local/bin/ChromeOS_PowerControl
 echo "Enabling sudo in crosh or run in VT-2 is required for this to download successfully."
 curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/powercontrol -o /usr/local/bin/ChromeOS_PowerControl/powercontrol
@@ -32,14 +31,11 @@ echo ""
 echo " /usr/local/bin/ChromeOS_PowerControl/.powercontrol_enabled created."
 echo ""
 
-# Use the invoking user's home directory, which should be /home/chronos
 USER_HOME="/home/chronos"
 
-# Battery control files location
 BATTERY_CONFIG="/usr/local/bin/ChromeOS_PowerControl/.batterycontrol_config"
 BATTERY_RUN_FLAG="/usr/local/bin/ChromeOS_PowerControl/.batterycontrol_enabled"
 
-# Create battery control config if not already present
 if [ ! -f "$BATTERY_CONFIG" ]; then
     echo "CHARGE_MAX=77" > "$BATTERY_CONFIG"
     echo "CHARGE_MIN=74" >> "$BATTERY_CONFIG"
@@ -49,17 +45,14 @@ else
     echo "BatteryControl config file already exists at $BATTERY_CONFIG"
 fi
 
-# Create battery run flag if not already present
 if [ ! -f "$BATTERY_RUN_FLAG" ]; then
     touch "$BATTERY_RUN_FLAG"
     echo "BatteryControl enabled flag created at $BATTERY_RUN_FLAG"
 fi
 
-# Power control files location
 POWER_CONFIG="/usr/local/bin/ChromeOS_PowerControl/.powercontrol_config"
 POWER_RUN_FLAG="/usr/local/bin/ChromeOS_PowerControl/.powercontrol_enabled"
 
-# Create power control config if not already present
 load_config() {
     if [ -f "$POWER_CONFIG" ]; then
         source "$POWER_CONFIG"
@@ -71,13 +64,12 @@ load_config() {
         save_config
     fi
 }
-# Create power run flag if not already present
+
 if [ ! -f "$POWER_RUN_FLAG" ]; then
     touch "$POWER_RUN_FLAG"
     echo "PowerControl enabled flag created at $POWER_RUN_FLAG"
 fi
 
-# Disable Intel Turbo Boost on boot option
 read -rp "Do you want Intel Turbo Boost disabled on boot? (y/n): " move_no_turbo
 echo ""
 if [[ "$move_no_turbo" =~ ^[Yy]$ ]]; then
@@ -88,7 +80,6 @@ else
     echo "Turbo Boost will be enabled on restart."
 fi
 
-# Disable Intel Turbo Boost now option
 read -rp "Do you want to disable Intel Turbo Boost now? (y/n): " run_no_turbo
 echo ""
 if [[ "$run_no_turbo" =~ ^[Yy]$ ]]; then
@@ -98,17 +89,14 @@ else
     echo ""
 fi
 
-# Create global commands for 'powercontrol' and 'batterycontrol'
 read -rp "Do you want to create global commands 'powercontrol' and 'batterycontrol' for faster changes? (y/n): " link_cmd
 echo ""
 
 if [[ "$link_cmd" =~ ^[Yy]$ ]]; then
-    # Create powercontrol command
     sudo ln -sf /usr/local/bin/ChromeOS_PowerControl/powercontrol /usr/local/bin/powercontrol
     echo "'powercontrol' command is now available system-wide."
     echo ""
 
-    # Create batterycontrol command
     sudo ln -sf /usr/local/bin/ChromeOS_PowerControl/batterycontrol /usr/local/bin/batterycontrol
     echo "'batterycontrol' command is now available system-wide."
     echo ""
@@ -117,8 +105,6 @@ else
     echo ""
 fi
 
-
-# Final message
 echo "Examples:"
 echo "sudo powercontrol start               # Throttle CPU based on temperature"
 echo "sudo powercontrol stop                # Default CPU temperature curve"
@@ -128,7 +114,7 @@ echo "sudo powercontrol min_perf_pct 50     # Minimum clockspeed CPU can reach a
 echo "echo sudo powercontrol max_temp       # Controls the lower clockspeed part of the curve."
 echo "sudo powercontrol min_temp            # Controls the higher clockspeed part of the curve."
 echo "sudo powercontrol help"
-echo""
+echo ""
 echo "sudo batterycontrol start               # starts batterycontrol"
 echo "sudo batterycontrol stop                # stops batterycontrol"
 echo "sudo batterycontrol status              # shows status"
