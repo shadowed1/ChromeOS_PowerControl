@@ -1,11 +1,5 @@
 #!/bin/bash
 
-# Require script to be run as root
-if [ "$EUID" -ne 0 ]; then
-    echo "This script must be run with sudo or as root."
-    exit 1
-fi
-
 INSTALL_DIR="/usr/local/bin/ChromeOS_PowerControl"
 USER_HOME="/home/chronos"
 CONFIG_FILE="$INSTALL_DIR/.powercontrol_config"
