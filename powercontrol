@@ -32,9 +32,10 @@ save_config() {
 
 get_temp_kelvin() {
     local temp_line
-    temp_line=$(sudo ectool temps 2 2>/dev/null | grep -m1 ' K (=') || return 1
+    temp_line=$(sudo ectool temps 2 2>/dev/null | grep -m1 -E 'K\s*\(=') || return 1
     echo "$temp_line" | awk '{ for(i=1;i<=NF;i++) if ($i == "K") { print $(i-1); exit } }'
 }
+
 
 set_max_perf_pct() {
     local pct=$1
@@ -265,10 +266,12 @@ handle_max_perf_pct() {
 
 case "$1" in
     start)
-        stop_monitoring >/dev/null 2>&1
-        "$0" no_turbo 0 >/dev/null 2>&1
-        "$0" __monitor__ > /dev/null 2>&1
-        echo "PowerControl monitoring started in background."
+    stop_monitoring >/dev/null 2>&1
+    "$0" no_turbo 0 >/dev/null 2>&1
+    # Run monitoring loop in foreground for debugging:
+    "$0" __monitor__
+    ;;
+
         ;;
 
     __monitor__)
