@@ -313,10 +313,6 @@ show_help() {
 }
 
 handle_max_perf_pct() {
-    if [ -f "$RUN_FLAG" ]; then
-fi
-
-
     if [ -z "$2" ]; then
         if [ -f "$PERF_PATH" ]; then
             current_pct=$(cat "$PERF_PATH")
