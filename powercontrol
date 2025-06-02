@@ -30,7 +30,7 @@ save_config() {
     echo "MAX_PERF_PCT=$MAX_PERF_PCT" >> "$CONFIG_FILE"
 }
 
-# Celsius temperature
+# Renamed get_temp_kelvin to get_temp for Celsius temperature
 get_temp() {
     local temp_celsius
     temp_celsius=$(cat /sys/class/thermal/thermal_zone0/temp 2>/dev/null)
@@ -258,4 +258,42 @@ handle_max_perf_pct() {
             exit 1
         fi
 
-        if (( $2 < 10 || $2 > 100 
+        if (( $2 < 10 || $2 > 100 )); then
+            echo "Error: max_perf_pct must be between 10 and 100."
+            exit 1
+        fi
+
+        MAX_PERF_PCT=$2
+        save_config
+        echo "Setting max_perf_pct to $MAX_PERF_PCT%"
+        set_max_perf_pct "$MAX_PERF_PCT"
+    fi
+}
+
+# Main script handling
+case "$1" in
+    start)
+        start_monitoring_loop
+        ;;
+    stop)
+        stop_monitoring
+        ;;
+    settemp)
+        set_temp_threshold "$2"
+        ;;
+    no_turbo)
+        set_no_turbo "$2"
+        ;;
+    max_perf_pct)
+        handle_max_perf_pct "$@"
+        ;;
+    uninstall)
+        uninstall_script
+        ;;
+    help)
+        show_help
+        ;;
+    *)
+        show_status
+        ;;
+esac
