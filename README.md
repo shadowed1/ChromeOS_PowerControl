@@ -25,7 +25,7 @@ __Commands:__
 - `sudo powercontrol start               # Throttle CPU based on temperature`
 - `sudo powercontrol stop                # Default CPU temperature curve`  
 - `sudo powercontrol no_turbo 1          # 0 is default Intel Turbo Boost On behavior.`
-- `sudo powercontrol max_perf_pct 75     # 100 is default behavior; can be run standalone.`
+- `sudo powercontrol max_perf_pct 75     # 10 to 100%. 100 is default behavior; can be run standalone.`
 - `sudo powercontrol min_perf_pct 50     # Minimum clockspeed CPU can reach at max_temp.`
 - `sudo powercontrol max_temp            # Controls the lower clockspeed part of the curve.`
 - `sudo powercontrol min_temp            # Controls the higher clockspeed part of the curve.`
