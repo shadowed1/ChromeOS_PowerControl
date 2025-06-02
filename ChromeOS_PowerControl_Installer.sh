@@ -26,7 +26,8 @@ sudo chmod +x /usr/local/bin/ChromeOS_PowerControl/batterycontrol
 sudo chmod +x /usr/local/bin/ChromeOS_PowerControl/Uninstall_ChromeOS_PowerControl.sh
 sudo touch /usr/local/bin/ChromeOS_PowerControl/.batterycontrol_enabled
 sudo touch /usr/local/bin/ChromeOS_PowerControl/.powercontrol_enabled
-
+echo " /usr/local/bin/ChromeOS_PowerControl/.batterycontrol_enabled created."
+echo " /usr/local/bin/ChromeOS_PowerControl/.powercontrol_enabled created."
 
 # Use the invoking user's home directory, which should be /home/chronos
 USER_HOME="/home/chronos"
