@@ -25,8 +25,12 @@ __Commands:__
 - `sudo powercontrol start               # Throttle CPU based on temperature`
 - `sudo powercontrol stop                # Default CPU temperature curve`  
 - `sudo powercontrol no_turbo 1          # 0 is default Intel Turbo Boost On behavior.`
-- `sudo powercontrol max_perf_pct 75     # 10 - 100% of CPU clock speed range. More granular.`
+- `sudo powercontrol max_perf_pct 75     # 100 is default behavior; can be run standalone.`
+- `sudo powercontrol min_perf_pct 50     # Minimum clockspeed CPU can reach at max_temp.`
+- `sudo powercontrol max_temp            # Controls the lower clockspeed part of the curve.`
+- `sudo powercontrol min_temp            # Controls the higher clockspeed part of the curve.`
 - `sudo powercontrol help`
+
 - 
 - `sudo batterycontrol start               # starts batterycontrol`
 - `sudo batterycontrol stop                # stops batterycontrol`
@@ -39,15 +43,16 @@ __Commands:__
 
 __How It Works:__
 
+__PowerControl:__
+- Uses Intel's native no_turbo and max_perf_pct for easy user control.
+- Pairs max_perf_pct and x86_pkg_tmp to create a script for a user adjustable clockspeed-temperature curve.
+
+
 __BatteryControl:__
 - Uses ectool's chargecontrol to toggle between normal or idle.
 - Check's CROS_USBPD_CHARGER0/online to see if it is plugged in or not
 - Check's BAT0/capacity to measure when to control chargecontrol.
 - ChromeOS reports slightly higher values than what batterycontrol sets the charge limit to. 
-
-__PowerControl:__
-- Uses Intel's native no_turbo and max_perf_pct easy user control.
-- Pairs max_perf_pct and x86_pkg_tmp for a user adjustable clockspeed-temperature curve.
 
 __Bonus:__
 
