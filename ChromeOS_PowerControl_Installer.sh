@@ -70,7 +70,7 @@ if [ ! -f "$POWER_RUN_FLAG" ]; then
     echo "PowerControl enabled flag created at $POWER_RUN_FLAG"
 fi
 
-read -rp "Do you want Intel Turbo Boost disabled on boot? (y/n): " move_no_turbo
+read -rp "Do you want Intel Turbo Boost disabled on boot? Requires removing rootfs verification. (y/n): " move_no_turbo
 echo ""
 if [[ "$move_no_turbo" =~ ^[Yy]$ ]]; then
     sudo mv /usr/local/bin/ChromeOS_PowerControl/no_turbo.conf /etc/init/
