@@ -9,9 +9,9 @@ PERF_PATH="/sys/devices/system/cpu/intel_pstate/max_perf_pct"
 TURBO_PATH="/sys/devices/system/cpu/intel_pstate/no_turbo"
 NO_TURBO_BACKUP="$INSTALL_DIR/.no_turbo_backup"
 
-DEFAULT_MAX_TEMP=84
+DEFAULT_MAX_TEMP=86
 DEFAULT_MAX_PERF_PCT=100
-DEFAULT_MIN_TEMP=62
+DEFAULT_MIN_TEMP=60
 DEFAULT_MIN_PERF_PCT=50
 MAX_TEMP_LIMIT=90
 
