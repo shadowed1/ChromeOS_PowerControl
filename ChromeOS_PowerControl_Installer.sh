@@ -30,6 +30,7 @@ sudo touch /usr/local/bin/ChromeOS_PowerControl/.powercontrol_enabled
 echo " /usr/local/bin/ChromeOS_PowerControl/.batterycontrol_enabled created."
 echo ""
 echo " /usr/local/bin/ChromeOS_PowerControl/.powercontrol_enabled created."
+echo ""
 
 # Use the invoking user's home directory, which should be /home/chronos
 USER_HOME="/home/chronos"
@@ -79,6 +80,7 @@ read -rp "Do you want Intel Turbo Boost disabled on boot? (y/n): " move_no_turbo
 if [[ "$move_no_turbo" =~ ^[Yy]$ ]]; then
     sudo mv /usr/local/bin/ChromeOS_PowerControl/no_turbo.conf /etc/init/
     echo "Turbo Boost will be disabled on restart."
+    echo ""
 else
     echo "Turbo Boost will be enabled on restart."
 fi
@@ -89,6 +91,7 @@ if [[ "$run_no_turbo" =~ ^[Yy]$ ]]; then
     echo 1 | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo > /dev/null
 else
     echo "Turbo Boost will remain enabled."
+    echo ""
 fi
 
 # Create global 'powercontrol' command for easier use
@@ -96,8 +99,10 @@ read -rp "Do you want to create a global command 'powercontrol' for faster chang
 if [[ "$link_cmd" =~ ^[Yy]$ ]]; then
     sudo ln -sf /usr/local/bin/ChromeOS_PowerControl/powercontrol /usr/local/bin/powercontrol
     echo "'powercontrol' command is now available system-wide."
+    echo ""
 else
     echo "Skipped creating global command."
+    echo""
 fi
 
 # Create global 'batterycontrol' command for easier use
@@ -105,12 +110,18 @@ read -rp "Do you want to create a global command 'batterycontrol' for faster cha
 if [[ "$link_cmd" =~ ^[Yy]$ ]]; then
     sudo ln -sf /usr/local/bin/ChromeOS_PowerControl/batterycontrol /usr/local/bin/batterycontrol
     echo "'batterycontrol' command is now available system-wide."
+    echo ""
 else
     echo "Skipped creating global command."
+    echo ""
 fi
 
 # Final message
-echo "Installation complete. ChromeOS_PowerControl ready to use. Use the commands:"
+echo "Installation complete. ChromeOS_PowerControl ready to use run! Use the commands:"
+echo ""
+echo "sudo batterycontrol"
+echo "" 
+echo "sudo powercontrol"
 echo ""
 echo "sudo batterycontrol help"
 echo "" 
