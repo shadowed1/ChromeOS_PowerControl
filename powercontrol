@@ -272,8 +272,6 @@ case "$1" in
     "$0" __monitor__
     ;;
 
-        ;;
-
     __monitor__)
         start_monitoring_loop
         ;;
