@@ -26,10 +26,12 @@ sudo chmod +x /usr/local/bin/ChromeOS_PowerControl/batterycontrol
 sudo chmod +x /usr/local/bin/ChromeOS_PowerControl/Uninstall_ChromeOS_PowerControl.sh
 sudo touch /usr/local/bin/ChromeOS_PowerControl/.batterycontrol_enabled
 sudo touch /usr/local/bin/ChromeOS_PowerControl/.powercontrol_enabled
+sudo touch /usr/local/bin/ChromeOS_PowerCOntrol/.no_turbo_backup
 echo " /usr/local/bin/ChromeOS_PowerControl/.batterycontrol_enabled created."
 echo ""
 echo " /usr/local/bin/ChromeOS_PowerControl/.powercontrol_enabled created."
 echo ""
+echo " /usr/local/bin/ChromeOS_PowerControl/.no_turbo_backup."
 
 USER_HOME="/home/chronos"
 
