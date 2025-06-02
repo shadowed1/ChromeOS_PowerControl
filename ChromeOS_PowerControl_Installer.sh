@@ -110,8 +110,20 @@ echo ""
 if [[ "$run_batterycontrol" =~ ^[Yy]$ ]]; then
     nohup /usr/local/bin/ChromeOS_PowerControl/batterycontrol __monitor__ > /dev/null 2>&1 &
     echo "BatteryControl started in the background."
+    echo ""
 else
     echo "sudo batterycontrol start to run it later."
+    echo ""
+fi
+
+read -rp "Do you want to start PowerControl now? It has to run in the foreground. (y/n): " run_batterycontrol
+echo ""
+if [[ "$run_powercontrol" =~ ^[Yy]$ ]]; then
+    /usr/local/bin/ChromeOS_PowerControl/powercontrol start
+    echo "PowerControl started in the background."
+    echo ""
+else
+    echo "sudo powercontrol start to run it later."
     echo ""
 fi
 
