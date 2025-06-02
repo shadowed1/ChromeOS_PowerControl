@@ -184,7 +184,7 @@ case "$1" in
         show_status
         echo
         echo "=== ectool battery ==="
-        ectool battery 2>/dev/null || echo "Failed to run ectool battery (is ectool installed and available?)"
+        sudo ectool battery 2>/dev/null || echo "Failed to run ectool battery (is ectool installed and available?)"
         echo
         echo "Run 'batterycontrol start' to enable monitoring, or 'batterycontrol stop' to disable."
         ;;
