@@ -106,4 +106,8 @@ else
 fi
 
 # Final message
-echo "Installation complete. Please check your configuration files in /usr/local/bin/ChromeOS_PowerControl/."
+echo "Installation complete. ChromeOS_PowerControl ready to use. Use the commands:"
+echo ""
+echo "sudo batterycontrol help"
+echo "" 
+echo "sudo powercontrol help"
