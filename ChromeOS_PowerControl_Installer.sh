@@ -116,17 +116,8 @@ else
     echo ""
 fi
 
-read -rp "Do you want to start PowerControl now? It has to run in the foreground. (y/n): " run_batterycontrol
+echo "Commands:"
 echo ""
-if [[ "$run_powercontrol" =~ ^[Yy]$ ]]; then
-    /usr/local/bin/ChromeOS_PowerControl/powercontrol start
-    echo "PowerControl started in the background."
-    echo ""
-else
-    echo "sudo powercontrol start to run it later."
-    echo ""
-fi
-
 echo "sudo powercontrol start               # Throttle CPU based on temperature"
 echo "sudo powercontrol stop                # Default CPU temperature curve"
 echo "sudo powercontrol no_turbo 1          # 0 is default Intel Turbo Boost On behavior."
@@ -145,3 +136,14 @@ echo ""
 echo "sudo powercontrol uninstall            # Global uninstaller"
 echo "Alternative uninstall method:"
 echo "sudo /usr/local/bin/ChromeOS_PowerControl/Uninstall_ChromeOS_PowerControl.sh"
+echo ""
+read -rp "Do you want to start PowerControl now? It has to run in the foreground. (y/n): " run_batterycontrol
+echo ""
+if [[ "$run_powercontrol" =~ ^[Yy]$ ]]; then
+    /usr/local/bin/ChromeOS_PowerControl/powercontrol start
+    echo "PowerControl started in the background."
+    echo ""
+else
+    echo "sudo powercontrol start to run it later."
+    echo ""
+fi
