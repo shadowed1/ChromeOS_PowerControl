@@ -122,6 +122,12 @@ set_no_turbo() {
 
 start_monitoring_loop() {
     load_config
+validate_config() {
+    if [[ -z "$MAX_TEMP" ]]; then MAX_TEMP=$DEFAULT_MAX_TEMP; fi
+    if [[ -z "$MAX_PERF_PCT" ]]; then MAX_PERF_PCT=$DEFAULT_MAX_PERF_PCT; fi
+    if [[ -z "$LOW_TEMP" ]]; then LOW_TEMP=60; fi
+    if [[ -z "$MIN_PERF_PCT" ]]; then MIN_PERF_PCT=50; fi
+}
     touch "$RUN_FLAG"
     echo $$ > "$PID_FILE"
     echo "Starting PowerControl (PID $$)."
@@ -139,6 +145,13 @@ start_monitoring_loop() {
             sleep 1
             continue
         fi
+
+if ! [[ "$low_temp_c" =~ ^[0-9]+$ && "$high_temp_c" =~ ^[0-9]+$ && "$max_perf_pct" =~ ^[0-9]+$ && "$min_perf_pct" =~ ^[0-9]+$ ]]; then
+    echo "Invalid configuration values detected. Skipping throttling for this cycle."
+    sleep 1
+    continue
+fi
+
 
         current_pct=$(cat "$PERF_PATH" 2>/dev/null || echo "0")
 
