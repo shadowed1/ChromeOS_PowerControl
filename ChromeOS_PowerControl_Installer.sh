@@ -96,29 +96,25 @@ else
     echo ""
 fi
 
-# Create global 'powercontrol' command for easier use
-read -rp "Do you want to create a global command 'powercontrol' for faster changes? (y/n): " link_cmd
+# Create global commands for 'powercontrol' and 'batterycontrol'
+read -rp "Do you want to create global commands 'powercontrol' and 'batterycontrol' for faster changes? (y/n): " link_cmd
 echo ""
+
 if [[ "$link_cmd" =~ ^[Yy]$ ]]; then
+    # Create powercontrol command
     sudo ln -sf /usr/local/bin/ChromeOS_PowerControl/powercontrol /usr/local/bin/powercontrol
     echo "'powercontrol' command is now available system-wide."
     echo ""
-else
-    echo "Skipped creating global command."
-    echo""
-fi
 
-# Create global 'batterycontrol' command for easier use
-read -rp "Do you want to create a global command 'batterycontrol' for faster changes? (y/n): " link_cmd
-echo ""
-if [[ "$link_cmd" =~ ^[Yy]$ ]]; then
+    # Create batterycontrol command
     sudo ln -sf /usr/local/bin/ChromeOS_PowerControl/batterycontrol /usr/local/bin/batterycontrol
     echo "'batterycontrol' command is now available system-wide."
     echo ""
 else
-    echo "Skipped creating global command."
+    echo "Skipped creating global commands."
     echo ""
 fi
+
 
 # Final message
 echo "Installation complete. ChromeOS_PowerControl ready to use run! Use the commands:"
