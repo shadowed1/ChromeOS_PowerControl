@@ -10,10 +10,14 @@ TURBO_PATH="/sys/devices/system/cpu/intel_pstate/no_turbo"
 
 DEFAULT_MAX_TEMP=86
 DEFAULT_MAX_PERF_PCT=100
+DEFAULT_LOW_TEMP=60
+DEFAULT_MIN_PERF_PCT=50
 MAX_TEMP_LIMIT=90
 
 MAX_TEMP=
 MAX_PERF_PCT=
+LOW_TEMP=
+MIN_PERF_PCT=
 
 load_config() {
     if [ -f "$CONFIG_FILE" ]; then
@@ -21,6 +25,8 @@ load_config() {
     else
         MAX_TEMP=$DEFAULT_MAX_TEMP
         MAX_PERF_PCT=$DEFAULT_MAX_PERF_PCT
+        LOW_TEMP=$DEFAULT_LOW_TEMP
+        MIN_PERF_PCT=$DEFAULT_MIN_PERF_PCT
         save_config
     fi
 }
@@ -28,15 +34,15 @@ load_config() {
 save_config() {
     echo "MAX_TEMP=$MAX_TEMP" > "$CONFIG_FILE"
     echo "MAX_PERF_PCT=$MAX_PERF_PCT" >> "$CONFIG_FILE"
+    echo "LOW_TEMP=$LOW_TEMP" >> "$CONFIG_FILE"
+    echo "MIN_PERF_PCT=$MIN_PERF_PCT" >> "$CONFIG_FILE"
 }
 
-# Celsius 
 get_temp() {
     local temp_celsius
     temp_celsius=$(cat /sys/class/thermal/thermal_zone0/temp 2>/dev/null)
 
     if [[ -n "$temp_celsius" && "$temp_celsius" =~ ^[0-9]+$ ]]; then
-        # Convert milli-Celsius to Celsius
         temp_c=$((temp_celsius / 1000))
         echo "$temp_c"
     else
@@ -99,7 +105,7 @@ start_monitoring_loop() {
     while [ -f "$RUN_FLAG" ]; do
         temp_c=$(get_temp)
         if [ $? -ne 0 ]; then
-            echo "Failed to get temperature. Retrying..."  # Added retry message
+            echo "Failed to get temperature. Retrying..."
             sleep 1
             continue
         fi
@@ -112,11 +118,10 @@ start_monitoring_loop() {
 
         current_pct=$(cat "$PERF_PATH" 2>/dev/null || echo "0")
 
-        # Temperature based throttling based on CPU temperature
-        low_temp_c=60
-        high_temp_c=86
-        min_perf_pct=50
-        max_perf_pct=100
+        low_temp_c=$LOW_TEMP
+        high_temp_c=$MAX_TEMP
+        min_perf_pct=$MIN_PERF_PCT
+        max_perf_pct=$MAX_PERF_PCT
 
         if (( temp_c <= low_temp_c )); then
             pct=$max_perf_pct
@@ -161,6 +166,8 @@ show_status() {
     load_config
     echo "  Configured max temperature: $MAX_TEMP°C"
     echo "  Configured max_perf_pct: $MAX_PERF_PCT%"
+    echo "  Configured low temperature: $LOW_TEMP°C"
+    echo "  Configured min_perf_pct: $MIN_PERF_PCT%"
 
     if [ -f "$PERF_PATH" ]; then
         current_pct=$(cat "$PERF_PATH")
@@ -261,40 +268,4 @@ handle_max_perf_pct() {
 
         MAX_PERF_PCT=$2
         save_config
-        echo "Setting max_perf_pct to $MAX_PERF_PCT%"
-        set_max_perf_pct "$MAX_PERF_PCT"
-    fi
-}
-
-case "$1" in
-    start)
-        stop_monitoring >/dev/null 2>&1
-        start_monitoring_loop
-        nohup "$0" __monitor__ > /dev/null 2>&1 &
-        echo "PowerControl monitoring started in background."
-        ;;
-    stop)
-        stop_monitoring
-        ;;
-    max_temp)
-        set_temp_threshold "$2"
-        ;;
-    no_turbo)
-        set_no_turbo "$2"
-        ;;
-    max_perf_pct)
-        handle_max_perf_pct "$@"
-        ;;
-    uninstall)
-        uninstall_script
-        ;;
-    help)
-        show_help
-        ;;
-__monitor__)
-        start_monitoring_loop
-        ;;
-    *)
-        show_status
-        ;;
-esac
+        echo "Setting max
