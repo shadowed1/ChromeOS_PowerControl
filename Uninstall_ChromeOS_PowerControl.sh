@@ -39,7 +39,6 @@ case "$choice" in
         echo "Removing symlinks..."
         remove_file_with_message /usr/local/bin/powercontrol
         remove_file_with_message /usr/local/bin/batterycontrol
-        remove_file_with_message /usr/local/bin/max_perf_pct
 
         if [ -d "$INSTALL_DIR" ]; then
             sudo rm -rf "$INSTALL_DIR" && echo "Removed: $INSTALL_DIR"
