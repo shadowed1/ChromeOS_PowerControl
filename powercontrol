@@ -175,7 +175,6 @@ show_status() {
 
 stop_monitoring() {
     if [ ! -f "$PID_FILE" ]; then
-        echo "PowerControl is not running (no PID file)."
         return
     fi
 
@@ -198,7 +197,6 @@ stop_monitoring() {
         kill -9 "$PID"
         rm -f "$PID_FILE"
     else
-        echo "Process not found. Cleaning up stale PID file."
         rm -f "$PID_FILE"
         rm -f "$RUN_FLAG"
     fi
