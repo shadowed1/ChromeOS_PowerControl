@@ -32,10 +32,19 @@ save_config() {
 
 get_temp_kelvin() {
     local temp_line
-    # Extract the line containing 'SOC', grab the first field that matches the temperature format
-    temp_line=$(sudo ectool temps 2 2>/dev/null | grep -i 'SOC' | awk '{ for(i=1;i<=NF;i++) if ($i ~ /K/) { print $(i-1); exit } }') || return 1
-    echo "$temp_line"
+    temp_line=$(sudo ectool temps 2 2>/dev/null | grep -m1 'DDR and SOC' || return 1)
+    
+    # Extract the temperature value (second column) and return it
+    temp_k=$(echo "$temp_line" | awk '{ print $2 }')
+    
+    # Check if temp_k is non-empty and return it
+    if [[ -n "$temp_k" ]]; then
+        echo "$temp_k"
+    else
+        return 1  # Return an error if the temperature couldn't be parsed
+    fi
 }
+
 
 
 
@@ -87,9 +96,7 @@ set_no_turbo() {
 }
 
 start_monitoring_loop() {
-
     load_config
-
     touch "$RUN_FLAG"
     echo $$ > "$PID_FILE"
     echo "Starting PowerControl (PID $$)."
@@ -97,9 +104,19 @@ start_monitoring_loop() {
     while [ -f "$RUN_FLAG" ]; do
         temp_k=$(get_temp_kelvin)
         if [ $? -ne 0 ]; then
+            echo "Failed to get temperature from ectool. Retrying..."  # Added retry message
             sleep 1
             continue
         fi
+
+        if [ -z "$temp_k" ]; then
+            echo "Error: No temperature value returned. Retrying..."
+            sleep 1
+            continue
+        fi
+
+        # Print current temp for debugging
+        echo "Current SOC Temperature: $temp_k K"
 
         current_pct=$(cat "$PERF_PATH" 2>/dev/null || echo "0")
 
