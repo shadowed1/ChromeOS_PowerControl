@@ -220,6 +220,55 @@ uninstall_script() {
     fi
 }
 
+show_help() {
+    echo "PowerControl Script - Available Commands:"
+    echo
+    echo "  help               Show this help message."
+    echo "  start              Start PowerControl monitoring in the background."
+    echo "  stop               Stop PowerControl monitoring and restore Turbo Boost."
+    echo "  settemp <K>        Set maximum allowed CPU temperature in Kelvin (e.g., 358)."
+    echo "  no_turbo {0|1}     Enable (0) or disable (1) Intel Turbo Boost manually."
+    echo "  max_perf_pct [PCT] Show or set max_perf_pct (minimum 10%)."
+    echo "  uninstall          Run the PowerControl uninstaller script."
+    echo "  (no command)       Show PowerControl status."
+    echo
+}
+
+# New function for max_perf_pct command
+handle_max_perf_pct() {
+    # Check if PowerControl is running (monitoring loop)
+    if [ -f "$RUN_FLAG" ]; then
+        echo "Error: Cannot manually set max_perf_pct while PowerControl is running."
+        echo "Please stop PowerControl first."
+        exit 1
+    fi
+
+    if [ -z "$2" ]; then
+        # No second argument, just show current value
+        if [ -f "$PERF_PATH" ]; then
+            current_pct=$(cat "$PERF_PATH")
+            echo "Current max_perf_pct: $current_pct%"
+        else
+            echo "max_perf_pct path not found: $PERF_PATH"
+            exit 1
+        fi
+    else
+        # Attempt to set new value
+        if ! [[ "$2" =~ ^[0-9]+$ ]]; then
+            echo "Error: max_perf_pct value must be an integer."
+            exit 1
+        fi
+
+        if (( $2 < 10 || $2 > 100 )); then
+            echo "Error: max_perf_pct must be between 10 and 100."
+            exit 1
+        fi
+
+        set_max_perf_pct "$2"
+        echo "max_perf_pct set to $2%"
+    fi
+}
+
 case "$1" in
     start)
         stop_monitoring >/dev/null 2>&1
@@ -253,8 +302,16 @@ case "$1" in
         set_no_turbo "$2"
         ;;
 
+    max_perf_pct)
+        handle_max_perf_pct "$@"
+        ;;
+
     uninstall)
         uninstall_script
+        ;;
+
+    help)
+        show_help
         ;;
 
     "")
@@ -262,7 +319,7 @@ case "$1" in
         ;;
 
     *)
-        echo "Usage: $0 {start|stop|settemp|no_turbo|uninstall}"
+        echo "Usage: $0 {start|stop|settemp|no_turbo|max_perf_pct|uninstall|help}"
         exit 1
         ;;
 esac
