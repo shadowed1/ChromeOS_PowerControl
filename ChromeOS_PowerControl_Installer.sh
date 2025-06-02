@@ -118,8 +118,6 @@ fi
 echo ""
 echo "Commands:"
 echo ""
-echo "Examples:"
-echo ""
 echo "sudo powercontrol start               # Throttle CPU based on temperature curve"
 echo "sudo powercontrol stop                # Default CPU temperature curve. no_turbo restored."
 echo "sudo powercontrol no_turbo 1          # 0 is default Intel Turbo Boost On behavior."
