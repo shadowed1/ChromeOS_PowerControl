@@ -32,10 +32,11 @@ save_config() {
 
 get_temp_kelvin() {
     local temp_line
-    temp_line=$(sudo ectool temps 2 2>/dev/null | grep -m1 'SOC' || return 1)
-    # Extract the temperature in Kelvin (first column)
-    echo "$temp_line" | awk '{ print $1 }'
+    # Extract the line containing 'SOC', grab the first field that matches the temperature format
+    temp_line=$(sudo ectool temps 2 2>/dev/null | grep -i 'SOC' | awk '{ for(i=1;i<=NF;i++) if ($i ~ /K/) { print $(i-1); exit } }') || return 1
+    echo "$temp_line"
 }
+
 
 
 
