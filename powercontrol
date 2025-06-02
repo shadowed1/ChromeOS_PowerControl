@@ -183,7 +183,7 @@ start_monitoring_loop() {
         fi
 
         if ! [[ "$min_temp_c" =~ ^[0-9]+$ && "$high_temp_c" =~ ^[0-9]+$ && "$max_perf_pct" =~ ^[0-9]+$ && "$min_perf_pct" =~ ^[0-9]+$ ]]; then
-            echo "Invalid configuration values detected. Skipping throttling for this cycle."
+            echo "Invalid configuration values detected. Skipping."
             sleep 1
             continue
         fi
