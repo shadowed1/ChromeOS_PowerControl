@@ -20,6 +20,7 @@ echo " /usr/local/bin/ChromeOS_PowerControl/README.md downloaded."
 
 curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/no_turbo.conf -o /usr/local/bin/ChromeOS_PowerControl/no_turbo.conf
 echo " /usr/local/bin/ChromeOS_PowerControl/no_turbo.conf downloaded."
+echo ""
 
 sudo chmod +x /usr/local/bin/ChromeOS_PowerControl/powercontrol
 sudo chmod +x /usr/local/bin/ChromeOS_PowerControl/batterycontrol
@@ -27,6 +28,7 @@ sudo chmod +x /usr/local/bin/ChromeOS_PowerControl/Uninstall_ChromeOS_PowerContr
 sudo touch /usr/local/bin/ChromeOS_PowerControl/.batterycontrol_enabled
 sudo touch /usr/local/bin/ChromeOS_PowerControl/.powercontrol_enabled
 echo " /usr/local/bin/ChromeOS_PowerControl/.batterycontrol_enabled created."
+echo ""
 echo " /usr/local/bin/ChromeOS_PowerControl/.powercontrol_enabled created."
 
 # Use the invoking user's home directory, which should be /home/chronos
@@ -41,6 +43,7 @@ if [ ! -f "$BATTERY_CONFIG" ]; then
     echo "CHARGE_MAX=77" > "$BATTERY_CONFIG"
     echo "CHARGE_MIN=74" >> "$BATTERY_CONFIG"
     echo "/usr/local/bin/ChromeOS_PowerControl/batterycontrol config created"
+    echo ""
 else
     echo "BatteryControl config file already exists at $BATTERY_CONFIG"
 fi
@@ -60,6 +63,7 @@ if [ ! -f "$POWER_CONFIG" ]; then
     echo "MAX_TEMP_K=358" > "$POWER_CONFIG"    # 85°C in Kelvin
     echo "MAX_PERF_PCT=85" >> "$POWER_CONFIG" # Default max performance %
     echo "/usr/local/bin/ChromeOS_PowerControl/powercontrol config created."
+    echo""
 else
     echo "PowerControl config file already exists at $POWER_CONFIG"
 fi
