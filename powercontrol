@@ -15,7 +15,6 @@ MAX_TEMP_LIMIT_K=363
 MAX_TEMP_K=
 MAX_PERF_PCT=
 
-# Load configuration or create a new one if it doesn't exist
 load_config() {
     if [ -f "$CONFIG_FILE" ]; then
         source "$CONFIG_FILE"
@@ -26,7 +25,6 @@ load_config() {
     fi
 }
 
-# Save current configuration to the install directory
 save_config() {
     echo "MAX_TEMP_K=$MAX_TEMP_K" > "$CONFIG_FILE"
     echo "MAX_PERF_PCT=$MAX_PERF_PCT" >> "$CONFIG_FILE"
@@ -37,7 +35,6 @@ get_temp_kelvin() {
     temp_line=$(ectool temps 2 2>/dev/null | grep -m1 ' K (=') || return 1
     echo "$temp_line" | awk '{ for(i=1;i<=NF;i++) if ($i == "K") { print $(i-1); exit } }'
 }
-
 
 set_max_perf_pct() {
     local pct=$1
@@ -96,8 +93,6 @@ start_monitoring_loop() {
     echo $$ > "$PID_FILE"
     echo "Starting PowerControl (PID $$)."
 
-    throttled=0
-
     while [ -f "$RUN_FLAG" ]; do
         temp_k=$(get_temp_kelvin)
         if [ $? -ne 0 ]; then
@@ -105,30 +100,28 @@ start_monitoring_loop() {
             continue
         fi
 
-        if (( MAX_TEMP_K <= 0 )); then
-            current_pct=$(cat "$PERF_PATH" 2>/dev/null || echo "0")
-            if [[ "$current_pct" != "$MAX_PERF_PCT" ]]; then
-                echo "Temp throttling disabled -> Setting max_perf_pct to $MAX_PERF_PCT%"
-                set_max_perf_pct "$MAX_PERF_PCT"
-            fi
-            throttled=0
-        else
-            restore_temp_k=$(( MAX_TEMP_K - 5 ))
-            current_pct=$(cat "$PERF_PATH" 2>/dev/null || echo "0")
+        current_pct=$(cat "$PERF_PATH" 2>/dev/null || echo "0")
 
-            if (( temp_k >= MAX_TEMP_K )); then
-                if (( throttled == 0 || current_pct != 50 )); then
-                    echo "Temperature $temp_k K >= max threshold $MAX_TEMP_K K -> Throttling CPU (50%)"
-                    set_max_perf_pct 50
-                    throttled=1
-                fi
-            elif (( temp_k <= restore_temp_k )); then
-                if (( throttled == 1 || current_pct != MAX_PERF_PCT )); then
-                    echo "Temperature $temp_k K <= restore threshold $restore_temp_k K -> Restoring max_perf_pct to $MAX_PERF_PCT%"
-                    set_max_perf_pct "$MAX_PERF_PCT"
-                    throttled=0
-                fi
-            fi
+        # Linear throttling parameters
+        low_temp_k=333      # 60°C
+        high_temp_k=359     # 86°C
+        min_perf_pct=50
+        max_perf_pct=100
+
+        if (( temp_k <= low_temp_k )); then
+            pct=$max_perf_pct
+        elif (( temp_k >= high_temp_k )); then
+            pct=$min_perf_pct
+        else
+            delta_k=$(( high_temp_k - low_temp_k ))
+            temp_offset=$(( temp_k - low_temp_k ))
+            reduction=$(( (max_perf_pct - min_perf_pct) * temp_offset / delta_k ))
+            pct=$(( max_perf_pct - reduction ))
+        fi
+
+        if [[ "$current_pct" != "$pct" ]]; then
+            echo "Temperature $temp_k K -> Setting max_perf_pct to $pct%"
+            set_max_perf_pct "$pct"
         fi
 
         sleep 1
@@ -192,7 +185,6 @@ stop_monitoring() {
         rm -f "$RUN_FLAG"
         kill "$PID"
 
-        # Wait for process to exit
         for i in {1..10}; do
             if ! ps -p "$PID" > /dev/null 2>&1; then
                 echo "PowerControl stopped."
@@ -225,9 +217,7 @@ uninstall_script() {
 case "$1" in
     start)
         stop_monitoring >/dev/null 2>&1
-
-        # Start monitoring loop in background
-        # nohup "$0" __monitor__ > /dev/null 2>&1 &
+        "$0" no_turbo 0 >/dev/null 2>&1
         "$0" __monitor__ > /dev/null 2>&1
         echo "PowerControl monitoring started in background."
         ;;
@@ -238,6 +228,7 @@ case "$1" in
 
     stop)
         stop_monitoring
+        "$0" no_turbo 1 >/dev/null 2>&1
         ;;
 
     settemp)
