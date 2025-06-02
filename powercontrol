@@ -8,8 +8,8 @@ PID_FILE="$INSTALL_DIR/.powercontrol_pid"
 PERF_PATH="/sys/devices/system/cpu/intel_pstate/max_perf_pct"
 TURBO_PATH="/sys/devices/system/cpu/intel_pstate/no_turbo"
 
-DEFAULT_MAX_TEMP=85
-DEFAULT_MAX_PERF_PCT=80
+DEFAULT_MAX_TEMP=86
+DEFAULT_MAX_PERF_PCT=100
 MAX_TEMP_LIMIT=90
 
 MAX_TEMP=
@@ -115,9 +115,9 @@ start_monitoring_loop() {
 
         current_pct=$(cat "$PERF_PATH" 2>/dev/null || echo "0")
 
-        # Linear throttling based on SOC temperature
-        low_temp_c=60  # 60°C
-        high_temp_c=86 # 86°C
+        # Temperature based throttling based on CPU temperature
+        low_temp_c=60
+        high_temp_c=86
         min_perf_pct=50
         max_perf_pct=100
 
@@ -237,7 +237,6 @@ show_help() {
     echo
 }
 
-# New function for max_perf_pct command
 handle_max_perf_pct() {
     if [ -f "$RUN_FLAG" ]; then
         echo "Error: Cannot manually set max_perf_pct while PowerControl is running."
@@ -270,7 +269,6 @@ handle_max_perf_pct() {
     fi
 }
 
-# Main script handling
 case "$1" in
     start)
         start_monitoring_loop
