@@ -3,7 +3,7 @@
 
 ### - Customize battery charging limit instead of relying on Adaptive Charging to maximize battery longevity. 
 ### - Features global commands and can optionally disable Intel Turbo Boost on boot automatically.
-### - [In-progress] Customize CPU clock speed in relation to temperature; unlike Intel's spicier approach.
+### - Customize CPU clock speed in relation to temperature; unlike Intel's spicier approach.
 
 ### __How to Install:__
 
@@ -46,6 +46,9 @@ __How It Works:__
 __PowerControl:__
 - Uses Intel's native no_turbo and max_perf_pct for easy user control.
 - Pairs max_perf_pct and x86_pkg_tmp to create a script for a user adjustable clockspeed-temperature curve.
+- When running `sudo powercontrol start` temperature and cpu clock speed are measured.
+- If $min_temp threshold is below a certain point, the CPU will be able to hit 100% of its speed.
+- The closer the CPU approaches $max_temp, the lower its clockspeed will be.
 
 
 __BatteryControl:__
