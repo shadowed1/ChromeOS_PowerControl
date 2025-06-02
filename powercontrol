@@ -8,51 +8,42 @@ PID_FILE="$INSTALL_DIR/.powercontrol_pid"
 PERF_PATH="/sys/devices/system/cpu/intel_pstate/max_perf_pct"
 TURBO_PATH="/sys/devices/system/cpu/intel_pstate/no_turbo"
 
-DEFAULT_MAX_TEMP_K=358
+DEFAULT_MAX_TEMP=85
 DEFAULT_MAX_PERF_PCT=80
-MAX_TEMP_LIMIT_K=363
+MAX_TEMP_LIMIT=90
 
-MAX_TEMP_K=
+MAX_TEMP=
 MAX_PERF_PCT=
 
 load_config() {
     if [ -f "$CONFIG_FILE" ]; then
         source "$CONFIG_FILE"
     else
-        MAX_TEMP_K=$DEFAULT_MAX_TEMP_K
+        MAX_TEMP=$DEFAULT_MAX_TEMP
         MAX_PERF_PCT=$DEFAULT_MAX_PERF_PCT
         save_config
     fi
 }
 
 save_config() {
-    echo "MAX_TEMP_K=$MAX_TEMP_K" > "$CONFIG_FILE"
+    echo "MAX_TEMP=$MAX_TEMP" > "$CONFIG_FILE"
     echo "MAX_PERF_PCT=$MAX_PERF_PCT" >> "$CONFIG_FILE"
 }
 
-get_temp_kelvin() {
-    local temp_line
-    # Capture the full output of the ectool command, looking for the SOC sensor line
-    temp_line=$(sudo ectool temps 2 2>/dev/null | grep -m1 'SOC' || return 1)
-    # Extract the temperature in Kelvin (second column, which should be '319 K', etc.)
-    temp_k=$(echo "$temp_line" | awk '{ print $2 }')
+# Celsius temperature
+get_temp() {
+    local temp_celsius
+    temp_celsius=$(cat /sys/class/thermal/thermal_zone0/temp 2>/dev/null)
 
-    # If the temperature is found, return it, otherwise print error
-    if [[ -n "$temp_k" && "$temp_k" =~ ^[0-9]+$ ]]; then
-        echo "$temp_k"
+    if [[ -n "$temp_celsius" && "$temp_celsius" =~ ^[0-9]+$ ]]; then
+        # Convert milli-Celsius to Celsius
+        temp_c=$((temp_celsius / 1000))
+        echo "$temp_c"
     else
         echo "Failed to get temperature." >&2
         return 1
     fi
 }
-
-
-    
-
-
-
-
-
 
 set_max_perf_pct() {
     local pct=$1
@@ -69,13 +60,13 @@ set_temp_threshold() {
         echo "Error: Temperature threshold must be an integer."
         exit 1
     fi
-    if (( $1 > MAX_TEMP_LIMIT_K )); then
-        echo "Error: Temperature threshold cannot exceed 90°C ($MAX_TEMP_LIMIT_K K)."
+    if (( $1 > MAX_TEMP_LIMIT )); then
+        echo "Error: Temperature threshold cannot exceed $MAX_TEMP_LIMIT°C."
         exit 1
     fi
-    MAX_TEMP_K=$1
+    MAX_TEMP=$1
     save_config
-    echo "Max temperature threshold set to $MAX_TEMP_K K"
+    echo "Max temperature threshold set to $MAX_TEMP°C"
 }
 
 set_no_turbo() {
@@ -106,43 +97,43 @@ start_monitoring_loop() {
     echo "Starting PowerControl (PID $$)."
 
     while [ -f "$RUN_FLAG" ]; do
-        temp_k=$(get_temp_kelvin)
+        temp_c=$(get_temp)
         if [ $? -ne 0 ]; then
-            echo "Failed to get temperature from ectool. Retrying..."  # Added retry message
+            echo "Failed to get temperature. Retrying..."  # Added retry message
             sleep 1
             continue
         fi
 
-        if [ -z "$temp_k" ]; then
+        if [ -z "$temp_c" ]; then
             echo "Error: No temperature value returned. Retrying..."
             sleep 1
             continue
         fi
 
         # Print current temp for debugging
-        echo "Current SOC Temperature: $temp_k K"
+        echo "Current SOC Temperature: $temp_c°C"
 
         current_pct=$(cat "$PERF_PATH" 2>/dev/null || echo "0")
 
         # Linear throttling based on SOC temperature
-        low_temp_k=333  # 60°C
-        high_temp_k=359 # 86°C
+        low_temp_c=60  # 60°C
+        high_temp_c=86 # 86°C
         min_perf_pct=50
         max_perf_pct=100
 
-        if (( temp_k <= low_temp_k )); then
+        if (( temp_c <= low_temp_c )); then
             pct=$max_perf_pct
-        elif (( temp_k >= high_temp_k )); then
+        elif (( temp_c >= high_temp_c )); then
             pct=$min_perf_pct
         else
-            delta_k=$(( high_temp_k - low_temp_k ))
-            temp_offset=$(( temp_k - low_temp_k ))
-            reduction=$(( (max_perf_pct - min_perf_pct) * temp_offset / delta_k ))
+            delta_c=$(( high_temp_c - low_temp_c ))
+            temp_offset=$(( temp_c - low_temp_c ))
+            reduction=$(( (max_perf_pct - min_perf_pct) * temp_offset / delta_c ))
             pct=$(( max_perf_pct - reduction ))
         fi
 
         if [[ "$current_pct" != "$pct" ]]; then
-            echo "SOC Temperature $temp_k K -> Setting max_perf_pct to $pct%"
+            echo "SOC Temperature $temp_c°C -> Setting max_perf_pct to $pct%"
             set_max_perf_pct "$pct"
         fi
 
@@ -171,7 +162,7 @@ show_status() {
     fi
 
     load_config
-    echo "  Configured max temperature: $MAX_TEMP_K K"
+    echo "  Configured max temperature: $MAX_TEMP°C"
     echo "  Configured max_perf_pct: $MAX_PERF_PCT%"
 
     if [ -f "$PERF_PATH" ]; then
@@ -191,8 +182,6 @@ show_status() {
     fi
 
     echo
-    echo "=== ectool temps output ==="
-    sudo ectool temps 2 2>/dev/null || echo "Failed to read ectool temps"
 }
 
 stop_monitoring() {
@@ -240,7 +229,7 @@ show_help() {
     echo "  help               Show this help message."
     echo "  start              Start PowerControl monitoring in the background."
     echo "  stop               Stop PowerControl monitoring and restore Turbo Boost."
-    echo "  settemp <K>        Set maximum allowed CPU temperature in Kelvin (e.g., 358)."
+    echo "  settemp <temp_in_Celsius> Set maximum allowed CPU temperature in Celsius."
     echo "  no_turbo {0|1}     Enable (0) or disable (1) Intel Turbo Boost manually."
     echo "  max_perf_pct [PCT] Show or set max_perf_pct (minimum 10%)."
     echo "  uninstall          Run the PowerControl uninstaller script."
@@ -250,15 +239,12 @@ show_help() {
 
 # New function for max_perf_pct command
 handle_max_perf_pct() {
-    # Check if PowerControl is running (monitoring loop)
     if [ -f "$RUN_FLAG" ]; then
         echo "Error: Cannot manually set max_perf_pct while PowerControl is running."
-        echo "Please stop PowerControl first."
         exit 1
     fi
 
     if [ -z "$2" ]; then
-        # No second argument, just show current value
         if [ -f "$PERF_PATH" ]; then
             current_pct=$(cat "$PERF_PATH")
             echo "Current max_perf_pct: $current_pct%"
@@ -267,73 +253,9 @@ handle_max_perf_pct() {
             exit 1
         fi
     else
-        # Attempt to set new value
         if ! [[ "$2" =~ ^[0-9]+$ ]]; then
             echo "Error: max_perf_pct value must be an integer."
             exit 1
         fi
 
-        if (( $2 < 10 || $2 > 100 )); then
-            echo "Error: max_perf_pct must be between 10 and 100."
-            exit 1
-        fi
-
-        set_max_perf_pct "$2"
-        echo "max_perf_pct set to $2%"
-    fi
-}
-
-case "$1" in
-    start)
-    stop_monitoring >/dev/null 2>&1
-    "$0" no_turbo 0 >/dev/null 2>&1
-    # Run monitoring loop in foreground for debugging:
-    "$0" __monitor__
-    ;;
-
-    __monitor__)
-        start_monitoring_loop
-        ;;
-
-    stop)
-        stop_monitoring
-        "$0" no_turbo 1 >/dev/null 2>&1
-        ;;
-
-    settemp)
-        if [ -z "$2" ]; then
-            echo "Usage: $0 settemp <temp_in_Kelvin>"
-            exit 1
-        fi
-        set_temp_threshold "$2"
-        ;;
-
-    no_turbo)
-        if [ -z "$2" ]; then
-            echo "Usage: $0 no_turbo {0|1}"
-            exit 1
-        fi
-        set_no_turbo "$2"
-        ;;
-
-    max_perf_pct)
-        handle_max_perf_pct "$@"
-        ;;
-
-    uninstall)
-        uninstall_script
-        ;;
-
-    help)
-        show_help
-        ;;
-
-    "")
-        show_status
-        ;;
-
-    *)
-        echo "Usage: $0 {start|stop|settemp|no_turbo|max_perf_pct|uninstall|help}"
-        exit 1
-        ;;
-esac
+        if (( $2 < 10 || $2 > 100 
