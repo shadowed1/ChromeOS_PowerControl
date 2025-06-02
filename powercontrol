@@ -33,8 +33,11 @@ save_config() {
 }
 
 get_temp_kelvin() {
-    ectool temps 2 2>/dev/null | grep ' K' | head -n1 | sed -n 's/.* \([0-9]\+\) K.*/\1/p'
+    local temp_line
+    temp_line=$(ectool temps 2 2>/dev/null | grep -m1 ' K (=') || return 1
+    echo "$temp_line" | awk '{ for(i=1;i<=NF;i++) if ($i == "K") { print $(i-1); exit } }'
 }
+
 
 set_max_perf_pct() {
     local pct=$1
@@ -224,7 +227,8 @@ case "$1" in
         stop_monitoring >/dev/null 2>&1
 
         # Start monitoring loop in background
-        nohup "$0" __monitor__ > /dev/null 2>&1 &
+        # nohup "$0" __monitor__ > /dev/null 2>&1 &
+        "$0" __monitor__ > /dev/null 2>&1
         echo "PowerControl monitoring started in background."
         ;;
 
