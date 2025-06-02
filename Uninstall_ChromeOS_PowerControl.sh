@@ -34,12 +34,12 @@ case "$choice" in
         remove_file_with_message /etc/init/no_turbo.conf
 
         echo "Removing installer..."
-        remove_file_with_message usr/local/bin/ChromeOS_PowerControl_Installer.sh
+        remove_file_with_message /usr/local/bin/ChromeOS_PowerControl_Installer.sh
 
         echo "Removing symlinks..."
-        remove_file_with_message usr/local/bin/powercontrol
-        remove_file_with_message usr/local/bin/batterycontrol
-        remove_file_with_message usr/local/bin/max_perf_pct
+        remove_file_with_message /usr/local/bin/powercontrol
+        remove_file_with_message /usr/local/bin/batterycontrol
+        remove_file_with_message /usr/local/bin/max_perf_pct
 
         if [ -d "$INSTALL_DIR" ]; then
             sudo rm -rf "$INSTALL_DIR" && echo "Removed: $INSTALL_DIR"
