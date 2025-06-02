@@ -32,20 +32,21 @@ save_config() {
 
 get_temp_kelvin() {
     local temp_line
-    # Extract the line containing 'DDR and SOC', skipping headers and errors
-    temp_line=$(sudo ectool temps 2 2>/dev/null | grep -m1 'DDR and SOC' | awk 'NR>2' || return 1)
-
-    # Extract the temperature in Kelvin (second column)
+    # Capture the full output of the ectool command, looking for the SOC sensor line
+    temp_line=$(sudo ectool temps 2 2>/dev/null | grep -m1 'SOC' || return 1)
+    # Extract the temperature in Kelvin (second column, which should be '319 K', etc.)
     temp_k=$(echo "$temp_line" | awk '{ print $2 }')
 
-    # Check if temp_k is non-empty and return it
-    if [[ -n "$temp_k" ]]; then
+    # If the temperature is found, return it, otherwise print error
+    if [[ -n "$temp_k" && "$temp_k" =~ ^[0-9]+$ ]]; then
         echo "$temp_k"
     else
         echo "Failed to get temperature." >&2
         return 1
     fi
 }
+
+
     
 
 
