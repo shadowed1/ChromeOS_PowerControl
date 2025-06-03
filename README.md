@@ -3,8 +3,8 @@
 
 ### - Customize battery charging limit instead of relying on Adaptive Charging to maximize battery longevity. 
 ### - Customize CPU clock speed in relation to temperature; unlike Intel's spicier approach.
-### - Features global commands for ease of use, and an uninstaller to clean up after itself. 
-### - Optionally disable Intel Turbo Boost on boot automatically if user has rootfs verification disabled
+### - Features global commands for ease of use, config files that save settings, and an uninstaller to clean up after itself. 
+### - Optionally have BatteryControl, PowerControl, and disable Intel Turbo Boost on boot automatically if user has rootfs verification disabled
 
 ### __How to Install:__
 
@@ -18,8 +18,9 @@
 - 
   `sudo mv ~/tmp/ChromeOS_PowerControl_Installer.sh /usr/local/bin`
 - `sudo bash /usr/local/bin/ChromeOS_PowerControl_Installer.sh`
-  
-- BatteryControl is able to run in the background but PowerControl is not. Both can be utilized by one terminal simultaneously!
+
+- Installer has prompts to customize installation.
+- Both PowerControl and BatteryControl can run in the background and can be adjusted in real-time.
 
 __Commands:__
 - `sudo powercontrol start               # Throttle CPU based on temperature curve`
@@ -56,7 +57,8 @@ __BatteryControl:__
 - Uses ectool's chargecontrol to toggle between normal or idle.
 - Check's CROS_USBPD_CHARGER0/online to see if it is plugged in or not
 - Check's BAT0/capacity to measure when to control chargecontrol.
-- ChromeOS reports slightly higher values than what batterycontrol sets the charge limit to. 
+- ChromeOS reports slightly higher values than what batterycontrol sets the charge limit to.
+- After changing 
 
 __Bonus:__
 
