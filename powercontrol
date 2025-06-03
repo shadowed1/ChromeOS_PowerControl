@@ -380,6 +380,13 @@ echo "PowerControl monitoring started in background. Output is logged to $LOG_FI
     help)
         show_help
         ;;
+    monitor)
+        LOG_FILE="/usr/local/bin/ChromeOS_PowerControl/powercontrol.log"
+        pkill -f "tail -fn +1 $LOG_FILE" 2>/dev/null
+        tail -fn +1 "$LOG_FILE" 2>&1 &
+        echo "Monitor started (PID $!)"
+        ;;
+
     __monitor__)
         start_monitoring_loop
         ;;
