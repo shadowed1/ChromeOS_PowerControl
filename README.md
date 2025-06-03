@@ -31,6 +31,8 @@ __Commands with examples:__
 - `sudo powercontrol min_perf_pct 50     # Minimum clockspeed CPU can reach at max_temp.`
 - `sudo powercontrol max_temp 86         # Threshold when min_perf_pct is reached. Limit is 90 Celcius.`
 - `sudo powercontrol min_temp 60         # Threshold when max_perf_pct is reached.`
+- `sudo powercontrol monitor             # Shows log updated in real time in terminal window.`
+  
 ----------------------------------------------------------------------------------------------
   
 - `sudo batterycontrol start               # starts batterycontrol`
