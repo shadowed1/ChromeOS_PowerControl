@@ -14,8 +14,8 @@
 
 - The installer will be placed: `~/tmp/ChromeOS_PowerControl/ChromeOS_PowerControl_Installer.sh`
 
-- In *VT-2* run:
-- 
+- In *VT-2* or *crosh shell with sudo enabled* run:
+  
   `sudo mv ~/tmp/ChromeOS_PowerControl_Installer.sh /usr/local/bin`
 - `sudo bash /usr/local/bin/ChromeOS_PowerControl_Installer.sh`
 
@@ -23,6 +23,7 @@
 - Both PowerControl and BatteryControl can run in the background and can be adjusted in real-time.
 
 __Commands:__
+
 - `sudo powercontrol start               # Throttle CPU based on temperature curve`
 - `sudo powercontrol stop                # Default CPU temperature curve. no_turbo setting restored.`
 - `sudo powercontrol no_turbo 1          # 0 is default Intel Turbo Boost On behavior.`
@@ -51,25 +52,22 @@ __PowerControl:__
 - If $min_temp threshold is below a certain point, the CPU will be able to reach max_perf_pct of its speed.
 - The closer the CPU approaches $max_temp, the closer it is to min_perf_pct.
 
-
-
 __BatteryControl:__
 - Uses ectool's chargecontrol to toggle between normal or idle.
 - Check's CROS_USBPD_CHARGER0/online to see if it is plugged in or not
 - Check's BAT0/capacity to measure when to control chargecontrol.
 - ChromeOS reports slightly higher values than what batterycontrol sets the charge limit to.
-- After changing 
 
 __Bonus:__
 
-- Enable sudo for crosh:
-  
-`https://gist.github.com/velzie/a5088c9ade6ec4d35435b9826b45d7a3`
+- To disable rootfs verification open VT-2, login as root, and run: `/usr/libexec/debugd/helpers/dev_features_rootfs_verification`
+- Enable sudo for crosh: `https://gist.github.com/velzie/a5088c9ade6ec4d35435b9826b45d7a3`
 
  __Credits:__
 
 - Thanks to WesBosch for helping me learn to make an installer:
   https://github.com/WesBosch
+  
 - Thanks to DennyL on ChromeOS discord for showing me how to enable sudo on crosh, test out PowerControl, and provide many great suggestions. 
 
 
