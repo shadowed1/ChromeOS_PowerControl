@@ -1,10 +1,10 @@
 # **ChromeOS PowerControl**
 ## Requires Developer Mode. 
 
-### - Customize battery charging limit instead of relying on Adaptive Charging to maximize battery longevity. 
-### - Customize CPU clock speed in relation to temperature; unlike Intel's spicier approach.
+### - Control battery charging limit instead of relying on Adaptive Charging to maximize battery longevity. 
+### - Control CPU clock speed in relation to temperature; enabling lower temperatures under load and longer battery life. 
 ### - Features global commands for ease of use, config files that save settings, and an uninstaller to clean up after itself. 
-### - Optionally have BatteryControl, PowerControl start on boot, as well as disabling Turbo Boost on boot if user has rootfs verification disabled
+### - Optionally have BatteryControl, PowerControl start on boot, as well as disabling Turbo Boost on boot if user has rootfs verification disabled.
 
 ### __How to Install:__
 
