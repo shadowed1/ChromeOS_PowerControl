@@ -22,7 +22,7 @@
 - Installer has prompts to customize installation.
 - Both PowerControl and BatteryControl can run in the background and can be adjusted in real-time.
 
-__Commands:__
+__Commands with examples:__
 
 - `sudo powercontrol start               # Throttle CPU based on temperature curve`
 - `sudo powercontrol stop                # Default CPU temperature curve. no_turbo setting restored.`
