@@ -310,6 +310,7 @@ show_help() {
     echo "  min_perf_pct <pct>    Set minimum performance percentage (10–100)."
     echo "  max_perf_pct <pct>    Show or set max performance percentage (10–100)."
     echo "  no_turbo {0|1}        Enable (0) or disable (1) Intel Turbo Boost manually."
+    echo "  monitor               Show updating in real time."
     echo "  uninstall             Run the PowerControl uninstaller script."
     echo "  (no command)          Show PowerControl status."
     echo
