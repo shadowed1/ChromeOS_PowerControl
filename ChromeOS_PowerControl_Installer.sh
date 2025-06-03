@@ -133,7 +133,7 @@ else
 fi
 
 echo ""
-echo "Commands:"
+echo "Commands with examples:"
 echo ""
 echo "sudo powercontrol start               # Throttle CPU based on temperature curve"
 echo "sudo powercontrol stop                # Default CPU temperature curve. no_turbo setting restored."
@@ -147,7 +147,7 @@ echo ""
 echo "sudo batterycontrol start               # starts batterycontrol"
 echo "sudo batterycontrol stop                # stops batterycontrol"
 echo "sudo batterycontrol status              # shows status"
-echo "sudo batterycontrol set 80 75           # 80 is when charging stops; 75 is when charging may begin"
+echo "sudo batterycontrol set 80 75           # 80 is when charging stops; 75 is when charging may begin."
 echo "sudo batterycontrol help"
 echo "" 
 echo "sudo powercontrol uninstall            # Global uninstaller"
