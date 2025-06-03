@@ -381,12 +381,27 @@ echo "PowerControl monitoring started in background. Output is logged to $LOG_FI
     help)
         show_help
         ;;
-    monitor)
-        LOG_FILE="/usr/local/bin/ChromeOS_PowerControl/powercontrol.log"
-        pkill -f "tail -fn +1 $LOG_FILE" 2>/dev/null
-        tail -fn +1 "$LOG_FILE" 2>&1 &
-        echo "Monitor started (PID $!)"
-        ;;
+  monitor)
+    LOG_FILE="/usr/local/bin/ChromeOS_PowerControl/powercontrol.log"
+    MONITOR_PID_FILE="/tmp/powercontrol_tail_monitor.pid"
+
+    if [ -f "$MONITOR_PID_FILE" ]; then
+        MONITOR_PID=$(cat "$MONITOR_PID_FILE")
+        if ps -p "$MONITOR_PID" > /dev/null 2>&1; then
+            echo "Stopping monitor (PID $MONITOR_PID)..."
+            kill "$MONITOR_PID"
+            rm -f "$MONITOR_PID_FILE"
+            exit 0
+        else
+            echo "Stale PID file found. Removing."
+            rm -f "$MONITOR_PID_FILE"
+        fi
+    fi
+
+    tail -fn +1 "$LOG_FILE" &
+    echo $! > "$MONITOR_PID_FILE"
+    echo "Monitor started (PID $!)"
+    ;;
 
     __monitor__)
         start_monitoring_loop
