@@ -60,7 +60,8 @@ __BatteryControl:__
 
 __Bonus:__
 
-- To disable rootfs verification open VT-2, login as root, and run: `/usr/libexec/debugd/helpers/dev_features_rootfs_verification`
+- To disable rootfs verification open VT-2, login as root, and run:
+ `/usr/libexec/debugd/helpers/dev_features_rootfs_verification`
 - Enable sudo for crosh: `https://gist.github.com/velzie/a5088c9ade6ec4d35435b9826b45d7a3`
 
  __Credits:__
