@@ -92,7 +92,6 @@ show_status() {
 # Start the monitoring loop
 start_monitoring_loop() {
     touch "$RUN_FLAG"
-    load_config
     echo $$ > "$PID_FILE"
 
     echo "BatteryControl started - keep it running for it to remain functioning. (PID $$)."
@@ -103,6 +102,8 @@ start_monitoring_loop() {
             rm -f "$PID_FILE"
             exit 0
         fi
+
+    load_config
 
         if [ -f "$BATTERY_PATH" ]; then
             CHARGE=$(cat "$BATTERY_PATH" 2>/dev/null)
