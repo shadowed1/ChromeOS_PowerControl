@@ -4,7 +4,7 @@
 ### - Customize battery charging limit instead of relying on Adaptive Charging to maximize battery longevity. 
 ### - Customize CPU clock speed in relation to temperature; unlike Intel's spicier approach.
 ### - Features global commands for ease of use, config files that save settings, and an uninstaller to clean up after itself. 
-### - Optionally have BatteryControl, PowerControl, and disable Intel Turbo Boost on boot automatically if user has rootfs verification disabled
+### - Optionally have BatteryControl, PowerControl start on boot and disabling Turbo Boost if user has rootfs verification disabled
 
 ### __How to Install:__
 
