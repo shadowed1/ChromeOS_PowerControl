@@ -169,6 +169,7 @@ echo "sudo powercontrol max_perf_pct 75     # 10 to 100%. 100 is default behavio
 echo "sudo powercontrol min_perf_pct 50     # Minimum clockspeed CPU can reach at max_temp."
 echo "sudo powercontrol max_temp 86         # Threshold when min_perf_pct is reached. Limit is 90 Celcius."
 echo "sudo powercontrol min_temp 60         # Threshold when max_perf_pct is reached."
+echo "sudo powercontrol monitor             # Updates log real-time in terminal window."
 echo "sudo powercontrol help"
 echo ""
 echo "sudo batterycontrol start               # starts batterycontrol"
