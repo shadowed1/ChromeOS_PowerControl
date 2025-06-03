@@ -2,7 +2,8 @@
 ## Requires Developer Mode. 
 
 ### - Customize battery charging limit instead of relying on Adaptive Charging to maximize battery longevity. 
-### - Features global commands and can optionally disable Intel Turbo Boost on boot automatically.
+### - Features global commands for ease of use. 
+### Can optionally disable Intel Turbo Boost on boot automatically if user has rootfs verification disabled
 ### - Customize CPU clock speed in relation to temperature; unlike Intel's spicier approach.
 
 ### __How to Install:__
@@ -65,6 +66,6 @@ __Bonus:__
 
 - Thanks to WesBosch for helping me learn to make an installer:
   https://github.com/WesBosch
-- Thanks to DennyL for showing me how to enable sudo on crosh which gave me a lot of ideas. 
+- Thanks to DennyL on ChromeOS discord for showing me how to enable sudo on crosh, test out PowerControl, and provide many great suggestions. 
 
 
