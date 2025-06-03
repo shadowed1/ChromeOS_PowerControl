@@ -21,6 +21,14 @@ curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/n
 echo " /usr/local/bin/ChromeOS_PowerControl/no_turbo.conf downloaded."
 echo ""
 
+curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/batterycontrol.conf -o /usr/local/bin/ChromeOS_PowerControl/batterycontrol.conf
+echo " /usr/local/bin/ChromeOS_PowerControl/batterycontrol.conf downloaded."
+echo ""
+
+curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/powercontrol.conf -o /usr/local/bin/ChromeOS_PowerControl/powercontrol.conf
+echo " /usr/local/bin/ChromeOS_PowerControl/powercontrol.conf downloaded."
+echo ""
+
 sudo chmod +x /usr/local/bin/ChromeOS_PowerControl/powercontrol
 sudo chmod +x /usr/local/bin/ChromeOS_PowerControl/batterycontrol
 sudo chmod +x /usr/local/bin/ChromeOS_PowerControl/Uninstall_ChromeOS_PowerControl.sh
@@ -110,6 +118,16 @@ else
     echo ""
 fi
 
+read -rp "Do you want BatteryControl enabled on boot? Requires removing rootfs verification. (y/n): " move_batterycontrolconf
+echo ""
+if [[ "$move_batterycontrolconf" =~ ^[Yy]$ ]]; then
+    sudo mv /usr/local/bin/ChromeOS_PowerControl/batterycontrol.conf /etc/init/
+    echo "BatteryControl will start on boot."
+    echo ""
+else
+    echo "BatteryControl must be started manually on boot."
+fi
+
 read -rp "Do you want to start BatteryControl now in the background? (y/n): " run_batterycontrol
 echo ""
 if [[ "$run_batterycontrol" =~ ^[Yy]$ ]]; then
@@ -119,6 +137,16 @@ if [[ "$run_batterycontrol" =~ ^[Yy]$ ]]; then
 else
     echo "sudo batterycontrol start to run it later."
     echo ""
+fi
+
+read -rp "Do you want PowerControl enabled on boot? Requires removing rootfs verification. (y/n): " move_powercontrolconf
+echo ""
+if [[ "$move_powercontrolconf" =~ ^[Yy]$ ]]; then
+    sudo mv /usr/local/bin/ChromeOS_PowerControl/powercontrol.conf /etc/init/
+    echo "PowerControl will start on boot."
+    echo ""
+else
+    echo "PowerControl must be started manually on boot."
 fi
 
 read -rp "Do you want to start PowerControl now in the background?. (y/n): " run_powercontrol
