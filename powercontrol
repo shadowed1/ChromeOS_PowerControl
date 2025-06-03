@@ -78,12 +78,12 @@ set_temp_threshold() {
 
 set_min_temp() {
     if ! [[ "$1" =~ ^[0-9]+$ ]]; then
-        echo "Error: Low temperature must be an integer."
+        echo "Error: Min temperature must be an integer."
         exit 1
     fi
     MIN_TEMP=$1
     save_config
-    echo "Low temperature threshold set to $MIN_TEMP°C"
+    echo "Min temperature threshold set to $MIN_TEMP°C"
 }
 
 set_min_perf_pct() {
@@ -230,8 +230,8 @@ show_status() {
     fi
 
     load_config
-    echo "  Configured max temperature: $MAX_TEMP°C"
-    echo "  Configured low temperature: $MIN_TEMP°C"
+    echo "  Configured max_temp: $MAX_TEMP°C"
+    echo "  Configured min_temp: $MIN_TEMP°C"
     echo "  Configured max_perf_pct: $MAX_PERF_PCT%"
     echo "  Configured min_perf_pct: $MIN_PERF_PCT%"
 
