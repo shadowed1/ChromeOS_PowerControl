@@ -180,6 +180,6 @@ echo "sudo batterycontrol help"
 echo "" 
 echo "sudo powercontrol uninstall            # Global uninstaller"
 echo "Alternative uninstall method:"
-echo "sudo /usr/local/bin/ChromeOS_PowerControl/Uninstall_ChromeOS_PowerControl.sh"
+echo "sudo bash /usr/local/bin/ChromeOS_PowerControl/Uninstall_ChromeOS_PowerControl.sh"
 echo ""
 
