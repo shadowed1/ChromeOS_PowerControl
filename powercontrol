@@ -345,7 +345,16 @@ handle_max_perf_pct() {
 case "$1" in
     start)
         stop_monitoring >/dev/null 2>&1
-        start_monitoring_loop
+       LOG_FILE="/usr/local/bin/ChromeOS_PowerControl/powercontrol.log"
+
+# Truncate the log file if it exceeds 32 KB (32768 bytes)
+if [ -f "$LOG_FILE" ] && [ "$(stat -c%s "$LOG_FILE")" -gt 32768 ]; then
+    echo "Truncated log file (exceeded 32KB)" > "$LOG_FILE"
+fi
+
+nohup "$0" __monitor__ >> "$LOG_FILE" 2>&1 &
+echo "PowerControl monitoring started in background. Output is logged to $LOG_FILE"
+
         ;;
     stop)
         stop_monitoring
