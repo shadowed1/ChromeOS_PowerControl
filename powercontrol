@@ -135,7 +135,7 @@ backup_no_turbo() {
 }
 
 cleanup() {
-    echo "aught interrupt signal, stopping PowerControl and restoring Turbo Boost..."
+    echo "Caught interrupt signal, stopping PowerControl and restoring Turbo Boost setting..."
     stop_monitoring
     exit 0
 }
