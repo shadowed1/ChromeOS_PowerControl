@@ -32,6 +32,8 @@ case "$choice" in
 
         echo "Removing startup files..."
         remove_file_with_message /etc/init/no_turbo.conf
+        remove_file_with_message /etc/init/batterycontrol.conf
+        remove_file_with_message /etc/init/powercontrol.conf
 
         echo "Removing installer..."
         remove_file_with_message /usr/local/bin/ChromeOS_PowerControl_Installer.sh
