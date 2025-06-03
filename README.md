@@ -45,9 +45,11 @@ __How It Works:__
 __PowerControl:__
 - Uses Intel's native no_turbo and max_perf_pct for easy user control.
 - Pairs max_perf_pct and x86_pkg_tmp to create a script for a user adjustable clockspeed-temperature curve.
-- When running `sudo powercontrol start` temperature and cpu clock speed are measured.
-- If $min_temp threshold is below a certain point, the CPU will be able to hit 100% of its speed.
-- The closer the CPU approaches $max_temp, the lower its clockspeed will be.
+- When running `sudo powercontrol start` temperature and cpu clock speed are measured and Intel Turbo is enabled.
+- PowerControl uses `max_perf_pct` value to dictate peak clockspeed as well. 
+- If $min_temp threshold is below a certain point, the CPU will be able to reach max_perf_pct of its speed.
+- The closer the CPU approaches $max_temp, the closer it is to min_perf_pct.
+
 
 
 __BatteryControl:__
