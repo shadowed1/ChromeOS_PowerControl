@@ -131,13 +131,13 @@ fi
 read -rp "Do you want to start BatteryControl now in the background? (y/n): " run_batterycontrol
 echo ""
 if [[ "$run_batterycontrol" =~ ^[Yy]$ ]]; then
-    nohup /usr/local/bin/ChromeOS_PowerControl/batterycontrol __monitor__ > /dev/null 2>&1 &
-    echo "BatteryControl started in the background."
+    sudo /usr/local/bin/ChromeOS_PowerControl/batterycontrol start
     echo ""
 else
-    echo "sudo batterycontrol start to run it later."
+    echo "Run with: sudo batterycontrol start"
     echo ""
 fi
+
 
 read -rp "Do you want PowerControl enabled on boot? Requires removing rootfs verification. (y/n): " move_powercontrolconf
 echo ""
@@ -152,8 +152,7 @@ fi
 read -rp "Do you want to start PowerControl now in the background?. (y/n): " run_powercontrol
 echo ""
 if [[ "$run_powercontrol" =~ ^[Yy]$ ]]; then
-    /usr/local/bin/ChromeOS_PowerControl/powercontrol start
-    echo "PowerControl started in the background."
+    sudo /usr/local/bin/ChromeOS_PowerControl/powercontrol start
     echo ""
 else
     echo "You can run it later with: sudo powercontrol start"
