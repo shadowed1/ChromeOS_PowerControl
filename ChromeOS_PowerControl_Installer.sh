@@ -30,6 +30,11 @@ echo " /usr/local/bin/ChromeOS_PowerControl/.batterycontrol_enabled created."
 echo ""
 echo " /usr/local/bin/ChromeOS_PowerControl/.powercontrol_enabled created."
 echo ""
+sudo touch /usr/local/bin/ChromeOS_PowerControl/powercontrol.log
+sudo touch /usr/local/bin/ChromeOS_PowerControl/batterycontrol.log
+echo " /usr/local/bin/ChromeOS_PowerControl/batterycontrol.log created."
+echo " /usr/local/bin/ChromeOS_PowerControl/powercontrol.log created."
+echo ""
 
 USER_HOME="/home/chronos"
 
