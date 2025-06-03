@@ -120,6 +120,18 @@ else
     echo "sudo batterycontrol start to run it later."
     echo ""
 fi
+
+read -rp "Do you want to start PowerControl now in the background?. (y/n): " run_powercontrol
+echo ""
+if [[ "$run_powercontrol" =~ ^[Yy]$ ]]; then
+    /usr/local/bin/ChromeOS_PowerControl/powercontrol start
+    echo "PowerControl started in the background."
+    echo ""
+else
+    echo "You can run it later with: sudo powercontrol start"
+    echo ""
+fi
+
 echo ""
 echo "Commands:"
 echo ""
@@ -142,13 +154,4 @@ echo "sudo powercontrol uninstall            # Global uninstaller"
 echo "Alternative uninstall method:"
 echo "sudo /usr/local/bin/ChromeOS_PowerControl/Uninstall_ChromeOS_PowerControl.sh"
 echo ""
-read -rp "Do you want to start PowerControl now? It has to run in the foreground. (y/n): " run_powercontrol
-echo ""
-if [[ "$run_powercontrol" =~ ^[Yy]$ ]]; then
-    /usr/local/bin/ChromeOS_PowerControl/powercontrol start
-    echo "PowerControl started."
-    echo ""
-else
-    echo "You can run it later with: sudo powercontrol start"
-    echo ""
-fi
+
