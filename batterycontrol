@@ -107,14 +107,14 @@ start_monitoring_loop() {
         if [ -f "$BATTERY_PATH" ]; then
             CHARGE=$(cat "$BATTERY_PATH" 2>/dev/null)
         else
-            sleep 120
+            sleep 10
             continue
         fi
 
         if [ -f "$CHARGER_PATH" ]; then
             AC_ON=$(cat "$CHARGER_PATH" 2>/dev/null)
         else
-            sleep 120
+            sleep 10
             continue
         fi
 
@@ -128,7 +128,7 @@ start_monitoring_loop() {
             sudo ectool chargecontrol normal >/dev/null 2>&1
         fi
 
-        sleep 120
+        sleep 10
     done
 }
 
