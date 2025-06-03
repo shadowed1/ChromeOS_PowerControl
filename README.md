@@ -2,9 +2,9 @@
 ## Requires Developer Mode. 
 
 ### - Customize battery charging limit instead of relying on Adaptive Charging to maximize battery longevity. 
-### - Features global commands for ease of use. 
-### Can optionally disable Intel Turbo Boost on boot automatically if user has rootfs verification disabled
 ### - Customize CPU clock speed in relation to temperature; unlike Intel's spicier approach.
+### - Features global commands for ease of use, and an uninstaller to clean up after itself. 
+### - Optionally disable Intel Turbo Boost on boot automatically if user has rootfs verification disabled
 
 ### __How to Install:__
 
