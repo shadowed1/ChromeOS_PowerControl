@@ -1,9 +1,9 @@
 # **ChromeOS PowerControl**
 ## Requires Developer Mode. 
 
-### - Control battery charging limit instead of relying on Adaptive Charging to maximize battery longevity. 
-### - Control CPU clock speed in relation to temperature; enabling lower temperatures under load and longer battery life.
-### - Control Fan speed in relation to temperature with built-in hysteresis and 0% RPM mode. 
+## - Control battery charging limit instead of relying on Adaptive Charging to maximize battery longevity. 
+## - Control CPU clock speed boost in relation to temperature; enabling lower temperatures under load and longer battery life.
+## - Control Fan speed in relation to temperature with built-in hysteresis and 0% RPM mode. 
 ### - Features global commands for ease of use, config files that save settings, and an uninstaller to clean up after itself. 
 ### - Optionally have BatteryControl, PowerControl, FanControl start on boot; as well as disabling Turbo Boost on boot if user has rootfs verification disabled.
 
@@ -77,7 +77,7 @@ __BatteryControl:__
 - ChromeOS reports slightly higher values than what BatteryControl sets the charge limit to.
 
 __FanControl:__
-- Uses ectool's fanduty control and autofanctrl to toggle on and off.
+- Uses ectool's fanduty control and autofanctrl for manual and automatic control.
 - Pairs fanduty with x86_pkg_temp to create a script for a user adjustable fan-temperature curve.
 - Uses hysteresis formula to attempt a better sounding and performing fan curve than the OEM provides. 
 - Uses a kickstart mechanism when fan leaves 0% to enable zero RPM mode for any fan type.
