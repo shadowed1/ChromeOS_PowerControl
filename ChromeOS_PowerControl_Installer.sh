@@ -1,47 +1,60 @@
 #!/bin/bash
 
 sudo mkdir -p /usr/local/bin/ChromeOS_PowerControl
+echo ""
 echo "Enabling sudo in crosh or run in VT-2 is required for this to download successfully."
 curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/powercontrol -o /usr/local/bin/ChromeOS_PowerControl/powercontrol
 echo " /usr/local/bin/ChromeOS_PowerControl/powercontrol downloaded."
-
+echo ""
 curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/batterycontrol -o /usr/local/bin/ChromeOS_PowerControl/batterycontrol
 echo " /usr/local/bin/ChromeOS_PowerControl/batterycontrol downloaded."
-
+echo ""
+curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/fancontrol -o /usr/local/bin/ChromeOS_PowerControl/fancontrol
+echo " /usr/local/bin/ChromeOS_PowerControl/fancontrol downloaded."
+echo ""
 curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/Uninstall_ChromeOS_PowerControl.sh -o /usr/local/bin/ChromeOS_PowerControl/Uninstall_ChromeOS_PowerControl.sh
 echo " /usr/local/bin/ChromeOS_PowerControl/Uninstall_ChromeOS_PowerControl.sh downloaded."
-
+echo ""
 curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/LICENSE -o /usr/local/bin/ChromeOS_PowerControl/LICENSE
 echo " /usr/local/bin/ChromeOS_PowerControl/LICENSE downloaded."
-
+echo ""
 curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/README.md -o /usr/local/bin/ChromeOS_PowerControl/README.md
 echo " /usr/local/bin/ChromeOS_PowerControl/README.md downloaded."
-
+echo ""
 curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/no_turbo.conf -o /usr/local/bin/ChromeOS_PowerControl/no_turbo.conf
 echo " /usr/local/bin/ChromeOS_PowerControl/no_turbo.conf downloaded."
 echo ""
-
 curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/batterycontrol.conf -o /usr/local/bin/ChromeOS_PowerControl/batterycontrol.conf
 echo " /usr/local/bin/ChromeOS_PowerControl/batterycontrol.conf downloaded."
 echo ""
-
 curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/powercontrol.conf -o /usr/local/bin/ChromeOS_PowerControl/powercontrol.conf
 echo " /usr/local/bin/ChromeOS_PowerControl/powercontrol.conf downloaded."
+echo ""
+curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/fancontrol.conf -o /usr/local/bin/ChromeOS_PowerControl/fancontrol.conf
+echo " /usr/local/bin/ChromeOS_PowerControl/fancontrol.conf downloaded."
 echo ""
 
 sudo chmod +x /usr/local/bin/ChromeOS_PowerControl/powercontrol
 sudo chmod +x /usr/local/bin/ChromeOS_PowerControl/batterycontrol
+sudo chmod +x /usr/local/bin/ChromeOS_PowerControl/fancontrol
 sudo chmod +x /usr/local/bin/ChromeOS_PowerControl/Uninstall_ChromeOS_PowerControl.sh
 sudo touch /usr/local/bin/ChromeOS_PowerControl/.batterycontrol_enabled
 sudo touch /usr/local/bin/ChromeOS_PowerControl/.powercontrol_enabled
+sudo touch /usr/local/bin/ChromeOS_PowerControl/.fancontrol_enabled
 echo " /usr/local/bin/ChromeOS_PowerControl/.batterycontrol_enabled created."
 echo ""
 echo " /usr/local/bin/ChromeOS_PowerControl/.powercontrol_enabled created."
 echo ""
+echo " /usr/local/bin/ChromeOS_PowerControl/.fancontrol_enabled created."
+echo ""
 sudo touch /usr/local/bin/ChromeOS_PowerControl/powercontrol.log
 sudo touch /usr/local/bin/ChromeOS_PowerControl/batterycontrol.log
+sudo touch /usr/local/bin/ChromeOS_PowerControl/fancontrol.log
 echo " /usr/local/bin/ChromeOS_PowerControl/batterycontrol.log created."
+echo ""
 echo " /usr/local/bin/ChromeOS_PowerControl/powercontrol.log created."
+echo ""
+echo " /usr/local/bin/ChromeOS_PowerControl/fancontrol.log created."
 echo ""
 
 USER_HOME="/home/chronos"
@@ -66,7 +79,7 @@ fi
 POWER_CONFIG="/usr/local/bin/ChromeOS_PowerControl/.powercontrol_config"
 POWER_RUN_FLAG="/usr/local/bin/ChromeOS_PowerControl/.powercontrol_enabled"
 
-load_config() {
+load_power_config() {
     if [ -f "$POWER_CONFIG" ]; then
         source "$POWER_CONFIG"
     else
@@ -81,6 +94,28 @@ load_config() {
 if [ ! -f "$POWER_RUN_FLAG" ]; then
     touch "$POWER_RUN_FLAG"
     echo "PowerControl enabled flag created at $POWER_RUN_FLAG"
+fi
+
+FAN_CONFIG="/usr/local/bin/ChromeOS_PowerControl/.fancontrol_config"
+FAN_RUN_FLAG="/usr/local/bin/ChromeOS_PowerControl/.fancontrol_enabled"
+
+load_fan_config() {
+    if [ -f "$FAN_CONFIG" ]; then
+        source "$FAN_CONFIG"
+    else
+        MIN_TEMP=$DEFAULT_MIN_TEMP
+        MAX_TEMP=$DEFAULT_MAX_TEMP
+        MIN_FAN=$DEFAULT_MIN_FAN
+        MAX_FAN=$DEFAULT_MAX_FAN
+        SLEEP_INTERVAL=$DEFAULT_SLEEP_INTERVAL
+        STEP_SIZE=$DEFAULT_STEP_SIZE
+        save_config
+    fi
+}
+
+if [ ! -f "$FAN_RUN_FLAG" ]; then
+    touch "$FAN_RUN_FLAG"
+    echo "FanControl enabled flag created at $FAN_RUN_FLAG"
 fi
 
 read -rp "Do you want Intel Turbo Boost disabled on boot? Requires removing rootfs verification. (y/n): " move_no_turbo
@@ -102,7 +137,7 @@ else
     echo ""
 fi
 
-read -rp "Do you want to create global commands 'powercontrol' and 'batterycontrol' for faster changes? (y/n): " link_cmd
+read -rp "Do you want to create global commands 'powercontrol', 'batterycontrol' and 'fancontrol'? for faster changes? (y/n): " link_cmd
 echo ""
 
 if [[ "$link_cmd" =~ ^[Yy]$ ]]; then
@@ -112,6 +147,10 @@ if [[ "$link_cmd" =~ ^[Yy]$ ]]; then
 
     sudo ln -sf /usr/local/bin/ChromeOS_PowerControl/batterycontrol /usr/local/bin/batterycontrol
     echo "'batterycontrol' command is now available system-wide."
+    echo ""
+
+    sudo ln -sf /usr/local/bin/ChromeOS_PowerControl/fancontrol /usr/local/bin/fancontrol
+    echo "'fancontrol' command is now available system-wide."
     echo ""
 else
     echo "Skipped creating global commands."
@@ -159,6 +198,26 @@ else
     echo ""
 fi
 
+read -rp "Do you want FanControl enabled on boot? Requires removing rootfs verification. (y/n): " move_fancontrolconf
+echo ""
+if [[ "$move_fancontrolconf" =~ ^[Yy]$ ]]; then
+    sudo mv /usr/local/bin/ChromeOS_PowerControl/fancontrol.conf /etc/init/
+    echo "FanControl will start on boot."
+    echo ""
+else
+    echo "FanControl must be started manually on boot."
+fi
+
+read -rp "Do you want to start FanControl now in the background?. (y/n): " run_fancontrol
+echo ""
+if [[ "$run_fancontrol" =~ ^[Yy]$ ]]; then
+    sudo /usr/local/bin/ChromeOS_PowerControl/fancontrol start
+    echo ""
+else
+    echo "You can run it later with: sudo fancontrol start"
+    echo ""
+fi
+
 echo ""
 echo "Commands with examples:"
 echo ""
@@ -178,8 +237,16 @@ echo "sudo batterycontrol status              # shows status"
 echo "sudo batterycontrol set 80 75           # 80 is when charging stops; 75 is when charging may begin."
 echo "sudo batterycontrol help"
 echo "" 
+echo "sudo fancontrol start                  # starts fancontrol"
+echo "sudo fancontrol stop                   # stops fancontrol and restores default fan behavior."
+echo "sudo fancontrol min_temp 50            # Threshold in C for min_fan speed is met."
+echo "sudo fancontrol max_temp 90            # Threshold in C for max_fan speed is met."
+echo "sudo fancontrol min_fan 0              # % in fan speed when temperature is at or below min_temp."
+echo "sudo fancontrol max_fan                # % in fan speed when temperature is at or below max_temp."
+echo "sudo fancontrol step_up                # % in fan granularity when temperature is climbing."
+echo "sudo fancontrol step_down              # % in fan granularity when temperature is falling."
+echo ""
 echo "sudo powercontrol uninstall            # Global uninstaller"
 echo "Alternative uninstall method:"
 echo "sudo bash /usr/local/bin/ChromeOS_PowerControl/Uninstall_ChromeOS_PowerControl.sh"
 echo ""
-
