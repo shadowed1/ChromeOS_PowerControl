@@ -1,4 +1,4 @@
-# **ChromeOS PowerControl Experimental**
+# **ChromeOS PowerControl **
 ## Requires Developer Mode. 
 
 ### - Control battery charging limit instead of relying on Adaptive Charging to maximize battery longevity. 
