@@ -1,11 +1,6 @@
 #!/bin/bash
 
-# === Configurable Constants ===
-MIN_TEMP=50       # Minimum temperature in Celsius
-MAX_TEMP=90       # Maximum temperature in Celsius
-MIN_FAN=0         # Fan duty at or below MIN_TEMP (%)
-MAX_FAN=100       # Fan duty at or above MAX_TEMP (%)
-
+CONFIG_FILE="/usr/local/bin/ChromeOS_PowerControl/fancontrol.conf"
 ZONE_PATH="/sys/class/thermal/thermal_zone0/temp"
 SLEEP_INTERVAL=1
 RUN_FLAG="/tmp/.fan_curve_running"
@@ -13,8 +8,30 @@ PID_FILE="/tmp/.fan_curve_pid"
 LOG_FILE="/usr/local/bin/ChromeOS_PowerControl/fancontrol.log"
 MONITOR_PID_FILE="/tmp/powercontrol_tail_monitor.pid"
 
-# === Functions ===
+# === Load or set defaults ===
+load_config() {
+    if [ -f "$CONFIG_FILE" ]; then
+        source "$CONFIG_FILE"
+    else
+        MIN_TEMP=50
+        MAX_TEMP=90
+        MIN_FAN=0
+        MAX_FAN=100
+        save_config
+    fi
+}
 
+save_config() {
+    mkdir -p "$(dirname "$CONFIG_FILE")"
+    cat > "$CONFIG_FILE" <<EOF
+MIN_TEMP=$MIN_TEMP
+MAX_TEMP=$MAX_TEMP
+MIN_FAN=$MIN_FAN
+MAX_FAN=$MAX_FAN
+EOF
+}
+
+# === Fan logic ===
 cleanup() {
     echo "Restoring automatic fan control..." | tee -a "$LOG_FILE"
     sudo ectool autofanctrl
@@ -23,6 +40,7 @@ cleanup() {
 }
 
 run_loop() {
+    load_config
     sudo ectool autofanctrl
     echo "Fan curve started. Press Ctrl+C to stop." | tee -a "$LOG_FILE"
 
@@ -54,7 +72,6 @@ run_loop() {
 }
 
 start() {
-    # Stop old process if one exists
     if [ -f "$RUN_FLAG" ]; then
         PID=$(cat "$PID_FILE")
         if ps -p "$PID" > /dev/null 2>&1; then
@@ -66,7 +83,6 @@ start() {
         fi
     fi
 
-    # Truncate log file if too large
     if [ -f "$LOG_FILE" ] && [ "$(stat -c%s "$LOG_FILE")" -gt 32768 ]; then
         echo "Truncated log file (exceeded 32KB)" > "$LOG_FILE"
     fi
@@ -108,34 +124,86 @@ monitor() {
     echo "Monitor started (PID $!)"
 }
 
+# === Config Setters ===
+set_min_temp() {
+    if [[ "$2" =~ ^[0-9]+$ ]]; then
+        MIN_TEMP=$2
+        save_config
+        echo "Min temp set to $MIN_TEMP°C"
+    else
+        echo "Usage: $0 min_temp <number>"
+    fi
+}
+
+set_max_temp() {
+    if [[ "$2" =~ ^[0-9]+$ ]] && (( $2 <= 90 )); then
+        MAX_TEMP=$2
+        save_config
+        echo "Max temp set to $MAX_TEMP°C"
+    else
+        echo "Usage: $0 max_temp <number (<=90)>"
+    fi
+}
+
+set_min_fan() {
+    if [[ "$2" =~ ^[0-9]+$ ]] && (( $2 >= 0 && $2 <= 100 )); then
+        load_config
+        if (( MAX_FAN > $2 )); then
+            MIN_FAN=$2
+            save_config
+            echo "Min fan set to $MIN_FAN%"
+        else
+            echo "Error: MIN_FAN must be less than MAX_FAN ($MAX_FAN)"
+        fi
+    else
+        echo "Usage: $0 min_fan <0-100>"
+    fi
+}
+
+set_max_fan() {
+    if [[ "$2" =~ ^[0-9]+$ ]] && (( $2 >= 0 && $2 <= 100 )); then
+        load_config
+        if (( $2 > MIN_FAN )); then
+            MAX_FAN=$2
+            save_config
+            echo "Max fan set to $MAX_FAN%"
+        else
+            echo "Error: MAX_FAN must be greater than MIN_FAN ($MIN_FAN)"
+        fi
+    else
+        echo "Usage: $0 max_fan <0-100>"
+    fi
+}
+
 show_help() {
+    load_config
     echo "FanControl Script - Available Commands:"
     echo
-    echo "  start      Start custom fan curve."
-    echo "  stop       Stop fancontrol and restore autofanctrl"
-    echo "  monitor    Toggle log monitor on/off"
-    echo "  help       Show this help message"
+    echo "  start            Start custom fan curve."
+    echo "  stop             Stop fancontrol and restore autofanctrl"
+    echo "  monitor          Toggle log monitor on/off"
+    echo "  min_temp <°C>    Set minimum temperature (Celsius)"
+    echo "  max_temp <°C>    Set maximum temperature (Celsius, max 90)"
+    echo "  min_fan <0–100>  Set fan duty at min temp"
+    echo "  max_fan <0–100>  Set fan duty at max temp (must be > min_fan)"
+    echo "  help             Show this help message"
     echo
     echo "Fan curve: $MIN_TEMP°C = ${MIN_FAN}%, $MAX_TEMP°C = ${MAX_FAN}%"
 }
 
 # === Entry Point ===
 case "$1" in
-    start)
-        start
-        ;;
-    stop)
-        stop
-        ;;
-    monitor)
-        monitor
-        ;;
+    start) start ;;
+    stop) stop ;;
+    monitor) monitor ;;
+    min_temp) set_min_temp "$@" ;;
+    max_temp) set_max_temp "$@" ;;
+    min_fan)  set_min_fan "$@" ;;
+    max_fan)  set_max_fan "$@" ;;
     __monitor__)
         echo $$ > "$PID_FILE"
         touch "$RUN_FLAG"
         run_loop
         ;;
-    help|*)
-        show_help
-        ;;
+    help|*) show_help ;;
 esac
