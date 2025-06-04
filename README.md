@@ -65,7 +65,7 @@
 
 __PowerControl:__
 - Uses Intel's native no_turbo and max_perf_pct for easy user control.
-- Pairs max_perf_pct and x86_pkg_tmp to create a script for a user adjustable clockspeed-temperature curve. 
+- Pairs max_perf_pct and x86_pkg_tmp to create a user adjustable clockspeed-temperature curve. 
 - PowerControl uses `max_perf_pct` value to dictate peak clockspeed as well.
 - If $min_temp threshold is below a certain point, the CPU will be able to reach max_perf_pct of its speed.
 - The closer the CPU approaches $max_temp, the closer it is to min_perf_pct.
@@ -78,7 +78,7 @@ __BatteryControl:__
 
 __FanControl:__
 - Uses ectool's fanduty control and autofanctrl for manual and automatic control.
-- Pairs fanduty with x86_pkg_temp to create a script for a user adjustable fan-temperature curve.
+- Pairs fanduty with x86_pkg_temp for a user adjustable fan-temperature curve.
 - Uses hysteresis formula to attempt a better sounding and performing fan curve than the OEM provides. 
 - Uses a kickstart mechanism when fan leaves 0% to enable zero RPM mode for any fan type.
 
