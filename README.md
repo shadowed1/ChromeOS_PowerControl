@@ -24,7 +24,7 @@
 - Installer has prompts to customize installation.
 - Both PowerControl and BatteryControl can run in the background and can be adjusted in real-time.
 
-__Commands with examples:__
+### __Commands with examples:__
 
 - `sudo powercontrol                     # Show status`
 - `sudo powercontrol start               # Throttle CPU based on temperature curve`
@@ -63,7 +63,7 @@ __Commands with examples:__
 - `sudo powercontrol uninstall            # Global uninstaller that will clean up after itself`
 - Alternative uninstall method: `sudo /usr/local/bin/ChromeOS_PowerControl/Uninstall_ChromeOS_PowerControl.sh`
 
-__How It Works:__
+### __How It Works:__
 
 __PowerControl:__
 - Uses Intel's native no_turbo and max_perf_pct for easy user control.
@@ -84,12 +84,12 @@ __FanControl:__
 - Uses hysteresis formula to attempt a better sounding and performing fan curve than the OEM provides. 
 - Uses a kickstart mechanism when fan leaves 0% to enable zero RPM mode for any fan type.
 
-__Bonus:__
+### __Bonus:__
 - To disable rootfs verification open VT-2, login as root, and run:
  `/usr/libexec/debugd/helpers/dev_features_rootfs_verification`
 - Enable sudo for crosh: `https://gist.github.com/velzie/a5088c9ade6ec4d35435b9826b45d7a3`
 
- __Credits:__
+###  __Credits:__
 
 - Thanks to WesBosch for helping me learn to make an installer:
   https://github.com/WesBosch
