@@ -11,7 +11,6 @@ SLEEP_INTERVAL=1
 RUN_FLAG="/tmp/.fan_curve_running"
 PID_FILE="/tmp/.fan_curve_pid"
 LOG_FILE="/usr/local/bin/ChromeOS_PowerControl/fancontrol.log"
-
 MONITOR_PID_FILE="/tmp/powercontrol_tail_monitor.pid"
 
 # === Functions ===
@@ -56,6 +55,7 @@ run_loop() {
 }
 
 start() {
+    # Stop old process if one exists
     if [ -f "$RUN_FLAG" ]; then
         PID=$(cat "$PID_FILE")
         if ps -p "$PID" > /dev/null 2>&1; then
@@ -67,9 +67,13 @@ start() {
         fi
     fi
 
-    echo $$ > "$PID_FILE"
-    touch "$RUN_FLAG"
-    run_loop
+    # Truncate log file if too large
+    if [ -f "$LOG_FILE" ] && [ "$(stat -c%s "$LOG_FILE")" -gt 32768 ]; then
+        echo "Truncated log file (exceeded 32KB)" > "$LOG_FILE"
+    fi
+
+    nohup "$0" __monitor__ >> "$LOG_FILE" 2>&1 &
+    echo "FanControl started in background. Output is logged to $LOG_FILE"
 }
 
 stop() {
@@ -110,7 +114,7 @@ show_help() {
     echo
     echo "  start      Start custom fan curve."
     echo "  stop       Stop fancontrol and restore autofanctrl"
-    echo "  monitor    Toggle monitor on/off"
+    echo "  monitor    Toggle log monitor on/off"
     echo "  help       Show this help message"
     echo
     echo "Fan curve: $MIN_TEMP°C = ${MIN_FAN}%, $MAX_TEMP°C = ${MAX_FAN}%"
@@ -126,6 +130,11 @@ case "$1" in
         ;;
     monitor)
         monitor
+        ;;
+    __monitor__)
+        echo $$ > "$PID_FILE"
+        touch "$RUN_FLAG"
+        run_loop
         ;;
     help|*)
         show_help
