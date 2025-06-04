@@ -71,6 +71,7 @@ set_temp_threshold() {
         echo "Error: Temperature threshold cannot exceed $MAX_TEMP_LIMIT°C."
         exit 1
     fi
+    load_config
     MAX_TEMP=$1
     save_config
     echo "Max temperature threshold set to $MAX_TEMP°C"
@@ -81,6 +82,7 @@ set_min_temp() {
         echo "Error: Min temperature must be an integer."
         exit 1
     fi
+    load_config
     MIN_TEMP=$1
     save_config
     echo "Min temperature threshold set to $MIN_TEMP°C"
@@ -95,6 +97,7 @@ set_min_perf_pct() {
         echo "Error: min_perf_pct must be between 10 and 100."
         exit 1
     fi
+    load_config
     MIN_PERF_PCT=$1
     save_config
     echo "Minimum performance percentage set to $MIN_PERF_PCT%"
