@@ -33,6 +33,14 @@ case "$choice" in
         echo "Stopping background services..."
         sudo initctl stop no_turbo 2>/dev/null
 
+        echo "Restoring default settings without needing to reboot."
+        sudo powercontrol max_perf_pct 100
+        sudo powercontrol stop
+        sudo powercontrol no_turbo 0
+        sudo batterycontrol stop
+        sudo fancontrol stop
+        
+
         echo "Removing startup files..."
         remove_file_with_message /etc/init/no_turbo.conf
         remove_file_with_message /etc/init/batterycontrol.conf
