@@ -48,6 +48,7 @@
 - `sudo fancontrol                        # Show status`
 - `sudo fancontrol start                  # starts fancontrol`
 - `sudo fancontrol stop                   # stops fancontrol and restores default fan behavior.`
+- `sudo fancontrol monitor                # Updates log real-time in terminal window; run again to toggle off.` 
 - `sudo fancontrol min_temp 50            # Threshold in C for min_fan speed is met.`
 - `sudo fancontrol max_temp 90            # Threshold in C for max_fan speed is met.`
 - `sudo fancontrol min_fan 0              # % in fan speed when temperature is at or below min_temp.`
