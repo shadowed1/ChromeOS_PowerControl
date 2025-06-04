@@ -34,6 +34,7 @@ __Commands with examples:__
 - `sudo powercontrol max_temp 86         # Threshold when min_perf_pct is reached. Limit is 90 Celcius.`
 - `sudo powercontrol min_temp 60         # Threshold when max_perf_pct is reached.`
 - `sudo powercontrol monitor             # Updates log real-time in terminal window; run again to toggle off. `
+- `sudo powercontrol help                # Show list of commands. `
   
 ----------------------------------------------------------------------------------------------
 
@@ -42,7 +43,7 @@ __Commands with examples:__
 - `sudo batterycontrol stop                # stops batterycontrol`
 - `sudo batterycontrol status              # shows status`
 - `sudo batterycontrol set 80 75           # 80 is when charging stops; 75 is when charging may begin`
-- `sudo batterycontrol help`
+- `sudo batterycontrol help                # Show list of commands`
 
 ----------------------------------------------------------------------------------------------
 - `sudo fancontrol                        # Show status`
@@ -54,6 +55,7 @@ __Commands with examples:__
 - `sudo fancontrol max_fan                # % in fan speed when temperature is at or below max_temp.`
 - `sudo fancontrol step_up                # % in fan granularity when temperature is climbing.`
 - `sudo fancontrol step_down              # % in fan granularity when temperature is falling.`
+- `sudo fancontrol help                 #  Show list of commands. `
 
 ----------------------------------------------------------------------------------------------
 
