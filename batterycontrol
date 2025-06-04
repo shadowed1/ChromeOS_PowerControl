@@ -19,14 +19,13 @@ CHARGE_MIN=
 load_config() {
     if [ -f "$CONFIG_FILE" ]; then
         source "$CONFIG_FILE"
-    else
-        CHARGE_MAX=$DEFAULT_CHARGE_MAX
-        CHARGE_MIN=$DEFAULT_CHARGE_MIN
     fi
+    validate_config
 }
 
 # Save the configuration to the install directory
 save_config() {
+    validate_config
     echo "CHARGE_MAX=$CHARGE_MAX" > "$CONFIG_FILE"
     echo "CHARGE_MIN=$CHARGE_MIN" >> "$CONFIG_FILE"
 }
@@ -52,6 +51,19 @@ set_thresholds() {
     CHARGE_MAX=$1
     CHARGE_MIN=$2
     save_config
+}
+
+validate_config() {
+    if [[ -z "$CHARGE_MAX" || ! "$CHARGE_MAX" =~ ^[0-9]+$ ]]; then
+        CHARGE_MAX=$DEFAULT_CHARGE_MAX
+    fi
+    if [[ -z "$CHARGE_MIN" || ! "$CHARGE_MIN" =~ ^[0-9]+$ ]]; then
+        CHARGE_MIN=$DEFAULT_CHARGE_MIN
+    fi
+    if (( CHARGE_MIN >= CHARGE_MAX )); then
+        CHARGE_MIN=$DEFAULT_CHARGE_MIN
+        CHARGE_MAX=$DEFAULT_CHARGE_MAX
+    fi
 }
 
 
