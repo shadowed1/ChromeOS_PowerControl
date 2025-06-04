@@ -46,11 +46,14 @@ set_thresholds() {
         exit 1
     fi
 
+    load_config
+
     echo "Battery Charge Status: MAX=$1, MIN=$2"
     CHARGE_MAX=$1
     CHARGE_MIN=$2
     save_config
 }
+
 
 # Show the help message
 show_help() {
