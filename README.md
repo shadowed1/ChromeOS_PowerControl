@@ -66,10 +66,10 @@
 
 __PowerControl:__
 - Uses Intel's native no_turbo and max_perf_pct for easy user control.
-- Pairs max_perf_pct and x86_pkg_tmp to create a user adjustable clockspeed-temperature curve. 
-- PowerControl uses `max_perf_pct` value to dictate peak clockspeed as well.
+- Pairs user adjustable max_perf_pct and x86_pkg_tmp to create a user adjustable clockspeed-temperature curve. 
 - If $min_temp threshold is below a certain point, the CPU will be able to reach max_perf_pct of its speed.
 - The closer the CPU approaches $max_temp, the closer it is to min_perf_pct.
+- Can toggle no_turbo and adjust max_perf_pct without needing PowerControl to run. 
 
 __BatteryControl:__
 - Uses ectool's chargecontrol to toggle between normal or idle.
