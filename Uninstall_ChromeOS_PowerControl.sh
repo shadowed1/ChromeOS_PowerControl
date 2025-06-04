@@ -3,8 +3,8 @@
 INSTALL_DIR="/usr/local/bin/ChromeOS_PowerControl"
 
 echo "0: Quit"
-echo "1: Remove no_turbo.conf from /etc/init (disables turbo on boot)"
-echo "2: Full Uninstall (remove all files, symlinks, and user config for powercontrol & batterycontrol)"
+echo "1: Remove powercontrol.conf, batterycontrol.conf, and no_turbo.conf from /etc/init (disables turbo on boot)"
+echo "2: Full Uninstall (remove all files, symlinks, startup files, and user configs for powercontrol & batterycontrol)"
 
 read -rp "Enter (0-2): " choice
 
@@ -24,7 +24,10 @@ case "$choice" in
         echo "Uninstall canceled."
         ;;
     1)
+        echo "Removing startup files..."
         remove_file_with_message /etc/init/no_turbo.conf
+        remove_file_with_message /etc/init/batterycontrol.conf
+        remove_file_with_message /etc/init/powercontrol.conf
         ;;
     2)
         echo "Stopping background services..."
