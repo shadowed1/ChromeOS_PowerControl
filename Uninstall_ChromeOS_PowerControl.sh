@@ -3,8 +3,8 @@
 INSTALL_DIR="/usr/local/bin/ChromeOS_PowerControl"
 
 echo "0: Quit"
-echo "1: Remove powercontrol.conf, batterycontrol.conf, and no_turbo.conf from /etc/init (disables turbo on boot)"
-echo "2: Full Uninstall (remove all files, symlinks, startup files, and user configs for powercontrol & batterycontrol)"
+echo "1: powercontrol.conf, batterycontrol.conf, fancontrol.conf, and no_turbo.conf from /etc/init (disables turbo on boot)."
+echo "2: Full Uninstall (remove all files, symlinks, startup files, and user config for powercontrol, batterycontrol, and fancontrol)."
 
 read -rp "Enter (0-2): " choice
 
@@ -24,10 +24,10 @@ case "$choice" in
         echo "Uninstall canceled."
         ;;
     1)
-        echo "Removing startup files..."
         remove_file_with_message /etc/init/no_turbo.conf
         remove_file_with_message /etc/init/batterycontrol.conf
         remove_file_with_message /etc/init/powercontrol.conf
+        remove_file_with_message /etc/init/fancontrol.conf
         ;;
     2)
         echo "Stopping background services..."
@@ -37,6 +37,7 @@ case "$choice" in
         remove_file_with_message /etc/init/no_turbo.conf
         remove_file_with_message /etc/init/batterycontrol.conf
         remove_file_with_message /etc/init/powercontrol.conf
+        remove_file_with_message /etc/init/fancontrol.conf
 
         echo "Removing installer..."
         remove_file_with_message /usr/local/bin/ChromeOS_PowerControl_Installer.sh
@@ -44,6 +45,7 @@ case "$choice" in
         echo "Removing symlinks..."
         remove_file_with_message /usr/local/bin/powercontrol
         remove_file_with_message /usr/local/bin/batterycontrol
+        remove_file_with_message /usr/local/bin/fancontrol
 
         if [ -d "$INSTALL_DIR" ]; then
             sudo rm -rf "$INSTALL_DIR" && echo "Removed: $INSTALL_DIR"
