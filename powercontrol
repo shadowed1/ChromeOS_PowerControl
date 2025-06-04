@@ -33,11 +33,13 @@ load_config() {
 }
 
 save_config() {
-    echo "MAX_TEMP=$MAX_TEMP" > "$CONFIG_FILE"
-    echo "MAX_PERF_PCT=$MAX_PERF_PCT" >> "$CONFIG_FILE"
-    echo "MIN_TEMP=$MIN_TEMP" >> "$CONFIG_FILE"
-    echo "MIN_PERF_PCT=$MIN_PERF_PCT" >> "$CONFIG_FILE"
+    validate_config
+    echo "MAX_TEMP=${MAX_TEMP:-$DEFAULT_MAX_TEMP}" > "$CONFIG_FILE"
+    echo "MAX_PERF_PCT=${MAX_PERF_PCT:-$DEFAULT_MAX_PERF_PCT}" >> "$CONFIG_FILE"
+    echo "MIN_TEMP=${MIN_TEMP:-$DEFAULT_MIN_TEMP}" >> "$CONFIG_FILE"
+    echo "MIN_PERF_PCT=${MIN_PERF_PCT:-$DEFAULT_MIN_PERF_PCT}" >> "$CONFIG_FILE"
 }
+
 
 get_temp() {
     local temp_celsius
