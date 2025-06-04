@@ -25,6 +25,7 @@
 
 __Commands with examples:__
 
+- `sudo powercontrol                     # Show status`
 - `sudo powercontrol start               # Throttle CPU based on temperature curve`
 - `sudo powercontrol stop                # Default CPU temperature curve. no_turbo setting restored.`
 - `sudo powercontrol no_turbo 1          # 0 is default Intel Turbo Boost On behavior.`
@@ -35,7 +36,8 @@ __Commands with examples:__
 - `sudo powercontrol monitor             # Updates log real-time in terminal window; run again to toggle off. `
   
 ----------------------------------------------------------------------------------------------
-  
+
+- `sudo batterycontrol                     # Show status`  
 - `sudo batterycontrol start               # starts batterycontrol`
 - `sudo batterycontrol stop                # stops batterycontrol`
 - `sudo batterycontrol status              # shows status`
@@ -43,7 +45,7 @@ __Commands with examples:__
 - `sudo batterycontrol help`
 
 ----------------------------------------------------------------------------------------------
-
+- `sudo fancontrol                        # Show status`
 - `sudo fancontrol start                  # starts fancontrol`
 - `sudo fancontrol stop                   # stops fancontrol and restores default fan behavior.`
 - `sudo fancontrol min_temp 50            # Threshold in C for min_fan speed is met.`
