@@ -157,21 +157,23 @@ restore_no_turbo() {
 }
 
 start_monitoring_loop() {
-    load_config
-    validate_config
-
+    
     backup_no_turbo
     set_no_turbo 0
 
     touch "$RUN_FLAG"
     echo $$ > "$PID_FILE"
     echo "Starting PowerControl (PID $$)."
-    min_temp_c=$MIN_TEMP
-    high_temp_c=$MAX_TEMP
-    min_perf_pct=$MIN_PERF_PCT
-    max_perf_pct=$MAX_PERF_PCT
+    
 
     while [ -f "$RUN_FLAG" ]; do
+        load_config
+        validate_config
+        min_temp_c=$MIN_TEMP
+        high_temp_c=$MAX_TEMP
+        min_perf_pct=$MIN_PERF_PCT
+        max_perf_pct=$MAX_PERF_PCT
+
         temp_c=$(get_temp)
         if [ $? -ne 0 ]; then
             echo "Failed to get temperature. Retrying..."
