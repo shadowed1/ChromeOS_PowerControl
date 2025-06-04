@@ -1,0 +1,133 @@
+#!/bin/bash
+
+# === Configurable Constants ===
+MIN_TEMP=50       # Minimum temperature in Celsius
+MAX_TEMP=90       # Maximum temperature in Celsius
+MIN_FAN=0         # Fan duty at or below MIN_TEMP (%)
+MAX_FAN=100       # Fan duty at or above MAX_TEMP (%)
+
+ZONE_PATH="/sys/class/thermal/thermal_zone0/temp"
+SLEEP_INTERVAL=1
+RUN_FLAG="/tmp/.fan_curve_running"
+PID_FILE="/tmp/.fan_curve_pid"
+LOG_FILE="/usr/local/bin/ChromeOS_PowerControl/fancontrol.log"
+
+MONITOR_PID_FILE="/tmp/powercontrol_tail_monitor.pid"
+
+# === Functions ===
+
+cleanup() {
+    echo "Restoring automatic fan control..." | tee -a "$LOG_FILE"
+    sudo ectool autofanctrl 1
+    rm -f "$RUN_FLAG" "$PID_FILE"
+    exit 0
+}
+
+run_loop() {
+    trap cleanup SIGINT SIGTERM
+    sudo ectool autofanctrl 0
+    echo "Fan curve started. Press Ctrl+C to stop." | tee -a "$LOG_FILE"
+
+    while [ -f "$RUN_FLAG" ]; do
+        if [ ! -f "$ZONE_PATH" ]; then
+            echo "Thermal zone not found: $ZONE_PATH" | tee -a "$LOG_FILE"
+            cleanup
+        fi
+
+        RAW_TEMP=$(cat "$ZONE_PATH")
+        TEMP_C=$((RAW_TEMP / 1000))
+
+        if (( TEMP_C <= MIN_TEMP )); then
+            DUTY=$MIN_FAN
+        elif (( TEMP_C >= MAX_TEMP )); then
+            DUTY=$MAX_FAN
+        else
+            RANGE=$((MAX_TEMP - MIN_TEMP))
+            OFFSET=$((TEMP_C - MIN_TEMP))
+            DUTY=$((MIN_FAN + (OFFSET * (MAX_FAN - MIN_FAN) / RANGE)))
+        fi
+
+        echo "Temp: ${TEMP_C}°C -> Fan Duty: ${DUTY}%" | tee -a "$LOG_FILE"
+        sudo ectool fanduty "$DUTY"
+        sleep "$SLEEP_INTERVAL"
+    done
+
+    cleanup
+}
+
+start() {
+    if [ -f "$RUN_FLAG" ]; then
+        PID=$(cat "$PID_FILE")
+        if ps -p "$PID" > /dev/null 2>&1; then
+            echo "Fan curve is already running (PID $PID)" | tee -a "$LOG_FILE"
+            exit 1
+        else
+            echo "Stale run file detected. Cleaning up." | tee -a "$LOG_FILE"
+            rm -f "$RUN_FLAG" "$PID_FILE"
+        fi
+    fi
+
+    echo $$ > "$PID_FILE"
+    touch "$RUN_FLAG"
+    run_loop
+}
+
+stop() {
+    if [ -f "$PID_FILE" ]; then
+        PID=$(cat "$PID_FILE")
+        echo "Stopping fan curve (PID $PID)..." | tee -a "$LOG_FILE"
+        rm -f "$RUN_FLAG"
+        kill "$PID" 2>/dev/null
+        sleep 1
+    fi
+
+    echo "Restoring automatic fan control..." | tee -a "$LOG_FILE"
+    sudo ectool autofanctrl
+    rm -f "$RUN_FLAG" "$PID_FILE"
+}
+
+monitor() {
+    if [ -f "$MONITOR_PID_FILE" ]; then
+        MONITOR_PID=$(cat "$MONITOR_PID_FILE")
+        if ps -p "$MONITOR_PID" > /dev/null 2>&1; then
+            echo "Stopping monitor (PID $MONITOR_PID)..."
+            kill "$MONITOR_PID"
+            rm -f "$MONITOR_PID_FILE"
+            exit 0
+        else
+            echo "Stale PID file found. Removing."
+            rm -f "$MONITOR_PID_FILE"
+        fi
+    fi
+
+    tail -fn +1 "$LOG_FILE" &
+    echo $! > "$MONITOR_PID_FILE"
+    echo "Monitor started (PID $!)"
+}
+
+show_help() {
+    echo "FanControl Script - Available Commands:"
+    echo
+    echo "  start      Start custom fan curve."
+    echo "  stop       Stop fancontrol and restore autofanctrl"
+    echo "  monitor    Toggle monitor on/off"
+    echo "  help       Show this help message"
+    echo
+    echo "Fan curve: $MIN_TEMP°C = ${MIN_FAN}%, $MAX_TEMP°C = ${MAX_FAN}%"
+}
+
+# === Entry Point ===
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    monitor)
+        monitor
+        ;;
+    help|*)
+        show_help
+        ;;
+esac
