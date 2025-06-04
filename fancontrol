@@ -17,14 +17,13 @@ MONITOR_PID_FILE="/tmp/powercontrol_tail_monitor.pid"
 
 cleanup() {
     echo "Restoring automatic fan control..." | tee -a "$LOG_FILE"
-    sudo ectool autofanctrl 1
+    sudo ectool autofanctrl
     rm -f "$RUN_FLAG" "$PID_FILE"
     exit 0
 }
 
 run_loop() {
-    trap cleanup SIGINT SIGTERM
-    sudo ectool autofanctrl 0
+    sudo ectool autofanctrl
     echo "Fan curve started. Press Ctrl+C to stop." | tee -a "$LOG_FILE"
 
     while [ -f "$RUN_FLAG" ]; do
