@@ -39,11 +39,10 @@
   
 ----------------------------------------------------------------------------------------------
 
-- `sudo batterycontrol                     # Show status`  
 - `sudo batterycontrol start               # starts batterycontrol`
 - `sudo batterycontrol stop                # stops batterycontrol`
-- `sudo batterycontrol status              # shows status`
-- `sudo batterycontrol set 80 75           # 80 is when charging stops; 75 is when charging may begin`
+- `sudo batterycontrol status              # shows status. Leaving it blank also works`
+- `sudo batterycontrol set 80 75           # 80 is when charging stops; 75 is when char.ging may begin`
 - `sudo batterycontrol help                # Show list of commands`
 
 ----------------------------------------------------------------------------------------------
