@@ -52,9 +52,9 @@
 - `sudo fancontrol min_temp 48            # Threshold in C for min_fan speed is met.`
 - `sudo fancontrol max_temp 82            # Threshold in C for max_fan speed is met. 90 Celcius is max.`
 - `sudo fancontrol min_fan 0              # % in fan speed when temperature is at or below min_temp.`
-- `sudo fancontrol max_fan 100              # % in fan speed when temperature is at or below max_temp.`
-- `sudo fancontrol stepup                 # % in fan granularity when temperature is climbing.`
-- `sudo fancontrol stepdown               # % in fan granularity when temperature is falling.`
+- `sudo fancontrol max_fan 100            # % in fan speed when temperature is at or below max_temp.`
+- `sudo fancontrol stepup 20              # % in fan granularity when temperature is climbing.`
+- `sudo fancontrol stepdown 1             # % in fan granularity when temperature is falling.`
 - `sudo fancontrol help                   #  Show list of commands. `
 
 ----------------------------------------------------------------------------------------------
