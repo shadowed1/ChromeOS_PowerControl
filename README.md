@@ -56,7 +56,7 @@
 - `sudo fancontrol max_fan                # % in fan speed when temperature is at or below max_temp.`
 - `sudo fancontrol step_up                # % in fan granularity when temperature is climbing.`
 - `sudo fancontrol step_down              # % in fan granularity when temperature is falling.`
-- `sudo fancontrol help                 #  Show list of commands. `
+- `sudo fancontrol help                   #  Show list of commands. `
 
 ----------------------------------------------------------------------------------------------
 
