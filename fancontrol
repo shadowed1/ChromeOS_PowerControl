@@ -40,7 +40,6 @@ cleanup() {
 }
 
 run_loop() {
-    load_config
     sudo ectool autofanctrl
     echo "Fan curve started. Press Ctrl+C to stop." | tee -a "$LOG_FILE"
 
@@ -49,6 +48,7 @@ run_loop() {
             echo "Thermal zone not found: $ZONE_PATH" | tee -a "$LOG_FILE"
             cleanup
         fi
+        load_config
 
         RAW_TEMP=$(cat "$ZONE_PATH")
         TEMP_C=$((RAW_TEMP / 1000))
