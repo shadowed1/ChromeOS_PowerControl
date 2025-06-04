@@ -20,7 +20,6 @@ SLEEP_INTERVAL=$DEFAULT_SLEEP_INTERVAL
 STEP_UP=$DEFAULT_STEP_UP
 STEP_DOWN=$DEFAULT_STEP_DOWN
 
-# === Load or set defaults ===
 load_config() {
     if [ -f "$CONFIG_FILE" ]; then
         source "$CONFIG_FILE"
