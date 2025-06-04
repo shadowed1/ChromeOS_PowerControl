@@ -13,6 +13,7 @@
 
 `bash <(curl -s https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/ChromeOS_PowerControl_Downloader.sh?$(date +%s)")`
 
+
 - The installer will be placed: `~/tmp/ChromeOS_PowerControl/ChromeOS_PowerControl_Installer.sh`
 
 - In *VT-2* or *crosh shell with sudo enabled* run:
@@ -66,9 +67,8 @@ __How It Works:__
 
 __PowerControl:__
 - Uses Intel's native no_turbo and max_perf_pct for easy user control.
-- Pairs max_perf_pct and x86_pkg_tmp to create a script for a user adjustable clockspeed-temperature curve.
-- When running `sudo powercontrol start` temperature and cpu clock speed are measured and Intel Turbo is enabled.
-- PowerControl uses `max_perf_pct` value to dictate peak clockspeed as well. 
+- Pairs max_perf_pct and x86_pkg_tmp to create a script for a user adjustable clockspeed-temperature curve. 
+- PowerControl uses `max_perf_pct` value to dictate peak clockspeed as well.
 - If $min_temp threshold is below a certain point, the CPU will be able to reach max_perf_pct of its speed.
 - The closer the CPU approaches $max_temp, the closer it is to min_perf_pct.
 
@@ -78,8 +78,13 @@ __BatteryControl:__
 - Check's BAT0/capacity to measure when to control chargecontrol.
 - ChromeOS reports slightly higher values than what BatteryControl sets the charge limit to.
 
-__Bonus:__
+__FanControl:__
+- Uses ectool's fanduty control and autofanctrl to toggle on and off.
+- Pairs fanduty with x86_pkg_temp to create a script for a user adjustable fan-temperature curve.
+- Uses hysteresis formula to attempt a better sounding and performing fan curve than the OEM provides. 
+- Uses a kickstart mechanism when fan leaves 0% to enable zero RPM mode for any fan type.
 
+__Bonus:__
 - To disable rootfs verification open VT-2, login as root, and run:
  `/usr/libexec/debugd/helpers/dev_features_rootfs_verification`
 - Enable sudo for crosh: `https://gist.github.com/velzie/a5088c9ade6ec4d35435b9826b45d7a3`
