@@ -1,16 +1,17 @@
-# **ChromeOS PowerControl**
+# **ChromeOS PowerControl Experimental**
 ## Requires Developer Mode. 
 
 ### - Control battery charging limit instead of relying on Adaptive Charging to maximize battery longevity. 
-### - Control CPU clock speed in relation to temperature; enabling lower temperatures under load and longer battery life. 
+### - Control CPU clock speed in relation to temperature; enabling lower temperatures under load and longer battery life.
+### - Control Fan speed in relation to temperature with built-in hysteresis and 0% RPM mode. 
 ### - Features global commands for ease of use, config files that save settings, and an uninstaller to clean up after itself. 
-### - Optionally have BatteryControl, PowerControl start on boot, as well as disabling Turbo Boost on boot if user has rootfs verification disabled.
+### - Optionally have BatteryControl, PowerControl, FanControl start on boot; as well as disabling Turbo Boost on boot if user has rootfs verification disabled.
 
 ### __How to Install:__
 
 - Open crosh shell and run:
 
-`bash <(curl -s https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/ChromeOS_PowerControl_Downloader.sh)`
+`bash <(curl -s https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/ChromeOS_PowerControl_Downloader.sh?$(date +%s)")`
 
 - The installer will be placed: `~/tmp/ChromeOS_PowerControl/ChromeOS_PowerControl_Installer.sh`
 
@@ -40,6 +41,19 @@ __Commands with examples:__
 - `sudo batterycontrol status              # shows status`
 - `sudo batterycontrol set 80 75           # 80 is when charging stops; 75 is when charging may begin`
 - `sudo batterycontrol help`
+
+----------------------------------------------------------------------------------------------
+
+- `sudo fancontrol start                  # starts fancontrol`
+- `sudo fancontrol stop                   # stops fancontrol and restores default fan behavior.`
+- `sudo fancontrol min_temp 50            # Threshold in C for min_fan speed is met.`
+- `sudo fancontrol max_temp 90            # Threshold in C for max_fan speed is met.`
+- `sudo fancontrol min_fan 0              # % in fan speed when temperature is at or below min_temp.`
+- `sudo fancontrol max_fan                # % in fan speed when temperature is at or below max_temp.`
+- `sudo fancontrol step_up                # % in fan granularity when temperature is climbing.`
+- `sudo fancontrol step_down              # % in fan granularity when temperature is falling.`
+
+----------------------------------------------------------------------------------------------
 
 - `sudo powercontrol uninstall            # Global uninstaller that will clean up after itself`
 - Alternative uninstall method: `sudo /usr/local/bin/ChromeOS_PowerControl/Uninstall_ChromeOS_PowerControl.sh`
