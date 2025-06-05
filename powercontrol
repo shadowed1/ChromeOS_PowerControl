@@ -251,6 +251,30 @@ stop_monitoring() {
     fi
 }
 
+show_status() {
+    echo "PowerControl Status:"
+    if [ -f "$PID_FILE" ]; then
+        PID=$(cat "$PID_FILE")
+        if ps -p "$PID" > /dev/null 2>&1; then
+            echo "  Status       : RUNNING (PID $PID)"
+        else
+            echo "  Status       : PID file exists, but process not running"
+        fi
+    else
+        echo "  Status       : STOPPED"
+    fi
+
+    if [ -f "$PERF_PATH" ]; then
+        current_pct=$(cat "$PERF_PATH")
+        echo "  Perf Limit   : $current_pct%"
+    else
+        echo "  Perf Limit   : N/A (path not found)"
+    fi
+
+    if [ -f "$TURBO_PATH" ]; then
+        turbo_status=$(cat "$TURBO_PATH")
+        if [ "$turbo]()
+
 
 uninstall_script() {
     local script="$INSTALL_DIR/Uninstall_ChromeOS_PowerControl.sh"
