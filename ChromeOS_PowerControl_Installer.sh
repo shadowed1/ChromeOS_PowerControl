@@ -9,46 +9,18 @@ echo ""
 sudo mkdir -p "$INSTALL_DIR"
 echo "Enabling sudo in crosh or run in VT-2 is required for this to download successfully."
 
-# Download required files
-curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/beta/powercontrol -o "$INSTALL_DIR/powercontrol"
-echo "$INSTALL_DIR/powercontrol downloaded."
-
-curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/beta/batterycontrol -o "$INSTALL_DIR/batterycontrol"
-echo "$INSTALL_DIR/batterycontrol downloaded."
-
-curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/beta/fancontrol -o "$INSTALL_DIR/fancontrol"
-echo "$INSTALL_DIR/fancontrol downloaded."
-
-curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/beta/Uninstall_ChromeOS_PowerControl.sh -o "$INSTALL_DIR/Uninstall_ChromeOS_PowerControl.sh"
-echo "$INSTALL_DIR/Uninstall_ChromeOS_PowerControl.sh downloaded."
-
-curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/beta/LICENSE -o "$INSTALL_DIR/LICENSE"
-echo "$INSTALL_DIR/LICENSE downloaded."
-
-curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/beta/README.md -o "$INSTALL_DIR/README.md"
-echo "$INSTALL_DIR/README.md downloaded."
-
-curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/beta/no_turbo.conf -o "$INSTALL_DIR/no_turbo.conf"
-echo "$INSTALL_DIR/no_turbo.conf downloaded."
-
-curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/beta/batterycontrol.conf -o "$INSTALL_DIR/batterycontrol.conf"
-echo "$INSTALL_DIR/batterycontrol.conf downloaded."
-
-curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/beta/powercontrol.conf -o "$INSTALL_DIR/powercontrol.conf"
-echo "$INSTALL_DIR/powercontrol.conf downloaded."
-
-curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/beta/fancontrol.conf -o "$INSTALL_DIR/fancontrol.conf"
-echo "$INSTALL_DIR/fancontrol.conf downloaded."
-
-curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/beta/config.sh -o "$INSTALL_DIR/config.sh"
-echo "$INSTALL_DIR/config.sh downloaded."
+declare -a files=("powercontrol" "batterycontrol" "fancontrol" "Uninstall_ChromeOS_PowerControl.sh" "LICENSE" "README.md" "no_turbo.conf" "batterycontrol.conf" "powercontrol.conf" "fancontrol.conf" "config.sh")
+for file in "${files[@]}"; do
+    curl -L "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/beta/$file" -o "$INSTALL_DIR/$file"
+    echo "$INSTALL_DIR/$file downloaded."
+done
 
 sudo chmod +x "$INSTALL_DIR/powercontrol" "$INSTALL_DIR/batterycontrol" "$INSTALL_DIR/fancontrol" "$INSTALL_DIR/Uninstall_ChromeOS_PowerControl.sh" "$INSTALL_DIR/config.sh"
-
+echo "Executable permissions set for key scripts."
 sudo touch "$INSTALL_DIR/.batterycontrol_enabled" "$INSTALL_DIR/.powercontrol_enabled" "$INSTALL_DIR/.fancontrol_enabled"
 echo "Flag files created for BatteryControl, PowerControl, and FanControl."
-
-sudo touch /var/log/powercontrol.log /var/log/batterycontrol.log /var/log/fancontrol.log
+LOG_DIR="/var/log"
+sudo touch "$LOG_DIR/powercontrol.log" "$LOG_DIR/batterycontrol.log" "$LOG_DIR/fancontrol.log"
 echo "Log files created for PowerControl, BatteryControl, and FanControl."
 
 USER_HOME="/home/chronos"
@@ -56,6 +28,7 @@ BATTERY_CONFIG="$INSTALL_DIR/.batterycontrol_config"
 POWER_CONFIG="$INSTALL_DIR/.powercontrol_config"
 FAN_CONFIG="$INSTALL_DIR/.fancontrol_config"
 
+# Battery Control Config
 if [ ! -f "$BATTERY_CONFIG" ]; then
     echo "CHARGE_MAX=77" > "$BATTERY_CONFIG"
     echo "CHARGE_MIN=74" >> "$BATTERY_CONFIG"
@@ -64,6 +37,7 @@ else
     echo "BatteryControl config file already exists at $BATTERY_CONFIG"
 fi
 
+# Power Control Config
 load_power_config() {
     if [ -f "$POWER_CONFIG" ]; then
         source "$POWER_CONFIG"
@@ -78,6 +52,7 @@ load_power_config() {
 
 load_power_config
 
+# Fan Control Config
 load_fan_config() {
     if [ -f "$FAN_CONFIG" ]; then
         source "$FAN_CONFIG"
@@ -93,7 +68,8 @@ load_fan_config() {
 
 load_fan_config
 
-read -rp "Do you want Intel Turbo Boost disabled on boot? Requires removing rootfs verification. (y/n): " move_no_turbo
+# Turbo Boost Options
+read -rp "Do you want Intel Turbo Boost disabled on boot? (y/n): " move_no_turbo
 if [[ "$move_no_turbo" =~ ^[Yy]$ ]]; then
     sudo mv "$INSTALL_DIR/no_turbo.conf" /etc/init/
     echo "Turbo Boost will be disabled on restart."
@@ -109,6 +85,7 @@ else
     echo "Turbo Boost remains enabled."
 fi
 
+# Create Global Commands
 read -rp "Do you want to create global commands 'powercontrol', 'batterycontrol', and 'fancontrol'? (y/n): " link_cmd
 if [[ "$link_cmd" =~ ^[Yy]$ ]]; then
     sudo ln -sf "$INSTALL_DIR/powercontrol" /usr/local/bin/powercontrol
@@ -119,6 +96,7 @@ else
     echo "Skipped creating global commands."
 fi
 
+# Enable Components on Boot
 enable_component_on_boot() {
     local component="$1"
     local config_file="$2"
@@ -135,6 +113,7 @@ enable_component_on_boot "BatteryControl" "$INSTALL_DIR/batterycontrol.conf"
 enable_component_on_boot "PowerControl" "$INSTALL_DIR/powercontrol.conf"
 enable_component_on_boot "FanControl" "$INSTALL_DIR/fancontrol.conf"
 
+# Start Components Now
 start_component_now() {
     local component="$1"
     local command="$2"
@@ -151,6 +130,7 @@ start_component_now "BatteryControl" "$INSTALL_DIR/batterycontrol"
 start_component_now "PowerControl" "$INSTALL_DIR/powercontrol"
 start_component_now "FanControl" "$INSTALL_DIR/fancontrol"
 
+# Display Commands
 echo ""
 echo "Commands with examples:"
 cat << EOF
