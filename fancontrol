@@ -1,6 +1,13 @@
 #!/bin/bash
 
-CONFIG_FILE="/usr/local/bin/ChromeOS_PowerControl/fancontrol.conf"
+CONFIG_FILE="/usr/local/bin/ChromeOS_PowerControl/config.sh"
+
+if [ -f "$CONFIG_FILE" ]; then
+    source "$CONFIG_FILE"
+else
+    echo "Missing configuration file: $CONFIG_FILE"
+    exit 1
+fi
 ZONE_PATH="/sys/class/thermal/thermal_zone0/temp"
 RUN_FLAG="/tmp/.fan_curve_running"
 PID_FILE="/tmp/.fan_curve_pid"
