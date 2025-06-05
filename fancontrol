@@ -68,13 +68,13 @@ cleanup() {
 
 run_loop() {
     sudo ectool autofanctrl
-    echo "$(date '+%Y-%m-%d %H:%M:%S') - Fan curve started. Press Ctrl+C to stop." | tee -a "$LOG_FILE"
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - Fan curve started." | tee -a "$LOG_FILE"
 
     local last_duty=-1
 
     while [ -f "$RUN_FLAG" ]; do
         if [ ! -f "$ZONE_PATH" ]; then
-            echo "$(date '+%Y-%m-%d %H:%M:%S') -  Thermal zone not found: $ZONE_PATH" | tee -a "$LOG_FILE"
+            echo "Thermal zone not found: $ZONE_PATH"
             cleanup
         fi
 
