@@ -268,7 +268,7 @@ start_monitoring_loop() {
         fi
 
         if [[ "$current_pct" != "$pct" ]]; then
-            echo "CPU $temp_c°C -> Clockspeed $pct%"
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - CPU $temp_c°C -> Clockspeed $pct%" | tee -a "$LOG_FILE"
             set_max_perf_pct "$pct"
         fi
 
