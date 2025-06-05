@@ -42,7 +42,7 @@ echo "$INSTALL_DIR/fancontrol.conf downloaded."
 curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/beta/config.sh -o "$INSTALL_DIR/config.sh"
 echo "$INSTALL_DIR/config.sh downloaded."
 
-sudo chmod +x "$INSTALL_DIR/powercontrol" "$INSTALL_DIR/batterycontrol" "$INSTALL_DIR/fancontrol" "$INSTALL_DIR/Uninstall_ChromeOS_PowerControl.sh"
+sudo chmod +x "$INSTALL_DIR/powercontrol" "$INSTALL_DIR/batterycontrol" "$INSTALL_DIR/fancontrol" "$INSTALL_DIR/Uninstall_ChromeOS_PowerControl.sh" "$INSTALL_DIR/config.sh"
 
 sudo touch "$INSTALL_DIR/.batterycontrol_enabled" "$INSTALL_DIR/.powercontrol_enabled" "$INSTALL_DIR/.fancontrol_enabled"
 echo "Flag files created for BatteryControl, PowerControl, and FanControl."
