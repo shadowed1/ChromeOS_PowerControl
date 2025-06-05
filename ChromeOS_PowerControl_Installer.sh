@@ -1,5 +1,5 @@
 #!/bin/bash
-
+echo "Beta"
 sudo mkdir -p /usr/local/bin/ChromeOS_PowerControl
 echo ""
 echo "Enabling sudo in crosh or run in VT-2 is required for this to download successfully."
