@@ -5,6 +5,8 @@ USER_HOME="/home/chronos"
 CONFIG_FILE="$INSTALL_DIR/.powercontrol_config"
 RUN_FLAG="$INSTALL_DIR/.powercontrol_enabled"
 PID_FILE="$INSTALL_DIR/.powercontrol_pid"
+PERF_PATH="/sys/devices/system/cpu/intel_pstate/max_perf_pct"
+TURBO_PATH="/sys/devices/system/cpu/intel_pstate/no_turbo"
 NO_TURBO_BACKUP="$INSTALL_DIR/.no_turbo_backup"
 
 DEFAULT_MAX_TEMP=86
@@ -38,6 +40,7 @@ save_config() {
     echo "MIN_PERF_PCT=${MIN_PERF_PCT:-$DEFAULT_MIN_PERF_PCT}" >> "$CONFIG_FILE"
 }
 
+
 get_temp() {
     local temp_celsius
     temp_celsius=$(cat /sys/class/thermal/thermal_zone0/temp 2>/dev/null)
@@ -51,43 +54,12 @@ get_temp() {
     fi
 }
 
-detect_cpu_type() {
-    if grep -q "GenuineIntel" /proc/cpuinfo; then
-        echo "intel"
-    elif grep -q "AuthenticAMD" /proc/cpuinfo; then
-        echo "amd"
-    elif grep -q "AArch64" /proc/cpuinfo; then
-        echo "arm"
-    else
-        echo "unknown"
-    fi
-}
-
 set_max_perf_pct() {
     local pct=$1
-    local cpu_type
-    cpu_type=$(detect_cpu_type)
-
-    case "$cpu_type" in
-        intel)
-            local perf_path="/sys/devices/system/cpu/intel_pstate/max_perf_pct"
-            ;;
-        amd)
-            local perf_path="/sys/devices/system/cpu/cpufreq/policy0/scaling_max_freq"
-            ;;
-        arm)
-            local perf_path="/sys/devices/system/cpu/cpufreq/policy0/scaling_max_freq"
-            ;;
-        *)
-            echo "Unsupported CPU type: $cpu_type" >&2
-            exit 1
-            ;;
-    esac
-
-    if [ -w "$perf_path" ]; then
-        echo "$pct" | sudo tee "$perf_path" > /dev/null
+    if [ -w "$PERF_PATH" ]; then
+        echo "$pct" | tee "$PERF_PATH" > /dev/null
     else
-        echo "Permission denied: Cannot write to $perf_path" >&2
+        echo "Permission denied: Cannot write to $PERF_PATH" >&2
         exit 1
     fi
 }
@@ -142,36 +114,17 @@ validate_config() {
 
 set_no_turbo() {
     local value="$1"
-    local cpu_type
-    cpu_type=$(detect_cpu_type)
-
-    case "$cpu_type" in
-        intel)
-            local turbo_path="/sys/devices/system/cpu/intel_pstate/no_turbo"
-            ;;
-        amd)
-            local turbo_path="/sys/devices/system/cpu/cpufreq/policy0/energy_performance_preference"
-            ;;
-        arm)
-            local turbo_path="/sys/devices/system/cpu/cpufreq/policy0/energy_performance_preference"
-            ;;
-        *)
-            echo "Unsupported CPU type: $cpu_type" >&2
-            exit 1
-            ;;
-    esac
-
     if [[ "$value" != "0" && "$value" != "1" ]]; then
         echo "Usage: $0 no_turbo {0|1}"
         exit 1
     fi
 
-    if [ ! -w "$turbo_path" ]; then
-        echo "Permission denied: Cannot write to $turbo_path" >&2
+    if [ ! -w "$TURBO_PATH" ]; then
+        echo "Permission denied: Cannot write to $TURBO_PATH" >&2
         exit 1
     fi
 
-    echo "$value" | sudo tee "$turbo_path" > /dev/null
+    echo "$value" | sudo tee "$TURBO_PATH" > /dev/null
 
     if [ "$value" -eq 1 ]; then
         echo "Turbo Boost Disabled"
@@ -194,9 +147,273 @@ cleanup() {
 
 trap cleanup SIGINT SIGTERM
 
+
 restore_no_turbo() {
     if [ -f "$NO_TURBO_BACKUP" ]; then
         saved_val=$(cat "$NO_TURBO_BACKUP")
-        if [[ "$saved_val
-::contentReference[oaicite:0]{index=0}
- 
+        if [[ "$saved_val" == "0" || "$saved_val" == "1" ]]; then
+            set_no_turbo "$saved_val"
+        fi
+        rm -f "$NO_TURBO_BACKUP"
+    fi
+}
+
+start_monitoring_loop() {
+    
+    backup_no_turbo
+    set_no_turbo 0
+
+    touch "$RUN_FLAG"
+    echo $$ > "$PID_FILE"
+    echo "Starting PowerControl (PID $$)."
+    
+
+    while [ -f "$RUN_FLAG" ]; do
+        load_config
+        validate_config
+        min_temp_c=$MIN_TEMP
+        high_temp_c=$MAX_TEMP
+        min_perf_pct=$MIN_PERF_PCT
+        max_perf_pct=$MAX_PERF_PCT
+
+        temp_c=$(get_temp)
+        if [ $? -ne 0 ]; then
+            echo "Failed to get temperature. Retrying..."
+            sleep 1
+            continue
+        fi
+
+        if [ -z "$temp_c" ]; then
+            echo "Error: No temperature value returned. Retrying..."
+            sleep 1
+            continue
+        fi
+
+        if ! [[ "$min_temp_c" =~ ^[0-9]+$ && "$high_temp_c" =~ ^[0-9]+$ && "$max_perf_pct" =~ ^[0-9]+$ && "$min_perf_pct" =~ ^[0-9]+$ ]]; then
+            echo "Invalid configuration values detected. Skipping."
+            sleep 1
+            continue
+        fi
+
+        current_pct=$(cat "$PERF_PATH" 2>/dev/null || echo "0")
+
+        if (( temp_c <= min_temp_c )); then
+            pct=$max_perf_pct
+        elif (( temp_c >= high_temp_c )); then
+            pct=$min_perf_pct
+        else
+            delta_c=$(( high_temp_c - min_temp_c ))
+            temp_offset=$(( temp_c - min_temp_c ))
+            reduction=$(( (max_perf_pct - min_perf_pct) * temp_offset / delta_c ))
+            pct=$(( max_perf_pct - reduction ))
+        fi
+
+        if [[ "$current_pct" != "$pct" ]]; then
+            echo "CPU $temp_c°C -> Clockspeed $pct%"
+            set_max_perf_pct "$pct"
+        fi
+
+        sleep 1
+    done
+
+    echo "PowerControl stopped."
+    rm -f "$PID_FILE"
+}
+
+show_status() {
+    echo "PowerControl Status:"
+
+    if [ -f "$PID_FILE" ]; then
+        PID=$(cat "$PID_FILE")
+        if ps -p "$PID" > /dev/null 2>&1; then
+            echo "  Status: RUNNING (PID $PID)"
+        else
+            rm -f "$PID_FILE"
+            rm -f "$RUN_FLAG"
+            echo "  Status: STOPPED"
+        fi
+    else
+        echo "  Status: STOPPED"
+    fi
+
+    load_config
+    echo "  Configured max_temp: $MAX_TEMP°C"
+    echo "  Configured min_temp: $MIN_TEMP°C"
+    echo "  Configured max_perf_pct: $MAX_PERF_PCT%"
+    echo "  Configured min_perf_pct: $MIN_PERF_PCT%"
+
+    if [ -f "$PERF_PATH" ]; then
+        current_pct=$(cat "$PERF_PATH")
+        echo "  Current max_perf_pct: $current_pct%"
+    else
+        echo "  max_perf_pct path not found."
+    fi
+
+    if [ -f "$TURBO_PATH" ]; then
+        turbo_val=$(cat "$TURBO_PATH")
+        if [[ "$turbo_val" -eq 1 ]]; then
+            echo "  Turbo Boost: Disabled"
+        else
+            echo "  Turbo Boost: Enabled"
+        fi
+    fi
+
+    echo
+}
+
+stop_monitoring() {
+    if [ -n "$POWERCONTROL_STOPPING" ]; then
+        return
+    fi
+    POWERCONTROL_STOPPING=1
+
+    if [ ! -f "$PID_FILE" ]; then
+        return
+    fi
+
+    PID=$(cat "$PID_FILE")
+    if ps -p "$PID" > /dev/null 2>&1; then
+        echo "Stopping PowerControl (PID $PID)..."
+        rm -f "$RUN_FLAG"
+        kill "$PID"
+
+        for i in {1..10}; do
+            if ! ps -p "$PID" > /dev/null 2>&1; then
+                echo "PowerControl stopped."
+                rm -f "$PID_FILE"
+                restore_no_turbo
+                return
+            fi
+            sleep 1
+        done
+        kill -9 "$PID"
+        rm -f "$PID_FILE"
+        restore_no_turbo
+    else
+        rm -f "$PID_FILE"
+        rm -f "$RUN_FLAG"
+        restore_no_turbo
+    fi
+}
+
+uninstall_script() {
+    local script="$INSTALL_DIR/Uninstall_ChromeOS_PowerControl.sh"
+    if [ -x "$script" ]; then
+        sudo bash "$script"
+    else
+        echo "Uninstall script not found or not executable at: $script"
+        exit 1
+    fi
+}
+
+show_help() {
+    echo "PowerControl Script - Available Commands:"
+    echo
+    echo "  help                  Show this help message."
+    echo "  start                 Start PowerControl monitoring in the background."
+    echo "  stop                  Stop PowerControl monitoring and restore Turbo Boost."
+    echo "  max_temp <°C>         Set maximum allowed CPU temperature."
+    echo "  min_temp <°C>         Set minimum CPU temperature before throttling begins."
+    echo "  min_perf_pct <pct>    Set minimum performance percentage (10–100)."
+    echo "  max_perf_pct <pct>    Show or set max performance percentage (10–100)."
+    echo "  no_turbo {0|1}        Enable (0) or disable (1) Intel Turbo Boost manually."
+    echo "  monitor               Show updating in real time."
+    echo "  uninstall             Run the PowerControl uninstaller script."
+    echo "  (no command)          Show PowerControl status."
+    echo
+}
+
+handle_max_perf_pct() {
+    if [ -z "$2" ]; then
+        if [ -f "$PERF_PATH" ]; then
+            current_pct=$(cat "$PERF_PATH")
+            echo "Current max_perf_pct: $current_pct%"
+        else
+            echo "max_perf_pct path not found: $PERF_PATH"
+            exit 1
+        fi
+    else
+        if ! [[ "$2" =~ ^[0-9]+$ ]]; then
+            echo "Error: max_perf_pct value must be an integer."
+            exit 1
+        fi
+
+        if (( $2 < 10 || $2 > 100 )); then
+            echo "Error: max_perf_pct must be between 10 and 100."
+            exit 1
+        fi
+
+        MAX_PERF_PCT=$2
+        save_config
+        echo "Setting max_perf_pct to $MAX_PERF_PCT%"
+        set_max_perf_pct "$MAX_PERF_PCT"
+    fi
+}
+
+case "$1" in
+    start)
+        stop_monitoring >/dev/null 2>&1
+       LOG_FILE="/usr/local/bin/ChromeOS_PowerControl/powercontrol.log"
+
+# Truncate the log file if it exceeds 32 KB (32768 bytes)
+if [ -f "$LOG_FILE" ] && [ "$(stat -c%s "$LOG_FILE")" -gt 32768 ]; then
+    echo "Truncated log file (exceeded 32KB)" > "$LOG_FILE"
+fi
+
+nohup "$0" __monitor__ >> "$LOG_FILE" 2>&1 &
+echo "PowerControl monitoring started in background. Output is logged to $LOG_FILE"
+
+        ;;
+    stop)
+        stop_monitoring
+        ;;
+    max_temp)
+        set_temp_threshold "$2"
+        ;;
+    min_temp)
+        set_min_temp "$2"
+        ;;
+    min_perf_pct)
+        set_min_perf_pct "$2"
+        ;;
+    max_perf_pct)
+        handle_max_perf_pct "$@"
+        ;;
+    no_turbo)
+        set_no_turbo "$2"
+        ;;
+    uninstall)
+        uninstall_script
+        ;;
+    help)
+        show_help
+        ;;
+  monitor)
+    LOG_FILE="/usr/local/bin/ChromeOS_PowerControl/powercontrol.log"
+    MONITOR_PID_FILE="/tmp/powercontrol_tail_monitor.pid"
+
+    if [ -f "$MONITOR_PID_FILE" ]; then
+        MONITOR_PID=$(cat "$MONITOR_PID_FILE")
+        if ps -p "$MONITOR_PID" > /dev/null 2>&1; then
+            echo "Stopping monitor (PID $MONITOR_PID)..."
+            kill "$MONITOR_PID"
+            rm -f "$MONITOR_PID_FILE"
+            exit 0
+        else
+            echo "Stale PID file found. Removing."
+            rm -f "$MONITOR_PID_FILE"
+        fi
+    fi
+
+    tail -fn +1 "$LOG_FILE" &
+    echo $! > "$MONITOR_PID_FILE"
+    echo "Monitor started (PID $!)"
+    ;;
+
+    __monitor__)
+        start_monitoring_loop
+        ;;
+    *)
+        show_status
+        ;;
+esac
