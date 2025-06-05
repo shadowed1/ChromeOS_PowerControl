@@ -28,7 +28,7 @@
 - `sudo powercontrol                     # Show status`
 - `sudo powercontrol start               # Throttle CPU based on temperature curve`
 - `sudo powercontrol stop                # Default CPU temperature curve. no_turbo setting restored.`
-- `sudo powercontrol no_turbo 1          # 0 is default Intel Turbo Boost On behavior.`
+- `sudo powercontrol no_turbo 1          # 0 is default (Intel Only) Turbo Boost On behavior.`
 - `sudo powercontrol max_perf_pct 75     # 10 to 100%. 100 is default behavior; can be run standalone.`
 - `sudo powercontrol min_perf_pct 50     # Minimum clockspeed CPU can reach at max_temp.`
 - `sudo powercontrol max_temp 86         # Threshold when min_perf_pct is reached. Limit is 90 Celcius.`
@@ -65,8 +65,8 @@
 ### __How It Works:__
 
 __PowerControl:__
-- Uses Intel's native no_turbo and max_perf_pct for easy user control.
-- Pairs user adjustable max_perf_pct and x86_pkg_tmp to create a user adjustable clockspeed-temperature curve. 
+- Uses ARM, AMD, and Intel's max_perf_pct for easy user control.
+- Pairs user adjustable max_perf_pct and thermal0 temp sensor to create a user adjustable clockspeed-temperature curve. 
 - If $min_temp threshold is below a certain point, the CPU will be able to reach max_perf_pct of its speed.
 - The closer the CPU approaches $max_temp, the closer it is to min_perf_pct.
 
@@ -78,7 +78,7 @@ __BatteryControl:__
 
 __FanControl:__
 - Uses ectool's fanduty control and autofanctrl for manual and automatic control.
-- Pairs fanduty with x86_pkg_temp for a user adjustable fan-temperature curve.
+- Pairs fanduty with thermal0 temperature sensor for a user adjustable fan-temperature curve.
 - Uses hysteresis formula to attempt a better sounding and performing fan curve than the OEM provides. 
 - Uses a kickstart mechanism when fan leaves 0% to enable zero RPM mode for any fan type.
 
