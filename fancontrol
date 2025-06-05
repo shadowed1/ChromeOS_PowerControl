@@ -4,7 +4,7 @@ CONFIG_FILE="/usr/local/bin/ChromeOS_PowerControl/fancontrol.conf"
 ZONE_PATH="/sys/class/thermal/thermal_zone0/temp"
 RUN_FLAG="/tmp/.fan_curve_running"
 PID_FILE="/tmp/.fan_curve_pid"
-LOG_FILE="/usr/local/bin/ChromeOS_PowerControl/fancontrol.log"
+LOG_FILE="/var/log/fancontrol.log"
 MONITOR_PID_FILE="/tmp/powercontrol_tail_fan_monitor.pid"
 
 # Default values
