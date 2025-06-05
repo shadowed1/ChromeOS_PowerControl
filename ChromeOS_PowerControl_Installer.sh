@@ -2,6 +2,7 @@
 
 read -rp "Enter Install Path - leave blank for: /usr/local/bin/ChromeOS_PowerControl: " INSTALL_DIR
 INSTALL_DIR="${INSTALL_DIR:-/usr/local/bin/ChromeOS_PowerControl}"
+INSTALL_DIR="${INSTALL_DIR%/}"
 
 echo "Installing to: $INSTALL_DIR"
 echo ""
