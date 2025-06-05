@@ -87,7 +87,7 @@ get_temp() {
 set_max_perf_pct() {
     local pct=$1
 
-    if [ "$IS_INTEL" -eq 1 ] || [ "$IS_AMD" -eq 1 ] && [[ "$PERF_PATH" == *max_perf_pct ]]; then
+    if { [ "$IS_INTEL" -eq 1 ] || [ "$IS_AMD" -eq 1 ]; } && [[ "$PERF_PATH" == *max_perf_pct ]]; then
         if [ -w "$PERF_PATH" ]; then
             echo "$pct" | tee "$PERF_PATH" > /dev/null
         else
@@ -268,7 +268,6 @@ start_monitoring_loop() {
 }
 
 show_status() {
-    # Detect CPU type and set paths
     CPU_VENDOR=$(grep -m1 'vendor_id' /proc/cpuinfo | awk '{print $3}' || echo "unknown")
     PERF_PATH=""
     TURBO_PATH=""
