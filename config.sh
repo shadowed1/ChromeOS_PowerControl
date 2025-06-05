@@ -1,7 +1,8 @@
 # Configuration file for PowerControl, BatteryControl, and FanControl
 
-# Installation Directory
-INSTALL_DIR="/usr/local/bin/ChromeOS_PowerControl"
+if [ -z "$INSTALL_DIR" ]; then
+    INSTALL_DIR="/usr/local/bin/ChromeOS_PowerControl"
+fi
 
 # Default values for Battery Control
 DEFAULT_CHARGE_MAX=77
