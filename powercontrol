@@ -8,6 +8,7 @@ PID_FILE="$INSTALL_DIR/.powercontrol_pid"
 PERF_PATH="/sys/devices/system/cpu/intel_pstate/max_perf_pct"
 TURBO_PATH="/sys/devices/system/cpu/intel_pstate/no_turbo"
 NO_TURBO_BACKUP="$INSTALL_DIR/.no_turbo_backup"
+FAN_CONTROL_TOOL="ectool"
 
 DEFAULT_MAX_TEMP=86
 DEFAULT_MAX_PERF_PCT=100
@@ -39,7 +40,6 @@ save_config() {
     echo "MIN_TEMP=${MIN_TEMP:-$DEFAULT_MIN_TEMP}" >> "$CONFIG_FILE"
     echo "MIN_PERF_PCT=${MIN_PERF_PCT:-$DEFAULT_MIN_PERF_PCT}" >> "$CONFIG_FILE"
 }
-
 
 get_temp() {
     local temp_celsius
@@ -147,7 +147,6 @@ cleanup() {
 
 trap cleanup SIGINT SIGTERM
 
-
 restore_no_turbo() {
     if [ -f "$NO_TURBO_BACKUP" ]; then
         saved_val=$(cat "$NO_TURBO_BACKUP")
@@ -158,15 +157,36 @@ restore_no_turbo() {
     fi
 }
 
+# Platform Detection
+detect_platform() {
+    if lscpu | grep -iq "Intel"; then
+        PLATFORM="Intel"
+        FAN_CONTROL_TOOL="ectool"
+    elif lscpu | grep -iq "AMD"; then
+        PLATFORM="AMD"
+        FAN_CONTROL_TOOL="amd-fancontrol"
+    elif lscpu | grep -iq "ARM"; then
+        PLATFORM="ARM"
+        FAN_CONTROL_TOOL="arm-fancontrol"
+    else
+        PLATFORM="Unknown"
+        FAN_CONTROL_TOOL="ectool"
+    fi
+}
+
+simulate_fan_control() {
+    # This function simulates fan control for AMD and ARM platforms
+    echo "Simulating fan control on $PLATFORM (no actual changes made)"
+}
+
 start_monitoring_loop() {
-    
+    detect_platform
     backup_no_turbo
     set_no_turbo 0
 
     touch "$RUN_FLAG"
     echo $$ > "$PID_FILE"
     echo "Starting PowerControl (PID $$)."
-    
 
     while [ -f "$RUN_FLAG" ]; do
         load_config
@@ -213,75 +233,15 @@ start_monitoring_loop() {
             set_max_perf_pct "$pct"
         fi
 
+        # Simulate fan control for non-Intel devices
+        if [ "$PLATFORM" != "Intel" ]; then
+            simulate_fan_control
+        fi
+
         sleep 1
     done
 
     echo "PowerControl stopped."
-    rm -f "$PID_FILE"
-}
-
-show_status() {
-    echo "PowerControl Status:"
-
-    if [ -f "$PID_FILE" ]; then
-        PID=$(cat "$PID_FILE")
-        if ps -p "$PID" > /dev/null 2>&1; then
-            echo "  Status: RUNNING (PID $PID)"
-        else
-            rm -f "$PID_FILE"
-            rm -f "$RUN_FLAG"
-            echo "  Status: STOPPED"
-        fi
-    else
-        echo "  Status: STOPPED"
-    fi
-
-    load_config
-    echo "  Configured max_temp: $MAX_TEMP°C"
-    echo "  Configured min_temp: $MIN_TEMP°C"
-    echo "  Configured max_perf_pct: $MAX_PERF_PCT%"
-    echo "  Configured min_perf_pct: $MIN_PERF_PCT%"
-
-    if [ -f "$PERF_PATH" ]; then
-        current_pct=$(cat "$PERF_PATH")
-        echo "  Current max_perf_pct: $current_pct%"
-    else
-        echo "  max_perf_pct path not found."
-    fi
-
-    if [ -f "$TURBO_PATH" ]; then
-        turbo_val=$(cat "$TURBO_PATH")
-        if [[ "$turbo_val" -eq 1 ]]; then
-            echo "  Turbo Boost: Disabled"
-        else
-            echo "  Turbo Boost: Enabled"
-        fi
-    fi
-
-    echo
-}
-
-stop_monitoring() {
-    if [ -n "$POWERCONTROL_STOPPING" ]; then
-        return
-    fi
-    POWERCONTROL_STOPPING=1
-
-    if [ ! -f "$PID_FILE" ]; then
-        return
-    fi
-
-    PID=$(cat "$PID_FILE")
-    if ps -p "$PID" > /dev/null 2>&1; then
-        echo "Stopping PowerControl (PID $PID)..."
-        rm -f "$RUN_FLAG"
-        kill "$PID"
-
-        for i in {1..10}; do
-            if ! ps -p "$PID" > /dev/null 2>&1; then
-                echo "PowerControl stopped."
-                rm -f "$PID_FILE"
-                restore_no_turbo
                 return
             fi
             sleep 1
@@ -295,6 +255,25 @@ stop_monitoring() {
         restore_no_turbo
     fi
 }
+
+stop_monitoring() {
+    if [ -f "$PID_FILE" ]; then
+        PID=$(cat "$PID_FILE")
+        if ps -p "$PID" > /dev/null 2>&1; then
+            echo "Stopping PowerControl (PID $PID)..."
+            kill "$PID"
+            rm -f "$PID_FILE" "$RUN_FLAG"
+            restore_no_turbo
+            return
+        fi
+        echo "PID file found but process not running. Cleaning up."
+        rm -f "$PID_FILE" "$RUN_FLAG"
+        restore_no_turbo
+    else
+        echo "PowerControl is not currently running."
+    fi
+}
+
 
 uninstall_script() {
     local script="$INSTALL_DIR/Uninstall_ChromeOS_PowerControl.sh"
@@ -407,7 +386,7 @@ echo "PowerControl monitoring started in background. Output is logged to $LOG_FI
 
     tail -fn +1 "$LOG_FILE" &
     echo $! > "$MONITOR_PID_FILE"
-    echo "Monitor started (PID $!)"
+    echo "Monitor started (PID $!)" 
     ;;
 
     __monitor__)
