@@ -157,7 +157,6 @@ restore_no_turbo() {
     fi
 }
 
-# Platform Detection
 detect_platform() {
     if lscpu | grep -iq "Intel"; then
         PLATFORM="Intel"
@@ -172,11 +171,6 @@ detect_platform() {
         PLATFORM="Unknown"
         FAN_CONTROL_TOOL="ectool"
     fi
-}
-
-simulate_fan_control() {
-    # This function simulates fan control for AMD and ARM platforms
-    echo "Simulating fan control on $PLATFORM (no actual changes made)"
 }
 
 start_monitoring_loop() {
@@ -233,27 +227,10 @@ start_monitoring_loop() {
             set_max_perf_pct "$pct"
         fi
 
-        # Simulate fan control for non-Intel devices
-        if [ "$PLATFORM" != "Intel" ]; then
-            simulate_fan_control
-        fi
-
         sleep 1
     done
 
     echo "PowerControl stopped."
-                return
-            fi
-            sleep 1
-        done
-        kill -9 "$PID"
-        rm -f "$PID_FILE"
-        restore_no_turbo
-    else
-        rm -f "$PID_FILE"
-        rm -f "$RUN_FLAG"
-        restore_no_turbo
-    fi
 }
 
 stop_monitoring() {
@@ -379,7 +356,6 @@ echo "PowerControl monitoring started in background. Output is logged to $LOG_FI
             rm -f "$MONITOR_PID_FILE"
             exit 0
         else
-            echo "Stale PID file found. Removing."
             rm -f "$MONITOR_PID_FILE"
         fi
     fi
