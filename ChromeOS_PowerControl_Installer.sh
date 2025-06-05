@@ -1,71 +1,75 @@
 #!/bin/bash
-echo "Beta"
-sudo mkdir -p /usr/local/bin/ChromeOS_PowerControl
+
+read -rp "Enter install path (default: /usr/local/bin/ChromeOS_PowerControl): " INSTALL_DIR
+INSTALL_DIR="${INSTALL_DIR:-/usr/local/bin/ChromeOS_PowerControl}"
+
+echo "Installing to: $INSTALL_DIR"
 echo ""
+sudo mkdir -p "$INSTALL_DIR"
 echo "Enabling sudo in crosh or run in VT-2 is required for this to download successfully."
-curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/beta/powercontrol -o /usr/local/bin/ChromeOS_PowerControl/powercontrol
-echo " /usr/local/bin/ChromeOS_PowerControl/powercontrol downloaded."
+curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/beta/powercontrol -o "$INSTALL_DIR/powercontrol"
+echo "$INSTALL_DIR/powercontrol downloaded."
 echo ""
-curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/beta/batterycontrol -o /usr/local/bin/ChromeOS_PowerControl/batterycontrol
-echo " /usr/local/bin/ChromeOS_PowerControl/batterycontrol downloaded."
+curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/beta/batterycontrol -o "$INSTALL_DIR/batterycontrol"
+echo "$INSTALL_DIR/batterycontrol downloaded."
 echo ""
-curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/beta/fancontrol -o /usr/local/bin/ChromeOS_PowerControl/fancontrol
-echo " /usr/local/bin/ChromeOS_PowerControl/fancontrol downloaded."
+curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/beta/fancontrol -o "$INSTALL_DIR/fancontrol"
+echo "$INSTALL_DIR/fancontrol downloaded."
 echo ""
-curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/beta/Uninstall_ChromeOS_PowerControl.sh -o /usr/local/bin/ChromeOS_PowerControl/Uninstall_ChromeOS_PowerControl.sh
-echo " /usr/local/bin/ChromeOS_PowerControl/Uninstall_ChromeOS_PowerControl.sh downloaded."
+curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/beta/Uninstall_ChromeOS_PowerControl.sh -o "$INSTALL_DIR/Uninstall_ChromeOS_PowerControl.sh"
+echo "$INSTALL_DIR/Uninstall_ChromeOS_PowerControl.sh downloaded."
 echo ""
-curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/beta/LICENSE -o /usr/local/bin/ChromeOS_PowerControl/LICENSE
-echo " /usr/local/bin/ChromeOS_PowerControl/LICENSE downloaded."
+curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/beta/LICENSE -o "$INSTALL_DIR/LICENSE"
+echo "$INSTALL_DIR/LICENSE downloaded."
 echo ""
-curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/beta/README.md -o /usr/local/bin/ChromeOS_PowerControl/README.md
-echo " /usr/local/bin/ChromeOS_PowerControl/README.md downloaded."
+curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/beta/README.md -o "$INSTALL_DIR/README.md"
+echo "$INSTALL_DIR/README.md downloaded."
 echo ""
-curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/beta/no_turbo.conf -o /usr/local/bin/ChromeOS_PowerControl/no_turbo.conf
-echo " /usr/local/bin/ChromeOS_PowerControl/no_turbo.conf downloaded."
+curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/beta/no_turbo.conf -o "$INSTALL_DIR/no_turbo.conf"
+echo "$INSTALL_DIR/no_turbo.conf downloaded."
 echo ""
-curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/beta/batterycontrol.conf -o /usr/local/bin/ChromeOS_PowerControl/batterycontrol.conf
-echo " /usr/local/bin/ChromeOS_PowerControl/batterycontrol.conf downloaded."
+curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/beta/batterycontrol.conf -o "$INSTALL_DIR/batterycontrol.conf
+echo " "$INSTALL_DIR/batterycontrol.conf downloaded."
 echo ""
-curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/beta/powercontrol.conf -o /usr/local/bin/ChromeOS_PowerControl/powercontrol.conf
-echo " /usr/local/bin/ChromeOS_PowerControl/powercontrol.conf downloaded."
+curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/beta/powercontrol.conf -o "$INSTALL_DIR/powercontrol.conf
+echo " "$INSTALL_DIR/powercontrol.conf downloaded."
 echo ""
-curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/beta/fancontrol.conf -o /usr/local/bin/ChromeOS_PowerControl/fancontrol.conf
-echo " /usr/local/bin/ChromeOS_PowerControl/fancontrol.conf downloaded."
+curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/beta/fancontrol.conf -o "$INSTALL_DIR/fancontrol.conf
+echo " "$INSTALL_DIR/fancontrol.conf downloaded."
 echo ""
 
-sudo chmod +x /usr/local/bin/ChromeOS_PowerControl/powercontrol
-sudo chmod +x /usr/local/bin/ChromeOS_PowerControl/batterycontrol
-sudo chmod +x /usr/local/bin/ChromeOS_PowerControl/fancontrol
-sudo chmod +x /usr/local/bin/ChromeOS_PowerControl/Uninstall_ChromeOS_PowerControl.sh
-sudo touch /usr/local/bin/ChromeOS_PowerControl/.batterycontrol_enabled
-sudo touch /usr/local/bin/ChromeOS_PowerControl/.powercontrol_enabled
-sudo touch /usr/local/bin/ChromeOS_PowerControl/.fancontrol_enabled
-echo " /usr/local/bin/ChromeOS_PowerControl/.batterycontrol_enabled created."
+sudo chmod +x "$INSTALL_DIR/powercontrol
+sudo chmod +x "$INSTALL_DIR/batterycontrol
+sudo chmod +x "$INSTALL_DIR/fancontrol
+sudo chmod +x "$INSTALL_DIR/Uninstall_ChromeOS_PowerControl.sh
+sudo touch "$INSTALL_DIR/.batterycontrol_enabled
+sudo touch "$INSTALL_DIR/.powercontrol_enabled
+sudo touch "$INSTALL_DIR/.fancontrol_enabled
+echo " "$INSTALL_DIR/.batterycontrol_enabled created."
 echo ""
-echo " /usr/local/bin/ChromeOS_PowerControl/.powercontrol_enabled created."
+echo " "$INSTALL_DIR/.powercontrol_enabled created."
 echo ""
-echo " /usr/local/bin/ChromeOS_PowerControl/.fancontrol_enabled created."
+echo " "$INSTALL_DIR/.fancontrol_enabled created."
 echo ""
-sudo touch /usr/local/bin/ChromeOS_PowerControl/powercontrol.log
-sudo touch /usr/local/bin/ChromeOS_PowerControl/batterycontrol.log
-sudo touch /usr/local/bin/ChromeOS_PowerControl/fancontrol.log
-echo " /usr/local/bin/ChromeOS_PowerControl/batterycontrol.log created."
+sudo touch /var/log/powercontrol.log
+sudo touch /var/log//batterycontrol.log
+sudo touch /var/log/s/fancontrol.log
+echo " /var/log/batterycontrol.log created."
 echo ""
-echo " /usr/local/bin/ChromeOS_PowerControl/powercontrol.log created."
+echo " /var/log/powercontrol.log created."
 echo ""
-echo " /usr/local/bin/ChromeOS_PowerControl/fancontrol.log created."
+echo " /var/log/fancontrol.log created."
 echo ""
 
 USER_HOME="/home/chronos"
 
-BATTERY_CONFIG="/usr/local/bin/ChromeOS_PowerControl/.batterycontrol_config"
-BATTERY_RUN_FLAG="/usr/local/bin/ChromeOS_PowerControl/.batterycontrol_enabled"
+BATTERY_CONFIG=""$INSTALL_DIR/.batterycontrol_config"
+BATTERY_RUN_FLAG=""$INSTALL_DIR/.batterycontrol_enabled"
 
 if [ ! -f "$BATTERY_CONFIG" ]; then
     echo "CHARGE_MAX=77" > "$BATTERY_CONFIG"
     echo "CHARGE_MIN=74" >> "$BATTERY_CONFIG"
-    echo "/usr/local/bin/ChromeOS_PowerControl/batterycontrol config created"
+    echo ""$INSTALL_DIR/batterycontrol config created"
     echo ""
 else
     echo "BatteryControl config file already exists at $BATTERY_CONFIG"
@@ -76,8 +80,8 @@ if [ ! -f "$BATTERY_RUN_FLAG" ]; then
     echo "BatteryControl enabled flag created at $BATTERY_RUN_FLAG"
 fi
 
-POWER_CONFIG="/usr/local/bin/ChromeOS_PowerControl/.powercontrol_config"
-POWER_RUN_FLAG="/usr/local/bin/ChromeOS_PowerControl/.powercontrol_enabled"
+POWER_CONFIG=""$INSTALL_DIR/.powercontrol_config"
+POWER_RUN_FLAG=""$INSTALL_DIR/.powercontrol_enabled"
 
 load_power_config() {
     if [ -f "$POWER_CONFIG" ]; then
@@ -96,8 +100,8 @@ if [ ! -f "$POWER_RUN_FLAG" ]; then
     echo "PowerControl enabled flag created at $POWER_RUN_FLAG"
 fi
 
-FAN_CONFIG="/usr/local/bin/ChromeOS_PowerControl/.fancontrol_config"
-FAN_RUN_FLAG="/usr/local/bin/ChromeOS_PowerControl/.fancontrol_enabled"
+FAN_CONFIG=""$INSTALL_DIR/.fancontrol_config"
+FAN_RUN_FLAG=""$INSTALL_DIR/.fancontrol_enabled"
 
 load_fan_config() {
     if [ -f "$FAN_CONFIG" ]; then
@@ -121,7 +125,7 @@ fi
 read -rp "Do you want Intel Turbo Boost disabled on boot? Requires removing rootfs verification. (y/n): " move_no_turbo
 echo ""
 if [[ "$move_no_turbo" =~ ^[Yy]$ ]]; then
-    sudo mv /usr/local/bin/ChromeOS_PowerControl/no_turbo.conf /etc/init/
+    sudo mv "$INSTALL_DIR/no_turbo.conf /etc/init/
     echo "Turbo Boost will be disabled on restart."
     echo ""
 else
@@ -141,15 +145,15 @@ read -rp "Do you want to create global commands 'powercontrol', 'batterycontrol'
 echo ""
 
 if [[ "$link_cmd" =~ ^[Yy]$ ]]; then
-    sudo ln -sf /usr/local/bin/ChromeOS_PowerControl/powercontrol /usr/local/bin/powercontrol
+    sudo ln -sf "$INSTALL_DIR/powercontrol /usr/local/bin/powercontrol
     echo "'powercontrol' command is now available system-wide."
     echo ""
 
-    sudo ln -sf /usr/local/bin/ChromeOS_PowerControl/batterycontrol /usr/local/bin/batterycontrol
+    sudo ln -sf "$INSTALL_DIR/batterycontrol /usr/local/bin/batterycontrol
     echo "'batterycontrol' command is now available system-wide."
     echo ""
 
-    sudo ln -sf /usr/local/bin/ChromeOS_PowerControl/fancontrol /usr/local/bin/fancontrol
+    sudo ln -sf "$INSTALL_DIR/fancontrol /usr/local/bin/fancontrol
     echo "'fancontrol' command is now available system-wide."
     echo ""
 else
@@ -160,7 +164,7 @@ fi
 read -rp "Do you want BatteryControl enabled on boot? Requires removing rootfs verification. (y/n): " move_batterycontrolconf
 echo ""
 if [[ "$move_batterycontrolconf" =~ ^[Yy]$ ]]; then
-    sudo mv /usr/local/bin/ChromeOS_PowerControl/batterycontrol.conf /etc/init/
+    sudo mv "$INSTALL_DIR/batterycontrol.conf /etc/init/
     echo "BatteryControl will start on boot."
     echo ""
 else
@@ -170,7 +174,7 @@ fi
 read -rp "Do you want to start BatteryControl now in the background? (y/n): " run_batterycontrol
 echo ""
 if [[ "$run_batterycontrol" =~ ^[Yy]$ ]]; then
-    sudo /usr/local/bin/ChromeOS_PowerControl/batterycontrol start
+    sudo "$INSTALL_DIR/batterycontrol start
     echo ""
 else
     echo "Run with: sudo batterycontrol start"
@@ -181,7 +185,7 @@ fi
 read -rp "Do you want PowerControl enabled on boot? Requires removing rootfs verification. (y/n): " move_powercontrolconf
 echo ""
 if [[ "$move_powercontrolconf" =~ ^[Yy]$ ]]; then
-    sudo mv /usr/local/bin/ChromeOS_PowerControl/powercontrol.conf /etc/init/
+    sudo mv "$INSTALL_DIR/powercontrol.conf /etc/init/
     echo "PowerControl will start on boot."
     echo ""
 else
@@ -191,7 +195,7 @@ fi
 read -rp "Do you want to start PowerControl now in the background?. (y/n): " run_powercontrol
 echo ""
 if [[ "$run_powercontrol" =~ ^[Yy]$ ]]; then
-    sudo /usr/local/bin/ChromeOS_PowerControl/powercontrol start
+    sudo "$INSTALL_DIR/powercontrol start
     echo ""
 else
     echo "You can run it later with: sudo powercontrol start"
@@ -201,7 +205,7 @@ fi
 read -rp "Do you want FanControl enabled on boot? Requires removing rootfs verification. (y/n): " move_fancontrolconf
 echo ""
 if [[ "$move_fancontrolconf" =~ ^[Yy]$ ]]; then
-    sudo mv /usr/local/bin/ChromeOS_PowerControl/fancontrol.conf /etc/init/
+    sudo mv "$INSTALL_DIR/fancontrol.conf /etc/init/
     echo "FanControl will start on boot."
     echo ""
 else
@@ -211,7 +215,7 @@ fi
 read -rp "Do you want to start FanControl now in the background?. (y/n): " run_fancontrol
 echo ""
 if [[ "$run_fancontrol" =~ ^[Yy]$ ]]; then
-    sudo /usr/local/bin/ChromeOS_PowerControl/fancontrol start
+    sudo "$INSTALL_DIR/fancontrol start
     echo ""
 else
     echo "You can run it later with: sudo fancontrol start"
@@ -251,5 +255,5 @@ echo "sudo fancontrol help                   # Shows a list of commands"
 echo ""
 echo "sudo powercontrol uninstall            # Global uninstaller"
 echo "Alternative uninstall method:"
-echo "sudo bash /usr/local/bin/ChromeOS_PowerControl/Uninstall_ChromeOS_PowerControl.sh"
+echo "sudo bash "$INSTALL_DIR/Uninstall_ChromeOS_PowerControl.sh"
 echo ""
