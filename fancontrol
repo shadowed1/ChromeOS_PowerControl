@@ -2,7 +2,7 @@
 
 INSTALL_DIR="${INSTALL_DIR:-/usr/local/bin/ChromeOS_PowerControl}"
 INSTALL_DIR="${INSTALL_DIR%/}"
-
+USER_HOME="/home/chronos"
 CONFIG_FILE="$INSTALL_DIR/config.sh"
 
 if [ -f "$CONFIG_FILE" ]; then
