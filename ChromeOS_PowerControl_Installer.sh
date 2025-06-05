@@ -3,34 +3,34 @@
 sudo mkdir -p /usr/local/bin/ChromeOS_PowerControl
 echo ""
 echo "Enabling sudo in crosh or run in VT-2 is required for this to download successfully."
-curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/powercontrol -o /usr/local/bin/ChromeOS_PowerControl/powercontrol
+curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/beta/powercontrol -o /usr/local/bin/ChromeOS_PowerControl/powercontrol
 echo " /usr/local/bin/ChromeOS_PowerControl/powercontrol downloaded."
 echo ""
-curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/batterycontrol -o /usr/local/bin/ChromeOS_PowerControl/batterycontrol
+curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/beta/batterycontrol -o /usr/local/bin/ChromeOS_PowerControl/batterycontrol
 echo " /usr/local/bin/ChromeOS_PowerControl/batterycontrol downloaded."
 echo ""
-curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/fancontrol -o /usr/local/bin/ChromeOS_PowerControl/fancontrol
+curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/beta/fancontrol -o /usr/local/bin/ChromeOS_PowerControl/fancontrol
 echo " /usr/local/bin/ChromeOS_PowerControl/fancontrol downloaded."
 echo ""
-curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/Uninstall_ChromeOS_PowerControl.sh -o /usr/local/bin/ChromeOS_PowerControl/Uninstall_ChromeOS_PowerControl.sh
+curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/beta/Uninstall_ChromeOS_PowerControl.sh -o /usr/local/bin/ChromeOS_PowerControl/Uninstall_ChromeOS_PowerControl.sh
 echo " /usr/local/bin/ChromeOS_PowerControl/Uninstall_ChromeOS_PowerControl.sh downloaded."
 echo ""
-curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/LICENSE -o /usr/local/bin/ChromeOS_PowerControl/LICENSE
+curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/beta/LICENSE -o /usr/local/bin/ChromeOS_PowerControl/LICENSE
 echo " /usr/local/bin/ChromeOS_PowerControl/LICENSE downloaded."
 echo ""
-curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/README.md -o /usr/local/bin/ChromeOS_PowerControl/README.md
+curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/beta/README.md -o /usr/local/bin/ChromeOS_PowerControl/README.md
 echo " /usr/local/bin/ChromeOS_PowerControl/README.md downloaded."
 echo ""
-curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/no_turbo.conf -o /usr/local/bin/ChromeOS_PowerControl/no_turbo.conf
+curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/beta/no_turbo.conf -o /usr/local/bin/ChromeOS_PowerControl/no_turbo.conf
 echo " /usr/local/bin/ChromeOS_PowerControl/no_turbo.conf downloaded."
 echo ""
-curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/batterycontrol.conf -o /usr/local/bin/ChromeOS_PowerControl/batterycontrol.conf
+curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/beta/batterycontrol.conf -o /usr/local/bin/ChromeOS_PowerControl/batterycontrol.conf
 echo " /usr/local/bin/ChromeOS_PowerControl/batterycontrol.conf downloaded."
 echo ""
-curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/powercontrol.conf -o /usr/local/bin/ChromeOS_PowerControl/powercontrol.conf
+curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/beta/powercontrol.conf -o /usr/local/bin/ChromeOS_PowerControl/powercontrol.conf
 echo " /usr/local/bin/ChromeOS_PowerControl/powercontrol.conf downloaded."
 echo ""
-curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/fancontrol.conf -o /usr/local/bin/ChromeOS_PowerControl/fancontrol.conf
+curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/beta/fancontrol.conf -o /usr/local/bin/ChromeOS_PowerControl/fancontrol.conf
 echo " /usr/local/bin/ChromeOS_PowerControl/fancontrol.conf downloaded."
 echo ""
 
