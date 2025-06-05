@@ -1,6 +1,5 @@
 # **ChromeOS PowerControl**
-## Requires Developer Mode. 
-
+## Requires Developer Mode - Supports AMD, ARM, and Intel.
 ## - Control battery charging limit instead of relying on Adaptive Charging to maximize battery longevity. 
 ## - Control CPU clock speed boost in relation to temperature; enabling lower temperatures under load and longer battery life.
 ## - Control Fan speed in relation to temperature with built-in hysteresis and 0% RPM mode. 
@@ -11,7 +10,7 @@
 
 - Open crosh shell and run:
 
-`bash <(curl -s "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/ChromeOS_PowerControl_Downloader.sh?$(date +%s)")`
+`bash <(curl -s "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/beta/ChromeOS_PowerControl_Downloader.sh?$(date +%s)")`
 
 - The installer will be placed: `~/tmp/ChromeOS_PowerControl/ChromeOS_PowerControl_Installer.sh`
 
@@ -28,7 +27,7 @@
 - `sudo powercontrol                     # Show status`
 - `sudo powercontrol start               # Throttle CPU based on temperature curve`
 - `sudo powercontrol stop                # Default CPU temperature curve. no_turbo setting restored.`
-- `sudo powercontrol no_turbo 1          # 0 is default Intel Turbo Boost On behavior.`
+- `sudo powercontrol no_turbo 1          # 0 is default (Intel Only) Turbo Boost On behavior.`
 - `sudo powercontrol max_perf_pct 75     # 10 to 100%. 100 is default behavior; can be run standalone.`
 - `sudo powercontrol min_perf_pct 50     # Minimum clockspeed CPU can reach at max_temp.`
 - `sudo powercontrol max_temp 86         # Threshold when min_perf_pct is reached. Limit is 90 Celcius.`
@@ -65,20 +64,20 @@
 ### __How It Works:__
 
 __PowerControl:__
-- Uses Intel's native no_turbo and max_perf_pct for easy user control.
-- Pairs user adjustable max_perf_pct and x86_pkg_tmp to create a user adjustable clockspeed-temperature curve. 
+- Uses ARM, AMD, Intel's max_perf_pct, and Intel's no_turbo for easy user control.
+- Pairs user adjustable max_perf_pct and thermal0 cpu temp sensor to create a user adjustable clockspeed-temperature curve. 
 - If $min_temp threshold is below a certain point, the CPU will be able to reach max_perf_pct of its speed.
 - The closer the CPU approaches $max_temp, the closer it is to min_perf_pct.
 
 __BatteryControl:__
-- Uses ectool's chargecontrol to toggle between normal or idle.
+- Uses ectool's universal chargecontrol to toggle between normal or idle.
 - Check's CROS_USBPD_CHARGER0/online to see if it is plugged in or not
 - Check's BAT0/capacity to measure when to control chargecontrol.
 - ChromeOS reports slightly higher values than what BatteryControl sets the charge limit to.
 
 __FanControl:__
-- Uses ectool's fanduty control and autofanctrl for manual and automatic control.
-- Pairs fanduty with x86_pkg_temp for a user adjustable fan-temperature curve.
+- Uses ectool's universal fanduty control and autofanctrl for manual and automatic control.
+- Pairs fanduty with thermal0 cpu temperature sensor for a user adjustable fan-temperature curve.
 - Uses hysteresis formula to attempt a better sounding and performing fan curve than the OEM provides. 
 - Uses a kickstart mechanism when fan leaves 0% to enable zero RPM mode for any fan type.
 
