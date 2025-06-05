@@ -3,7 +3,14 @@
 # Define paths using the new install folder
 INSTALL_DIR="$INSTALL_DIR/ChromeOS_PowerControl"
 USER_HOME="/home/chronos"
-CONFIG_FILE="$INSTALL_DIR/.batterycontrol_config"
+CONFIG_FILE="/usr/local/bin/ChromeOS_PowerControl/config.sh"
+
+if [ -f "$CONFIG_FILE" ]; then
+    source "$CONFIG_FILE"
+else
+    echo "Missing configuration file: $CONFIG_FILE"
+    exit 1
+fi
 CHARGER_PATH="/sys/class/power_supply/CROS_USBPD_CHARGER0/online"
 BATTERY_PATH="/sys/class/power_supply/BAT0/capacity"
 RUN_FLAG="$INSTALL_DIR/.batterycontrol_enabled"
