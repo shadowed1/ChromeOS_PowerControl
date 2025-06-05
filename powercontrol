@@ -250,7 +250,6 @@ stop_monitoring() {
         echo "PowerControl is not currently running."
     fi
 }
-
 show_status() {
     echo "PowerControl Status:"
     if [ -f "$PID_FILE" ]; then
@@ -273,7 +272,27 @@ show_status() {
 
     if [ -f "$TURBO_PATH" ]; then
         turbo_status=$(cat "$TURBO_PATH")
-        if [ "$turbo]()
+        if [ "$turbo_status" -eq 1 ]; then
+            echo "  Turbo Boost  : DISABLED"
+        else
+            echo "  Turbo Boost  : ENABLED"
+        fi
+    else
+        echo "  Turbo Boost  : Unknown (path not found)"
+    fi
+
+    if [ -f "$CONFIG_FILE" ]; then
+        echo "  Config File  : $CONFIG_FILE"
+        source "$CONFIG_FILE"
+        echo "  Max Temp     : ${MAX_TEMP}°C"
+        echo "  Min Temp     : ${MIN_TEMP}°C"
+        echo "  Max Perf Pct : ${MAX_PERF_PCT}%"
+        echo "  Min Perf Pct : ${MIN_PERF_PCT}%"
+    else
+        echo "  Config File  : Not found"
+    fi
+}
+
 
 
 uninstall_script() {
@@ -335,7 +354,6 @@ case "$1" in
         stop_monitoring >/dev/null 2>&1
        LOG_FILE="/usr/local/bin/ChromeOS_PowerControl/powercontrol.log"
 
-# Truncate the log file if it exceeds 32 KB (32768 bytes)
 if [ -f "$LOG_FILE" ] && [ "$(stat -c%s "$LOG_FILE")" -gt 32768 ]; then
     echo "Truncated log file (exceeded 32KB)" > "$LOG_FILE"
 fi
