@@ -237,29 +237,38 @@ show_status() {
     fi
 
     load_config
-    echo "  Configured max_temp: $MAX_TEMP°C"
-    echo "  Configured min_temp: $MIN_TEMP°C"
-    echo "  Configured max_perf_pct: $MAX_PERF_PCT%"
-    echo "  Configured min_perf_pct: $MIN_PERF_PCT%"
+    echo "  Configured max_temp     : $MAX_TEMP°C"
+    echo "  Configured min_temp     : $MIN_TEMP°C"
+    echo "  Configured max_perf_pct : $MAX_PERF_PCT%"
+    echo "  Configured min_perf_pct : $MIN_PERF_PCT%"
 
     if [ -f "$PERF_PATH" ]; then
         current_pct=$(cat "$PERF_PATH")
-        echo "  Current max_perf_pct: $current_pct%"
+        echo "  Current max_perf_pct    : $current_pct%"
     else
         echo "  max_perf_pct path not found."
+    fi
+
+    # Add current CPU temperature here
+    current_temp=$(get_temp)
+    if [[ "$current_temp" =~ ^[0-9]+$ ]]; then
+        echo "  Current CPU Temp        : ${current_temp}°C"
+    else
+        echo "  Current CPU Temp        : Unavailable"
     fi
 
     if [ -f "$TURBO_PATH" ]; then
         turbo_val=$(cat "$TURBO_PATH")
         if [[ "$turbo_val" -eq 1 ]]; then
-            echo "  Turbo Boost: Disabled"
+            echo "  Turbo Boost             : Disabled"
         else
-            echo "  Turbo Boost: Enabled"
+            echo "  Turbo Boost             : Enabled"
         fi
     fi
 
     echo
 }
+
 
 stop_monitoring() {
     if [ -n "$POWERCONTROL_STOPPING" ]; then
