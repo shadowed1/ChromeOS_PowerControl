@@ -1,5 +1,8 @@
 #!/bin/bash
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/config.sh"
+
 INSTALL_DIR="$INSTALL_DIR/ChromeOS_PowerControl"
 USER_HOME="/home/chronos"
 CONFIG_FILE="/usr/local/bin/ChromeOS_PowerControl/config.sh"
