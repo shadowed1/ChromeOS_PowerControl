@@ -1,6 +1,6 @@
 #!/bin/bash
 
-INSTALL_DIR="/usr/local/bin/ChromeOS_PowerControl"
+INSTALL_DIR="$INSTALL_DIR/ChromeOS_PowerControl"
 USER_HOME="/home/chronos"
 CONFIG_FILE="$INSTALL_DIR/.powercontrol_config"
 RUN_FLAG="$INSTALL_DIR/.powercontrol_enabled"
@@ -433,7 +433,7 @@ handle_max_perf_pct() {
 case "$1" in
     start)
         stop_monitoring >/dev/null 2>&1
-       LOG_FILE="/usr/local/bin/ChromeOS_PowerControl/powercontrol.log"
+       LOG_FILE="/var/log/powercontrol.log"
 
 if [ -f "$LOG_FILE" ] && [ "$(stat -c%s "$LOG_FILE")" -gt 32768 ]; then
     echo "Truncated log file (exceeded 32KB)" > "$LOG_FILE"
@@ -468,7 +468,7 @@ echo "PowerControl monitoring started in background. Output is logged to $LOG_FI
         show_help
         ;;
   monitor)
-    LOG_FILE="/usr/local/bin/ChromeOS_PowerControl/powercontrol.log"
+    LOG_FILE="/var/log/powercontrol.log"
     MONITOR_PID_FILE="/tmp/powercontrol_tail_monitor.pid"
 
     if [ -f "$MONITOR_PID_FILE" ]; then
