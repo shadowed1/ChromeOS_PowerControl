@@ -5,9 +5,38 @@ USER_HOME="/home/chronos"
 CONFIG_FILE="$INSTALL_DIR/.powercontrol_config"
 RUN_FLAG="$INSTALL_DIR/.powercontrol_enabled"
 PID_FILE="$INSTALL_DIR/.powercontrol_pid"
-PERF_PATH="/sys/devices/system/cpu/intel_pstate/max_perf_pct"
-TURBO_PATH="/sys/devices/system/cpu/intel_pstate/no_turbo"
 NO_TURBO_BACKUP="$INSTALL_DIR/.no_turbo_backup"
+CPU_VENDOR=$(grep -m1 'vendor_id' /proc/cpuinfo | awk '{print $3}' || echo "unknown")
+PERF_PATH=""
+TURBO_PATH=""
+IS_AMD=0
+IS_INTEL=0
+IS_ARM=0
+
+detect_cpu_type() {
+    case "$CPU_VENDOR" in
+        GenuineIntel)
+            IS_INTEL=1
+            if [ -f "/sys/devices/system/cpu/intel_pstate/max_perf_pct" ]; then
+                PERF_PATH="/sys/devices/system/cpu/intel_pstate/max_perf_pct"
+                TURBO_PATH="/sys/devices/system/cpu/intel_pstate/no_turbo"
+            fi
+            ;;
+        AuthenticAMD)
+            IS_AMD=1
+            if [ -f "/sys/devices/system/cpu/amd_pstate/max_perf_pct" ]; then
+                PERF_PATH="/sys/devices/system/cpu/amd_pstate/max_perf_pct"
+            else
+                PERF_PATH="/sys/devices/system/cpu/cpufreq/policy0/scaling_max_freq"
+            fi
+            ;;
+        *)
+            IS_ARM=1
+            PERF_PATH="/sys/devices/system/cpu/cpufreq/policy0/scaling_max_freq"
+            ;;
+    esac
+}
+
 
 DEFAULT_MAX_TEMP=86
 DEFAULT_MAX_PERF_PCT=100
@@ -56,13 +85,28 @@ get_temp() {
 
 set_max_perf_pct() {
     local pct=$1
-    if [ -w "$PERF_PATH" ]; then
-        echo "$pct" | tee "$PERF_PATH" > /dev/null
-    else
-        echo "Permission denied: Cannot write to $PERF_PATH" >&2
-        exit 1
+
+    if { [ "$IS_INTEL" -eq 1 ] || [ "$IS_AMD" -eq 1 ]; } && [[ "$PERF_PATH" == *max_perf_pct ]]; then
+        if [ -w "$PERF_PATH" ]; then
+            echo "$pct" | tee "$PERF_PATH" > /dev/null
+        else
+            echo "Permission denied: Cannot write to $PERF_PATH" >&2
+            exit 1
+        fi
+    elif [ "$IS_AMD" -eq 1 ] || [ "$IS_ARM" -eq 1 ]; then
+        local max_freq=$(cat /sys/devices/system/cpu/cpufreq/policy0/cpuinfo_max_freq)
+        local min_freq=$(cat /sys/devices/system/cpu/cpufreq/policy0/cpuinfo_min_freq)
+        local target_freq=$(( min_freq + (max_freq - min_freq) * pct / 100 ))
+
+        if [ -w "$PERF_PATH" ]; then
+            echo "$target_freq" | tee "$PERF_PATH" > /dev/null
+        else
+            echo "Permission denied: Cannot write to $PERF_PATH" >&2
+            exit 1
+        fi
     fi
 }
+
 
 set_temp_threshold() {
     if ! [[ "$1" =~ ^[0-9]+$ ]]; then
@@ -119,17 +163,18 @@ set_no_turbo() {
         exit 1
     fi
 
-    if [ ! -w "$TURBO_PATH" ]; then
-        echo "Permission denied: Cannot write to $TURBO_PATH" >&2
-        exit 1
-    fi
-
-    echo "$value" | sudo tee "$TURBO_PATH" > /dev/null
-
-    if [ "$value" -eq 1 ]; then
-        echo "Turbo Boost Disabled"
+    if [ "$IS_INTEL" -eq 1 ] && [ -w "$TURBO_PATH" ]; then
+        echo "$value" | sudo tee "$TURBO_PATH" > /dev/null
+        if [ "$value" -eq 1 ]; then
+            echo "Turbo Boost Disabled (Intel)"
+        else
+            echo "Turbo Boost Enabled (Intel)"
+        fi
+    elif [ "$IS_AMD" -eq 1 ]; then
+        echo "Turbo disable is not directly supported on AMD via no_turbo."
+        echo "Adjusting max frequency instead. Use max_perf_pct or manual tuning."
     else
-        echo "Turbo Boost Enabled"
+        echo "Turbo control is unsupported on this platform (likely ARM)."
     fi
 }
 
@@ -159,7 +204,7 @@ restore_no_turbo() {
 }
 
 start_monitoring_loop() {
-    
+    detect_cpu_type
     backup_no_turbo
     set_no_turbo 0
 
@@ -221,6 +266,33 @@ start_monitoring_loop() {
 }
 
 show_status() {
+    CPU_VENDOR=$(grep -m1 'vendor_id' /proc/cpuinfo | awk '{print $3}' || echo "unknown")
+    PERF_PATH=""
+    TURBO_PATH=""
+    IS_AMD=0
+    IS_INTEL=0
+    IS_ARM=0
+
+    case "$CPU_VENDOR" in
+        GenuineIntel)
+            IS_INTEL=1
+            PERF_PATH="/sys/devices/system/cpu/intel_pstate/max_perf_pct"
+            TURBO_PATH="/sys/devices/system/cpu/intel_pstate/no_turbo"
+            ;;
+        AuthenticAMD)
+            IS_AMD=1
+            if [ -f "/sys/devices/system/cpu/amd_pstate/max_perf_pct" ]; then
+                PERF_PATH="/sys/devices/system/cpu/amd_pstate/max_perf_pct"
+            else
+                PERF_PATH="/sys/devices/system/cpu/cpufreq/policy0/scaling_max_freq"
+            fi
+            ;;
+        *)
+            IS_ARM=1
+            PERF_PATH="/sys/devices/system/cpu/cpufreq/policy0/scaling_max_freq"
+            ;;
+    esac
+
     echo "PowerControl Status:"
 
     if [ -f "$PID_FILE" ]; then
@@ -243,19 +315,27 @@ show_status() {
     echo "  Configured min_perf_pct: $MIN_PERF_PCT%"
 
     if [ -f "$PERF_PATH" ]; then
-        current_pct=$(cat "$PERF_PATH")
-        echo "  Current max_perf_pct: $current_pct%"
+        current_val=$(cat "$PERF_PATH")
+        if [[ "$PERF_PATH" == *max_perf_pct ]]; then
+            echo "  Current max_perf_pct: $current_val%"
+        else
+            echo "  Current max frequency: $((current_val / 1000)) MHz"
+        fi
     else
-        echo "  max_perf_pct path not found."
+        echo "  max_perf_pct/frequency path not found."
     fi
 
-    if [ -f "$TURBO_PATH" ]; then
+    if [ "$IS_INTEL" -eq 1 ] && [ -f "$TURBO_PATH" ]; then
         turbo_val=$(cat "$TURBO_PATH")
         if [[ "$turbo_val" -eq 1 ]]; then
             echo "  Turbo Boost: Disabled"
         else
             echo "  Turbo Boost: Enabled"
         fi
+    elif [ "$IS_AMD" -eq 1 ]; then
+        echo "  Turbo Boost: Control unavailable via no_turbo path on AMD."
+    else
+        echo "  Turbo Boost: Not supported on this platform."
     fi
 
     echo
@@ -355,7 +435,6 @@ case "$1" in
         stop_monitoring >/dev/null 2>&1
        LOG_FILE="/usr/local/bin/ChromeOS_PowerControl/powercontrol.log"
 
-# Truncate the log file if it exceeds 32 KB (32768 bytes)
 if [ -f "$LOG_FILE" ] && [ "$(stat -c%s "$LOG_FILE")" -gt 32768 ]; then
     echo "Truncated log file (exceeded 32KB)" > "$LOG_FILE"
 fi
