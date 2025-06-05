@@ -43,11 +43,11 @@ case "$choice" in
             echo "Stopped powercontrol service (upstart)."
         fi
 
-        sudo $INSTALL_DIR/powercontrol max_perf_pct 100
-        sudo $INSTALL_DIR/powercontrol stop
-        sudo $INSTALL_DIR/powercontrol no_turbo 0
-        sudo $INSTALL_DIR/batterycontrol stop
-        sudo $INSTALL_DIR/fancontrol stop
+        $INSTALL_DIR/powercontrol max_perf_pct 100
+        $INSTALL_DIR/powercontrol stop
+        $INSTALL_DIR/powercontrol no_turbo 0
+        $INSTALL_DIR/batterycontrol stop
+        $INSTALL_DIR/fancontrol stop
 
         echo "Removing startup files..."
         remove_file_with_message /etc/init/no_turbo.conf
