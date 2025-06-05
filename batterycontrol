@@ -1,10 +1,13 @@
 #!/bin/bash
 
+INSTALL_DIR="${INSTALL_DIR:-/usr/local/bin/ChromeOS_PowerControl}"
+INSTALL_DIR="${INSTALL_DIR%/}"
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/config.sh"
 
 USER_HOME="/home/chronos"
-CONFIG_FILE="$INSTALL_DIR/ChromeOS_PowerControl/config.sh"
+CONFIG_FILE="$INSTALL_DIR/config.sh"
 
 if [ -f "$CONFIG_FILE" ]; then
     source "$CONFIG_FILE"
