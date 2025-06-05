@@ -3,7 +3,7 @@
 
 ## - Control battery charging limit instead of relying on Adaptive Charging to maximize battery longevity. 
 ## - Control CPU clock speed boost in relation to temperature; enabling lower temperatures under load and longer battery life.
-## - Control Fan speed in relation to temperature with built-in hysteresis and 0% RPM mode. 
+## - Control Fan speed (Intel Only) in relation to temperature with built-in hysteresis and 0% RPM mode. 
 ### - Features global commands for ease of use, config files that save settings, and an uninstaller to clean up after itself. 
 ### - Optionally have BatteryControl, PowerControl, FanControl start on boot; as well as disabling Turbo Boost on boot if user has rootfs verification disabled.
 
@@ -11,7 +11,7 @@
 
 - Open crosh shell and run:
 
-`bash <(curl -s "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/ChromeOS_PowerControl_Downloader.sh?$(date +%s)")`
+`bash <(curl -s "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/beta/ChromeOS_PowerControl_Downloader.sh?$(date +%s)")`
 
 - The installer will be placed: `~/tmp/ChromeOS_PowerControl/ChromeOS_PowerControl_Installer.sh`
 
