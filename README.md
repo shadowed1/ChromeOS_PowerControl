@@ -1,6 +1,6 @@
-# **ChromeOS PowerControl Beta - Attempt to support AMD, ARM, and Intel in one program**
+# **ChromeOS PowerControl Beta**
 ## Requires Developer Mode. 
-
+## Supports AMD, ARM, and Intel.
 ## - Control battery charging limit instead of relying on Adaptive Charging to maximize battery longevity. 
 ## - Control CPU clock speed boost in relation to temperature; enabling lower temperatures under load and longer battery life.
 ## - Control Fan speed in relation to temperature with built-in hysteresis and 0% RPM mode. 
