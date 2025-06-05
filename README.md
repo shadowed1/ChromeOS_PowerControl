@@ -1,4 +1,4 @@
-# **ChromeOS PowerControl**
+# **ChromeOS PowerControl Beta - Attempt to support AMD, ARM, and Intel in one program**
 ## Requires Developer Mode. 
 
 ## - Control battery charging limit instead of relying on Adaptive Charging to maximize battery longevity. 
