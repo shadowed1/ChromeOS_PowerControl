@@ -23,12 +23,12 @@ RUN_FLAG_FAN="$INSTALL_DIR/.fan_curve_running"
 PID_FILE_FAN="$INSTALL_DIR/.fancontrol.pid"
 MONITOR_PID_FILE_FAN="$INSTALL_DIR/powercontrol_tail_fan_monitor.pid"
 
-# Powercontrol defaults (prefixed POWER_)
-DEFAULT_POWER_MIN_TEMP=60
-DEFAULT_POWER_MAX_TEMP=86
-DEFAULT_POWER_MIN_PERF_PCT=50
-DEFAULT_POWER_MAX_PERF_PCT=100
-MAX_TEMP_LIMIT=90
+    # Powercontrol defaults (prefixed POWER_)
+    DEFAULT_POWER_MIN_TEMP=60
+    DEFAULT_POWER_MAX_TEMP=86
+    DEFAULT_POWER_MIN_PERF_PCT=50
+    DEFAULT_POWER_MAX_PERF_PCT=100
+    MAX_TEMP_LIMIT=90
 
 USER_HOME="/home/chronos"
 RUN_FLAG="$INSTALL_DIR/.powercontrol_enabled"
@@ -58,14 +58,16 @@ POWER_MIN_TEMP=""
 POWER_MIN_PERF_PCT=""
 
 load_config() {
-    # Load Battery Control configuration
-    if [ -f "$BATTERY_CONFIG_FILE" ]; then
-        source "$BATTERY_CONFIG_FILE"
+    if [ -f "$CONFIG_FILE" ]; then
+        source "$CONFIG_FILE"
     else
-        CHARGE_MAX=$DEFAULT_CHARGE_MAX
-        CHARGE_MIN=$DEFAULT_CHARGE_MIN
-        save_battery_config
+        POWER_MAX_TEMP=$DEFAULT_POWER_MAX_TEMP
+        POWER_MAX_PERF_PCT=$DEFAULT_POWER_MAX_PERF_PCT
+        POWER_MIN_TEMP=$DEFAULT_POWER_MIN_TEMP
+        POWER_MIN_PERF_PCT=$DEFAULT_POWER_MIN_PERF_PCT
+        save_config
     fi
+}
 
     load_fan_config
     load_power_config
