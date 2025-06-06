@@ -114,16 +114,6 @@ else
     echo "Skipped creating global commands."
 fi
 
-read -rp "Do you want to create global commands 'powercontrol', 'batterycontrol', and 'fancontrol'? (y/n): " link_cmd
-if [[ "$link_cmd" =~ ^[Yy]$ ]]; then
-    sudo ln -sf "$INSTALL_DIR/powercontrol" /usr/local/bin/powercontrol
-    sudo ln -sf "$INSTALL_DIR/batterycontrol" /usr/local/bin/batterycontrol
-    sudo ln -sf "$INSTALL_DIR/fancontrol" /usr/local/bin/fancontrol
-    echo "Global commands created for 'powercontrol', 'batterycontrol', and 'fancontrol'."
-else
-    echo "Skipped creating global commands."
-fi
-
 enable_component_on_boot() {
     local component="$1"
     local config_file="$2"
