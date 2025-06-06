@@ -18,9 +18,9 @@ DEFAULT_STEP_UP=20
 DEFAULT_STEP_DOWN=1
 
 ZONE_PATH="/sys/class/thermal/thermal_zone0/temp"
-RUN_FLAG_FAN="/tmp/.fan_curve_running"
-PID_FILE_FAN="/tmp/.fan_curve_pid"
-MONITOR_PID_FILE_FAN="/tmp/powercontrol_tail_fan_monitor.pid"
+RUN_FLAG_FAN="$INSTALL_DIR/.fan_curve_running"
+PID_FILE="$INSTALL_DIR/.fancontrol.pid"
+MONITOR_PID_FILE_FAN="$INSTALL_DIR/powercontrol_tail_fan_monitor.pid"
 
 USER_HOME="/home/chronos"
 RUN_FLAG="$INSTALL_DIR/.powercontrol_enabled"
