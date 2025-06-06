@@ -14,6 +14,7 @@ CHARGER_PATH="/sys/class/power_supply/CROS_USBPD_CHARGER0/online"
 BATTERY_PATH="/sys/class/power_supply/BAT0/capacity"
 RUN_FLAG_BATTERY="$INSTALL_DIR/.batterycontrol_enabled"
 PID_FILE_BATTERY="$INSTALL_DIR/.batterycontrol_pid"
+BATTERY_LOG="/var/log/batterycontrol.log"
 
 DEFAULT_CHARGE_MAX=77
 DEFAULT_CHARGE_MIN=74
