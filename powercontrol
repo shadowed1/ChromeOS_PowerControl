@@ -492,7 +492,7 @@ echo "PowerControl monitoring started in background. Output is logged to $LOG_FI
     __monitor__)
         start_monitoring_loop
         ;;
-    *)
-        show_status
+          ""|status)
+         power_status
         ;;
 esac
