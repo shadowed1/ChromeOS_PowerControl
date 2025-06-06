@@ -1,11 +1,18 @@
 #!/bin/bash
 
-INSTALL_DIR=$(dirname "$(realpath "$0")")
+INSTALL_DIR_FILE=usr/local/bin/ChromeOS_PowerControl.install_dir
+if [ -f "$INSTALL_DIR_FILE" ]; then
+    INSTALL_DIR=$(cat "$INSTALL_DIR_FILE")
+else
+    INSTALL_DIR="$INSTALL_DIR"
+fi
+
+INSTALL_DIR="${INSTALL_DIR%/}"
 CONFIG_FILE="$INSTALL_DIR/config.sh"
 ZONE_PATH="/sys/class/thermal/thermal_zone0/temp"
 RUN_FLAG_FAN="$INSTALL_DIR/.fan_curve_running"
 PID_FILE_FAN="$INSTALL_DIR/.fan_curve_pid"
-LOG_FILE=var/log/fancontrol.log"
+FAN_LOG_FILE=var/log/fancontrol.log"
 MONITOR_PID_FILE="/tmp/powercontrol_tail_fan_monitor.pid"
 
 DEFAULT_FAN_MIN_TEMP=48   # Minimum fan control temperature
@@ -50,7 +57,7 @@ EOF
 
 # === Fan logic with hysteresis ===
 cleanup() {
-    echo "Restoring automatic fan control..." | tee -a "$LOG_FILE"
+    echo "Restoring automatic fan control..." | tee -a "$FAN_LOG_FILE"
     sudo ectool autofanctrl
     rm -f "$RUN_FLAG_BATTERY" "$PID_FILE"
     exit 0
@@ -58,13 +65,13 @@ cleanup() {
 
 run_loop() {
     sudo ectool autofanctrl
-    echo "Fan curve started. Press Ctrl+C to stop." | tee -a "$LOG_FILE"
+    echo "Fan curve started. Press Ctrl+C to stop." | tee -a "$FAN_LOG_FILE"
 
     local last_duty=-1
 
     while [ -f "$RUN_FLAG_BATTERY" ]; do
         if [ ! -f "$ZONE_PATH" ]; then
-            echo "Thermal zone not found: $ZONE_PATH" | tee -a "$LOG_FILE"
+            echo "Thermal zone not found: $ZONE_PATH" | tee -a "$FAN_LOG_FILE"
             cleanup
         fi
 
@@ -97,10 +104,10 @@ run_loop() {
 
         KICKSTART_DUTY=50
 
-        echo "Temp: ${TEMP_C}°C -> Fan Duty: ${target_duty}%" >> "$LOG_FILE"
+        echo "Temp: ${TEMP_C}°C -> Fan Duty: ${target_duty}%" >> "$FAN_LOG_FILE"
 
         if (( last_duty > 0 && target_duty == 0 )); then
-            echo "Applying kickstart at ${KICKSTART_DUTY}% before setting to 0%" >> "$LOG_FILE"
+            echo "Applying kickstart at ${KICKSTART_DUTY}% before setting to 0%" >> "$FAN_LOG_FILE"
             sudo ectool fanduty "$KICKSTART_DUTY"
             sleep 1
             sudo ectool fanduty 0
@@ -120,25 +127,25 @@ run_loop() {
 start() {
     "$0" stop >/dev/null 2>&1
 
-    if [ -f "$LOG_FILE" ] && [ "$(stat -c%s "$LOG_FILE")" -gt 32768 ]; then
-        echo "Truncated log file (exceeded 32KB)" > "$LOG_FILE"
+    if [ -f "$FAN_LOG_FILE" ] && [ "$(stat -c%s "$FAN_LOG_FILE")" -gt 32768 ]; then
+        echo "Truncated log file (exceeded 32KB)" > "$FAN_LOG_FILE"
     fi
 
-    nohup "$0" __monitor__ >> "$LOG_FILE" 2>&1 &
-    echo "FanControl started in background. Output is logged to $LOG_FILE"
+    nohup "$0" __monitor__ >> "$FAN_LOG_FILE" 2>&1 &
+    echo "FanControl started in background. Output is logged to $FAN_LOG_FILE"
 }
 
 stop() {
     if [ -f "$PID_FILE" ]; then
         PID=$(cat "$PID_FILE")
-        echo "Stopping fan curve (PID $PID)..." | tee -a "$LOG_FILE"
+        echo "Stopping fan curve (PID $PID)..." | tee -a "$FAN_LOG_FILE"
         rm -f "$RUN_FLAG_BATTERY"
         kill "$PID" 2>/dev/null
         sleep 1
     fi
     sudo ectool fanduty 50
     sleep 1
-    echo "Restoring automatic fan control..." | tee -a "$LOG_FILE"
+    echo "Restoring automatic fan control..." | tee -a "$FAN_LOG_FILE"
     sudo ectool autofanctrl
     rm -f "$RUN_FLAG_BATTERY" "$PID_FILE"
 }
@@ -157,13 +164,13 @@ monitor() {
         fi
     fi
 
-    tail -fn +1 "$LOG_FILE" &
+    tail -fn +1 "$FAN_LOG_FILE" &
     echo $! > "$MONITOR_PID_FILE"
     echo "Monitor started (PID $!)"
 }
 
 # === Config Setters ===
-set_min_temp() {
+fan_min_temp() {
     if [[ "$2" =~ ^[0-9]+$ ]]; then
         load_config
         FAN_MIN_TEMP=$2
@@ -174,7 +181,7 @@ set_min_temp() {
     fi
 }
 
-set_max_temp() {
+fan_max_temp() {
     if [[ "$2" =~ ^[0-9]+$ ]] && (( $2 <= 90 )); then
         load_config
         FAN_MAX_TEMP=$2
@@ -185,7 +192,7 @@ set_max_temp() {
     fi
 }
 
-set_min_fan() {
+min_fan() {
     if [[ "$2" =~ ^[0-9]+$ ]] && (( $2 >= 0 && $2 <= 100 )); then
         load_config
         if (( MAX_FAN > $2 )); then
@@ -200,7 +207,7 @@ set_min_fan() {
     fi
 }
 
-set_max_fan() {
+max_fan() {
     if [[ "$2" =~ ^[0-9]+$ ]] && (( $2 >= 0 && $2 <= 100 )); then
         load_config
         if (( $2 > MIN_FAN )); then
@@ -269,10 +276,10 @@ case "$1" in
     start) start ;;
     stop) stop ;;
     monitor) monitor ;;
-    min_temp) set_min_temp "$@" ;;
-    max_temp) set_max_temp "$@" ;;
-    min_fan)  set_min_fan "$@" ;;
-    max_fan)  set_max_fan "$@" ;;
+    min_temp) fan_min_temp "$@" ;;
+    max_temp) fan_max_temp "$@" ;;
+    min_fan)  min_fan "$@" ;;
+    max_fan)  max_fan "$@" ;;
     update)   set_sleep_interval "$@" ;;
     stepup)   set_stepup "$@" ;;
     stepdown) set_stepdown "$@" ;;
