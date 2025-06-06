@@ -36,8 +36,8 @@ load_config() {
     else
        if [[ -n "$FAN_MIN_TEMP" ]]; then MIN_TEMP=$FAN_MIN_TEMP; fi
 if [[ -n "$FAN_MAX_TEMP" ]]; then MAX_TEMP=$FAN_MAX_TEMP; fi
-if [[ -n "$MIN_FAN" ]]; then MIN_FAN=MIN_FAN; fi
-if [[ -n "$MAX_FAN" ]]; then MAX_FAN=MAX_FAN; fi
+if [[ -n "$MIN_FAN" ]]; then MIN_FAN=$MIN_FAN; fi
+if [[ -n "$MAX_FAN" ]]; then MAX_FAN=$MAX_FAN; fi
 if [[ -n "$SLEEP_INTERVAL" ]]; then SLEEP_INTERVAL=$SLEEP_INTERVAL; fi
 if [[ -n "$STEP_UP" ]]; then STEP_UP=$STEP_UP; fi
 if [[ -n "$STEP_DOWN" ]]; then STEP_DOWN=$STEP_DOWN; fi
