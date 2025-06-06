@@ -259,17 +259,18 @@ show_help() {
     load_config
     echo "FanControl Script - Available Commands:"
     echo
-    echo "  start             Start custom fan curve."
-    echo "  stop              Stop fancontrol and restore autofanctrl"
-    echo "  monitor           Toggle log monitor on/off"
-    echo "  min_temp <°C>     Set minimum temperature (Celsius)"
-    echo "  max_temp <°C>     Set maximum temperature (Celsius, max 90)"
-    echo "  min_fan <0–100>   Set fan duty at min temp"
-    echo "  max_fan <0–100>   Set fan duty at max temp (must be > min_fan)"
-    echo "  update <seconds>  Set sleep interval between fan checks (1-10)"
-    echo "  stepup <percent>  Set fan speed increase step size (1-100)"
-    echo "  stepdown <percent> Set fan speed decrease step size (1-100)"
-    echo "  help              Show this help message"
+    echo "  start                 Start custom fan curve."
+    echo "  stop                  Stop fancontrol and restore autofanctrl"
+    echo "  monitor               Toggle log monitor on/off"
+    echo "  min_temp <°C>         Set minimum temperature (Celsius)"
+    echo "  max_temp <°C>         Set maximum temperature (Celsius, max 90)"
+    echo "  min_fan <0–100>       Set fan duty at min temp"
+    echo "  max_fan <0–100>       Set fan duty at max temp (must be > min_fan)"
+    echo "  update <seconds>      Set sleep interval between fan checks (1-10)"
+    echo "  stepup <percent>      Set fan speed increase step size (1-100)"
+    echo "  stepdown <percent>    Set fan speed decrease step size (1-100)"
+    echo "  startup 0|1           Toggle 1 (on) 0 (off) for starting on boot."
+    echo "  help                  Show this help message"
 }
 
 case "$1" in
@@ -287,6 +288,33 @@ case "$1" in
         echo $$ > "$PID_FILE_FAN"
         touch "$RUN_FLAG_BATTERY"
         run_loop
+        ;;
+        startup)
+        CONF_SOURCE="$INSTALL_DIR/fancontrol.conf"
+        CONF_TARGET="/etc/init/fancontrol.conf"
+
+        if [ "$2" == "1" ]; then
+            if [ -f "$CONF_SOURCE" ]; then
+                echo "Copying fancontrol.conf to /etc/init/..."
+                sudo cp "$CONF_SOURCE" "$CONF_TARGET"
+                echo "Startup enabled."
+            else
+                echo "fancontrol.conf not found at $CONF_SOURCE"
+                exit 1
+            fi
+        elif [ "$2" == "0" ]; then
+            if [ -f "$CONF_TARGET" ]; then
+                echo "Removing /etc/init/fancontrol.conf..."
+                sudo rm -f "$CONF_TARGET"
+                echo "Startup disabled."
+            else
+                echo "/etc/init/fancontrol.conf not found."
+            fi
+        else
+            echo "Usage: $0 startup 1   # Enable startup"
+            echo "       $0 startup 0   # Disable startup"
+            exit 1
+        fi
         ;;
     ""|status)
         echo "FanControl Status:"
