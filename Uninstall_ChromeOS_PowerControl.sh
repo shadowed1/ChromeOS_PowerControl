@@ -73,14 +73,14 @@ case "$choice" in
         remove_file_with_message "$INSTALL_DIR/config.sh"
 
         echo "Removing enabled flags"
-        remove_file_with_message "$INSTALL_DIR/.fancontrol.enabled"
-        remove_file_with_message "$INSTALL_DIR/.powercontrol.enabled"
-        remove_file_with_message "$INSTALL_DIR/.batterycontrol.enabled"
+        remove_file_with_message "$INSTALL_DIR/.fancontrol_enabled"
+        remove_file_with_message "$INSTALL_DIR/.powercontrol_enabled"
+        remove_file_with_message "$INSTALL_DIR/.batterycontrol_enabled"
 
         echo "Removing PID files"
-        remove_file_with_message "$INSTALL_DIR/.fancontrol.pid"
-        remove_file_with_message "$INSTALL_DIR/.powercontrol.pid"
-        remove_file_with_message "$INSTALL_DIR/.batterycontrol.pid"
+        remove_file_with_message "$INSTALL_DIR/.fancontrol_pid"
+        remove_file_with_message "$INSTALL_DIR/.powercontrol_pid"
+        remove_file_with_message "$INSTALL_DIR/.batterycontrol_pid"
 
         echo "Removing programs"
         remove_file_with_message "$INSTALL_DIR/powercontrol"
