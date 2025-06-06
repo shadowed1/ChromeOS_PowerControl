@@ -1,17 +1,14 @@
 #!/bin/bash
 
-# Set installation directory if not already set
 if [ -z "$INSTALL_DIR" ]; then
     INSTALL_DIR="/usr/local/bin/ChromeOS_PowerControl"
 fi
 
-# BatteryControl Settings
 DEFAULT_CHARGE_MAX=77
 DEFAULT_CHARGE_MIN=74
 CHARGE_MAX="${CHARGE_MAX:-$DEFAULT_CHARGE_MAX}"
 CHARGE_MIN="${CHARGE_MIN:-$DEFAULT_CHARGE_MIN}"
 
-# FanControl Settings
 DEFAULT_FAN_MIN_TEMP=48   # Minimum fan control temperature
 DEFAULT_FAN_MAX_TEMP=81   # Maximum fan control temperature
 DEFAULT_MIN_FAN=0         # Minimum fan speed
@@ -20,7 +17,6 @@ DEFAULT_SLEEP_INTERVAL=3
 DEFAULT_STEP_UP=20        
 DEFAULT_STEP_DOWN=1
 
-# PowerControl Settings
 DEFAULT_POWER_MIN_TEMP=60  # Minimum temperature for CPU power control
 DEFAULT_POWER_MAX_TEMP=86  # Maximum temperature for CPU power control
 DEFAULT_MIN_PERF_PCT=50    # Minimum performance percentage
@@ -65,6 +61,34 @@ IS_AMD=0
 IS_INTEL=0
 IS_ARM=0
 
+detect_cpu_type() {
+    if [ -z "$PERF_PATH" ] || [ -z "$TURBO_PATH" ] || [ "$IS_AMD" -eq 0 ] && [ "$IS_INTEL" -eq 0 ] && [ "$IS_ARM" -eq 0 ]; then
+        CPU_VENDOR=$(grep -m1 'vendor_id' /proc/cpuinfo | awk '{print $3}' || echo "unknown")
+
+        case "$CPU_VENDOR" in
+            GenuineIntel)
+                IS_INTEL=1
+                PERF_PATH="/sys/devices/system/cpu/intel_pstate/max_perf_pct"
+                TURBO_PATH="/sys/devices/system/cpu/intel_pstate/no_turbo"
+                ;;
+            AuthenticAMD)
+                IS_AMD=1
+                if [ -f "/sys/devices/system/cpu/amd_pstate/max_perf_pct" ]; then
+                    PERF_PATH="/sys/devices/system/cpu/amd_pstate/max_perf_pct"
+                else
+                    PERF_PATH="/sys/devices/system/cpu/cpufreq/policy0/scaling_max_freq"
+                fi
+                TURBO_PATH=""
+                ;;
+            *)
+                IS_ARM=1
+                PERF_PATH="/sys/devices/system/cpu/cpufreq/policy0/scaling_max_freq"
+                TURBO_PATH=""
+                ;;
+        esac
+    fi
+}
+
 validate_config() {
     if [ -z "$FAN_MIN_TEMP" ]; then FAN_MIN_TEMP=$DEFAULT_FAN_MIN_TEMP; fi
     if [ -z "$FAN_MAX_TEMP" ]; then FAN_MAX_TEMP=$DEFAULT_FAN_MAX_TEMP; fi
@@ -75,6 +99,9 @@ validate_config() {
 CONFIG_PRINTED=0
 
 load_config() {
+    # Detect CPU type if not already set
+    detect_cpu_type
+
     validate_config
 
     if [ "$CONFIG_PRINTED" -eq 0 ]; then
@@ -92,6 +119,12 @@ load_config() {
         echo "  POWER_MAX_TEMP: $POWER_MAX_TEMP"
         echo "  MIN_PERF_PCT: $MIN_PERF_PCT"
         echo "  MAX_PERF_PCT: $MAX_PERF_PCT"
+        echo "CPU Info:"
+        echo "  PERF_PATH: $PERF_PATH"
+        echo "  TURBO_PATH: $TURBO_PATH"
+        echo "  IS_AMD: $IS_AMD"
+        echo "  IS_INTEL: $IS_INTEL"
+        echo "  IS_ARM: $IS_ARM"
         
         CONFIG_PRINTED=1
     fi
@@ -113,6 +146,12 @@ save_config() {
     echo "  POWER_MAX_TEMP: $POWER_MAX_TEMP"
     echo "  MIN_PERF_PCT: $MIN_PERF_PCT"
     echo "  MAX_PERF_PCT: $MAX_PERF_PCT"
+    echo "CPU Info:"
+    echo "  PERF_PATH: $PERF_PATH"
+    echo "  TURBO_PATH: $TURBO_PATH"
+    echo "  IS_AMD: $IS_AMD"
+    echo "  IS_INTEL: $IS_INTEL"
+    echo "  IS_ARM: $IS_ARM"
 }
 
 export USER_HOME
