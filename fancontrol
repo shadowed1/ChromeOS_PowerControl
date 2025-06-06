@@ -46,16 +46,15 @@ if [[ -n "$STEP_DOWN" ]]; then STEP_DOWN=$STEP_DOWN; fi
 }
 
 save_config() {
-FAN_MIN_TEMP=$FAN_MIN_TEMP
-FAN_MAX_TEMP=$FAN_MAX_TEMP
-MIN_FAN=$MIN_FAN
-MAX_FAN=$MAX_FAN
-SLEEP_INTERVAL=$SLEEP_INTERVAL
-STEP_UP=$STEP_UP
-STEP_DOWN=$STEP_DOWN
-validateconfig
-EOF
+    echo "FAN_MIN_TEMP=$FAN_MIN_TEMP" > "$CONFIG_FILE"
+    echo "FAN_MAX_TEMP=$FAN_MAX_TEMP" >> "$CONFIG_FILE"
+    echo "MIN_FAN=$MIN_FAN" >> "$CONFIG_FILE"
+    echo "MAX_FAN=$MAX_FAN" >> "$CONFIG_FILE"
+    echo "SLEEP_INTERVAL=$SLEEP_INTERVAL" >> "$CONFIG_FILE"
+    echo "STEP_UP=$STEP_UP" >> "$CONFIG_FILE"
+    echo "STEP_DOWN=$STEP_DOWN" >> "$CONFIG_FILE"
 }
+
 
 # === Fan logic with hysteresis ===
 cleanup() {
