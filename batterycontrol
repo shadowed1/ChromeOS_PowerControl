@@ -200,7 +200,6 @@ case "$1" in
         echo "BatteryControl will not startup automatically."
         sudo rm -r /etc/init/batterycontrol.conf
     fi
-    ;;
         ;;
     help | --help | -h)
         show_help
