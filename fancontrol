@@ -3,8 +3,8 @@
 INSTALL_DIR=$(dirname "$(realpath "$0")")
 CONFIG_FILE="$INSTALL_DIR/config.sh"
 ZONE_PATH="/sys/class/thermal/thermal_zone0/temp"
-RUN_FLAG_BATTERY="$INSTALL_DIR/.fan_curve_running"
-PID_FILE="$INSTALL_DIR/.fan_curve_pid"
+RUN_FLAG_FAN="$INSTALL_DIR/.fan_curve_running"
+PID_FILE_FAN="$INSTALL_DIR/.fan_curve_pid"
 LOG_FILE=var/log/fancontrol.log"
 MONITOR_PID_FILE="/tmp/powercontrol_tail_fan_monitor.pid"
 
