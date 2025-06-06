@@ -504,6 +504,7 @@ echo "$(date '+%Y-%m-%d %H:%M:%S') - PowerControl monitoring started in backgrou
     ;;
 
     __monitor__)
+        LOG_FILE="/var/log/powercontrol.log"
         start_monitoring_loop
         ;;
     *)
