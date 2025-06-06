@@ -198,4 +198,6 @@ echo "sudo fancontrol startup 1             # Toggle 1 (on) 0 (off) for starting
 echo "sudo fancontrol help                  # Help menu"
 echo ""
 echo "sudo powercontrol uninstall           # Run uninstaller"
-echo "Alternative: sudo bash "$INSTALL_DIR/Uninstall_ChromeOS_PowerControl.sh" "
+echo "Alternative: sudo bash \"$INSTALL_DIR/Uninstall_ChromeOS_PowerControl.sh\""
+EOF
+
