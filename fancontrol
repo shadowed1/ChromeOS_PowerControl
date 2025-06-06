@@ -288,6 +288,7 @@ case "$1" in
     stepup)   set_stepup "$@" ;;
     stepdown) set_stepdown "$@" ;;
     __monitor__)
+        LOG_FILE="/var/log/fancontrol.log"
         echo $$ > "$PID_FILE"
         touch "$RUN_FLAG"
         run_loop
