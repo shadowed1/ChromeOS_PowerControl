@@ -66,12 +66,6 @@ load_config() {
     if [[ -n "$POWER_MAX_TEMP" ]]; then
         MAX_TEMP=$POWER_MAX_TEMP
     fi
-    if [[ -n "$POWER_MIN_PERF_PCT" ]]; then
-        MIN_PERF_PCT=$POWER_MIN_PERF_PCT
-    fi
-    if [[ -n "$POWER_MAX_PERF_PCT" ]]; then
-        MAX_PERF_PCT=$POWER_MAX_PERF_PCT
-    fi
     save_config
 fi
 }
@@ -168,9 +162,7 @@ set_min_perf_pct() {
 validate_config() {
     # Fill defaults
     if [[ -z "$POWER_MAX_TEMP" ]]; then POWER_MAX_TEMP=$DEFAULT_POWER_MAX_TEMP; fi
-    if [[ -z "$POWER_MAX_PERF_PCT" ]]; then POWER_MAX_PERF_PCT=$DEFAULT_POWER_MAX_PERF_PCT; fi
     if [[ -z "$POWER_MIN_TEMP" ]]; then POWER_MIN_TEMP=$DEFAULT_POWER_MIN_TEMP; fi
-    if [[ -z "$POWER_MIN_PERF_PCT" ]]; then POWER_MIN_PERF_PCT=$DEFAULT_POWER_MIN_PERF_PCT; fi
 
     if (( POWER_MAX_TEMP > MAX_TEMP_LIMIT )); then
         echo "Warning: POWER_MAX_TEMP exceeds limit ($MAX_TEMP_LIMIT), resetting."
@@ -257,8 +249,6 @@ start_monitoring_loop() {
         validate_config
         min_temp_c=$POWER_MIN_TEMP
         high_temp_c=$POWER_MAX_TEMP
-        min_perf_pct=$POWER_MIN_PERF_PCT
-        max_perf_pct=$POWER_MAX_PERF_PCT
 
         temp_c=$(get_temp)
         if [ $? -ne 0 ]; then
