@@ -121,7 +121,7 @@ start_component_now "FanControl" "$INSTALL_DIR/fancontrol"
 # Display Commands
 echo ""
 echo "Commands with examples:"
-cat << EOF
+echo "
 # PowerControl Commands:
 sudo powercontrol                     # Show status
 sudo powercontrol start               # Throttle CPU based on temperature curve
@@ -154,6 +154,5 @@ sudo fancontrol stepdown 1            # Fan step-down %
 sudo fancontrol help                  # Help menu
 
 sudo powercontrol uninstall           # Run uninstaller
-Alternative: sudo bash "$INSTALL_DIR/Uninstall_ChromeOS_PowerControl.sh"
+Alternative: sudo bash "$INSTALL_DIR/Uninstall_ChromeOS_PowerControl.sh""
 
-EOF
