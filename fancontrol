@@ -59,7 +59,7 @@ EOF
 cleanup() {
     echo "Restoring automatic fan control..." | tee -a "$FAN_LOG_FILE"
     sudo ectool autofanctrl
-    rm -f "$RUN_FLAG_BATTERY" "$PID_FILE_FAN"
+    rm -f "$RUN_FLAG_FAN" "$PID_FILE_FAN"
     exit 0
 }
 
@@ -69,7 +69,7 @@ run_loop() {
 
     local last_duty=-1
 
-    while [ -f "$RUN_FLAG_BATTERY" ]; do
+    while [ -f "$RUN_FLAG_FAN" ]; do
         if [ ! -f "$ZONE_PATH" ]; then
             echo "Thermal zone not found: $ZONE_PATH" | tee -a "$FAN_LOG_FILE"
             cleanup
@@ -139,7 +139,7 @@ stop() {
     if [ -f "$PID_FILE_FAN" ]; then
         PID=$(cat "$PID_FILE_FAN")
         echo "Stopping fan curve (PID $PID)..." | tee -a "$FAN_LOG_FILE"
-        rm -f "$RUN_FLAG_BATTERY"
+        rm -f "$RUN_FLAG_FAN"
         kill "$PID" 2>/dev/null
         sleep 1
     fi
@@ -147,7 +147,7 @@ stop() {
     sleep 1
     echo "Restoring automatic fan control..." | tee -a "$FAN_LOG_FILE"
     sudo ectool autofanctrl
-    rm -f "$RUN_FLAG_BATTERY" "$PID_FILE_FAN"
+    rm -f "$RUN_FLAG_FAN" "$PID_FILE_FAN"
 }
 
 monitor() {
@@ -286,7 +286,7 @@ case "$1" in
     stepdown) set_stepdown "$@" ;;
     __monitor__)
         echo $$ > "$PID_FILE_FAN"
-        touch "$RUN_FLAG_BATTERY"
+        touch "$RUN_FLAG_FAN"
         run_loop
         ;;
         startup)
@@ -318,7 +318,7 @@ case "$1" in
         ;;
     ""|status)
         echo "FanControl Status:"
-        if [ -f "$RUN_FLAG_BATTERY" ]; then
+        if [ -f "$RUN_FLAG_FAN" ]; then
             PID=$(cat "$PID_FILE_FAN")
             if ps -p "$PID" > /dev/null 2>&1; then
                 echo "  Status: ENABLED (PID $PID)"
