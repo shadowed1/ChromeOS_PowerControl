@@ -92,6 +92,8 @@ case "$choice" in
         remove_file_with_message "$INSTALL_DIR/README.md"
         echo ".install_dir."
         remove_file_with_message "/usr/local/bin/ChromeOS_PowerControl.install_dir"
+        echo "Removing uninstaller"
+        remove_file_with_message "$INSTALL_DIR/Uninstall_ChromeOS_PowerControl.sh"
 
         if [ -d "$INSTALL_DIR" ] && [ -z "$(ls -A "$INSTALL_DIR")" ]; then
             sudo rm -rf "$INSTALL_DIR" && echo "Removed: $INSTALL_DIR"
