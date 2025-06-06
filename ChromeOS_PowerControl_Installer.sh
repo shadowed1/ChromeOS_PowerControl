@@ -3,7 +3,7 @@
 read -rp "Enter Install Path - leave blank for: /usr/local/bin/ChromeOS_PowerControl: " INSTALL_DIR
 INSTALL_DIR="${INSTALL_DIR:-/usr/local/bin/ChromeOS_PowerControl}"
 INSTALL_DIR="${INSTALL_DIR%/}"
-echo "$INSTALL_DIR" | sudo tee "usr/local/bin/ChromeOS_PowerControl.install_dir > /dev/null
+echo "$INSTALL_DIR" | sudo tee usr/local/bin/ChromeOS_PowerControl.install_dir > /dev/null
 
 echo "Installing to: $INSTALL_DIR"
 echo ""
@@ -121,7 +121,7 @@ start_component_now "FanControl" "$INSTALL_DIR/fancontrol"
 # Display Commands
 echo ""
 echo "Commands with examples:"
-cat << EOF
+cat << 
 # PowerControl Commands:
 sudo powercontrol                     # Show status
 sudo powercontrol start               # Throttle CPU based on temperature curve
