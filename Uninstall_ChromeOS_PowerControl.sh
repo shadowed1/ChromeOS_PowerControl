@@ -38,6 +38,10 @@ case "$choice" in
         remove_file_with_message /etc/init/batterycontrol.conf
         remove_file_with_message /etc/init/powercontrol.conf
         remove_file_with_message /etc/init/fancontrol.conf
+        remove_file_with_message "$INSTALL_DIR/no_turbo.conf"
+        remove_file_with_message "$INSTALL_DIR/batterycontrol.conf"
+        remove_file_with_message "$INSTALL_DIR/powercontrol.conf"
+        remove_file_with_message "$INSTALL_DIR/fancontrol.conf"
         ;;
     2)
         echo "Stopping background services..."
