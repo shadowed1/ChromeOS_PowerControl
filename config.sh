@@ -59,36 +59,11 @@ NO_TURBO_BACKUP="$INSTALL_DIR/.no_turbo_backup"
 
 USER_HOME="/home/chronos"
 
-CPU_VENDOR=$(grep -m1 'vendor_id' /proc/cpuinfo | awk '{print $3}' || echo "unknown")
 PERF_PATH=""
 TURBO_PATH=""
 IS_AMD=0
 IS_INTEL=0
 IS_ARM=0
-
-detect_cpu_type() {
-    case "$CPU_VENDOR" in
-        GenuineIntel)
-            IS_INTEL=1
-            if [ -f "/sys/devices/system/cpu/intel_pstate/max_perf_pct" ]; then
-                PERF_PATH="/sys/devices/system/cpu/intel_pstate/max_perf_pct"
-                TURBO_PATH="/sys/devices/system/cpu/intel_pstate/no_turbo"
-            fi
-            ;;
-        AuthenticAMD)
-            IS_AMD=1
-            if [ -f "/sys/devices/system/cpu/amd_pstate/max_perf_pct" ]; then
-                PERF_PATH="/sys/devices/system/cpu/amd_pstate/max_perf_pct"
-            else
-                PERF_PATH="/sys/devices/system/cpu/cpufreq/policy0/scaling_max_freq"
-            fi
-            ;;
-        *)
-            IS_ARM=1
-            PERF_PATH="/sys/devices/system/cpu/cpufreq/policy0/scaling_max_freq"
-            ;;
-    esac
-}
 
 validate_config() {
     if [ -z "$FAN_MIN_TEMP" ]; then FAN_MIN_TEMP=$DEFAULT_FAN_MIN_TEMP; fi
