@@ -23,53 +23,55 @@ echo "Executable permissions set for key scripts."
 sudo touch "$INSTALL_DIR/.batterycontrol_enabled" "$INSTALL_DIR/.powercontrol_enabled" "$INSTALL_DIR/.fancontrol_enabled"
 echo "Flag files created for BatteryControl, PowerControl, and FanControl."
 LOG_DIR="/var/log"
+CONFIG_FILE="$INSTALL_DIR/config.sh"
 sudo touch "$LOG_DIR/powercontrol.log" "$LOG_DIR/batterycontrol.log" "$LOG_DIR/fancontrol.log"
 echo "Log files created for PowerControl, BatteryControl, and FanControl."
 
 USER_HOME="/home/chronos"
-BATTERY_CONFIG="$INSTALL_DIR/config.sh"
-POWER_CONFIG="$INSTALL_DIR/config.sh"
-FAN_CONFIG="$INSTALL_DIR/config.sh"
+if [ ! -f "$CONFIG_FILE" ]; then
+    echo "Creating config at $CONFIG_FILE"
 
-# Battery Control Config
-if [ ! -f "$BATTERY_CONFIG" ]; then
-    echo "CHARGE_MAX=77" > "$BATTERY_CONFIG"
-    echo "CHARGE_MIN=74" >> "$BATTERY_CONFIG"
-    echo "BatteryControl config created at $BATTERY_CONFIG"
+    # BatteryControl
+    echo "CHARGE_MAX=77" >> "$CONFIG_FILE"
+    echo "CHARGE_MIN=74" >> "$CONFIG_FILE"
+
+    # PowerControl
+    echo "MAX_TEMP=86" >> "$CONFIG_FILE"
+    echo "MAX_PERF_PCT=100" >> "$CONFIG_FILE"
+    echo "MIN_TEMP=60" >> "$CONFIG_FILE"
+    echo "MIN_PERF_PCT=50" >> "$CONFIG_FILE"
+
+    # FanControl
+    echo "FAN_MIN_TEMP=48" >> "$CONFIG_FILE"
+    echo "FAN_MAX_TEMP=81" >> "$CONFIG_FILE"
+    echo "FAN_MIN=0" >> "$CONFIG_FILE"
+    echo "FAN_MAX=100" >> "$CONFIG_FILE"
+    echo "FAN_SLEEP_INTERVAL=3" >> "$CONFIG_FILE"
+    echo "FAN_STEP_UP=20" >> "$CONFIG_FILE"
+    echo "FAN_STEP_DOWN=1" >> "$CONFIG_FILE"
+    
+    echo "Config created."
 else
-    echo "BatteryControl config file already exists at $BATTERY_CONFIG"
+    echo "Config file already exists at $CONFIG_FILE"
 fi
 
-# Power Control Config
-load_power_config() {
-    if [ -f "$POWER_CONFIG" ]; then
-        source "$POWER_CONFIG"
-    else
-        echo "MAX_TEMP=86" > "$POWER_CONFIG"
-        echo "MAX_PERF_PCT=100" >> "$POWER_CONFIG"
-        echo "MIN_TEMP=60" >> "$POWER_CONFIG"
-        echo "MIN_PERF_PCT=50" >> "$POWER_CONFIG"
-        echo "PowerControl config created at $POWER_CONFIG"
-    fi
-}
 
-load_power_config
+# Turbo Boost Options
+read -rp "Do you want Intel Turbo Boost disabled on boot? (y/n): " move_no_turbo
+if [[ "$move_no_turbo" =~ ^[Yy]$ ]]; then
+    sudo mv "$INSTALL_DIR/no_turbo.conf" /etc/init/
+    echo "Turbo Boost will be disabled on restart."
+else
+    echo "Turbo Boost will remain enabled."
+fi
 
-# Fan Control Config
-load_fan_config() {
-    if [ -f "$FAN_CONFIG" ]; then
-        source "$FAN_CONFIG"
-    else
-        echo "MIN_TEMP=48" > "$FAN_CONFIG"
-        echo "MAX_TEMP=81" >> "$FAN_CONFIG"
-        echo "MIN_FAN=0" >> "$FAN_CONFIG"
-        echo "MAX_FAN=100" >> "$FAN_CONFIG"
-        echo "SLEEP_INTERVAL=3" >> "$FAN_CONFIG"
-        echo "FanControl config created at $FAN_CONFIG"
-    fi
-}
-
-load_fan_config
+read -rp "Do you want to disable Intel Turbo Boost now? (y/n): " run_no_turbo
+if [[ "$run_no_turbo" =~ ^[Yy]$ ]]; then
+    echo 1 | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo > /dev/null
+    echo "Turbo Boost disabled immediately."
+else
+    echo "Turbo Boost remains enabled."
+fi
 
 # Create Global Commands
 read -rp "Do you want to create global commands 'powercontrol', 'batterycontrol', and 'fancontrol'? (y/n): " link_cmd
@@ -115,23 +117,6 @@ start_component_now() {
 start_component_now "BatteryControl" "$INSTALL_DIR/batterycontrol"
 start_component_now "PowerControl" "$INSTALL_DIR/powercontrol"
 start_component_now "FanControl" "$INSTALL_DIR/fancontrol"
-
-read -rp "Do you want (Intel Only) Turbo Boost disabled on boot? (y/n): " move_no_turbo
-if [[ "$move_no_turbo" =~ ^[Yy]$ ]]; then
-    sudo mv "$INSTALL_DIR/no_turbo.conf" /etc/init/
-    echo "Turbo Boost will be disabled on restart."
-else
-    echo "Turbo Boost remains enabled or is not available."
-fi
-
-read -rp "Do you want to disable (Intel Only) Turbo Boost now? (y/n): " run_no_turbo
-if [[ "$run_no_turbo" =~ ^[Yy]$ ]]; then
-    echo 1 | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo > /dev/null
-    echo "Turbo Boost disabled immediately."
-else
-    echo "Turbo Boost remains enabled or is not available."
-fi
-
 
 # Display Commands
 echo ""
