@@ -24,8 +24,8 @@ load_config() {
     if [ -f "$CONFIG_FILE" ]; then
         source "$CONFIG_FILE"
     else
-        MIN_TEMP=$DEFAULT_MIN_TEMP
-        MAX_TEMP=$DEFAULT_MAX_TEMP
+        FAN_MIN_TEMP=$DEFAULT_FAN_MIN_TEMP
+        FAN_MAX_TEMP=$DEFAULT_FAN_MAX_TEMP
         MIN_FAN=$DEFAULT_MIN_FAN
         MAX_FAN=$DEFAULT_MAX_FAN
         SLEEP_INTERVAL=$DEFAULT_SLEEP_INTERVAL
@@ -38,8 +38,8 @@ load_config() {
 save_config() {
     mkdir -p "$(dirname "$CONFIG_FILE")"
     cat > "$CONFIG_FILE" <<EOF
-MIN_TEMP=$MIN_TEMP
-MAX_TEMP=$MAX_TEMP
+FAN_MIN_TEMP=$FAN_MIN_TEMP
+FAN_MAX_TEMP=$FAN_MAX_TEMP
 MIN_FAN=$MIN_FAN
 MAX_FAN=$MAX_FAN
 SLEEP_INTERVAL=$SLEEP_INTERVAL
@@ -73,13 +73,13 @@ run_loop() {
         RAW_TEMP=$(cat "$ZONE_PATH")
         TEMP_C=$((RAW_TEMP / 1000))
 
-        if (( TEMP_C <= MIN_TEMP )); then
+        if (( TEMP_C <= FAN_MIN_TEMP )); then
             DUTY=$MIN_FAN
-        elif (( TEMP_C >= MAX_TEMP )); then
+        elif (( TEMP_C >= FAN_MAX_TEMP )); then
             DUTY=$MAX_FAN
         else
-            RANGE=$((MAX_TEMP - MIN_TEMP))
-            OFFSET=$((TEMP_C - MIN_TEMP))
+            RANGE=$((FAN_MAX_TEMP - FAN_MIN_TEMP))
+            OFFSET=$((TEMP_C - FAN_MIN_TEMP))
             DUTY=$((MIN_FAN + (OFFSET * (MAX_FAN - MIN_FAN) / RANGE)))
         fi
 
@@ -166,9 +166,9 @@ monitor() {
 set_min_temp() {
     if [[ "$2" =~ ^[0-9]+$ ]]; then
         load_config
-        MIN_TEMP=$2
+        FAN_MIN_TEMP=$2
         save_config
-        echo "Min temp set to $MIN_TEMP°C"
+        echo "Min temp set to $FAN_MIN_TEMP°C"
     else
         echo "Usage: $0 min_temp <number>"
     fi
@@ -177,9 +177,9 @@ set_min_temp() {
 set_max_temp() {
     if [[ "$2" =~ ^[0-9]+$ ]] && (( $2 <= 90 )); then
         load_config
-        MAX_TEMP=$2
+        FAN_MAX_TEMP=$2
         save_config
-        echo "Max temp set to $MAX_TEMP°C"
+        echo "Max temp set to $FAN_MAX_TEMP°C"
     else
         echo "Usage: $0 max_temp <number (<=90)>"
     fi
@@ -299,7 +299,7 @@ case "$1" in
         echo
         sudo ectool pwmgetnumfans
         sudo ectool pwmgetfanrpm all
-        echo "Fan curve: $MIN_TEMP°C = ${MIN_FAN}%, $MAX_TEMP°C = ${MAX_FAN}%"
+        echo "Fan curve: $FAN_MIN_TEMP°C = ${MIN_FAN}%, $FAN_MAX_TEMP°C = ${MAX_FAN}%"
         echo "Sleep interval: $SLEEP_INTERVAL seconds"
         echo "Step-up: $STEP_UP%, Step-down: $STEP_DOWN%"
         ;;
