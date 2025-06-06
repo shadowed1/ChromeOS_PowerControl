@@ -18,8 +18,8 @@ LOG_FILE="/var/log/fancontrol.log"
 MONITOR_PID_FILE="$INSTALL_DIR/powercontrol_tail_fan_monitor.pid"
 
 # Default values
-DEFAULT_MIN_TEMP=48
-DEFAULT_MAX_TEMP=81
+DEFAULT_FAN_MIN_TEMP=48
+DEFAULT_FAN_MAX_TEMP=81
 DEFAULT_MIN_FAN=0
 DEFAULT_MAX_FAN=100
 DEFAULT_SLEEP_INTERVAL=3
@@ -36,25 +36,24 @@ load_config() {
     else
        if [[ -n "$FAN_MIN_TEMP" ]]; then MIN_TEMP=$FAN_MIN_TEMP; fi
 if [[ -n "$FAN_MAX_TEMP" ]]; then MAX_TEMP=$FAN_MAX_TEMP; fi
-if [[ -n "$FAN_MIN_FAN" ]]; then MIN_FAN=$FAN_MIN_FAN; fi
-if [[ -n "$FAN_MAX_FAN" ]]; then MAX_FAN=$FAN_MAX_FAN; fi
-if [[ -n "$FAN_SLEEP_INTERVAL" ]]; then SLEEP_INTERVAL=$FAN_SLEEP_INTERVAL; fi
-if [[ -n "$FAN_STEP_UP" ]]; then STEP_UP=$FAN_STEP_UP; fi
-if [[ -n "$FAN_STEP_DOWN" ]]; then STEP_DOWN=$FAN_STEP_DOWN; fi
+if [[ -n "$MIN_FAN" ]]; then MIN_FAN=MIN_FAN; fi
+if [[ -n "$MAX_FAN" ]]; then MAX_FAN=MAX_FAN; fi
+if [[ -n "$SLEEP_INTERVAL" ]]; then SLEEP_INTERVAL=$SLEEP_INTERVAL; fi
+if [[ -n "$STEP_UP" ]]; then STEP_UP=$STEP_UP; fi
+if [[ -n "$STEP_DOWN" ]]; then STEP_DOWN=$STEP_DOWN; fi
 
     fi
 }
 
 save_config() {
-    mkdir -p "$(dirname "$CONFIG_FILE")"
-    cat > "$CONFIG_FILE" <<EOF
-MIN_TEMP=$MIN_TEMP
-MAX_TEMP=$MAX_TEMP
+FAN_MIN_TEMP=$FAN_MIN_TEMP
+FAN_MAX_TEMP=$FAN_MAX_TEMP
 MIN_FAN=$MIN_FAN
 MAX_FAN=$MAX_FAN
 SLEEP_INTERVAL=$SLEEP_INTERVAL
 STEP_UP=$STEP_UP
 STEP_DOWN=$STEP_DOWN
+validateconfig
 EOF
 }
 
