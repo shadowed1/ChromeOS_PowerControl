@@ -198,6 +198,7 @@ case "$1" in
         ;;
     "")
         echo "=== ectool battery ==="
+        echo
         sudo ectool battery 2>/dev/null || echo "Failed to run ectool battery (is ectool installed and available?)"
         echo
         battery_status
