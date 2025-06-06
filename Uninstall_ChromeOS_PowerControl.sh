@@ -90,10 +90,9 @@ case "$choice" in
         echo "Removing Readme and LICENSE..."
         remove_file_with_message "$INSTALL_DIR/LICENSE"
         remove_file_with_message "$INSTALL_DIR/README.md"
-        echo "Removing Uninstaller."
-        remove_file_with_message "$INSTALL_DIR/Uninstall_ChromeOS_PowerControl.sh"
+        echo ".install_dir."
+        remove_file_with_message "/usr/local/bin/ChromeOS_PowerControl.install_dir"
 
-        # Remove the installation directory if it's empty
         if [ -d "$INSTALL_DIR" ] && [ -z "$(ls -A "$INSTALL_DIR")" ]; then
             sudo rm -rf "$INSTALL_DIR" && echo "Removed: $INSTALL_DIR"
         else
