@@ -46,17 +46,11 @@ case "$choice" in
         source "$INSTALL_DIR/powercontrol"
         detect_cpu_type
         
-"$INSTALL_DIR/powercontrol" stop
-"$INSTALL_DIR/powercontrol" max_perf_pct 100
-"$INSTALL_DIR/powercontrol" no_turbo 0
-
-
-        
-        $INSTALL_DIR/powercontrol max_perf_pct 100
-        $INSTALL_DIR/powercontrol stop
-        $INSTALL_DIR/powercontrol no_turbo 0
-        $INSTALL_DIR/batterycontrol stop
-        $INSTALL_DIR/fancontrol stop
+        "$INSTALL_DIR/powercontrol" stop
+        "$INSTALL_DIR/powercontrol" max_perf_pct 100
+        "$INSTALL_DIR/powercontrol" no_turbo 0
+        "$INSTALL_DIR/batterycontrol" stop
+        "$INSTALL_DIR/fancontrol" stop
 
         echo "Removing startup files..."
         remove_file_with_message /etc/init/no_turbo.conf
@@ -79,24 +73,24 @@ case "$choice" in
         remove_file_with_message /var/log/batterycontrol.log
 
         echo "Removing configs"
-        remove_file_with_message $INSTALL_DIR/.batterycontrol.config
-        remove_file_with_message $INSTALL_DIR/.powercontrol.config
-        remove_file_with_message $INSTALL_DIR/.fancontrol.config
+        remove_file_with_message "$INSTALL_DIR/.batterycontrol.config"
+        remove_file_with_message "$INSTALL_DIR/.powercontrol.config"
+        remove_file_with_message "$INSTALL_DIR/.fancontrol.config"
 
         echo "Removing enabled flags"
-        remove_file_with_message $INSTALL_DIR/.fancontrol.enabled
-        remove_file_with_message $INSTALL_DIR/.powercontrol.enabled
-        remove_file_with_message $INSTALL_DIR/.batterycontrol.enabled
+        remove_file_with_message "$INSTALL_DIR/.fancontrol.enabled"
+        remove_file_with_message "$INSTALL_DIR/.powercontrol.enabled"
+        remove_file_with_message "$INSTALL_DIR/.batterycontrol.enabled"
 
         echo "Removing PID files"
-        remove_file_with_message $INSTALL_DIR/.fancontrol.pid
-        remove_file_with_message $INSTALL_DIR/.powercontrol.pid
-        remove_file_with_message $INSTALL_DIR/.batterycontrol.pid
+        remove_file_with_message "$INSTALL_DIR/.fancontrol.pid"
+        remove_file_with_message "$INSTALL_DIR/.powercontrol.pid"
+        remove_file_with_message "$INSTALL_DIR/.batterycontrol.pid"
 
         echo "Removing programs"
-        remove_file_with_message $INSTALL_DIR/powercontrol
-        remove_file_with_message $INSTALL_DIR/fancontrol
-        remove_file_with_message $INSTALL_DIR/batterycontrol
+        remove_file_with_message "$INSTALL_DIR/powercontrol"
+        remove_file_with_message "$INSTALL_DIR/fancontrol"
+        remove_file_with_message "$INSTALL_DIR/batterycontrol"
         
 
         # Remove the installation directory if it's empty
