@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# Function to detect CPU type
 detect_cpu_type() {
     CPU_VENDOR=$(grep -m1 'vendor_id' /proc/cpuinfo | awk '{print $3}' || echo "unknown")
     
@@ -26,41 +27,25 @@ detect_cpu_type() {
     esac
 }
 
-read -rp "Enter Install Path - leave blank for: /usr/local/bin/ChromeOS_PowerControl: " INSTALL_DIR
-INSTALL_DIR="${INSTALL_DIR:-/usr/local/bin/ChromeOS_PowerControl}"
-INSTALL_DIR="${INSTALL_DIR%/}"
-echo "$INSTALL_DIR" | sudo tee usr/local/bin/ChromeOS_PowerControl.install_dir > /dev/null
+# Function to load configuration settings
+load_config() {
+    if [ -f "$CONFIG_FILE" ]; then
+        source "$CONFIG_FILE"
+    else
+        echo "Creating default configuration..."
+        STARTUP_BATTERYCONTROL=1
+        STARTUP_FANCONTROL=1
+        STARTUP_POWERCONTROL=1
+        save_config
+    fi
+}
 
-echo "Installing to: $INSTALL_DIR"
-echo ""
-sudo mkdir -p "$INSTALL_DIR"
-echo "Enabling sudo in crosh or run in VT-2 is required for this to download successfully."
-
-declare -a files=("powercontrol" "batterycontrol" "fancontrol" "Uninstall_ChromeOS_PowerControl.sh" "LICENSE" "README.md" "no_turbo.conf" "batterycontrol.conf" "powercontrol.conf" "fancontrol.conf" "config.sh")
-for file in "${files[@]}"; do
-    curl -L "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/beta/$file" -o "$INSTALL_DIR/$file"
-    echo "$INSTALL_DIR/$file downloaded."
-done
-
-detect_cpu_type
-echo "Detected CPU Vendor: $CPU_VENDOR"
-echo "PERF_PATH: $PERF_PATH"
-echo "TURBO_PATH: $TURBO_PATH"
-
-echo "$INSTALL_DIR" | sudo tee /usr/local/bin/ChromeOS_PowerControl.install_dir > /dev/null
-
-sudo chmod +x "$INSTALL_DIR/powercontrol" "$INSTALL_DIR/batterycontrol" "$INSTALL_DIR/fancontrol" "$INSTALL_DIR/Uninstall_ChromeOS_PowerControl.sh" "$INSTALL_DIR/config.sh"
-echo "Executable permissions set for key scripts."
-sudo touch "$INSTALL_DIR/.batterycontrol_enabled" "$INSTALL_DIR/.powercontrol_enabled" "$INSTALL_DIR/.fancontrol_enabled"
-echo "Flag files created for BatteryControl, PowerControl, and FanControl."
-LOG_DIR="/var/log"
-CONFIG_FILE="$INSTALL_DIR/config.sh"
-sudo touch "$LOG_DIR/powercontrol.log" "$LOG_DIR/batterycontrol.log" "$LOG_DIR/fancontrol.log"
-echo "Log files created for PowerControl, BatteryControl, and FanControl."
-
-USER_HOME="/home/chronos"
-if [ ! -f "$CONFIG_FILE" ]; then
-    echo "Creating config at $CONFIG_FILE"
+# Function to save configuration settings
+save_config() {
+    echo "Saving configuration..."
+    echo "STARTUP_BATTERYCONTROL=$STARTUP_BATTERYCONTROL" > "$CONFIG_FILE"
+    echo "STARTUP_FANCONTROL=$STARTUP_FANCONTROL" >> "$CONFIG_FILE"
+    echo "STARTUP_POWERCONTROL=$STARTUP_POWERCONTROL" >> "$CONFIG_FILE"
     echo "CHARGE_MAX=77" >> "$CONFIG_FILE"
     echo "CHARGE_MIN=74" >> "$CONFIG_FILE"
     echo "MAX_TEMP=86" >> "$CONFIG_FILE"
@@ -74,37 +59,80 @@ if [ ! -f "$CONFIG_FILE" ]; then
     echo "FAN_SLEEP_INTERVAL=3" >> "$CONFIG_FILE"
     echo "FAN_STEP_UP=20" >> "$CONFIG_FILE"
     echo "FAN_STEP_DOWN=1" >> "$CONFIG_FILE"
-    echo "Config created."
-else
-    echo "Config file already exists at $CONFIG_FILE"
-fi
+    echo "PERF_PATH=$PERF_PATH" >> "$CONFIG_FILE"
+    echo "TURBO_PATH=$TURBO_PATH" >> "$CONFIG_FILE"
+    echo "IS_AMD=$IS_AMD" >> "$CONFIG_FILE"
+    echo "IS_INTEL=$IS_INTEL" >> "$CONFIG_FILE"
+    echo "IS_ARM=$IS_ARM" >> "$CONFIG_FILE"
+}
 
-echo "PERF_PATH=$PERF_PATH" >> "$CONFIG_FILE"
-echo "TURBO_PATH=$TURBO_PATH" >> "$CONFIG_FILE"
-echo "IS_AMD=$IS_AMD" >> "$CONFIG_FILE"
-echo "IS_INTEL=$IS_INTEL" >> "$CONFIG_FILE"
-echo "IS_ARM=$IS_ARM" >> "$CONFIG_FILE"
-
-if [ "$IS_INTEL" -eq 1 ]; then
-    read -rp "Do you want Intel Turbo Boost disabled on boot? (y/n): " move_no_turbo
-    if [[ "$move_no_turbo" =~ ^[Yy]$ ]]; then
-        sudo cp "$INSTALL_DIR/no_turbo.conf" /etc/init/
-        echo "Turbo Boost will be disabled on restart."
+# Function to prompt user for enabling components at startup
+enable_component_on_boot() {
+    local component="$1"
+    read -rp "Do you want $component enabled on boot? (y/n): " enable_boot
+    if [[ "$enable_boot" =~ ^[Yy]$ ]]; then
+        echo "$component will start on boot."
+        # Enable in config
+        case $component in
+            "BatteryControl")
+                STARTUP_BATTERYCONTROL=1
+                ;;
+            "FanControl")
+                STARTUP_FANCONTROL=1
+                ;;
+            "PowerControl")
+                STARTUP_POWERCONTROL=1
+                ;;
+        esac
     else
-        echo "Turbo Boost will remain enabled."
+        echo "$component will not start on boot."
+        # Disable in config
+        case $component in
+            "BatteryControl")
+                STARTUP_BATTERYCONTROL=0
+                ;;
+            "FanControl")
+                STARTUP_FANCONTROL=0
+                ;;
+            "PowerControl")
+                STARTUP_POWERCONTROL=0
+                ;;
+        esac
     fi
+    save_config
+}
 
-    read -rp "Do you want to disable Intel Turbo Boost now? (y/n): " run_no_turbo
-    if [[ "$run_no_turbo" =~ ^[Yy]$ ]]; then
-        echo 1 | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo > /dev/null
-        echo "Turbo Boost disabled immediately."
-    else
-        echo "Turbo Boost remains enabled."
-    fi
-else
-    echo "This is not an Intel CPU, skipping Turbo Boost options."
-fi
+# Main script logic
+detect_cpu_type
+echo "Detected CPU Vendor: $CPU_VENDOR"
+echo "PERF_PATH: $PERF_PATH"
+echo "TURBO_PATH: $TURBO_PATH"
 
+# Prompt for install directory
+read -rp "Enter Install Path - leave blank for: /usr/local/bin/ChromeOS_PowerControl: " INSTALL_DIR
+INSTALL_DIR="${INSTALL_DIR:-/usr/local/bin/ChromeOS_PowerControl}"
+INSTALL_DIR="${INSTALL_DIR%/}"
+echo "$INSTALL_DIR" | sudo tee usr/local/bin/ChromeOS_PowerControl.install_dir > /dev/null
+
+# Create install directory and download necessary files
+echo "Installing to: $INSTALL_DIR"
+sudo mkdir -p "$INSTALL_DIR"
+declare -a files=("powercontrol" "batterycontrol" "fancontrol" "Uninstall_ChromeOS_PowerControl.sh" "LICENSE" "README.md" "no_turbo.conf" "batterycontrol.conf" "powercontrol.conf" "fancontrol.conf" "config.sh")
+for file in "${files[@]}"; do
+    curl -L "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/beta/$file" -o "$INSTALL_DIR/$file"
+    echo "$INSTALL_DIR/$file downloaded."
+done
+
+# Load configuration (or create a new one)
+CONFIG_FILE="$INSTALL_DIR/config.sh"
+load_config
+
+# Enable components on boot
+enable_component_on_boot "BatteryControl"
+enable_component_on_boot "FanControl"
+enable_component_on_boot "PowerControl"
+
+# Ask the user if they want to link global commands
 read -rp "Do you want to create global commands 'powercontrol', 'batterycontrol', and 'fancontrol'? (y/n): " link_cmd
 if [[ "$link_cmd" =~ ^[Yy]$ ]]; then
     sudo ln -sf "$INSTALL_DIR/powercontrol" /usr/local/bin/powercontrol
@@ -115,22 +143,7 @@ else
     echo "Skipped creating global commands."
 fi
 
-enable_component_on_boot() {
-    local component="$1"
-    local config_file="$2"
-    read -rp "Do you want $component enabled on boot? (y/n): " move_config
-    if [[ "$move_config" =~ ^[Yy]$ ]]; then
-        sudo cp "$config_file" /etc/init/
-        echo "$component will start on boot."
-    else
-        echo "$component must be started manually on boot."
-    fi
-}
-
-enable_component_on_boot "BatteryControl" "$INSTALL_DIR/batterycontrol.conf"
-enable_component_on_boot "PowerControl" "$INSTALL_DIR/powercontrol.conf"
-enable_component_on_boot "FanControl" "$INSTALL_DIR/fancontrol.conf"
-
+# Start components now (optional)
 start_component_now() {
     local component="$1"
     local command="$2"
@@ -147,6 +160,7 @@ start_component_now "BatteryControl" "$INSTALL_DIR/batterycontrol"
 start_component_now "PowerControl" "$INSTALL_DIR/powercontrol"
 start_component_now "FanControl" "$INSTALL_DIR/fancontrol"
 
+
 echo ""
 echo "Commands with examples:"
 echo ""
@@ -160,6 +174,7 @@ echo "sudo powercontrol min_perf_pct 50     # Set minimum performance at max tem
 echo "sudo powercontrol max_temp 86         # Max temperature threshold"
 echo "sudo powercontrol min_temp 60         # Min temperature threshold"
 echo "sudo powercontrol monitor             # Live temperature monitoring"
+echo "sudo powercontrol startup 1             # Toggle 1 (on) 0 (off) for starting on boot."
 echo "sudo powercontrol help                # Help menu"
 echo ""
 echo "# BatteryControl Commands:"
@@ -167,18 +182,20 @@ echo "sudo batterycontrol start             # Start BatteryControl"
 echo "sudo batterycontrol stop              # Stop BatteryControl"
 echo "sudo batterycontrol status            # Check BatteryControl status"
 echo "sudo batterycontrol set 80 75         # Set max/min battery charge thresholds"
+echo "sudo batterycontrol startup 1         # Toggle 1 (on) 0 (off) for starting on boot."
 echo "sudo batterycontrol help              # Help menu"
 echo ""
 echo "# FanControl Commands:"
 echo "sudo fancontrol                       # Show fan status"
 echo "sudo fancontrol start                 # Start FanControl"
 echo "sudo fancontrol stop                  # Stop FanControl"
-echo "sudo fancontrol min_temp 50           # Min temp threshold"
-echo "sudo fancontrol max_temp 90           # Max temp threshold"
+echo "sudo fancontrol fan_min_temp 50       # Min temp threshold"
+echo "sudo fancontrol fan_max_temp 90       # Max temp threshold"
 echo "sudo fancontrol min_fan 0             # Min fan speed %"
 echo "sudo fancontrol max_fan 100           # Max fan speed %"
 echo "sudo fancontrol stepup 20             # Fan step-up %"
 echo "sudo fancontrol stepdown 1            # Fan step-down %" 
+echo "sudo fancontrol startup 1             # Toggle 1 (on) 0 (off) for starting on boot."
 echo "sudo fancontrol help                  # Help menu"
 echo ""
 echo "sudo powercontrol uninstall           # Run uninstaller"
