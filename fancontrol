@@ -34,14 +34,14 @@ load_config() {
     if [ -f "$CONFIG_FILE" ]; then
         source "$CONFIG_FILE"
     else
-        MIN_TEMP=$DEFAULT_MIN_TEMP
-        MAX_TEMP=$DEFAULT_MAX_TEMP
-        MIN_FAN=$DEFAULT_MIN_FAN
-        MAX_FAN=$DEFAULT_MAX_FAN
-        SLEEP_INTERVAL=$DEFAULT_SLEEP_INTERVAL
-        STEP_UP=$DEFAULT_STEP_UP
-        STEP_DOWN=$DEFAULT_STEP_DOWN
-        save_config
+       if [[ -n "$FAN_MIN_TEMP" ]]; then MIN_TEMP=$FAN_MIN_TEMP; fi
+if [[ -n "$FAN_MAX_TEMP" ]]; then MAX_TEMP=$FAN_MAX_TEMP; fi
+if [[ -n "$FAN_MIN_FAN" ]]; then MIN_FAN=$FAN_MIN_FAN; fi
+if [[ -n "$FAN_MAX_FAN" ]]; then MAX_FAN=$FAN_MAX_FAN; fi
+if [[ -n "$FAN_SLEEP_INTERVAL" ]]; then SLEEP_INTERVAL=$FAN_SLEEP_INTERVAL; fi
+if [[ -n "$FAN_STEP_UP" ]]; then STEP_UP=$FAN_STEP_UP; fi
+if [[ -n "$FAN_STEP_DOWN" ]]; then STEP_DOWN=$FAN_STEP_DOWN; fi
+
     fi
 }
 
