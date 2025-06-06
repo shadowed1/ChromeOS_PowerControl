@@ -5,29 +5,28 @@ if [ -z "$INSTALL_DIR" ]; then
     INSTALL_DIR="/usr/local/bin/ChromeOS_PowerControl"
 fi
 
-# Battery Control Settings
+# BatteryControl Settings
 DEFAULT_CHARGE_MAX=77
 DEFAULT_CHARGE_MIN=74
 CHARGE_MAX="${CHARGE_MAX:-$DEFAULT_CHARGE_MAX}"
 CHARGE_MIN="${CHARGE_MIN:-$DEFAULT_CHARGE_MIN}"
 
-# Fan Control Settings
+# FanControl Settings
 DEFAULT_FAN_MIN_TEMP=48   # Minimum fan control temperature
 DEFAULT_FAN_MAX_TEMP=81   # Maximum fan control temperature
 DEFAULT_MIN_FAN=0         # Minimum fan speed
 DEFAULT_MAX_FAN=100       # Maximum fan speed
-DEFAULT_SLEEP_INTERVAL=3
-DEFAULT_STEP_UP=20
+DEFAULT_SLEEP_INTERVAL=3   
+DEFAULT_STEP_UP=20        
 DEFAULT_STEP_DOWN=1
 
-# Power Control Settings
+# PowerControl Settings
 DEFAULT_POWER_MIN_TEMP=60  # Minimum temperature for CPU power control
 DEFAULT_POWER_MAX_TEMP=86  # Maximum temperature for CPU power control
 DEFAULT_MIN_PERF_PCT=50    # Minimum performance percentage
 DEFAULT_MAX_PERF_PCT=100   # Maximum performance percentage
 MAX_TEMP_LIMIT=90          # Maximum allowable temperature limit
 
-# Default values for all temperature and performance settings
 FAN_MIN_TEMP="${FAN_MIN_TEMP:-$DEFAULT_FAN_MIN_TEMP}"
 FAN_MAX_TEMP="${FAN_MAX_TEMP:-$DEFAULT_FAN_MAX_TEMP}"
 MIN_FAN="${MIN_FAN:-$DEFAULT_MIN_FAN}"
@@ -41,7 +40,6 @@ POWER_MAX_TEMP="${POWER_MAX_TEMP:-$DEFAULT_POWER_MAX_TEMP}"
 MIN_PERF_PCT="${MIN_PERF_PCT:-$DEFAULT_MIN_PERF_PCT}"
 MAX_PERF_PCT="${MAX_PERF_PCT:-$DEFAULT_MAX_PERF_PCT}"
 
-# Set paths for battery and temperature monitoring
 CHARGER_PATH="/sys/class/power_supply/CROS_USBPD_CHARGER0/online"
 BATTERY_PATH="/sys/class/power_supply/BAT0/capacity"
 ZONE_PATH="/sys/class/thermal/thermal_zone0/temp"
@@ -51,11 +49,12 @@ POWER_LOG="/var/log/powercontrol.log"
 FAN_LOG="/var/log/fancontrol.log"
 
 RUN_FLAG_FAN="$INSTALL_DIR/.fan_curve_running"
-PID_FILE="$INSTALL_DIR/.fancontrol.pid"
+PID_FILE_FAN="$INSTALL_DIR/.fancontrol.pid"
 MONITOR_PID_FILE_FAN="$INSTALL_DIR/fancontrol_tail_fan_monitor.pid"
 MONITOR_PID_FILE_POWER="$INSTALL_DIR/powercontrol_tail_fan_monitor.pid"
 RUN_FLAG_POWER="$INSTALL_DIR/.powercontrol_enabled"
 PID_FILE_POWER="$INSTALL_DIR/.powercontrol_pid"
+PID_FILE_BATTERY="$INSTALL_DIR/.powercontrol_pid"
 NO_TURBO_BACKUP="$INSTALL_DIR/.no_turbo_backup"
 
 USER_HOME="/home/chronos"
@@ -123,8 +122,6 @@ load_config() {
     fi
 }
 
-
-# Save config function (no external file used, just script-level variables)
 save_config() {
     validate_config
     echo "Saving configuration values:"
@@ -143,7 +140,6 @@ save_config() {
     echo "  MAX_PERF_PCT: $MAX_PERF_PCT"
 }
 
-# Exporting variables for use in the system
 export USER_HOME
 export INSTALL_DIR
 export CHARGER_PATH
@@ -180,5 +176,4 @@ export BATTERY_LOG
 export POWER_LOG
 export FAN_LOG
 
-# Load the configuration values
 load_config
