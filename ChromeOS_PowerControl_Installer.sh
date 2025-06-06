@@ -121,7 +121,7 @@ start_component_now "FanControl" "$INSTALL_DIR/fancontrol"
 # Display Commands
 echo ""
 echo "Commands with examples:"
-cat << 
+cat << EOF
 # PowerControl Commands:
 sudo powercontrol                     # Show status
 sudo powercontrol start               # Throttle CPU based on temperature curve
