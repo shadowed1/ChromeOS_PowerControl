@@ -76,7 +76,8 @@ show_help() {
     echo "  set <MAX> <MIN>    Set battery charge thresholds."
     echo "  start              Start BatteryControl monitoring."
     echo "  stop               Stop BatteryControl monitoring."
-    echo "  status             Show BatteryControl status."
+    echo "  blank              Show BatteryControl status."
+    echo "  startup 0|1        Toggle 1 (on) 0 (off) for starting on boot."
     echo "  uninstall          Run the uninstaller script."
     echo
 }
@@ -182,11 +183,30 @@ case "$1" in
     status)
         battery_status
         ;;
-    uninstall)
-        if [ -x "$INSTALL_DIR/Uninstall_ChromeOS_PowerControl.sh" ]; then
-            sudo bash "$INSTALL_DIR/Uninstall_ChromeOS_PowerControl.sh"
+            startup)
+        CONF_SOURCE="$INSTALL_DIR/batterycontrol.conf"
+        CONF_TARGET="/etc/init/batterycontrol.conf"
+
+        if [ "$2" == "1" ]; then
+            if [ -f "$CONF_SOURCE" ]; then
+                echo "Copying batterycontrol.conf to /etc/init/..."
+                sudo cp "$CONF_SOURCE" "$CONF_TARGET"
+                echo "Startup enabled."
+            else
+                echo "batterycontrol.conf not found at $CONF_SOURCE"
+                exit 1
+            fi
+        elif [ "$2" == "0" ]; then
+            if [ -f "$CONF_TARGET" ]; then
+                echo "Removing /etc/init/batterycontrol.conf..."
+                sudo rm -f "$CONF_TARGET"
+                echo "Startup disabled."
+            else
+                echo "/etc/init/batterycontrol.conf not found."
+            fi
         else
-            echo "Uninstall script not found or not executable."
+            echo "Usage: $0 startup 1   # Enable startup"
+            echo "       $0 startup 0   # Disable startup"
             exit 1
         fi
         ;;
