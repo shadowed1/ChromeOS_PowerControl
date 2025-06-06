@@ -339,7 +339,6 @@ show_status() {
         echo "  Status: STOPPED"
     fi
 
-    load_config
     echo "  Configured max_temp: $POWER_MAX_TEMP°C"
     echo "  Configured min_temp: $POWER_MIN_TEMP°C"
     echo "  Configured max_perf_pct: $MAX_PERF_PCT%"
@@ -440,6 +439,7 @@ show_help() {
     echo "  min_temp <°C>         Set minimum CPU temperature before throttling begins."
     echo "  min_perf_pct <pct>    Set minimum performance percentage (10–100)."
     echo "  max_perf_pct <pct>    Show or set max performance percentage (10–100)."
+    echo "  startup 0|1           Toggle 1 (on) 0 (off) for starting on boot."
     echo "  no_turbo {0|1}        Enable (0) or disable (1) Intel Turbo Boost manually."
     echo "  monitor               Show updating in real time."
     echo "  uninstall             Run the PowerControl uninstaller script."
@@ -535,7 +535,33 @@ echo "$(date '+%Y-%m-%d %H:%M:%S') - PowerControl monitoring started in backgrou
     echo $! > "$MONITOR_PID_FILE_POWER_POWER"
     echo "Monitor started (PID $!)"
     ;;
+     startup)
+        CONF_SOURCE="$INSTALL_DIR/powercontrol.conf"
+        CONF_TARGET="/etc/init/powercontrol.conf"
 
+        if [ "$2" == "1" ]; then
+            if [ -f "$CONF_SOURCE" ]; then
+                echo "Copying powercontrol.conf to /etc/init/..."
+                sudo cp "$CONF_SOURCE" "$CONF_TARGET"
+                echo "Startup enabled."
+            else
+                echo "powercontrol.conf not found at $CONF_SOURCE"
+                exit 1
+            fi
+        elif [ "$2" == "0" ]; then
+            if [ -f "$CONF_TARGET" ]; then
+                echo "Removing /etc/init/powercontrol.conf..."
+                sudo rm -f "$CONF_TARGET"
+                echo "Startup disabled."
+            else
+                echo "/etc/init/powercontrol.conf not found."
+            fi
+        else
+            echo "Usage: $0 startup 1   # Enable startup"
+            echo "       $0 startup 0   # Disable startup"
+            exit 1
+        fi
+        ;;
     __monitor__)
         LOG_FILE="/var/log/powercontrol.log"
         start_monitoring_loop
