@@ -1,7 +1,5 @@
 #!/bin/bash
 
-#!/bin/bash
-
 detect_cpu_type() {
     CPU_VENDOR=$(grep -m1 'vendor_id' /proc/cpuinfo | awk '{print $3}' || echo "unknown")
     
@@ -107,43 +105,43 @@ else
     echo "This is not an Intel CPU, skipping Turbo Boost options."
 fi
 
-# Set STARTUP_* variables based on user input
-echo "Configuring startup options for each component..."
-
-read -rp "Do you want BatteryControl enabled on boot? (y/n): " enable_batterycontrol_boot
-if [[ "$enable_batterycontrol_boot" =~ ^[Yy]$ ]]; then
-    STARTUP_BATTERYCONTROL=1
-    echo "BatteryControl will be enabled on boot."
+read -rp "Do you want to create global commands 'powercontrol', 'batterycontrol', and 'fancontrol'? (y/n): " link_cmd
+if [[ "$link_cmd" =~ ^[Yy]$ ]]; then
+    sudo ln -sf "$INSTALL_DIR/powercontrol" /usr/local/bin/powercontrol
+    sudo ln -sf "$INSTALL_DIR/batterycontrol" /usr/local/bin/batterycontrol
+    sudo ln -sf "$INSTALL_DIR/fancontrol" /usr/local/bin/fancontrol
+    echo "Global commands created for 'powercontrol', 'batterycontrol', and 'fancontrol'."
 else
-    STARTUP_BATTERYCONTROL=0
-    echo "BatteryControl will not be enabled on boot."
+    echo "Skipped creating global commands."
 fi
 
-read -rp "Do you want FanControl enabled on boot? (y/n): " enable_fancontrol_boot
-if [[ "$enable_fancontrol_boot" =~ ^[Yy]$ ]]; then
-    STARTUP_FANCONTROL=1
-    echo "FanControl will be enabled on boot."
-else
-    STARTUP_FANCONTROL=0
-    echo "FanControl will not be enabled on boot."
-fi
+enable_component_on_boot() {
+    local component="$1"
+    local config_file="$2"
+    read -rp "Do you want $component enabled on boot? (y/n): " move_config
+    if [[ "$move_config" =~ ^[Yy]$ ]]; then
+        sudo cp "$config_file" /etc/init/
+        echo "$component will start on boot."
+    else
+        echo "$component must be started manually on boot."
+    fi
+}
 
-read -rp "Do you want PowerControl enabled on boot? (y/n): " enable_powercontrol_boot
-if [[ "$enable_powercontrol_boot" =~ ^[Yy]$ ]]; then
-    STARTUP_POWERCONTROL=1
-    echo "PowerControl will be enabled on boot."
-else
-    STARTUP_POWERCONTROL=0
-    echo "PowerControl will not be enabled on boot."
-fi
+enable_component_on_boot "BatteryControl" "$INSTALL_DIR/batterycontrol.conf"
+enable_component_on_boot "PowerControl" "$INSTALL_DIR/powercontrol.conf"
+enable_component_on_boot "FanControl" "$INSTALL_DIR/fancontrol.conf"
 
-echo "STARTUP_BATTERYCONTROL=$STARTUP_BATTERYCONTROL" >> "$CONFIG_FILE"
-echo "STARTUP_FANCONTROL=$STARTUP_FANCONTROL" >> "$CONFIG_FILE"
-echo "STARTUP_POWERCONTROL=$STARTUP_POWERCONTROL" >> "$CONFIG_FILE"
-
-echo "Startup configuration saved to $CONFIG_FILE."
-
-
+start_component_now() {
+    local component="$1"
+    local command="$2"
+    read -rp "Do you want to start $component now in the background? (y/n): " start_now
+    if [[ "$start_now" =~ ^[Yy]$ ]]; then
+        sudo "$command" start
+        echo "$component started in the background."
+    else
+        echo "You can run it later with: sudo $command start"
+    fi
+}
 
 start_component_now "BatteryControl" "$INSTALL_DIR/batterycontrol"
 start_component_now "PowerControl" "$INSTALL_DIR/powercontrol"
