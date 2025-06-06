@@ -12,7 +12,7 @@ CONFIG_FILE="$INSTALL_DIR/config.sh"
 ZONE_PATH="/sys/class/thermal/thermal_zone0/temp"
 RUN_FLAG_FAN="$INSTALL_DIR/.fan_curve_running"
 PID_FILE_FAN="$INSTALL_DIR/.fan_curve_pid"
-FAN_LOG_FILE="var/log/fancontrol.log"
+FAN_LOG_FILE="/var/log/fancontrol.log"
 MONITOR_PID_FILE="/tmp/powercontrol_tail_fan_monitor.pid"
 
 DEFAULT_FAN_MIN_TEMP=48   # Minimum fan control temperature
