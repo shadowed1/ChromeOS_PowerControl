@@ -1,5 +1,30 @@
 #!/bin/bash
 
+detect_cpu_type() {
+    CPU_VENDOR=$(grep -m1 'vendor_id' /proc/cpuinfo | awk '{print $3}' || echo "unknown")
+    
+    case "$CPU_VENDOR" in
+        GenuineIntel)
+            IS_INTEL=1
+            PERF_PATH="/sys/devices/system/cpu/intel_pstate/max_perf_pct"
+            TURBO_PATH="/sys/devices/system/cpu/intel_pstate/no_turbo"
+            ;;
+        AuthenticAMD)
+            IS_AMD=1
+            if [ -f "/sys/devices/system/cpu/amd_pstate/max_perf_pct" ]; then
+                PERF_PATH="/sys/devices/system/cpu/amd_pstate/max_perf_pct"
+            else
+                PERF_PATH="/sys/devices/system/cpu/cpufreq/policy0/scaling_max_freq"
+            fi
+            ;;
+        *)
+            IS_ARM=1
+            PERF_PATH="/sys/devices/system/cpu/cpufreq/policy0/scaling_max_freq"
+            ;;
+    esac
+}
+
+# Start installation
 read -rp "Enter Install Path - leave blank for: /usr/local/bin/ChromeOS_PowerControl: " INSTALL_DIR
 INSTALL_DIR="${INSTALL_DIR:-/usr/local/bin/ChromeOS_PowerControl}"
 INSTALL_DIR="${INSTALL_DIR%/}"
@@ -55,25 +80,38 @@ else
     echo "Config file already exists at $CONFIG_FILE"
 fi
 
+# Detect CPU type and set PERF_PATH and TURBO_PATH dynamically
+detect_cpu_type
+echo "Detected CPU Vendor: $CPU_VENDOR"
+echo "PERF_PATH: $PERF_PATH"
+echo "TURBO_PATH: $TURBO_PATH"
 
-# Turbo Boost Options
-read -rp "Do you want Intel Turbo Boost disabled on boot? (y/n): " move_no_turbo
-if [[ "$move_no_turbo" =~ ^[Yy]$ ]]; then
-    sudo mv "$INSTALL_DIR/no_turbo.conf" /etc/init/
-    echo "Turbo Boost will be disabled on restart."
+# Update the config file with the dynamic values for PERF_PATH and TURBO_PATH
+echo "PERF_PATH=$PERF_PATH" >> "$CONFIG_FILE"
+echo "TURBO_PATH=$TURBO_PATH" >> "$CONFIG_FILE"
+
+# Skip Turbo Boost related questions if not an Intel CPU
+if [ "$IS_INTEL" -eq 1 ]; then
+    # Turbo Boost Options
+    read -rp "Do you want Intel Turbo Boost disabled on boot? (y/n): " move_no_turbo
+    if [[ "$move_no_turbo" =~ ^[Yy]$ ]]; then
+        sudo mv "$INSTALL_DIR/no_turbo.conf" /etc/init/
+        echo "Turbo Boost will be disabled on restart."
+    else
+        echo "Turbo Boost will remain enabled."
+    fi
+
+    read -rp "Do you want to disable Intel Turbo Boost now? (y/n): " run_no_turbo
+    if [[ "$run_no_turbo" =~ ^[Yy]$ ]]; then
+        echo 1 | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo > /dev/null
+        echo "Turbo Boost disabled immediately."
+    else
+        echo "Turbo Boost remains enabled."
+    fi
 else
-    echo "Turbo Boost will remain enabled."
+    echo "This is not an Intel CPU, skipping Turbo Boost options."
 fi
 
-read -rp "Do you want to disable Intel Turbo Boost now? (y/n): " run_no_turbo
-if [[ "$run_no_turbo" =~ ^[Yy]$ ]]; then
-    echo 1 | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo > /dev/null
-    echo "Turbo Boost disabled immediately."
-else
-    echo "Turbo Boost remains enabled."
-fi
-
-# Create Global Commands
 read -rp "Do you want to create global commands 'powercontrol', 'batterycontrol', and 'fancontrol'? (y/n): " link_cmd
 if [[ "$link_cmd" =~ ^[Yy]$ ]]; then
     sudo ln -sf "$INSTALL_DIR/powercontrol" /usr/local/bin/powercontrol
@@ -84,7 +122,16 @@ else
     echo "Skipped creating global commands."
 fi
 
-# Enable Components on Boot
+read -rp "Do you want to create global commands 'powercontrol', 'batterycontrol', and 'fancontrol'? (y/n): " link_cmd
+if [[ "$link_cmd" =~ ^[Yy]$ ]]; then
+    sudo ln -sf "$INSTALL_DIR/powercontrol" /usr/local/bin/powercontrol
+    sudo ln -sf "$INSTALL_DIR/batterycontrol" /usr/local/bin/batterycontrol
+    sudo ln -sf "$INSTALL_DIR/fancontrol" /usr/local/bin/fancontrol
+    echo "Global commands created for 'powercontrol', 'batterycontrol', and 'fancontrol'."
+else
+    echo "Skipped creating global commands."
+fi
+
 enable_component_on_boot() {
     local component="$1"
     local config_file="$2"
@@ -101,7 +148,6 @@ enable_component_on_boot "BatteryControl" "$INSTALL_DIR/batterycontrol.conf"
 enable_component_on_boot "PowerControl" "$INSTALL_DIR/powercontrol.conf"
 enable_component_on_boot "FanControl" "$INSTALL_DIR/fancontrol.conf"
 
-# Start Components Now
 start_component_now() {
     local component="$1"
     local command="$2"
@@ -118,7 +164,6 @@ start_component_now "BatteryControl" "$INSTALL_DIR/batterycontrol"
 start_component_now "PowerControl" "$INSTALL_DIR/powercontrol"
 start_component_now "FanControl" "$INSTALL_DIR/fancontrol"
 
-# Display Commands
 echo ""
 echo "Commands with examples:"
 echo ""
@@ -134,14 +179,14 @@ echo "sudo powercontrol min_temp 60         # Min temperature threshold"
 echo "sudo powercontrol monitor             # Live temperature monitoring"
 echo "sudo powercontrol help                # Help menu"
 echo ""
-echo "# BatteryControl Commands:
+echo "# BatteryControl Commands:"
 echo "sudo batterycontrol start             # Start BatteryControl"
 echo "sudo batterycontrol stop              # Stop BatteryControl"
 echo "sudo batterycontrol status            # Check BatteryControl status"
 echo "sudo batterycontrol set 80 75         # Set max/min battery charge thresholds"
 echo "sudo batterycontrol help              # Help menu"
 echo ""
-echo "# FanControl Commands:
+echo "# FanControl Commands:"
 echo "sudo fancontrol                       # Show fan status"
 echo "sudo fancontrol start                 # Start FanControl"
 echo "sudo fancontrol stop                  # Stop FanControl"
@@ -155,4 +200,3 @@ echo "sudo fancontrol help                  # Help menu"
 echo ""
 echo "sudo powercontrol uninstall           # Run uninstaller"
 echo "Alternative: sudo bash "$INSTALL_DIR/Uninstall_ChromeOS_PowerControl.sh" "
-
