@@ -71,23 +71,6 @@ load_fan_config() {
 
 load_fan_config
 
-# Turbo Boost Options
-read -rp "Do you want Intel Turbo Boost disabled on boot? (y/n): " move_no_turbo
-if [[ "$move_no_turbo" =~ ^[Yy]$ ]]; then
-    sudo mv "$INSTALL_DIR/no_turbo.conf" /etc/init/
-    echo "Turbo Boost will be disabled on restart."
-else
-    echo "Turbo Boost will remain enabled."
-fi
-
-read -rp "Do you want to disable Intel Turbo Boost now? (y/n): " run_no_turbo
-if [[ "$run_no_turbo" =~ ^[Yy]$ ]]; then
-    echo 1 | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo > /dev/null
-    echo "Turbo Boost disabled immediately."
-else
-    echo "Turbo Boost remains enabled."
-fi
-
 # Create Global Commands
 read -rp "Do you want to create global commands 'powercontrol', 'batterycontrol', and 'fancontrol'? (y/n): " link_cmd
 if [[ "$link_cmd" =~ ^[Yy]$ ]]; then
@@ -132,6 +115,23 @@ start_component_now() {
 start_component_now "BatteryControl" "$INSTALL_DIR/batterycontrol"
 start_component_now "PowerControl" "$INSTALL_DIR/powercontrol"
 start_component_now "FanControl" "$INSTALL_DIR/fancontrol"
+
+read -rp "Do you want (Intel Only) Turbo Boost disabled on boot? (y/n): " move_no_turbo
+if [[ "$move_no_turbo" =~ ^[Yy]$ ]]; then
+    sudo mv "$INSTALL_DIR/no_turbo.conf" /etc/init/
+    echo "Turbo Boost will be disabled on restart."
+else
+    echo "Turbo Boost remains enabled or is not available."
+fi
+
+read -rp "Do you want to disable (Intel Only) Turbo Boost now? (y/n): " run_no_turbo
+if [[ "$run_no_turbo" =~ ^[Yy]$ ]]; then
+    echo 1 | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo > /dev/null
+    echo "Turbo Boost disabled immediately."
+else
+    echo "Turbo Boost remains enabled or is not available."
+fi
+
 
 # Display Commands
 echo ""
