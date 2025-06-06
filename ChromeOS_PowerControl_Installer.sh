@@ -27,9 +27,9 @@ sudo touch "$LOG_DIR/powercontrol.log" "$LOG_DIR/batterycontrol.log" "$LOG_DIR/f
 echo "Log files created for PowerControl, BatteryControl, and FanControl."
 
 USER_HOME="/home/chronos"
-BATTERY_CONFIG="$INSTALL_DIR/.batterycontrol_config"
-POWER_CONFIG="$INSTALL_DIR/.powercontrol_config"
-FAN_CONFIG="$INSTALL_DIR/.fancontrol_config"
+BATTERY_CONFIG="$INSTALL_DIR/config.sh"
+POWER_CONFIG="$INSTALL_DIR/config.sh"
+FAN_CONFIG="$INSTALL_DIR/config.sh"
 
 # Battery Control Config
 if [ ! -f "$BATTERY_CONFIG" ]; then
