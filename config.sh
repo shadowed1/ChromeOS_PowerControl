@@ -45,7 +45,7 @@ MAX_PERF_PCT="${MAX_PERF_PCT:-$DEFAULT_MAX_PERF_PCT}"
 CHARGER_PATH="/sys/class/power_supply/CROS_USBPD_CHARGER0/online"
 BATTERY_PATH="/sys/class/power_supply/BAT0/capacity"
 ZONE_PATH="/sys/class/thermal/thermal_zone0/temp"
-
+RUN_FLAG_BATTERY="$INSTALL_DIR/.batterycontrol_enabled"
 BATTERY_LOG="/var/log/batterycontrol.log"
 POWER_LOG="/var/log/powercontrol.log"
 FAN_LOG="/var/log/fancontrol.log"
@@ -97,24 +97,31 @@ validate_config() {
     if [ -z "$POWER_MAX_TEMP" ]; then POWER_MAX_TEMP=$DEFAULT_POWER_MAX_TEMP; fi
 }
 
-# Load the configuration values (everything controlled here)
+CONFIG_PRINTED=0
+
 load_config() {
     validate_config
-    echo "Loading configuration values:"
-    echo "Battery Control:"
-    echo "  CHARGE_MAX: $CHARGE_MAX"
-    echo "  CHARGE_MIN: $CHARGE_MIN"
-    echo "Fan Control:"
-    echo "  FAN_MIN_TEMP: $FAN_MIN_TEMP"
-    echo "  FAN_MAX_TEMP: $FAN_MAX_TEMP"
-    echo "  MIN_FAN: $MIN_FAN"
-    echo "  MAX_FAN: $MAX_FAN"
-    echo "Power Control:"
-    echo "  POWER_MIN_TEMP: $POWER_MIN_TEMP"
-    echo "  POWER_MAX_TEMP: $POWER_MAX_TEMP"
-    echo "  MIN_PERF_PCT: $MIN_PERF_PCT"
-    echo "  MAX_PERF_PCT: $MAX_PERF_PCT"
+
+    if [ "$CONFIG_PRINTED" -eq 0 ]; then
+        echo "Loading configuration values:"
+        echo "Battery Control:"
+        echo "  CHARGE_MAX: $CHARGE_MAX"
+        echo "  CHARGE_MIN: $CHARGE_MIN"
+        echo "Fan Control:"
+        echo "  FAN_MIN_TEMP: $FAN_MIN_TEMP"
+        echo "  FAN_MAX_TEMP: $FAN_MAX_TEMP"
+        echo "  MIN_FAN: $MIN_FAN"
+        echo "  MAX_FAN: $MAX_FAN"
+        echo "Power Control:"
+        echo "  POWER_MIN_TEMP: $POWER_MIN_TEMP"
+        echo "  POWER_MAX_TEMP: $POWER_MAX_TEMP"
+        echo "  MIN_PERF_PCT: $MIN_PERF_PCT"
+        echo "  MAX_PERF_PCT: $MAX_PERF_PCT"
+        
+        CONFIG_PRINTED=1
+    fi
 }
+
 
 # Save config function (no external file used, just script-level variables)
 save_config() {
@@ -142,6 +149,7 @@ export CHARGER_PATH
 export BATTERY_PATH
 export ZONE_PATH
 export RUN_FLAG_FAN
+export RUN_FLAG_BATTERY
 export PID_FILE
 export MONITOR_PID_FILE_FAN
 export RUN_FLAG
