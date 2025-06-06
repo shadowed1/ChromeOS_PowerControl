@@ -82,7 +82,6 @@ show_help() {
 }
 
 battery_status() {
-    load_config
     echo "BatteryControl Status:"
     if [ -f "$RUN_FLAG_BATTERY" ]; then
         if [ -f "$PID_FILE_BATTERY" ]; then
@@ -201,7 +200,8 @@ case "$1" in
         echo "=== ectool battery ==="
         sudo ectool battery 2>/dev/null || echo "Failed to run ectool battery (is ectool installed and available?)"
         echo
-        echo "Run 'batterycontrol start' to enable monitoring, or 'batterycontrol stop' to disable."
+        battery_status
+        echo
         ;;
     *)
         echo "Unknown command: $1"
