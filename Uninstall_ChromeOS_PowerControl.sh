@@ -63,7 +63,6 @@ case "$choice" in
         remove_file_with_message /usr/local/bin/powercontrol
         remove_file_with_message /usr/local/bin/batterycontrol
         remove_file_with_message /usr/local/bin/fancontrol
-        echo "Symlinks directory not found, skipping."
 
         echo "Removing logs..."
         remove_file_with_message /var/log/powercontrol.log
@@ -71,9 +70,7 @@ case "$choice" in
         remove_file_with_message /var/log/batterycontrol.log
 
         echo "Removing configs"
-        remove_file_with_message "$INSTALL_DIR/.batterycontrol.config"
-        remove_file_with_message "$INSTALL_DIR/.powercontrol.config"
-        remove_file_with_message "$INSTALL_DIR/.fancontrol.config"
+        remove_file_with_message "$INSTALL_DIR/config.sh"
 
         echo "Removing enabled flags"
         remove_file_with_message "$INSTALL_DIR/.fancontrol.enabled"
@@ -89,7 +86,12 @@ case "$choice" in
         remove_file_with_message "$INSTALL_DIR/powercontrol"
         remove_file_with_message "$INSTALL_DIR/fancontrol"
         remove_file_with_message "$INSTALL_DIR/batterycontrol"
-        
+
+        echo "Removing Readme and LICENSE..."
+        remove_file_with_message "$INSTALL_DIR/LICENSE"
+        remove_file_with_message "$INSTALL_DIR/README.md"
+        echo "Removing Uninstaller."
+        remove_file_with_message "$INSTALL_DIR/Uninstall_ChromeOS_PowerControl.sh"
 
         # Remove the installation directory if it's empty
         if [ -d "$INSTALL_DIR" ] && [ -z "$(ls -A "$INSTALL_DIR")" ]; then
