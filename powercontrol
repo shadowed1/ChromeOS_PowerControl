@@ -548,7 +548,7 @@ echo "$(date '+%Y-%m-%d %H:%M:%S') - PowerControl monitoring started in backgrou
                 sudo cp "$CONF_SOURCE_NO_TURBO" "/etc/init/"
                 echo "no_turbo.conf copied."
             else
-                echo "no_turbo.conf not found at $CONF_SOURCE_NO_TURBO"
+                echo "Intel Turbo Boost will start automatically."
             fi
         else
             echo "Intel Turbo Boost enabled on startup."
@@ -566,7 +566,8 @@ echo "$(date '+%Y-%m-%d %H:%M:%S') - PowerControl monitoring started in backgrou
             echo "powercontrol.conf not found at $CONF_SOURCE"
         fi
     else
-        echo "Skipped copying powercontrol.conf."
+        echo "PowerControl will not startup automatically on boot."
+        sudo rm -f /etc/init/powercontrol.conf
     fi
     ;;
 
