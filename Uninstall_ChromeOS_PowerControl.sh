@@ -42,14 +42,8 @@ case "$choice" in
     2)
         echo "Stopping background services..."
 
-        if systemctl list-units --type=service | grep -q "powercontrol"; then
-            sudo systemctl stop powercontrol
-            echo "Stopped powercontrol service."
-        elif initctl list | grep -q "powercontrol"; then
-            sudo initctl stop powercontrol
-            echo "Stopped powercontrol service (upstart)."
-        fi
-
+        sudo initctl stop no_turbo 2>/dev/null
+        
         $INSTALL_DIR/powercontrol max_perf_pct 100
         $INSTALL_DIR/powercontrol stop
         $INSTALL_DIR/powercontrol no_turbo 0
