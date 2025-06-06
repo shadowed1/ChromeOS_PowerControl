@@ -1,11 +1,14 @@
 #!/bin/bash
 
-if [ -f "/usr/local/bin/ChromeOS_PowerControl.install_dir" ]; then
-    INSTALL_DIR=$(cat /usr/local/bin/ChromeOS_PowerControl.install_dir)
+INSTALL_DIR_FILE="/usr/local/bin/ChromeOS_PowerControl.install_dir"
+if [ -f "$INSTALL_DIR_FILE" ]; then
+    INSTALL_DIR=$(cat "$INSTALL_DIR_FILE")
 else
     INSTALL_DIR="/usr/local/bin/ChromeOS_PowerControl"
-    echo "Warning: install path file not found. Falling back to default: $INSTALL_DIR"
 fi
+INSTALL_DIR="${INSTALL_DIR%/}"
+CONFIG_FILE="$INSTALL_DIR/config.sh"
+
 
 
 remove_file_with_message() {
