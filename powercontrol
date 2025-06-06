@@ -60,12 +60,20 @@ load_config() {
     if [ -f "$CONFIG_FILE" ]; then
         source "$CONFIG_FILE"
     else
-       if [[ -n "$POWER_MIN_TEMP" ]]; then MIN_TEMP=$POWER_MIN_TEMP; fi
-if [[ -n "$POWER_MAX_TEMP" ]]; then MAX_TEMP=$POWER_MAX_TEMP; fi
-if [[ -n "$POWER_MIN_PERF_PCT" ]]; then MIN_PERF_PCT=$POWER_MIN_PERF_PCT; fi
-if [[ -n "$POWER_MAX_PERF_PCT" ]]; then MAX_PERF_PCT=$POWER_MAX_PERF_PCT; fi
-        save_config
+    if [[ -n "$POWER_MIN_TEMP" ]]; then
+        MIN_TEMP=$POWER_MIN_TEMP
     fi
+    if [[ -n "$POWER_MAX_TEMP" ]]; then
+        MAX_TEMP=$POWER_MAX_TEMP
+    fi
+    if [[ -n "$POWER_MIN_PERF_PCT" ]]; then
+        MIN_PERF_PCT=$POWER_MIN_PERF_PCT
+    fi
+    if [[ -n "$POWER_MAX_PERF_PCT" ]]; then
+        MAX_PERF_PCT=$POWER_MAX_PERF_PCT
+    fi
+    save_config
+fi
 }
 
 save_config() {
