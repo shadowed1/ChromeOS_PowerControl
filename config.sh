@@ -77,6 +77,8 @@ load_config() {
         MIN_PERF_PCT=$DEFAULT_MIN_PERF_PCT
         save_config
     fi
+
+    validate_config
 }
 
 save_battery_config() {
@@ -132,6 +134,8 @@ detect_cpu_type() {
             ;;
     esac
 }
+
+load_config
 
 export USER_HOME
 export CONFIG_FILE
