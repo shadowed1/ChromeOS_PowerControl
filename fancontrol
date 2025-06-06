@@ -1,6 +1,5 @@
 #!/bin/bash
 
-# Dynamic INSTALL_DIR Path
 INSTALL_DIR=$(dirname "$(realpath "$0")")
 CONFIG_FILE="$INSTALL_DIR/config.sh"
 ZONE_PATH="/sys/class/thermal/thermal_zone0/temp"
@@ -9,7 +8,6 @@ PID_FILE="$INSTALL_DIR/.fan_curve_pid"
 LOG_FILE="$INSTALL_DIR/fancontrol.log"
 MONITOR_PID_FILE="/tmp/powercontrol_tail_fan_monitor.pid"
 
-# Default values
 DEFAULT_MIN_TEMP=48
 DEFAULT_MAX_TEMP=81
 DEFAULT_MIN_FAN=0
@@ -267,7 +265,6 @@ show_help() {
     echo "  help              Show this help message"
 }
 
-# === Entry Point ===
 case "$1" in
     start) start ;;
     stop) stop ;;
