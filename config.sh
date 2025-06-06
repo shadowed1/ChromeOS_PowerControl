@@ -46,6 +46,10 @@ CHARGER_PATH="/sys/class/power_supply/CROS_USBPD_CHARGER0/online"
 BATTERY_PATH="/sys/class/power_supply/BAT0/capacity"
 ZONE_PATH="/sys/class/thermal/thermal_zone0/temp"
 
+BATTERY_LOG="/var/log/batterycontrol.log"
+POWER_LOG="/var/log/powercontrol.log"
+FAN_LOG="/var/log/fancontrol.log"
+
 RUN_FLAG_FAN="$INSTALL_DIR/.fan_curve_running"
 PID_FILE="$INSTALL_DIR/.fancontrol.pid"
 MONITOR_PID_FILE_FAN="$INSTALL_DIR/powercontrol_tail_fan_monitor.pid"
@@ -55,7 +59,6 @@ NO_TURBO_BACKUP="$INSTALL_DIR/.no_turbo_backup"
 
 USER_HOME="/home/chronos"
 
-# Detect CPU Vendor (Intel, AMD, ARM)
 CPU_VENDOR=$(grep -m1 'vendor_id' /proc/cpuinfo | awk '{print $3}' || echo "unknown")
 PERF_PATH=""
 TURBO_PATH=""
@@ -63,7 +66,6 @@ IS_AMD=0
 IS_INTEL=0
 IS_ARM=0
 
-# Detect CPU Type (Intel, AMD, ARM)
 detect_cpu_type() {
     case "$CPU_VENDOR" in
         GenuineIntel)
@@ -88,14 +90,11 @@ detect_cpu_type() {
     esac
 }
 
-# Validate and ensure all necessary variables are defined
 validate_config() {
     if [ -z "$FAN_MIN_TEMP" ]; then FAN_MIN_TEMP=$DEFAULT_FAN_MIN_TEMP; fi
     if [ -z "$FAN_MAX_TEMP" ]; then FAN_MAX_TEMP=$DEFAULT_FAN_MAX_TEMP; fi
     if [ -z "$POWER_MIN_TEMP" ]; then POWER_MIN_TEMP=$DEFAULT_POWER_MIN_TEMP; fi
     if [ -z "$POWER_MAX_TEMP" ]; then POWER_MAX_TEMP=$DEFAULT_POWER_MAX_TEMP; fi
-    if [ -z "$MIN_PERF_PCT" ]; then MIN_PERF_PCT=$DEFAULT_MIN_PERF_PCT; fi
-    if [ -z "$MAX_PERF_PCT" ]; then MAX_PERF_PCT=$DEFAULT_MAX_PERF_PCT; fi
 }
 
 # Load the configuration values (everything controlled here)
@@ -164,6 +163,9 @@ export POWER_MIN_TEMP
 export POWER_MAX_TEMP
 export MIN_PERF_PCT
 export MAX_PERF_PCT
+export BATTERY_LOG
+export POWER_LOG
+export FAN_LOG
 
 # Load the configuration values
 load_config
