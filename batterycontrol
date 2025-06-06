@@ -81,7 +81,7 @@ show_help() {
     echo
 }
 
-show_status() {
+battery_status() {
     load_config
     echo "BatteryControl Status:"
     if [ -f "$RUN_FLAG" ]; then
@@ -100,7 +100,6 @@ show_status() {
         echo "  BatteryControl is: DISABLED"
     fi
 
-    load_config
     echo "  CHARGE_MAX: $CHARGE_MAX"
     echo "  CHARGE_MIN: $CHARGE_MIN"
 }
@@ -118,7 +117,7 @@ start_monitoring_loop() {
             exit 0
         fi
 
-    load_config
+        load_config
 
         if [ -f "$BATTERY_PATH" ]; then
             CHARGE=$(cat "$BATTERY_PATH" 2>/dev/null)
@@ -168,22 +167,21 @@ case "$1" in
         set_thresholds "$2" "$3"
         ;;
     start)
-       stop_monitoring >/dev/null 2>&1
-       LOG_FILE="/var/log/batterycontrol.log"
+        stop_monitoring >/dev/null 2>&1
+        LOG_FILE="/var/log/batterycontrol.log"
 
-    if [ -f "$LOG_FILE" ] && [ "$(stat -c%s "$LOG_FILE")" -gt 32768 ]; then
-    echo "$(date '+%Y-%m-%d %H:%M:%S') - Truncated log file (exceeded 32KB)" > "$LOG_FILE"
-    fi
+        if [ -f "$LOG_FILE" ] && [ "$(stat -c%s "$LOG_FILE")" -gt 32768 ]; then
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - Truncated log file (exceeded 32KB)" > "$LOG_FILE"
+        fi
 
-nohup "$0" __monitor__ >> "$LOG_FILE" 2>&1 &
-echo "$(date '+%Y-%m-%d %H:%M:%S') - BatteryControl monitoring started in background. Output is logged to $LOG_FILE"
-
+        nohup "$0" __monitor__ >> "$LOG_FILE" 2>&1 &
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - BatteryControl monitoring started in background. Output is logged to $LOG_FILE"
         ;;
     stop)
         stop_monitoring
         ;;
     status)
-        show_status
+        battery_status
         ;;
     uninstall)
         if [ -x "$INSTALL_DIR/Uninstall_ChromeOS_PowerControl.sh" ]; then
@@ -200,8 +198,6 @@ echo "$(date '+%Y-%m-%d %H:%M:%S') - BatteryControl monitoring started in backgr
         start_monitoring_loop
         ;;
     "")
-        show_status
-        echo
         echo "=== ectool battery ==="
         sudo ectool battery 2>/dev/null || echo "Failed to run ectool battery (is ectool installed and available?)"
         echo
