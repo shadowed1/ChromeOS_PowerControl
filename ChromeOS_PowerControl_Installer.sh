@@ -108,13 +108,13 @@ echo "$INSTALL_DIR" | sudo tee usr/local/bin/ChromeOS_PowerControl.install_dir >
 echo
 
 echo "Installing to: $INSTALL_DIR"
-echo
+echo ""
 sudo mkdir -p "$INSTALL_DIR"
 declare -a files=("powercontrol" "batterycontrol" "fancontrol" "Uninstall_ChromeOS_PowerControl.sh" "LICENSE" "README.md" "no_turbo.conf" "batterycontrol.conf" "powercontrol.conf" "fancontrol.conf" "config.sh")
 for file in "${files[@]}"; do
     curl -L "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/beta/$file" -o "$INSTALL_DIR/$file"
     echo "$INSTALL_DIR/$file downloaded."
-    echo
+    echo ""
 done
 
 # Load configuration (or create a new one)
@@ -122,11 +122,11 @@ CONFIG_FILE="$INSTALL_DIR/config.sh"
 load_config
 
 enable_component_on_boot "BatteryControl"
-echo
+echo ""
 enable_component_on_boot "FanControl"
-echo
+echo ""
 enable_component_on_boot "PowerControl"
-echo
+echo ""
 
 read -rp "Do you want to create global commands 'powercontrol', 'batterycontrol', and 'fancontrol'? (y/n): " link_cmd
 if [[ "$link_cmd" =~ ^[Yy]$ ]]; then
@@ -146,18 +146,18 @@ start_component_now() {
     if [[ "$start_now" =~ ^[Yy]$ ]]; then
         sudo "$command" start
         echo "$component started in the background."
-        echo
+        echo ""
     else
         echo "You can run it later with: sudo $command start"
     fi
 }
 
 start_component_now "BatteryControl" "$INSTALL_DIR/batterycontrol"
-echo
+echo ""
 start_component_now "PowerControl" "$INSTALL_DIR/powercontrol"
-echo
+echo ""
 start_component_now "FanControl" "$INSTALL_DIR/fancontrol"
-echo
+echo ""
 
 
 echo ""
