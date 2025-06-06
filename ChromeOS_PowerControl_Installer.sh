@@ -88,7 +88,7 @@ echo "IS_ARM=$IS_ARM" >> "$CONFIG_FILE"
 if [ "$IS_INTEL" -eq 1 ]; then
     read -rp "Do you want Intel Turbo Boost disabled on boot? (y/n): " move_no_turbo
     if [[ "$move_no_turbo" =~ ^[Yy]$ ]]; then
-        sudo mv "$INSTALL_DIR/no_turbo.conf" /etc/init/
+        sudo cp "$INSTALL_DIR/no_turbo.conf" /etc/init/
         echo "Turbo Boost will be disabled on restart."
     else
         echo "Turbo Boost will remain enabled."
@@ -120,7 +120,7 @@ enable_component_on_boot() {
     local config_file="$2"
     read -rp "Do you want $component enabled on boot? (y/n): " move_config
     if [[ "$move_config" =~ ^[Yy]$ ]]; then
-        sudo mv "$config_file" /etc/init/
+        sudo cp "$config_file" /etc/init/
         echo "$component will start on boot."
     else
         echo "$component must be started manually on boot."
