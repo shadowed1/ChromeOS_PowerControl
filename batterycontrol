@@ -12,7 +12,7 @@ CONFIG_FILE="$INSTALL_DIR/config.sh"
 
 CHARGER_PATH="/sys/class/power_supply/CROS_USBPD_CHARGER0/online"
 BATTERY_PATH="/sys/class/power_supply/BAT0/capacity"
-BATTERY_RUN_FLAG="$INSTALL_DIR/.batterycontrol_enabled"
+RUN_FLAG_BATTERY="$INSTALL_DIR/.batterycontrol_enabled"
 PID_FILE="$INSTALL_DIR/.batterycontrol_pid"
 
 DEFAULT_CHARGE_MAX=77
@@ -84,7 +84,7 @@ show_help() {
 battery_status() {
     load_config
     echo "BatteryControl Status:"
-    if [ -f "$BATTERY_RUN_FLAG" ]; then
+    if [ -f "$RUN_FLAG_BATTERY" ]; then
         if [ -f "$PID_FILE" ]; then
             PID=$(cat "$PID_FILE")
             if ps -p "$PID" > /dev/null 2>&1; then
@@ -105,13 +105,13 @@ battery_status() {
 }
 
 start_monitoring_loop() {
-    touch "$BATTERY_RUN_FLAG"
+    touch "$RUN_FLAG_BATTERY"
     echo $$ > "$PID_FILE"
 
     echo "BatteryControl started - keep it running for it to remain functioning. (PID $$)."
 
     while true; do
-        if [ ! -f "$BATTERY_RUN_FLAG" ]; then
+        if [ ! -f "$RUN_FLAG_BATTERY" ]; then
             echo "BatteryControl disabled, exiting monitoring loop."
             rm -f "$PID_FILE"
             exit 0
@@ -158,7 +158,7 @@ stop_monitoring() {
         fi
         rm -f "$PID_FILE"
     fi
-    rm -f "$BATTERY_RUN_FLAG"
+    rm -f "$RUN_FLAG_BATTERY"
     echo "BatteryControl disabled."
 }
 
