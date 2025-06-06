@@ -213,6 +213,7 @@ restore_no_turbo() {
 
 start_monitoring_loop() {
     detect_cpu_type
+    load_config
     backup_no_turbo
     set_no_turbo 0
 
@@ -441,6 +442,10 @@ handle_max_perf_pct() {
 
 case "$1" in
     start)
+        if [ ! -f "$CONFIG_FILE" ]; then
+    echo "Initializing config file with default values..."
+    load_config
+fi
         stop_monitoring >/dev/null 2>&1
        LOG_FILE="/var/log/powercontrol.log"
 
