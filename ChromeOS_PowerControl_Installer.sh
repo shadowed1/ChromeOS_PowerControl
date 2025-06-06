@@ -1,6 +1,5 @@
 #!/bin/bash
 
-# Function to detect CPU type
 detect_cpu_type() {
     CPU_VENDOR=$(grep -m1 'vendor_id' /proc/cpuinfo | awk '{print $3}' || echo "unknown")
     
@@ -25,9 +24,7 @@ detect_cpu_type() {
             TURBO_PATH=""
             ;;
     esac
-}
-
-# Function to load configuration settings
+    
 load_config() {
     if [ -f "$CONFIG_FILE" ]; then
         source "$CONFIG_FILE"
@@ -40,7 +37,6 @@ load_config() {
     fi
 }
 
-# Function to save configuration settings
 save_config() {
     echo "Saving configuration..."
     echo "STARTUP_BATTERYCONTROL=$STARTUP_BATTERYCONTROL" > "$CONFIG_FILE"
@@ -66,7 +62,6 @@ save_config() {
     echo "IS_ARM=$IS_ARM" >> "$CONFIG_FILE"
 }
 
-# Function to prompt user for enabling components at startup
 enable_component_on_boot() {
     local component="$1"
     read -rp "Do you want $component enabled on boot? (y/n): " enable_boot
@@ -86,7 +81,6 @@ enable_component_on_boot() {
         esac
     else
         echo "$component will not start on boot."
-        # Disable in config
         case $component in
             "BatteryControl")
                 STARTUP_BATTERYCONTROL=0
@@ -102,48 +96,49 @@ enable_component_on_boot() {
     save_config
 }
 
-# Main script logic
 detect_cpu_type
 echo "Detected CPU Vendor: $CPU_VENDOR"
 echo "PERF_PATH: $PERF_PATH"
 echo "TURBO_PATH: $TURBO_PATH"
 
-# Prompt for install directory
 read -rp "Enter Install Path - leave blank for: /usr/local/bin/ChromeOS_PowerControl: " INSTALL_DIR
 INSTALL_DIR="${INSTALL_DIR:-/usr/local/bin/ChromeOS_PowerControl}"
 INSTALL_DIR="${INSTALL_DIR%/}"
 echo "$INSTALL_DIR" | sudo tee usr/local/bin/ChromeOS_PowerControl.install_dir > /dev/null
+echo
 
-# Create install directory and download necessary files
 echo "Installing to: $INSTALL_DIR"
+echo
 sudo mkdir -p "$INSTALL_DIR"
 declare -a files=("powercontrol" "batterycontrol" "fancontrol" "Uninstall_ChromeOS_PowerControl.sh" "LICENSE" "README.md" "no_turbo.conf" "batterycontrol.conf" "powercontrol.conf" "fancontrol.conf" "config.sh")
 for file in "${files[@]}"; do
     curl -L "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/beta/$file" -o "$INSTALL_DIR/$file"
     echo "$INSTALL_DIR/$file downloaded."
+    echo
 done
 
 # Load configuration (or create a new one)
 CONFIG_FILE="$INSTALL_DIR/config.sh"
 load_config
 
-# Enable components on boot
 enable_component_on_boot "BatteryControl"
+echo
 enable_component_on_boot "FanControl"
+echo
 enable_component_on_boot "PowerControl"
+echo
 
-# Ask the user if they want to link global commands
 read -rp "Do you want to create global commands 'powercontrol', 'batterycontrol', and 'fancontrol'? (y/n): " link_cmd
 if [[ "$link_cmd" =~ ^[Yy]$ ]]; then
     sudo ln -sf "$INSTALL_DIR/powercontrol" /usr/local/bin/powercontrol
     sudo ln -sf "$INSTALL_DIR/batterycontrol" /usr/local/bin/batterycontrol
     sudo ln -sf "$INSTALL_DIR/fancontrol" /usr/local/bin/fancontrol
     echo "Global commands created for 'powercontrol', 'batterycontrol', and 'fancontrol'."
+    echo ""
 else
     echo "Skipped creating global commands."
 fi
 
-# Start components now (optional)
 start_component_now() {
     local component="$1"
     local command="$2"
@@ -151,14 +146,18 @@ start_component_now() {
     if [[ "$start_now" =~ ^[Yy]$ ]]; then
         sudo "$command" start
         echo "$component started in the background."
+        echo
     else
         echo "You can run it later with: sudo $command start"
     fi
 }
 
 start_component_now "BatteryControl" "$INSTALL_DIR/batterycontrol"
+echo
 start_component_now "PowerControl" "$INSTALL_DIR/powercontrol"
+echo
 start_component_now "FanControl" "$INSTALL_DIR/fancontrol"
+echo
 
 
 echo ""
@@ -174,7 +173,7 @@ echo "sudo powercontrol min_perf_pct 50     # Set minimum performance at max tem
 echo "sudo powercontrol max_temp 86         # Max temperature threshold"
 echo "sudo powercontrol min_temp 60         # Min temperature threshold"
 echo "sudo powercontrol monitor             # Live temperature monitoring"
-echo "sudo powercontrol startup 1             # Toggle 1 (on) 0 (off) for starting on boot."
+echo "sudo powercontrol startup 1           # Toggle 1 (on) 0 (off) for starting on boot."
 echo "sudo powercontrol help                # Help menu"
 echo ""
 echo "# BatteryControl Commands:"
