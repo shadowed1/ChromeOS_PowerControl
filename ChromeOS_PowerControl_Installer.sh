@@ -56,6 +56,7 @@ echo "Flag files created for BatteryControl, PowerControl, and FanControl."
 LOG_DIR="/var/log"
 CONFIG_FILE="$INSTALL_DIR/config.sh"
 sudo touch "$LOG_DIR/powercontrol.log" "$LOG_DIR/batterycontrol.log" "$LOG_DIR/fancontrol.log"
+sudo chmod +x "$LOG_DIR/powercontrol.log" "$LOG_DIR/batterycontrol.log" "$LOG_DIR/fancontrol.log"
 echo "Log files created for PowerControl, BatteryControl, and FanControl."
 
 USER_HOME="/home/chronos"
