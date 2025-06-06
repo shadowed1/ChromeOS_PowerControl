@@ -289,7 +289,6 @@ case "$1" in
         run_loop
         ;;
     ""|status)
-        load_config
         echo "FanControl Status:"
         if [ -f "$RUN_FLAG_BATTERY" ]; then
             PID=$(cat "$PID_FILE_FAN")
