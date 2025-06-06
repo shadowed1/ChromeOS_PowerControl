@@ -47,14 +47,14 @@ detect_cpu_type() {
 
      DEFAULT_POWER_MIN_TEMP=60
     DEFAULT_POWER_MAX_TEMP=86
-    DEFAULT_POWER_MIN_PERF_PCT=50
-    DEFAULT_POWER_MAX_PERF_PCT=100
+    DEFAULT_MIN_PERF_PCT=50
+    DEFAULT_MAX_PERF_PCT=100
     MAX_TEMP_LIMIT=90
 
 POWER_MAX_TEMP=""
-POWER_MAX_PERF_PCT=""
+MAX_PERF_PCT=""
 POWER_MIN_TEMP=""
-POWER_MIN_PERF_PCT=""
+MIN_PERF_PCT=""
 
 load_config() {
     if [ -f "$CONFIG_FILE" ]; then
@@ -73,9 +73,9 @@ fi
 save_config() {
     validate_config
     echo "POWER_MAX_TEMP=${POWER_MAX_TEMP:-$DEFAULT_POWER_MAX_TEMP}" > "$CONFIG_FILE"
-    echo "POWER_MAX_PERF_PCT=${POWER_MAX_PERF_PCT:-$DEFAULT_POWER_MAX_PERF_PCT}" >> "$CONFIG_FILE"
+    echo "MAX_PERF_PCT=${MAX_PERF_PCT:-$DEFAULT_MAX_PERF_PCT}" >> "$CONFIG_FILE"
     echo "POWER_MIN_TEMP=${POWER_MIN_TEMP:-$DEFAULT_POWER_MIN_TEMP}" >> "$CONFIG_FILE"
-    echo "POWER_MIN_PERF_PCT=${POWER_MIN_PERF_PCT:-$DEFAULT_POWER_MIN_PERF_PCT}" >> "$CONFIG_FILE"
+    echo "MIN_PERF_PCT=${MIN_PERF_PCT:-$DEFAULT_MIN_PERF_PCT}" >> "$CONFIG_FILE"
 }
 
 
@@ -154,7 +154,7 @@ set_min_perf_pct() {
         exit 1
     fi
     load_config
-    POWER_MIN_PERF_PCT=$1
+    MIN_PERF_PCT=$1
     save_config
     echo "Minimum performance percentage set to $MIN_PERF_PCT%"
 }
@@ -162,7 +162,9 @@ set_min_perf_pct() {
 validate_config() {
     # Fill defaults
     if [[ -z "$POWER_MAX_TEMP" ]]; then POWER_MAX_TEMP=$DEFAULT_POWER_MAX_TEMP; fi
+    if [[ -z "$MAX_PERF_PCT" ]]; then MAX_PERF_PCT=$DEFAULT_MAX_PERF_PCT; fi
     if [[ -z "$POWER_MIN_TEMP" ]]; then POWER_MIN_TEMP=$DEFAULT_POWER_MIN_TEMP; fi
+    if [[ -z "$MIN_PERF_PCT" ]]; then MIN_PERF_PCT=$DEFAUL_MIN_PERF_PCT; fi
 
     if (( POWER_MAX_TEMP > MAX_TEMP_LIMIT )); then
         echo "Warning: POWER_MAX_TEMP exceeds limit ($MAX_TEMP_LIMIT), resetting."
@@ -174,14 +176,14 @@ validate_config() {
         POWER_MIN_TEMP=$(( POWER_MAX_TEMP - 10 ))
     fi
 
-    if (( POWER_MIN_PERF_PCT < 10 || POWER_MIN_PERF_PCT > 100 )); then
-        echo "Warning: POWER_MIN_PERF_PCT out of bounds, resetting."
-        POWER_MIN_PERF_PCT=$DEFAULT_POWER_MIN_PERF_PCT
+    if (( MIN_PERF_PCT < 10 || MIN_PERF_PCT > 100 )); then
+        echo "Warning: MIN_PERF_PCT out of bounds, resetting."
+        IN_PERF_PCT=$DEFAULT_MIN_PERF_PCT
     fi
 
-    if (( POWER_MAX_PERF_PCT < POWER_MIN_PERF_PCT )); then
-        echo "Warning: POWER_MAX_PERF_PCT < POWER_MIN_PERF_PCT, adjusting."
-        POWER_MAX_PERF_PCT=$(( POWER_MIN_PERF_PCT + 10 ))
+    if (( MAX_PERF_PCT < MIN_PERF_PCT )); then
+        echo "Warning: MAX_PERF_PCT < MIN_PERF_PCT, adjusting."
+        MAX_PERF_PCT=$(( MIN_PERF_PCT + 10 ))
     fi
 }
 
