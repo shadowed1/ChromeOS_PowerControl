@@ -88,6 +88,7 @@ show_help() {
 
 # Show the current status of BatteryControl
 show_status() {
+    load_config
     echo "BatteryControl Status:"
     if [ -f "$RUN_FLAG" ]; then
         if [ -f "$PID_FILE" ]; then
