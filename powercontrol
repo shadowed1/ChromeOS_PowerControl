@@ -409,14 +409,27 @@ stop_monitoring() {
 }
 
 uninstall_script() {
+    if [ -z "$INSTALL_DIR" ]; then
+        echo "Error: INSTALL_DIR is not set."
+        exit 1
+    fi
+
     local script="$INSTALL_DIR/Uninstall_ChromeOS_PowerControl.sh"
-    if [ -x "$script" ]; then
-        sudo bash "$script"
+
+    if [ -d "$INSTALL_DIR" ]; then
+        if [ -x "$script" ]; then
+            echo "Uninstalling ChromeOS PowerControl..."
+            sudo bash "$script"
+        else
+            echo "Uninstall script not found or not executable at: $script"
+            exit 1
+        fi
     else
-        echo "Uninstall script not found or not executable at: $script"
+        echo "Installation directory not found: $INSTALL_DIR"
         exit 1
     fi
 }
+
 
 show_help() {
     echo "PowerControl Script - Available Commands:"
