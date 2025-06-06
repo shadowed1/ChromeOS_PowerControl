@@ -551,11 +551,12 @@ echo "$(date '+%Y-%m-%d %H:%M:%S') - PowerControl monitoring started in backgrou
                 echo "no_turbo.conf not found at $CONF_SOURCE_NO_TURBO"
             fi
         else
-            echo "Skipped copying no_turbo.conf."
+            echo "Intel Turbo Boost enabled on startup."
+            sudo rm -r /etc/init/no_turbo.conf
         fi
     fi
 
-    read -p "Do you want PowercControl to startup automatically on boot? (y/n): " choice
+    read -p "Do you want PowerControl to startup automatically on boot? (y/n): " choice
     if [[ "$choice" =~ ^[Yy]$ ]]; then
         if [ -f "$CONF_SOURCE" ]; then
             echo "Copying powercontrol.conf to /etc/init/..."
@@ -566,22 +567,6 @@ echo "$(date '+%Y-%m-%d %H:%M:%S') - PowerControl monitoring started in backgrou
         fi
     else
         echo "Skipped copying powercontrol.conf."
-    fi
-
-    if [ "$2" == "1" ]; then
-        echo "Startup enabled."
-    elif [ "$2" == "0" ]; then
-        if [ -f "$CONF_TARGET" ]; then
-            echo "PowerControl will not startup on boot."
-            sudo rm -f "$CONF_TARGET"
-            echo "Startup disabled."
-        else
-            echo "/etc/init/powercontrol.conf not found."
-        fi
-    else
-        echo "Usage: $0 startup 1   # Enable startup"
-        echo "       $0 startup 0   # Disable startup"
-        exit 1
     fi
     ;;
 
