@@ -82,7 +82,22 @@ case "$choice" in
         remove_file_with_message $INSTALL_DIR/.batterycontrol.config
         remove_file_with_message $INSTALL_DIR/.powercontrol.config
         remove_file_with_message $INSTALL_DIR/.fancontrol.config
+
+        echo "Removing enabled flags"
         remove_file_with_message $INSTALL_DIR/.fancontrol.enabled
+        remove_file_with_message $INSTALL_DIR/.powercontrol.enabled
+        remove_file_with_message $INSTALL_DIR/.batterycontrol.enabled
+
+        echo "Removing PID files"
+        remove_file_with_message $INSTALL_DIR/.fancontrol.pid
+        remove_file_with_message $INSTALL_DIR/.powercontrol.pid
+        remove_file_with_message $INSTALL_DIR/.batterycontrol.pid
+
+        echo "Removing programs"
+        remove_file_with_message $INSTALL_DIR/powercontrol
+        remove_file_with_message $INSTALL_DIR/fancontrol
+        remove_file_with_message $INSTALL_DIR/batterycontrol
+        
 
         # Remove the installation directory if it's empty
         if [ -d "$INSTALL_DIR" ] && [ -z "$(ls -A "$INSTALL_DIR")" ]; then
