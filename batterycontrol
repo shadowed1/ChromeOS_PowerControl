@@ -1,16 +1,15 @@
 #!/bin/bash
 
-INSTALL_DIR="${INSTALL_DIR:-/usr/local/bin/ChromeOS_PowerControl}"
+INSTALL_DIR_FILE="/usr/local/bin/ChromeOS_PowerControl.install_dir"
+if [ -f "$INSTALL_DIR_FILE" ]; then
+    INSTALL_DIR=$(cat "$INSTALL_DIR_FILE")
+else
+    INSTALL_DIR="/usr/local/bin/ChromeOS_PowerControl"
+fi
 INSTALL_DIR="${INSTALL_DIR%/}"
-USER_HOME="/home/chronos"
+
 CONFIG_FILE="$INSTALL_DIR/config.sh"
 
-if [ -f "$CONFIG_FILE" ]; then
-    source "$CONFIG_FILE"
-else
-    echo "Missing configuration file: $CONFIG_FILE"
-    exit 1
-fi
 CHARGER_PATH="/sys/class/power_supply/CROS_USBPD_CHARGER0/online"
 BATTERY_PATH="/sys/class/power_supply/BAT0/capacity"
 RUN_FLAG="$INSTALL_DIR/.batterycontrol_enabled"
