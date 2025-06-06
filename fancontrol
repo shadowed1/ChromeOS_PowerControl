@@ -59,7 +59,7 @@ EOF
 cleanup() {
     echo "Restoring automatic fan control..." | tee -a "$FAN_LOG_FILE"
     sudo ectool autofanctrl
-    rm -f "$RUN_FLAG_BATTERY" "$PID_FILE"
+    rm -f "$RUN_FLAG_BATTERY" "$PID_FILE_FAN"
     exit 0
 }
 
@@ -136,8 +136,8 @@ start() {
 }
 
 stop() {
-    if [ -f "$PID_FILE" ]; then
-        PID=$(cat "$PID_FILE")
+    if [ -f "$PID_FILE_FAN" ]; then
+        PID=$(cat "$PID_FILE_FAN")
         echo "Stopping fan curve (PID $PID)..." | tee -a "$FAN_LOG_FILE"
         rm -f "$RUN_FLAG_BATTERY"
         kill "$PID" 2>/dev/null
@@ -147,7 +147,7 @@ stop() {
     sleep 1
     echo "Restoring automatic fan control..." | tee -a "$FAN_LOG_FILE"
     sudo ectool autofanctrl
-    rm -f "$RUN_FLAG_BATTERY" "$PID_FILE"
+    rm -f "$RUN_FLAG_BATTERY" "$PID_FILE_FAN"
 }
 
 monitor() {
@@ -284,7 +284,7 @@ case "$1" in
     stepup)   set_stepup "$@" ;;
     stepdown) set_stepdown "$@" ;;
     __monitor__)
-        echo $$ > "$PID_FILE"
+        echo $$ > "$PID_FILE_FAN"
         touch "$RUN_FLAG_BATTERY"
         run_loop
         ;;
@@ -292,7 +292,7 @@ case "$1" in
         load_config
         echo "FanControl Status:"
         if [ -f "$RUN_FLAG_BATTERY" ]; then
-            PID=$(cat "$PID_FILE")
+            PID=$(cat "$PID_FILE_FAN")
             if ps -p "$PID" > /dev/null 2>&1; then
                 echo "  Status: ENABLED (PID $PID)"
             else
