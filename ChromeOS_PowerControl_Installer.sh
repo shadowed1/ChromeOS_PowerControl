@@ -121,38 +121,38 @@ start_component_now "FanControl" "$INSTALL_DIR/fancontrol"
 # Display Commands
 echo ""
 echo "Commands with examples:"
-echo "
-# PowerControl Commands:
-sudo powercontrol                     # Show status
-sudo powercontrol start               # Throttle CPU based on temperature curve
-sudo powercontrol stop                # Restore default CPU settings
-sudo powercontrol no_turbo 1          # Disable turbo boost
-sudo powercontrol max_perf_pct 75     # Set max performance percentage
-sudo powercontrol min_perf_pct 50     # Set minimum performance at max temp
-sudo powercontrol max_temp 86         # Max temperature threshold
-sudo powercontrol min_temp 60         # Min temperature threshold
-sudo powercontrol monitor             # Live temperature monitoring
-sudo powercontrol help                # Help menu
-
-# BatteryControl Commands:
-sudo batterycontrol start             # Start BatteryControl
-sudo batterycontrol stop              # Stop BatteryControl
-sudo batterycontrol status            # Check BatteryControl status
-sudo batterycontrol set 80 75         # Set max/min battery charge thresholds
-sudo batterycontrol help              # Help menu
-
-# FanControl Commands:
-sudo fancontrol                       # Show fan status
-sudo fancontrol start                 # Start FanControl
-sudo fancontrol stop                  # Stop FanControl
-sudo fancontrol min_temp 50           # Min temp threshold
-sudo fancontrol max_temp 90           # Max temp threshold
-sudo fancontrol min_fan 0             # Min fan speed %
-sudo fancontrol max_fan 100           # Max fan speed %
-sudo fancontrol stepup 20             # Fan step-up %
-sudo fancontrol stepdown 1            # Fan step-down %
-sudo fancontrol help                  # Help menu
-
-sudo powercontrol uninstall           # Run uninstaller
-Alternative: sudo bash "$INSTALL_DIR/Uninstall_ChromeOS_PowerControl.sh""
+echo ""
+echo "# PowerControl Commands:"
+echo "sudo powercontrol                     # Show status"
+echo "sudo powercontrol start               # Throttle CPU based on temperature curve"
+echo "sudo powercontrol stop                # Restore default CPU settings"
+echo "sudo powercontrol no_turbo 1          # Disable turbo boost"
+echo "sudo powercontrol max_perf_pct 75     # Set max performance percentage"
+echo "sudo powercontrol min_perf_pct 50     # Set minimum performance at max temp"
+echo "sudo powercontrol max_temp 86         # Max temperature threshold"
+echo "sudo powercontrol min_temp 60         # Min temperature threshold"
+echo "sudo powercontrol monitor             # Live temperature monitoring"
+echo "sudo powercontrol help                # Help menu"
+echo ""
+echo "# BatteryControl Commands:
+echo "sudo batterycontrol start             # Start BatteryControl"
+echo "sudo batterycontrol stop              # Stop BatteryControl"
+echo "sudo batterycontrol status            # Check BatteryControl status"
+echo "sudo batterycontrol set 80 75         # Set max/min battery charge thresholds"
+echo "sudo batterycontrol help              # Help menu"
+echo ""
+echo "# FanControl Commands:
+echo "sudo fancontrol                       # Show fan status"
+echo "sudo fancontrol start                 # Start FanControl"
+echo "sudo fancontrol stop                  # Stop FanControl"
+echo "sudo fancontrol min_temp 50           # Min temp threshold"
+echo "sudo fancontrol max_temp 90           # Max temp threshold"
+echo "sudo fancontrol min_fan 0             # Min fan speed %"
+echo "sudo fancontrol max_fan 100           # Max fan speed %"
+echo "sudo fancontrol stepup 20             # Fan step-up %"
+echo "sudo fancontrol stepdown 1            # Fan step-down %" 
+echo "sudo fancontrol help                  # Help menu"
+echo ""
+echo "sudo powercontrol uninstall           # Run uninstaller"
+echo "Alternative: sudo bash "$INSTALL_DIR/Uninstall_ChromeOS_PowerControl.sh" "
 
