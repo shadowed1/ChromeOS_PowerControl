@@ -12,7 +12,7 @@ CONFIG_FILE="$INSTALL_DIR/config.sh"
 
 
 ZONE_PATH="/sys/class/thermal/thermal_zone0/temp"
-RUN_FLAG="$INSTALL_DIR/.fan_curve_running"
+RUN_FLAG_FAN="$INSTALL_DIR/.fan_curve_running"
 PID_FILE="$INSTALL_DIR/.fan_curve_pid"
 LOG_FILE="/var/log/fancontrol.log"
 MONITOR_PID_FILE="$INSTALL_DIR/powercontrol_tail_fan_monitor.pid"
@@ -61,7 +61,7 @@ EOF
 cleanup() {
     echo "$(date '+%Y-%m-%d %H:%M:%S') - Restoring automatic fan control..." | tee -a "$LOG_FILE"
     sudo ectool autofanctrl
-    rm -f "$RUN_FLAG" "$PID_FILE"
+    rm -f "$RUN_FLAG_FAN" "$PID_FILE"
     exit 0
 }
 
@@ -71,7 +71,7 @@ run_loop() {
 
     local last_duty=-1
 
-    while [ -f "$RUN_FLAG" ]; do
+    while [ -f "$RUN_FLAG_FAN" ]; do
         if [ ! -f "$ZONE_PATH" ]; then
             echo "Thermal zone not found: $ZONE_PATH"
             cleanup
@@ -141,7 +141,7 @@ stop() {
     if [ -f "$PID_FILE" ]; then
         PID=$(cat "$PID_FILE")
         echo "$(date '+%Y-%m-%d %H:%M:%S') - Stopping fan curve (PID $PID)..." | tee -a "$LOG_FILE"
-        rm -f "$RUN_FLAG"
+        rm -f "$RUN_FLAG_FAN"
         kill "$PID" 2>/dev/null
         sleep 1
     fi
@@ -149,7 +149,7 @@ stop() {
     sleep 1
     echo "$(date '+%Y-%m-%d %H:%M:%S') - Restoring automatic fan control..." | tee -a "$LOG_FILE"
     sudo ectool autofanctrl
-    rm -f "$RUN_FLAG" "$PID_FILE"
+    rm -f "$RUN_FLAG_FAN" "$PID_FILE"
 }
 
 monitor() {
@@ -289,13 +289,13 @@ case "$1" in
     __monitor__)
         LOG_FILE="/var/log/fancontrol.log"
         echo $$ > "$PID_FILE"
-        touch "$RUN_FLAG"
+        touch "$RUN_FLAG_FAN"
         run_loop
         ;;
     ""|status)
         load_config
         echo "FanControl Status:"
-        if [ -f "$RUN_FLAG" ]; then
+        if [ -f "$RUN_FLAG_FAN" ]; then
             PID=$(cat "$PID_FILE")
             if ps -p "$PID" > /dev/null 2>&1; then
                 echo "  Status: ENABLED (PID $PID)"
