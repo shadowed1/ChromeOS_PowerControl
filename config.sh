@@ -52,8 +52,9 @@ FAN_LOG="/var/log/fancontrol.log"
 
 RUN_FLAG_FAN="$INSTALL_DIR/.fan_curve_running"
 PID_FILE="$INSTALL_DIR/.fancontrol.pid"
-MONITOR_PID_FILE_FAN="$INSTALL_DIR/powercontrol_tail_fan_monitor.pid"
-RUN_FLAG="$INSTALL_DIR/.powercontrol_enabled"
+MONITOR_PID_FILE_FAN="$INSTALL_DIR/fancontrol_tail_fan_monitor.pid"
+MONITOR_PID_FILE_POWER="$INSTALL_DIR/powercontrol_tail_fan_monitor.pid"
+RUN_FLAG_POWER="$INSTALL_DIR/.powercontrol_enabled"
 PID_FILE_POWER="$INSTALL_DIR/.powercontrol_pid"
 NO_TURBO_BACKUP="$INSTALL_DIR/.no_turbo_backup"
 
@@ -150,10 +151,14 @@ export BATTERY_PATH
 export ZONE_PATH
 export RUN_FLAG_FAN
 export RUN_FLAG_BATTERY
-export PID_FILE
-export MONITOR_PID_FILE_FAN
-export RUN_FLAG
+export PID_FILE_BATTERY
+export PID_FILE_FAN
 export PID_FILE_POWER
+export MONITOR_PID_FILE_FAN
+export MONITOR_PID_FILE_POWER
+export RUN_FLAG_BATTERY
+export RUN_FLAG_FAN
+export RUN_FLAG_POWER
 export NO_TURBO_BACKUP
 export PERF_PATH
 export TURBO_PATH
