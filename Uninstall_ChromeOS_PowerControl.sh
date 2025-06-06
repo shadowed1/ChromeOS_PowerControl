@@ -78,6 +78,12 @@ case "$choice" in
         remove_file_with_message /var/log/fancontrol.log
         remove_file_with_message /var/log/batterycontrol.log
 
+        echo "Removing configs"
+        remove_file_with_message $INSTALL_DIR/.batterycontrol.config
+        remove_file_with_message $INSTALL_DIR/.powercontrol.config
+        remove_file_with_message $INSTALL_DIR/.fancontrol.config
+        remove_file_with_message $INSTALL_DIR/.fancontrol.enabled
+
         # Remove the installation directory if it's empty
         if [ -d "$INSTALL_DIR" ] && [ -z "$(ls -A "$INSTALL_DIR")" ]; then
             sudo rm -rf "$INSTALL_DIR" && echo "Removed: $INSTALL_DIR"
