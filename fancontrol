@@ -5,15 +5,15 @@ CONFIG_FILE="$INSTALL_DIR/config.sh"
 ZONE_PATH="/sys/class/thermal/thermal_zone0/temp"
 RUN_FLAG_BATTERY="$INSTALL_DIR/.fan_curve_running"
 PID_FILE="$INSTALL_DIR/.fan_curve_pid"
-LOG_FILE="$INSTALL_DIR/fancontrol.log"
+LOG_FILE=var/log/fancontrol.log"
 MONITOR_PID_FILE="/tmp/powercontrol_tail_fan_monitor.pid"
 
-DEFAULT_MIN_TEMP=48
-DEFAULT_MAX_TEMP=81
-DEFAULT_MIN_FAN=0
-DEFAULT_MAX_FAN=100
-DEFAULT_SLEEP_INTERVAL=3
-DEFAULT_STEP_UP=20
+DEFAULT_FAN_MIN_TEMP=48   # Minimum fan control temperature
+DEFAULT_FAN_MAX_TEMP=81   # Maximum fan control temperature
+DEFAULT_MIN_FAN=0         # Minimum fan speed
+DEFAULT_MAX_FAN=100       # Maximum fan speed
+DEFAULT_SLEEP_INTERVAL=3   
+DEFAULT_STEP_UP=20        
 DEFAULT_STEP_DOWN=1
 
 SLEEP_INTERVAL=$DEFAULT_SLEEP_INTERVAL
