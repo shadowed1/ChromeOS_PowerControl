@@ -43,6 +43,14 @@ case "$choice" in
         echo "Stopping background services..."
 
         sudo initctl stop no_turbo 2>/dev/null
+        source "$INSTALL_DIR/powercontrol"
+        detect_cpu_type
+        
+"$INSTALL_DIR/powercontrol" stop
+"$INSTALL_DIR/powercontrol" max_perf_pct 100
+"$INSTALL_DIR/powercontrol" no_turbo 0
+
+
         
         $INSTALL_DIR/powercontrol max_perf_pct 100
         $INSTALL_DIR/powercontrol stop
