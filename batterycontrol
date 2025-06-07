@@ -12,9 +12,9 @@ CONFIG_FILE="$INSTALL_DIR/config.sh"
 
 CHARGER_PATH="/sys/class/power_supply/CROS_USBPD_CHARGER0/online"
 BATTERY_PATH="/sys/class/power_supply/BAT0/capacity"
-RUN_FLAG_BATTERY="$INSTALL_DIR/.batterycontrol_enabled"
-PID_FILE_BATTERY="$INSTALL_DIR/.batterycontrol_pid"
-BATTERY_LOG="/var/log/batterycontrol.log"
+RUN_FLAG="$INSTALL_DIR/.batterycontrol_enabled"
+PID_FILE="$INSTALL_DIR/.batterycontrol_pid"
+LOG="/var/log/batterycontrol.log"
 
 DEFAULT_CHARGE_MAX=77
 DEFAULT_CHARGE_MIN=74
@@ -87,14 +87,14 @@ show_help() {
 
 battery_status() {
     echo "BatteryControl Status:"
-    if [ -f "$RUN_FLAG_BATTERY" ]; then
-        if [ -f "$PID_FILE_BATTERY" ]; then
-            PID=$(cat "$PID_FILE_BATTERY")
+    if [ -f "$RUN_FLAG" ]; then
+        if [ -f "$PID_FILE" ]; then
+            PID=$(cat "$PID_FILE")
             if ps -p "$PID" > /dev/null 2>&1; then
                 echo "  BatteryControl is: ENABLED (running, PID $PID)"
             else
                 echo "  BatteryControl is: ENABLED (but process is NOT running)"
-                rm -f "$PID_FILE_BATTERY"
+                rm -f "$PID_FILE"
             fi
         else
             echo "  BatteryControl is: ENABLED (PID not found)"
@@ -108,15 +108,15 @@ battery_status() {
 }
 
 start_monitoring_loop() {
-    touch "$RUN_FLAG_BATTERY"
-    echo $$ > "$PID_FILE_BATTERY"
+    touch "$RUN_FLAG"
+    echo $$ > "$PID_FILE"
 
     echo "BatteryControl started - keep it running for it to remain functioning. (PID $$)."
 
     while true; do
-        if [ ! -f "$RUN_FLAG_BATTERY" ]; then
+        if [ ! -f "$RUN_FLAG" ]; then
             echo "BatteryControl disabled, exiting monitoring loop."
-            rm -f "$PID_FILE_BATTERY"
+            rm -f "$PID_FILE"
             exit 0
         fi
 
@@ -151,17 +151,17 @@ start_monitoring_loop() {
 }
 
 stop_monitoring() {
-    if [ -f "$PID_FILE_BATTERY" ]; then
-        PID=$(cat "$PID_FILE_BATTERY")
+    if [ -f "$PID_FILE" ]; then
+        PID=$(cat "$PID_FILE")
         if ps -p "$PID" > /dev/null 2>&1; then
             kill "$PID"
             echo "Stopped BatteryControl process (PID $PID)."
         else
             echo "Process with PID $PID not found. Cleaning up stale PID file."
         fi
-        rm -f "$PID_FILE_BATTERY"
+        rm -f "$PID_FILE"
     fi
-    rm -f "$RUN_FLAG_BATTERY"
+    rm -f "$RUN_FLAG"
     echo "BatteryControl disabled."
 }
 
