@@ -71,7 +71,7 @@ set_thresholds() {
 
     load_config
 
-    echo "Battery Charge Status: MAX=$1, MIN=$2"
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - Battery Charge Status: MAX=$1, MIN=$2"
     CHARGE_MAX=$1
     CHARGE_MIN=$2
     save_config
@@ -96,16 +96,16 @@ battery_status() {
         if [ -f "$PID_FILE" ]; then
             PID=$(cat "$PID_FILE")
             if ps -p "$PID" > /dev/null 2>&1; then
-                echo "  BatteryControl is: ENABLED (running, PID $PID)"
+                echo "BatteryControl is: ENABLED (running, PID $PID)"
             else
-                echo "  BatteryControl is: ENABLED (but process is NOT running)"
+                echo "BatteryControl is: ENABLED (but process is NOT running)"
                 rm -f "$PID_FILE"
             fi
         else
-            echo "  BatteryControl is: ENABLED (PID not found)"
+            echo "BatteryControl is: ENABLED (PID not found)"
         fi
     else
-        echo "  BatteryControl is: DISABLED"
+        echo " BatteryControl is: DISABLED"
     fi
 
     echo "  CHARGE_MAX: $CHARGE_MAX"
@@ -116,11 +116,11 @@ start_monitoring_loop() {
     touch "$RUN_FLAG"
     echo $$ > "$PID_FILE"
 
-    echo "BatteryControl started - keep it running for it to remain functioning. (PID $$)."
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - BatteryControl started - keep it running for it to remain functioning. (PID $$)."
 
     while true; do
         if [ ! -f "$RUN_FLAG" ]; then
-            echo "BatteryControl disabled, exiting monitoring loop."
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - BatteryControl disabled, exiting monitoring loop."
             rm -f "$PID_FILE"
             exit 0
         fi
