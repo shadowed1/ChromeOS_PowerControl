@@ -40,7 +40,9 @@ declare -a files=("powercontrol" "batterycontrol" "fancontrol" "Uninstall_Chrome
 for file in "${files[@]}"; do
     curl -L "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/beta/$file" -o "$INSTALL_DIR/$file"
     echo "$INSTALL_DIR/$file downloaded."
+    echo ""
 done
+
 
 detect_cpu_type
 echo "Detected CPU Vendor: $CPU_VENDOR"
@@ -75,8 +77,9 @@ if [ ! -f "$CONFIG_FILE" ]; then
     echo "FAN_STEP_UP=20" >> "$CONFIG_FILE"
     echo "FAN_STEP_DOWN=1" >> "$CONFIG_FILE"
     echo "Config created."
+    echo "Settings stored at: $CONFIG_FILE"
 else
-    echo "Config file already exists at $CONFIG_FILE"
+    echo "Settings stored at: $CONFIG_FILE"
 fi
 
 echo "PERF_PATH=$PERF_PATH" >> "$CONFIG_FILE"
@@ -162,7 +165,7 @@ start_component_now "FanControl" "$INSTALL_DIR/fancontrol"
 echo ""
 echo "Commands with examples:"
 echo ""
-echo "# PowerControl Commands:"
+echo "# PowerControl:"
 echo "sudo powercontrol                     # Show status"
 echo "sudo powercontrol start               # Throttle CPU based on temperature curve"
 echo "sudo powercontrol stop                # Restore default CPU settings"
@@ -174,14 +177,14 @@ echo "sudo powercontrol min_temp 60         # Min temperature threshold"
 echo "sudo powercontrol monitor             # Live temperature monitoring"
 echo "sudo powercontrol help                # Help menu"
 echo ""
-echo "# BatteryControl Commands:"
+echo "# BatteryControl:"
+echo "sudo batterycontrol                   # Check BatteryControl status"
 echo "sudo batterycontrol start             # Start BatteryControl"
 echo "sudo batterycontrol stop              # Stop BatteryControl"
-echo "sudo batterycontrol status            # Check BatteryControl status"
 echo "sudo batterycontrol set 80 75         # Set max/min battery charge thresholds"
 echo "sudo batterycontrol help              # Help menu"
 echo ""
-echo "# FanControl Commands:"
+echo "# FanControl:"
 echo "sudo fancontrol                       # Show fan status"
 echo "sudo fancontrol start                 # Start FanControl"
 echo "sudo fancontrol stop                  # Stop FanControl"
