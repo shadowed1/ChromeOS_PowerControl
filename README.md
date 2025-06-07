@@ -1,5 +1,5 @@
 # **ChromeOS PowerControl**
-# Beta: Custom Install location, logs moved to /var/log/, /etc/init startup commands, unified config file, and more. 
+# Beta: Custom Install location, logs moved to /var/log/, added /etc/init startup commands, unified config file, time stamps, bug fixes, and more. 
 ## Requires Developer Mode - Supports AMD, ARM, and Intel.
 ## - Control battery charging limit instead of relying on Adaptive Charging to maximize battery longevity. 
 ## - Control CPU clock speed boost in relation to temperature; enabling lower temperatures under load and longer battery life.
@@ -34,6 +34,7 @@
 - `sudo powercontrol max_temp 86         # Threshold when min_perf_pct is reached. Limit is 90 Celcius.`
 - `sudo powercontrol min_temp 60         # Threshold when max_perf_pct is reached.`
 - `sudo powercontrol monitor             # Updates log real-time in terminal window; run again to toggle off. `
+- `sudo powercontrol startup 1`
 - `sudo powercontrol help                # Show list of commands. `
   
 ----------------------------------------------------------------------------------------------
