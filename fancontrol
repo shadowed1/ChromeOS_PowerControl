@@ -322,18 +322,22 @@ case "$1" in
     monitor) monitor ;;
     fan_min_temp) fan_min_temp "$@" ;;
     fan_max_temp) fan_max_temp "$@" ;;
-    min_fan)  min_fan "$@" ;;
-    max_fan)  max_fan "$@" ;;
-    update)   set_sleep_interval "$@" ;;
-    stepup)   set_stepup "$@" ;;
+    min_fan) min_fan "$@" ;;
+    max_fan) max_fan "$@" ;;
+    update) set_sleep_interval "$@" ;;
+    stepup) set_stepup "$@" ;;
     stepdown) set_stepdown "$@" ;;
-    __monitor__)
+    __monitor__) 
         echo $$ > "$PID_FILE"
         touch "$RUN_FLAG"
         run_loop
         ;;
-        
-        if [ "$2" = "1" ]; then
+    startup)
+        CONF_SOURCE="$INSTALL_DIR/fancontrol.conf"
+        CONF_TARGET="/etc/init/fancontrol.conf"
+
+        read -p "Do you want FanControl to startup automatically? (y/n): " choice
+        if [[ "$choice" =~ ^[Yy]$ ]]; then
             if [ -f "$CONF_SOURCE" ]; then
                 echo "Copying fancontrol.conf to /etc/init/..."
                 sudo cp "$CONF_SOURCE" "$CONF_TARGET"
@@ -342,58 +346,10 @@ case "$1" in
                 echo "fancontrol.conf not found at $CONF_SOURCE"
                 exit 1
             fi
-        elif [ "$2" == "0" ]; then
-            if [ -f "$CONF_TARGET" ]; then
-                echo "Removing /etc/init/fancontrol.conf..."
-                sudo rm -f "$CONF_TARGET"
-                echo "Startup disabled."
-            else
-                echo "/etc/init/fancontrol.conf not found."
-            fi
         else
-            echo "Usage: $0 startup 1   # Enable startup"
-            echo "       $0 startup 0   # Disable startup"
-            exit 1
+            echo "FanControl will not startup automatically."
+            sudo rm -f "$CONF_TARGET"
         fi
-        ;;
-    ""|status)
-        echo "FanControl Status:"
-        if [ -f "$RUN_FLAG" ]; then
-            PID=$(cat "$PID_FILE")
-            if ps -p "$PID" > /dev/null 2>&1; then
-                echo "  Status: ENABLED (PID $PID)"
-            else
-                echo "  Status: RUN FLAG PRESENT, but process not running"
-            fi
-        else
-            echo "  Status: DISABLED"
-        fi
-        echo
-        echo "Hardware Info:"
-        echo
-        sudo ectool pwmgetnumfans
-        sudo ectool pwmgetfanrpm all
-        echo "Fan curve: $FAN_MIN_TEMP°C = ${MIN_FAN}%, $FAN_MAX_TEMP°C = ${MAX_FAN}%"
-        echo "Sleep interval: $SLEEP_INTERVAL seconds"
-        echo "Step-up: $STEP_UP%, Step-down: $STEP_DOWN%"
-        ;;
-         startup)
-        CONF_SOURCE="$INSTALL_DIR/fancontrol.conf"
-        CONF_TARGET="/etc/init/fancontrol.conf"
-
-        read -p "Do you want FanControl to startup automatically? (y/n): " choice
-    if [[ "$choice" =~ ^[Yy]$ ]]; then
-        if [ -f "$CONF_SOURCE" ]; then
-            echo "Copying fancontrol.conf to /etc/init/..."
-            sudo cp "$CONF_SOURCE" "$CONF_TARGET"
-            echo "fancontrol.conf copied."
-        else
-            echo "fancontrol.conf not found at $CONF_SOURCE"
-        fi
-    else
-        echo "FanControl will not startup automatically."
-        sudo rm -r "$CONF_TARGET"
-    fi
         ;;
     help) show_help ;;
     *) echo "Unknown command: $1"; show_help ;;
