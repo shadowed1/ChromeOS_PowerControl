@@ -60,7 +60,6 @@ sudo chmod +x "$LOG_DIR/powercontrol.log" "$LOG_DIR/batterycontrol.log" "$LOG_DI
 echo "Log files created for PowerControl, BatteryControl, and FanControl."
 
 USER_HOME="/home/chronos"
-if [ ! -f "$CONFIG_FILE" ]; then
     echo "Creating config at $CONFIG_FILE"
     echo "CHARGE_MAX=77" >> "$CONFIG_FILE"
     echo "CHARGE_MIN=74" >> "$CONFIG_FILE"
@@ -75,10 +74,6 @@ if [ ! -f "$CONFIG_FILE" ]; then
     echo "FAN_SLEEP_INTERVAL=3" >> "$CONFIG_FILE"
     echo "FAN_STEP_UP=20" >> "$CONFIG_FILE"
     echo "FAN_STEP_DOWN=1" >> "$CONFIG_FILE"
-    echo "Config created."
-else
-    echo "Config file already exists at $CONFIG_FILE"
-fi
 
 echo "PERF_PATH=$PERF_PATH" >> "$CONFIG_FILE"
 echo "TURBO_PATH=$TURBO_PATH" >> "$CONFIG_FILE"
