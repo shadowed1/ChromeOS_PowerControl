@@ -245,20 +245,6 @@ restore_no_turbo() {
     fi
 }
 
-monitor() {
-    if [ -f "$MONITOR_PID_FILE" ]; then
-        MONITOR_PID=$(cat "$MONITOR_PID_FILE")
-        if ps -p "$MONITOR_PID" > /dev/null 2>&1; then
-            echo "Stopping monitor (PID $MONITOR_PID)..."
-            kill "$MONITOR_PID"
-            rm -f "$MONITOR_PID_FILE"
-            exit 0
-        else
-            rm -f "$MONITOR_PID_FILE"
-        fi
-    fi
-}
-
 start_monitoring_loop() {
     load_config
     detect_cpu_type
@@ -542,13 +528,13 @@ echo "$(date '+%Y-%m-%d %H:%M:%S') - PowerControl monitoring started in backgrou
         ;;
   monitor)
     LOG_FILE="/var/log/powercontrol.log"
-    MONITOR_PID_FILE="/tmp/powercontrol_tail_fan_monitor.pid"
+    MONITOR_PID_FILE="$INSTALL_DIR/powercontrol_tail_monitor.pid"
 
-    if [ -f "$MONITOR_PID_POWER" ]; then
-        MONITOR_PID_POWER=$(cat "$MONITOR_PID_FILE")
-        if ps -p "$MONITOR_PID_POWER" > /dev/null 2>&1; then
-            echo "Stopping monitor (PID $MONITOR_PID_POWER)..."
-            kill "$MONITOR_PID_POWER"
+    if [ -f "$MONITOR_PID_FILE" ]; then
+        MONITOR_PID=$(cat "$MONITOR_PID_FILE")
+        if ps -p "$MONITOR_PID" > /dev/null 2>&1; then
+            echo "Stopping monitor (PID $MONITOR_PID)..."
+            kill "$MONITOR_PID"
             rm -f "$MONITOR_PID_FILE"
             exit 0
         else
@@ -556,7 +542,7 @@ echo "$(date '+%Y-%m-%d %H:%M:%S') - PowerControl monitoring started in backgrou
         fi
     fi
 
-    tail -fn +1 "$POWER_LOG" &
+    tail -fn +1 "$LOG_FILE" &
     echo $! > "$MONITOR_PID_FILE"
     echo "Monitor started (PID $!)"
     ;;
@@ -595,7 +581,6 @@ echo "$(date '+%Y-%m-%d %H:%M:%S') - PowerControl monitoring started in backgrou
         sudo rm -f /etc/init/powercontrol.conf
     fi
     ;;
-    monitor) monitor ;;
     __monitor__)
         LOG_FILE="/var/log/powercontrol.log"
         start_monitoring_loop
