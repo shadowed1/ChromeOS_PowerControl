@@ -110,7 +110,7 @@ cleanup() {
 run_loop() {
     sudo ectool autofanctrl
     echo "Fan curve started. Press Ctrl+C to stop." | tee -a "$LOG_FILE"
-
+    
     local last_duty=-1
 
     while [ -f "$RUN_FLAG" ]; do
@@ -152,11 +152,11 @@ run_loop() {
 
         if (( last_duty > 0 && target_duty == 0 )); then
             echo "Applying kickstart at ${KICKSTART_DUTY}% before setting to 0%" >> "$LOG_FILE"
-            sudo ectool fanduty "$KICKSTART_DUTY"
+            sudo ectool fanduty "$KICKSTART_DUTY" | grep -v "Fan duty cycle set for all fans." >> "$LOG_FILE"
             sleep 1
-            sudo ectool fanduty 0
+            sudo ectool fanduty 0 | grep -v "Fan duty cycle set for all fans." >> "$LOG_FILE"
         else
-            sudo ectool fanduty "$target_duty"
+            sudo ectool fanduty "$target_duty" | grep -v "Fan duty cycle set for all fans." >> "$LOG_FILE"
         fi
 
         last_duty=$target_duty
@@ -176,7 +176,7 @@ start() {
     fi
 
     nohup "$0" __monitor__ >> "$LOG_FILE" 2>&1 &
-    echo "FanControl started in background. Output is logged to $LOG_FILE"
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - FanControl started in background. Output is logged to $LOG_FILE"
 }
 
 stop() {
@@ -187,7 +187,7 @@ stop() {
         kill "$PID" 2>/dev/null
         sleep 1
     fi
-    sudo ectool fanduty 50
+    sudo ectool fanduty 50 | grep -v "Fan duty cycle set for all fans." >> "$LOG_FILE"
     sleep 1
     echo "Restoring automatic fan control..." | tee -a "$LOG_FILE"
     sudo ectool autofanctrl
