@@ -316,41 +316,46 @@ show_help() {
     echo "  help                  Show this help message"
 }
 
+# === Entry Point ===
 case "$1" in
     start) start ;;
     stop) stop ;;
     monitor) monitor ;;
-    fan_min_temp) fan_min_temp "$@" ;;
-    fan_max_temp) fan_max_temp "$@" ;;
-    min_fan) min_fan "$@" ;;
-    max_fan) max_fan "$@" ;;
-    update) set_sleep_interval "$@" ;;
-    stepup) set_stepup "$@" ;;
+    min_temp) set_min_temp "$@" ;;
+    max_temp) set_max_temp "$@" ;;
+    min_fan)  set_min_fan "$@" ;;
+    max_fan)  set_max_fan "$@" ;;
+    update)   set_sleep_interval "$@" ;;
+    stepup)   set_stepup "$@" ;;
     stepdown) set_stepdown "$@" ;;
-    __monitor__) 
+    __monitor__)
         echo $$ > "$PID_FILE"
         touch "$RUN_FLAG"
         run_loop
         ;;
-    startup)
-        CONF_SOURCE="$INSTALL_DIR/fancontrol.conf"
-        CONF_TARGET="/etc/init/fancontrol.conf"
-
-        read -p "Do you want FanControl to startup automatically? (y/n): " choice
-        if [[ "$choice" =~ ^[Yy]$ ]]; then
-            if [ -f "$CONF_SOURCE" ]; then
-                echo "Copying fancontrol.conf to /etc/init/..."
-                sudo cp "$CONF_SOURCE" "$CONF_TARGET"
-                echo "Startup enabled."
+    ""|status)
+        load_config
+        echo "FanControl Status:"
+        if [ -f "$RUN_FLAG" ]; then
+            PID=$(cat "$PID_FILE")
+            if ps -p "$PID" > /dev/null 2>&1; then
+                echo "  Status: ENABLED (PID $PID)"
             else
-                echo "fancontrol.conf not found at $CONF_SOURCE"
-                exit 1
+                echo "  Status: RUN FLAG PRESENT, but process not running"
             fi
         else
-            echo "FanControl will not startup automatically."
-            sudo rm -f "$CONF_TARGET"
+            echo "  Status: DISABLED"
         fi
+        echo
+        echo "Hardware Info:"
+        echo
+        sudo ectool pwmgetnumfans
+        sudo ectool pwmgetfanrpm all
+        echo "Fan curve: $MIN_TEMP°C = ${MIN_FAN}%, $MAX_TEMP°C = ${MAX_FAN}%"
+        echo "Sleep interval: $SLEEP_INTERVAL seconds"
+        echo "Step-up: $STEP_UP%, Step-down: $STEP_DOWN%"
         ;;
     help) show_help ;;
     *) echo "Unknown command: $1"; show_help ;;
 esac
+
