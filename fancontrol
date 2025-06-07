@@ -26,8 +26,8 @@ DEFAULT_STEP_DOWN=1
 SLEEP_INTERVAL=$DEFAULT_SLEEP_INTERVAL
 STEP_UP=$DEFAULT_STEP_UP
 STEP_DOWN=$DEFAULT_STEP_DOWN
-
 load_config() {
+    echo "Loading config from: $CONFIG_FILE"
     if [ -f "$CONFIG_FILE" ]; then
         source "$CONFIG_FILE"
     fi
@@ -67,6 +67,7 @@ validate_config() {
         SLEEP_INTERVAL=$DEFAULT_SLEEP_INTERVAL
     fi
 }
+
 
 
 save_config() {
@@ -331,10 +332,7 @@ case "$1" in
         touch "$RUN_FLAG"
         run_loop
         ;;
-        startup)
-        CONF_SOURCE="$INSTALL_DIR/fancontrol.conf"
-        CONF_TARGET="/etc/init/fancontrol.conf"
-
+        
         if [ "$2" == "1" ]; then
             if [ -f "$CONF_SOURCE" ]; then
                 echo "Copying fancontrol.conf to /etc/init/..."
