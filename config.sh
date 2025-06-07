@@ -1,16 +1,18 @@
-# Default install directory
-if [ -z "$INSTALL_DIR" ]; then
-    INSTALL_DIR="/usr/local/bin/ChromeOS_PowerControl"
-fi
-
-CHARGE_MAX=77
-CHARGE_MIN=74
-
+# PowerControl
 MAX_TEMP=86
 MAX_PERF_PCT=100
 MIN_TEMP=60
 MIN_PERF_PCT=50
 
+###############################################################################################################
+
+# BatteryControl:
+CHARGE_MAX=77
+CHARGE_MIN=74
+
+###############################################################################################################
+
+# FanControl:
 FAN_MIN_TEMP=48
 FAN_MAX_TEMP=81
 MIN_FAN=0
@@ -19,6 +21,18 @@ SLEEP_INTERVAL=3
 STEP_UP=20
 STEP_DOWN=1
 
+###############################################################################################################
+
+# Startup Flags
+STARTUP_BATTERYCONTROL=1
+STARTUP_FANCONTROL=1
+STARTUP_POWERCONTROL=1
+
+###############################################################################################################
+
+if [ -z "$INSTALL_DIR" ]; then
+    INSTALL_DIR="/usr/local/bin/ChromeOS_PowerControl"
+fi
 detect_cpu_type() {
     case "$CPU_VENDOR" in
         GenuineIntel)
@@ -42,21 +56,10 @@ detect_cpu_type() {
             ;;
     esac
 }
-
-# Default Settings for Control        
-
-# Service startup flags
-STARTUP_BATTERYCONTROL=1
-STARTUP_FANCONTROL=1
-STARTUP_POWERCONTROL=1
-
 # System Paths
 CHARGER_PATH="/sys/class/power_supply/CROS_USBPD_CHARGER0/online"
 BATTERY_PATH="/sys/class/power_supply/BAT0/capacity"
 ZONE_PATH="/sys/class/thermal/thermal_zone0/temp"
-
-
-
 export STARTUP_BATTERYCONTROL
 export STARTUP_FANCONTROL
 export STARTUP_POWERCONTROL
