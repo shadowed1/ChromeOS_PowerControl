@@ -54,7 +54,7 @@ case "$choice" in
         remove_file_with_message /etc/init/no_turbo.conf
         remove_file_with_message /etc/init/batterycontrol.conf
         remove_file_with_message /etc/init/powercontrol.conf
-        remove_file_with_message /etc/init/fancontrol.conf
+        remove_file_with_message /etc/init/fan_curve_pid
         remove_file_with_message "$INSTALL_DIR/no_turbo.conf"
         remove_file_with_message "$INSTALL_DIR/batterycontrol.conf"
         remove_file_with_message "$INSTALL_DIR/powercontrol.conf"
@@ -82,11 +82,11 @@ case "$choice" in
         remove_file_with_message "$INSTALL_DIR/.batterycontrol_enabled"
 
         echo "Removing PID files"
-        remove_file_with_message "$INSTALL_DIR/.fancontrol_pid"
-        remove_file_with_message "$INSTALL_DIR/.powercontrol_pid"
-        remove_file_with_message "$INSTALL_DIR/.batterycontrol_pid"
-        remove_file_with_message "$INSTALL_DIR/.fancontrol_tail_fan_monitor.pid"
-        remove_file_with_message "$INSTALL_DIR/.powercontrol_tail_fan_monitor.pid"
+        sudo rm "$INSTALL_DIR/.fancontrol_pid"
+        sudo rm "$INSTALL_DIR/.powercontrol_pid"
+        sudo rm "$INSTALL_DIR/.batterycontrol_pid"
+        sudo rm "$INSTALL_DIR/.fancontrol_tail_fan_monitor.pid"
+        sudo rm "$INSTALL_DIR/.powercontrol_tail_fan_monitor.pid"
 
         echo "Removing programs"
         remove_file_with_message "$INSTALL_DIR/powercontrol"
