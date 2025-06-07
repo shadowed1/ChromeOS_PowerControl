@@ -26,7 +26,21 @@ load_config() {
     if [ -f "$CONFIG_FILE" ]; then
         source "$CONFIG_FILE"
     fi
+    echo "Config file location: $CONFIG_FILE"
     validate_config
+}
+
+validate_config() {
+    if [[ -z "$CHARGE_MAX" || ! "$CHARGE_MAX" =~ ^[0-9]+$ ]]; then
+        CHARGE_MAX=$DEFAULT_CHARGE_MAX
+    fi
+    if [[ -z "$CHARGE_MIN" || ! "$CHARGE_MIN" =~ ^[0-9]+$ ]]; then
+        CHARGE_MIN=$DEFAULT_CHARGE_MIN
+    fi
+    if (( CHARGE_MIN >= CHARGE_MAX )); then
+        CHARGE_MIN=$DEFAULT_CHARGE_MIN
+        CHARGE_MAX=$DEFAULT_CHARGE_MAX
+    fi
 }
 
 save_config() {
@@ -34,6 +48,8 @@ save_config() {
     echo "CHARGE_MAX=$CHARGE_MAX" > "$CONFIG_FILE"
     echo "CHARGE_MIN=$CHARGE_MIN" >> "$CONFIG_FILE"
 }
+
+load_config
 
 set_thresholds() {
     if ! [[ "$1" =~ ^[0-9]+$ && "$2" =~ ^[0-9]+$ ]]; then
@@ -55,19 +71,6 @@ set_thresholds() {
     CHARGE_MAX=$1
     CHARGE_MIN=$2
     save_config
-}
-
-validate_config() {
-    if [[ -z "$CHARGE_MAX" || ! "$CHARGE_MAX" =~ ^[0-9]+$ ]]; then
-        CHARGE_MAX=$DEFAULT_CHARGE_MAX
-    fi
-    if [[ -z "$CHARGE_MIN" || ! "$CHARGE_MIN" =~ ^[0-9]+$ ]]; then
-        CHARGE_MIN=$DEFAULT_CHARGE_MIN
-    fi
-    if (( CHARGE_MIN >= CHARGE_MAX )); then
-        CHARGE_MIN=$DEFAULT_CHARGE_MIN
-        CHARGE_MAX=$DEFAULT_CHARGE_MAX
-    fi
 }
 
 show_help() {
