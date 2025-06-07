@@ -82,11 +82,11 @@ case "$choice" in
         remove_file_with_message "$INSTALL_DIR/.batterycontrol_enabled"
 
         echo "Removing PID files"
-        sudo rm "$INSTALL_DIR/.fancontrol_pid"
-        sudo rm "$INSTALL_DIR/.powercontrol_pid"
-        sudo rm "$INSTALL_DIR/.batterycontrol_pid"
-        sudo rm "$INSTALL_DIR/.fancontrol_tail_fan_monitor.pid"
-        sudo rm "$INSTALL_DIR/.powercontrol_tail_fan_monitor.pid"
+        sudo rm -f "$INSTALL_DIR/.fancontrol_pid"
+        sudo rm -f "$INSTALL_DIR/.powercontrol_pid"
+        sudo rm -f "$INSTALL_DIR/.batterycontrol_pid"
+        sudo rm -f "$INSTALL_DIR/.fancontrol_tail_fan_monitor.pid"
+        sudo rm -f "$INSTALL_DIR/.powercontrol_tail_fan_monitor.pid"
 
         echo "Removing programs"
         remove_file_with_message "$INSTALL_DIR/powercontrol"
