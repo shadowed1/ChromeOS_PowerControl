@@ -44,7 +44,7 @@ validate_config() {
 
 save_config() {
     validate_config
-    echo "CHARGE_MAX=$CHARGE_MAX" > "$CONFIG_FILE"
+    echo "CHARGE_MAX=$CHARGE_MAX" >> "$CONFIG_FILE"
     echo "CHARGE_MIN=$CHARGE_MIN" >> "$CONFIG_FILE"
 }
 
