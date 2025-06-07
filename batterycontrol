@@ -160,15 +160,16 @@ stop_monitoring() {
         PID=$(cat "$PID_FILE")
         if ps -p "$PID" > /dev/null 2>&1; then
             kill "$PID"
-            echo "Stopped BatteryControl process (PID $PID)."
-        else
-            echo ""
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - Stopped BatteryControl process (PID $PID)."
         fi
         rm -f "$PID_FILE"
     fi
+
     rm -f "$RUN_FLAG"
     echo "BatteryControl disabled."
 }
+
+
 
 case "$1" in
     set)
