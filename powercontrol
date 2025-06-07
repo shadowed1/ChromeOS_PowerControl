@@ -260,11 +260,10 @@ monitor() {
 }
 
 start_monitoring_loop() {
-    detect_cpu_type
     load_config
+    detect_cpu_type
     backup_no_turbo
     set_no_turbo 0
-
     touch "$RUN_FLAG"
     echo $$ > "$PID_FILE"
     echo "Starting PowerControl (PID $$)."
@@ -275,6 +274,8 @@ start_monitoring_loop() {
         validate_config
         min_temp_c=$MIN_TEMP
         high_temp_c=$MAX_TEMP
+        min_perf_pct=$MIN_PERF_PCT
+        max_perf_pct=$MAX_PERF_PCT
 
         temp_c=$(get_temp)
         if [ $? -ne 0 ]; then
