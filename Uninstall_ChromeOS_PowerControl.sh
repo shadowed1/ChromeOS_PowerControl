@@ -50,7 +50,6 @@ case "$choice" in
         "$INSTALL_DIR/batterycontrol" stop
         "$INSTALL_DIR/fancontrol" stop
 
-        echo "Removing startup files..."
         remove_file_with_message /etc/init/no_turbo.conf
         remove_file_with_message /etc/init/batterycontrol.conf
         remove_file_with_message /etc/init/powercontrol.conf
@@ -59,45 +58,35 @@ case "$choice" in
         remove_file_with_message "$INSTALL_DIR/powercontrol.conf"
         remove_file_with_message "$INSTALL_DIR/fancontrol.conf"
 
-        echo "Removing installer..."
         remove_file_with_message /usr/local/bin/ChromeOS_PowerControl_Installer.sh
 
-        echo "Removing symlinks..."
         remove_file_with_message /usr/local/bin/powercontrol
         remove_file_with_message /usr/local/bin/batterycontrol
         remove_file_with_message /usr/local/bin/fancontrol
 
-        echo "Removing logs..."
         remove_file_with_message /var/log/powercontrol.log
         remove_file_with_message /var/log/fancontrol.log
         remove_file_with_message /var/log/batterycontrol.log
 
-        echo "Removing configs"
         remove_file_with_message "$INSTALL_DIR/config.sh"
 
-        echo "Removing enabled flags"
         sudo rm -f "$INSTALL_DIR/.fancontrol_enabled"
         sudo rm -f "$INSTALL_DIR/.powercontrol_enabled"
         sudo rm -f "$INSTALL_DIR/.batterycontrol_enabled"
 
-        echo "Removing PID files"
         sudo rm -f "$INSTALL_DIR/.fancontrol_pid"
         sudo rm -f "$INSTALL_DIR/.powercontrol_pid"
         sudo rm -f "$INSTALL_DIR/.batterycontrol_pid"
         sudo rm -f "$INSTALL_DIR/.fancontrol_tail_fan_monitor.pid"
         sudo rm -f "$INSTALL_DIR/.powercontrol_tail_fan_monitor.pid"
 
-        echo "Removing programs"
         remove_file_with_message "$INSTALL_DIR/powercontrol"
         remove_file_with_message "$INSTALL_DIR/fancontrol"
         remove_file_with_message "$INSTALL_DIR/batterycontrol"
 
-        echo "Removing Readme and LICENSE..."
         remove_file_with_message "$INSTALL_DIR/LICENSE"
         remove_file_with_message "$INSTALL_DIR/README.md"
-        echo ".install_dir."
         remove_file_with_message "/usr/local/bin/ChromeOS_PowerControl.install_dir"
-        echo "Removing uninstaller"
         remove_file_with_message "$INSTALL_DIR/Uninstall_ChromeOS_PowerControl.sh"
 
         if [ -d "$INSTALL_DIR" ] && [ -z "$(ls -A "$INSTALL_DIR")" ]; then
