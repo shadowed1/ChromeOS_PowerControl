@@ -162,7 +162,6 @@ stop_monitoring() {
             kill "$PID"
             echo "Stopped BatteryControl process (PID $PID)."
         else
-            echo "Process with PID $PID not found. Cleaning up stale PID file."
         fi
         rm -f "$PID_FILE"
     fi
