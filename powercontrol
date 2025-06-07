@@ -250,6 +250,7 @@ monitor() {
             rm -f "$MONITOR_POWER_PID_FILE"
         fi
     fi
+}
 
 start_monitoring_loop() {
     detect_cpu_type
