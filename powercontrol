@@ -15,11 +15,14 @@ RUN_FLAG_POWER="$INSTALL_DIR/.powercontrol_enabled"
 PID_FILE_POWER="$INSTALL_DIR/.powercontrol_pid"
 NO_TURBO_BACKUP="$INSTALL_DIR/.no_turbo_backup"
 CPU_VENDOR=$(grep -m1 'vendor_id' /proc/cpuinfo | awk '{print $3}' || echo "unknown")
+MONITOR_POWER_PID_FILE="/tmp/powercontrol_tail_fan_monitor.pid"
 PERF_PATH=""
 TURBO_PATH=""
 IS_AMD=0
 IS_INTEL=0
 IS_ARM=0
+
+
 
 detect_cpu_type() {
     case "$CPU_VENDOR" in
@@ -235,6 +238,19 @@ restore_no_turbo() {
     fi
 }
 
+monitor() {
+    if [ -f "$MONITOR_POWER_PID_FILE" ]; then
+        MONITOR_PID=$(cat "$MONITOR_POWER_PID_FILE")
+        if ps -p "$MONITOR_PID" > /dev/null 2>&1; then
+            echo "Stopping monitor (PID $MONITOR_PID)..."
+            kill "$MONITOR_PID"
+            rm -f "$MONITOR_POWER_PID_FILE"
+            exit 0
+        else
+            rm -f "$MONITOR_POWER_PID_FILE"
+        fi
+    fi
+
 start_monitoring_loop() {
     detect_cpu_type
     load_config
@@ -285,7 +301,7 @@ start_monitoring_loop() {
         fi
 
         if [[ "$current_pct" != "$pct" ]]; then
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - CPU $temp_c°C -> Clockspeed $pct%" | tee -a "$LOG_FILE"
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - CPU $temp_c°C -> Clockspeed $pct%" | tee -a "$POWER_LOG"
             set_max_perf_pct "$pct"
         fi
 
@@ -383,7 +399,7 @@ stop_monitoring() {
 
     PID=$(cat "$PID_FILE_POWER")
     if ps -p "$PID" > /dev/null 2>&1; then
-        echo "$(date '+%Y-%m-%d %H:%M:%S') - Stopping PowerControl (PID $PID)..."  | tee -a "$LOG_FILE"
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - Stopping PowerControl (PID $PID)..."  | tee -a "$POWER_LOG"
         rm -f "$RUN_FLAG_POWER"
         kill "$PID"
 
@@ -483,12 +499,12 @@ fi
         stop_monitoring >/dev/null 2>&1
        LOG_FILE="/var/log/powercontrol.log"
 
-if [ -f "$LOG_FILE" ] && [ "$(stat -c%s "$LOG_FILE")" -gt 32768 ]; then
-    echo "$(date '+%Y-%m-%d %H:%M:%S') - Truncated log file (exceeded 32KB)" > "$LOG_FILE"
+if [ -f "$POWER_LOG" ] && [ "$(stat -c%s "$POWER_LOG")" -gt 32768 ]; then
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - Truncated log file (exceeded 32KB)" > "$POWER_LOG"
 fi
 
-nohup "$0" __monitor__ >> "$LOG_FILE" 2>&1 &
-echo "$(date '+%Y-%m-%d %H:%M:%S') - PowerControl monitoring started in background. Output is logged to $LOG_FILE"
+nohup "$0" __monitor__ >> "$POWER_LOG" 2>&1 &
+echo "$(date '+%Y-%m-%d %H:%M:%S') - PowerControl monitoring started in background. Output is logged to $POWER_LOG"
 
         ;;
     stop)
@@ -517,9 +533,9 @@ echo "$(date '+%Y-%m-%d %H:%M:%S') - PowerControl monitoring started in backgrou
         ;;
   monitor)
     LOG_FILE="/var/log/powercontrol.log"
-    MONITOR_PID_FILE_POWER="$INSTALL_DIR/powercontrol_tail_monitor.pid"
+    MONITOR_POWER_PID_FILE="/tmp/powercontrol_tail_fan_monitor.pid"
 
-    if [ -f "$MONITOR_PID_FILE_POWER_POWER" ]; then
+    if [ -f "$MONITOR_PID_POWER" ]; then
         MONITOR_PID_POWER=$(cat "$MONITOR_PID_FILE_POWER_POWER")
         if ps -p "$MONITOR_PID_POWER" > /dev/null 2>&1; then
             echo "Stopping monitor (PID $MONITOR_PID_POWER)..."
@@ -531,7 +547,7 @@ echo "$(date '+%Y-%m-%d %H:%M:%S') - PowerControl monitoring started in backgrou
         fi
     fi
 
-    tail -fn +1 "$LOG_FILE" &
+    tail -fn +1 "$POWER_LOG" &
     echo $! > "$MONITOR_PID_FILE_POWER_POWER"
     echo "Monitor started (PID $!)"
     ;;
@@ -570,7 +586,7 @@ echo "$(date '+%Y-%m-%d %H:%M:%S') - PowerControl monitoring started in backgrou
         sudo rm -f /etc/init/powercontrol.conf
     fi
     ;;
-
+    monitor) monitor ;;
     __monitor__)
         LOG_FILE="/var/log/powercontrol.log"
         start_monitoring_loop
