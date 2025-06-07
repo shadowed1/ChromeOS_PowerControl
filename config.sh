@@ -50,26 +50,11 @@ STARTUP_BATTERYCONTROL=1
 STARTUP_FANCONTROL=1
 STARTUP_POWERCONTROL=1
 
-# Log Files
-BATTERY_LOG="/var/log/batterycontrol.log"
-POWER_LOG="/var/log/powercontrol.log"
-FAN_LOG="/var/log/fancontrol.log" 
-
 # System Paths
 CHARGER_PATH="/sys/class/power_supply/CROS_USBPD_CHARGER0/online"
 BATTERY_PATH="/sys/class/power_supply/BAT0/capacity"
 ZONE_PATH="/sys/class/thermal/thermal_zone0/temp"
 
-# Flags for running services
-RUN_FLAG_BATTERY="$INSTALL_DIR/.batterycontrol_enabled"
-RUN_FLAG_FAN="$INSTALL_DIR/.fan_curve_running"
-RUN_FLAG_POWER="$INSTALL_DIR/.powercontrol_enabled"
-
-# PID 
-PID_FILE_BATTERY="$INSTALL_DIR/.batterycontrol_pid"
-PID_FILE_POWER="$INSTALL_DIR/.powercontrol_pid"
-PID_FILE_FAN="$INSTALL_DIR/.fan_curve_pid"
-MONITOR_POWER_PID_FILE="$INSTALL_DIR/.powercontrol_tail_fan_monitor.pid"
 
 
 export STARTUP_BATTERYCONTROL
