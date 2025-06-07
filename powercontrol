@@ -15,7 +15,7 @@ RUN_FLAG_POWER="$INSTALL_DIR/.powercontrol_enabled"
 PID_FILE_POWER="$INSTALL_DIR/.powercontrol_pid"
 NO_TURBO_BACKUP="$INSTALL_DIR/.no_turbo_backup"
 CPU_VENDOR=$(grep -m1 'vendor_id' /proc/cpuinfo | awk '{print $3}' || echo "unknown")
-MONITOR_POWER_PID_FILE="/tmp/powercontrol_tail_fan_monitor.pid"
+MONITOR_POWER_PID_FILE="$INSTALL_DIR/.powercontrol_tail_fan_monitor.pid"
 PERF_PATH=""
 TURBO_PATH=""
 IS_AMD=0
@@ -48,15 +48,15 @@ detect_cpu_type() {
     esac
 }
 
-     DEFAULT_POWER_MIN_TEMP=60
-    DEFAULT_POWER_MAX_TEMP=86
+    DEFAULT_MIN_TEMP=60
+    DEFAULT_MAX_TEMP=86
     DEFAULT_MIN_PERF_PCT=50
     DEFAULT_MAX_PERF_PCT=100
     MAX_TEMP_LIMIT=90
 
-POWER_MAX_TEMP=""
+MAX_TEMP=""
 MAX_PERF_PCT=""
-POWER_MIN_TEMP=""
+MIN_TEMP=""
 MIN_PERF_PCT=""
 
 load_config() {
@@ -64,8 +64,8 @@ load_config() {
         source "$CONFIG_FILE"
     else
         echo "Creating default configuration..."
-        MIN_TEMP=${MIN_TEMP:-$DEFAULT_POWER_MIN_TEMP}
-        MAX_TEMP=${MAX_TEMP:-$DEFAULT_POWER_MAX_TEMP}
+        MIN_TEMP=${MIN_TEMP:-$DEFAULT_MIN_TEMP}
+        MAX_TEMP=${MAX_TEMP:-$DEFAULT_MAX_TEMP}
         MIN_PERF_PCT=${MIN_PERF_PCT:-$DEFAULT_MIN_PERF_PCT}
         MAX_PERF_PCT=${MAX_PERF_PCT:-$DEFAULT_MAX_PERF_PCT}
         save_config
@@ -75,11 +75,25 @@ load_config() {
 
 save_config() {
     validate_config
-    echo "POWER_MAX_TEMP=${POWER_MAX_TEMP:-$DEFAULT_POWER_MAX_TEMP}" > "$CONFIG_FILE"
-    echo "MAX_PERF_PCT=${MAX_PERF_PCT:-$DEFAULT_MAX_PERF_PCT}" >> "$CONFIG_FILE"
-    echo "POWER_MIN_TEMP=${POWER_MIN_TEMP:-$DEFAULT_POWER_MIN_TEMP}" >> "$CONFIG_FILE"
-    echo "MIN_PERF_PCT=${MIN_PERF_PCT:-$DEFAULT_MIN_PERF_PCT}" >> "$CONFIG_FILE"
+    save_config() {
+    validate_config
+
+    if [ "$MAX_TEMP" != "$DEFAULT_MAX_TEMP" ]; then
+        sed -i "s/^MAX_TEMP=.*/MAX_TEMP=$MAX_TEMP/" "$CONFIG_FILE" || echo "MAX_TEMP=$MAX_TEMP" >> "$CONFIG_FILE"
+    fi
+    if [ "$MIN_TEMP" != "$DEFAULT_MIN_TEMP" ]; then
+        sed -i "s/^MIN_TEMP=.*/MIN_TEMP=$MIN_TEMP/" "$CONFIG_FILE" || echo "MIN_TEMP=$MIN_TEMP" >> "$CONFIG_FILE"
+    fi
+    if [ "$MAX_PERF_PCT" != "$DEFAULT_MAX_PERF_PCT" ]; then
+        sed -i "s/^MAX_PERF_PCT=.*/MAX_PERF_PCT=$MAX_PERF_PCT/" "$CONFIG_FILE" || echo "MAX_PERF_PCT=$MAX_PERF_PCT" >> "$CONFIG_FILE"
+    fi
+    if [ "$MIN_PERF_PCT" != "$DEFAULT_MIN_PERF_PCT" ]; then
+        sed -i "s/^MIN_PERF_PCT=.*/MIN_PERF_PCT=$MIN_PERF_PCT/" "$CONFIG_FILE" || echo "MIN_PERF_PCT=$MIN_PERF_PCT" >> "$CONFIG_FILE"
+    fi
+
+    echo "Configuration saved to $CONFIG_FILE"
 }
+
 
 
 get_temp() {
@@ -116,6 +130,7 @@ set_max_perf_pct() {
             echo "Permission denied: Cannot write to $PERF_PATH" >&2
             exit 1
         fi
+        
     fi
 }
 
@@ -130,9 +145,9 @@ set_temp_threshold() {
         exit 1
     fi
     load_config
-    POWER_MAX_TEMP=$1
+    MAX_TEMP=$1
     save_config
-    echo "Max temperature threshold set to $POWER_MAX_TEMP°C"
+    echo "Max temperature threshold set to $MAX_TEMP°C"
 }
 
 
@@ -142,9 +157,9 @@ set_min_temp() {
         exit 1
     fi
     load_config
-    POWER_MIN_TEMP=$1
+    MIN_TEMP=$1
     save_config
-    echo "Min temperature threshold set to $POWER_MIN_TEMP°C"
+    echo "Min temperature threshold set to $MIN_TEMP°C"
 }
 
 set_min_perf_pct() {
@@ -163,20 +178,14 @@ set_min_perf_pct() {
 }
 
 validate_config() {
-    # Fill defaults
-    if [[ -z "$POWER_MAX_TEMP" ]]; then POWER_MAX_TEMP=$DEFAULT_POWER_MAX_TEMP; fi
-    if [[ -z "$MAX_PERF_PCT" ]]; then MAX_PERF_PCT=$DEFAULT_MAX_PERF_PCT; fi
-    if [[ -z "$POWER_MIN_TEMP" ]]; then POWER_MIN_TEMP=$DEFAULT_POWER_MIN_TEMP; fi
-    if [[ -z "$MIN_PERF_PCT" ]]; then MIN_PERF_PCT=$DEFAULT_MIN_PERF_PCT; fi
-
-    if (( POWER_MAX_TEMP > MAX_TEMP_LIMIT )); then
-        echo "Warning: POWER_MAX_TEMP exceeds limit ($MAX_TEMP_LIMIT), resetting."
-        POWER_MAX_TEMP=$DEFAULT_POWER_MAX_TEMP
+    if (( MAX_TEMP > MAX_TEMP_LIMIT )); then
+        echo "Warning: MAX_TEMP exceeds limit ($MAX_TEMP_LIMIT), resetting."
+        MAX_TEMP=$DEFAULT_MAX_TEMP
     fi
 
-    if (( POWER_MIN_TEMP >= POWER_MAX_TEMP )); then
-        echo "Warning: POWER_MIN_TEMP >= POWER_MAX_TEMP, adjusting."
-        POWER_MIN_TEMP=$(( POWER_MAX_TEMP - 10 ))
+    if (( MIN_TEMP >= MAX_TEMP )); then
+        echo "Warning: MIN_TEMP >= MAX_TEMP, adjusting."
+        MIN_TEMP=$(( MAX_TEMP - 10 ))
     fi
 
     if (( MIN_PERF_PCT < 10 || MIN_PERF_PCT > 100 )); then
@@ -266,8 +275,8 @@ start_monitoring_loop() {
     while [ -f "$RUN_FLAG_POWER" ]; do
         load_config
         validate_config
-        min_temp_c=$POWER_MIN_TEMP
-        high_temp_c=$POWER_MAX_TEMP
+        min_temp_c=$MIN_TEMP
+        high_temp_c=$MAX_TEMP
 
         temp_c=$(get_temp)
         if [ $? -ne 0 ]; then
@@ -356,8 +365,8 @@ show_status() {
         echo "  Status: STOPPED"
     fi
 
-    echo "  Configured max_temp: $POWER_MAX_TEMP°C"
-    echo "  Configured min_temp: $POWER_MIN_TEMP°C"
+    echo "  Configured max_temp: $MAX_TEMP°C"
+    echo "  Configured min_temp: $MIN_TEMP°C"
     echo "  Configured max_perf_pct: $MAX_PERF_PCT%"
     echo "  Configured min_perf_pct: $MIN_PERF_PCT%"
 
@@ -464,7 +473,7 @@ show_help() {
     echo
 }
 
-handle_max_perf_pct() {
+max_perf_pct() {
     if [ -z "$2" ]; then
         if [ -f "$PERF_PATH" ]; then
             current_pct=$(cat "$PERF_PATH")
@@ -521,7 +530,7 @@ echo "$(date '+%Y-%m-%d %H:%M:%S') - PowerControl monitoring started in backgrou
         set_min_perf_pct "$2"
         ;;
     max_perf_pct)
-        handle_max_perf_pct "$@"
+        max_perf_pct "$@"
         ;;
     no_turbo)
         set_no_turbo "$2"
