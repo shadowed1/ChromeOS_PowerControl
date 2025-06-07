@@ -536,19 +536,19 @@ echo "$(date '+%Y-%m-%d %H:%M:%S') - PowerControl monitoring started in backgrou
     MONITOR_POWER_PID_FILE="/tmp/powercontrol_tail_fan_monitor.pid"
 
     if [ -f "$MONITOR_PID_POWER" ]; then
-        MONITOR_PID_POWER=$(cat "$MONITOR_PID_FILE_POWER_POWER")
+        MONITOR_PID_POWER=$(cat "$MONITOR_POWER_PID_FILE")
         if ps -p "$MONITOR_PID_POWER" > /dev/null 2>&1; then
             echo "Stopping monitor (PID $MONITOR_PID_POWER)..."
             kill "$MONITOR_PID_POWER"
-            rm -f "$MONITOR_PID_FILE_POWER_POWER"
+            rm -f "$MONITOR_POWER_PID_FILE"
             exit 0
         else
-            rm -f "$MONITOR_PID_FILE_POWER_POWER"
+            rm -f "$MONITOR_POWER_PID_FILE"
         fi
     fi
 
     tail -fn +1 "$POWER_LOG" &
-    echo $! > "$MONITOR_PID_FILE_POWER_POWER"
+    echo $! > "$MONITOR_POWER_PID_FILE"
     echo "Monitor started (PID $!)"
     ;;
      startup)
