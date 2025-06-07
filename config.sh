@@ -39,15 +39,15 @@ SLEEP_INTERVAL="${SLEEP_INTERVAL:-$DEFAULT_SLEEP_INTERVAL}"
 STEP_UP="${STEP_UP:-$DEFAULT_STEP_UP}"
 STEP_DOWN="${STEP_DOWN:-$DEFAULT_STEP_DOWN}"
 
-MIN_TEMP=${MIN_TEMP:-$DEFAULT_POWER_MIN_TEMP}
-MAX_TEMP=${MAX_TEMP:-$DEFAULT_POWER_MAX_TEMP}
+MIN_TEMP=${MIN_TEMP:-$DEFAULT_MIN_TEMP}
+MAX_TEMP=${MAX_TEMP:-$DEFAULT_MAX_TEMP}
 MIN_PERF_PCT=${MIN_PERF_PCT:-$DEFAULT_MIN_PERF_PCT}
 MAX_PERF_PCT=${MAX_PERF_PCT:-$DEFAULT_MAX_PERF_PCT}
 
 # Log Files
 BATTERY_LOG="/var/log/batterycontrol.log"
 POWER_LOG="/var/log/powercontrol.log"
-FAN_LOG="/var/log/fancontrol.log"
+FAN_LOG="/var/log/fancontrol.log" 
 
 # System Paths
 CHARGER_PATH="/sys/class/power_supply/CROS_USBPD_CHARGER0/online"
@@ -58,6 +58,14 @@ ZONE_PATH="/sys/class/thermal/thermal_zone0/temp"
 RUN_FLAG_BATTERY="$INSTALL_DIR/.batterycontrol_enabled"
 RUN_FLAG_FAN="$INSTALL_DIR/.fan_curve_running"
 RUN_FLAG_POWER="$INSTALL_DIR/.powercontrol_enabled"
+
+# PID 
+PID_FILE_BATTERY="$INSTALL_DIR/.batterycontrol_pid"
+PID_FILE_POWER="$INSTALL_DIR/.powercontrol_pid"
+PID_FILE_FAN="$INSTALL_DIR/.fan_curve_pid"
+
+# Monitors
+
 
 # CPU Information & Control
 PERF_PATH=""
