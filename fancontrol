@@ -10,10 +10,10 @@ fi
 INSTALL_DIR="${INSTALL_DIR%/}"
 CONFIG_FILE="$INSTALL_DIR/config.sh"
 ZONE_PATH="/sys/class/thermal/thermal_zone0/temp"
-RUN_FLAG_FAN="$INSTALL_DIR/.fan_curve_running"
-PID_FILE_FAN="$INSTALL_DIR/.fan_curve_pid"
-FAN_LOG_FILE="/var/log/fancontrol.log"
-MONITOR_FAN_PID_FILE="$INSTALL_DIR/.fancontrol_tail_fan_monitor.pid"
+RUN_FLAG="$INSTALL_DIR/.fan_curve_running"
+PID_FILE="$INSTALL_DIR/.fan_curve_pid"
+LOG_FILE="/var/log/fancontrol.log"
+MONITOR_PID_FILE="$INSTALL_DIR/.fancontrol_tail_fan_monitor.pid"
 
 DEFAULT_FAN_MIN_TEMP=48   # Minimum fan control temperature
 DEFAULT_FAN_MAX_TEMP=81   # Maximum fan control temperature
@@ -57,21 +57,21 @@ EOF
 
 # === Fan logic with hysteresis ===
 cleanup() {
-    echo "Restoring automatic fan control..." | tee -a "$FAN_LOG_FILE"
+    echo "Restoring automatic fan control..." | tee -a "$LOG_FILE"
     sudo ectool autofanctrl
-    rm -f "$RUN_FLAG_FAN" "$PID_FILE_FAN"
+    rm -f "$RUN_FLAG" "$PID_FILE_FAN"
     exit 0
 }
 
 run_loop() {
     sudo ectool autofanctrl
-    echo "Fan curve started. Press Ctrl+C to stop." | tee -a "$FAN_LOG_FILE"
+    echo "Fan curve started. Press Ctrl+C to stop." | tee -a "$LOG_FILE"
 
     local last_duty=-1
 
-    while [ -f "$RUN_FLAG_FAN" ]; do
+    while [ -f "$RUN_FLAG" ]; do
         if [ ! -f "$ZONE_PATH" ]; then
-            echo "Thermal zone not found: $ZONE_PATH" | tee -a "$FAN_LOG_FILE"
+            echo "Thermal zone not found: $ZONE_PATH" | tee -a "$LOG_FILE"
             cleanup
         fi
 
@@ -104,10 +104,10 @@ run_loop() {
 
         KICKSTART_DUTY=50
 
-        echo "Temp: ${TEMP_C}°C -> Fan Duty: ${target_duty}%" >> "$FAN_LOG_FILE"
+        echo "Temp: ${TEMP_C}°C -> Fan Duty: ${target_duty}%" >> "$LOG_FILE"
 
         if (( last_duty > 0 && target_duty == 0 )); then
-            echo "Applying kickstart at ${KICKSTART_DUTY}% before setting to 0%" >> "$FAN_LOG_FILE"
+            echo "Applying kickstart at ${KICKSTART_DUTY}% before setting to 0%" >> "$LOG_FILE"
             sudo ectool fanduty "$KICKSTART_DUTY"
             sleep 1
             sudo ectool fanduty 0
@@ -127,44 +127,44 @@ run_loop() {
 start() {
     "$0" stop >/dev/null 2>&1
 
-    if [ -f "$FAN_LOG_FILE" ] && [ "$(stat -c%s "$FAN_LOG_FILE")" -gt 32768 ]; then
-        echo "Truncated log file (exceeded 32KB)" > "$FAN_LOG_FILE"
+    if [ -f "$LOG_FILE" ] && [ "$(stat -c%s "$LOG_FILE")" -gt 32768 ]; then
+        echo "Truncated log file (exceeded 32KB)" > "$LOG_FILE"
     fi
 
-    nohup "$0" __monitor__ >> "$FAN_LOG_FILE" 2>&1 &
-    echo "FanControl started in background. Output is logged to $FAN_LOG_FILE"
+    nohup "$0" __monitor__ >> "$LOG_FILE" 2>&1 &
+    echo "FanControl started in background. Output is logged to $LOG_FILE"
 }
 
 stop() {
     if [ -f "$PID_FILE_FAN" ]; then
         PID=$(cat "$PID_FILE_FAN")
-        echo "Stopping fan curve (PID $PID)..." | tee -a "$FAN_LOG_FILE"
-        rm -f "$RUN_FLAG_FAN"
+        echo "Stopping fan curve (PID $PID)..." | tee -a "$LOG_FILE"
+        rm -f "$RUN_FLAG"
         kill "$PID" 2>/dev/null
         sleep 1
     fi
     sudo ectool fanduty 50
     sleep 1
-    echo "Restoring automatic fan control..." | tee -a "$FAN_LOG_FILE"
+    echo "Restoring automatic fan control..." | tee -a "$LOG_FILE"
     sudo ectool autofanctrl
-    rm -f "$RUN_FLAG_FAN" "$PID_FILE_FAN"
+    rm -f "$RUN_FLAG" "$PID_FILE_FAN"
 }
 
 monitor() {
-    if [ -f "$MONITOR_FAN_PID_FILE" ]; then
-        MONITOR_PID=$(cat "$MONITOR_FAN_PID_FILE")
+    if [ -f "$MONITOR_PID_FILE" ]; then
+        MONITOR_PID=$(cat "$MONITOR_PID_FILE")
         if ps -p "$MONITOR_PID" > /dev/null 2>&1; then
             echo "Stopping monitor (PID $MONITOR_PID)..."
             kill "$MONITOR_PID"
-            rm -f "$MONITOR_FAN_PID_FILE"
+            rm -f "$MONITOR_PID_FILE"
             exit 0
         else
-            rm -f "$MONITOR_FAN_PID_FILE"
+            rm -f "$MONITOR_PID_FILE"
         fi
     fi
 
-    tail -fn +1 "$FAN_LOG_FILE" &
-    echo $! > "$MONITOR_FAN_PID_FILE"
+    tail -fn +1 "$LOG_FILE" &
+    echo $! > "$MONITOR_PID_FILE"
     echo "Monitor started (PID $!)"
 }
 
@@ -285,7 +285,7 @@ case "$1" in
     stepdown) set_stepdown "$@" ;;
     __monitor__)
         echo $$ > "$PID_FILE_FAN"
-        touch "$RUN_FLAG_FAN"
+        touch "$RUN_FLAG"
         run_loop
         ;;
         startup)
@@ -317,7 +317,7 @@ case "$1" in
         ;;
     ""|status)
         echo "FanControl Status:"
-        if [ -f "$RUN_FLAG_FAN" ]; then
+        if [ -f "$RUN_FLAG" ]; then
             PID=$(cat "$PID_FILE_FAN")
             if ps -p "$PID" > /dev/null 2>&1; then
                 echo "  Status: ENABLED (PID $PID)"
