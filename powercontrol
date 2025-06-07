@@ -11,18 +11,16 @@ INSTALL_DIR="${INSTALL_DIR%/}"
 CONFIG_FILE="$INSTALL_DIR/config.sh"
 
 POWER_LOG="/var/log/powercontrol.log"
-RUN_FLAG_POWER="$INSTALL_DIR/.powercontrol_enabled"
-PID_FILE_POWER="$INSTALL_DIR/.powercontrol_pid"
+RUN_FLAG="$INSTALL_DIR/.powercontrol_enabled"F
+PID_FILE="$INSTALL_DIR/.powercontrol_pid"
 NO_TURBO_BACKUP="$INSTALL_DIR/.no_turbo_backup"
 CPU_VENDOR=$(grep -m1 'vendor_id' /proc/cpuinfo | awk '{print $3}' || echo "unknown")
-MONITOR_POWER_PID_FILE="$INSTALL_DIR/.powercontrol_tail_fan_monitor.pid"
+MONITOR_PID_FILE="$INSTALL_DIR/.powercontrol_tail_fan_monitor.pid"
 PERF_PATH=""
 TURBO_PATH=""
 IS_AMD=0
 IS_INTEL=0
 IS_ARM=0
-
-
 
 detect_cpu_type() {
     case "$CPU_VENDOR" in
@@ -248,15 +246,15 @@ restore_no_turbo() {
 }
 
 monitor() {
-    if [ -f "$MONITOR_POWER_PID_FILE" ]; then
-        MONITOR_PID=$(cat "$MONITOR_POWER_PID_FILE")
+    if [ -f "$MONITOR_PID_FILE" ]; then
+        MONITOR_PID=$(cat "$MONITOR_PID_FILE")
         if ps -p "$MONITOR_PID" > /dev/null 2>&1; then
             echo "Stopping monitor (PID $MONITOR_PID)..."
             kill "$MONITOR_PID"
-            rm -f "$MONITOR_POWER_PID_FILE"
+            rm -f "$MONITOR_PID_FILE"
             exit 0
         else
-            rm -f "$MONITOR_POWER_PID_FILE"
+            rm -f "$MONITOR_PID_FILE"
         fi
     fi
 }
@@ -267,12 +265,12 @@ start_monitoring_loop() {
     backup_no_turbo
     set_no_turbo 0
 
-    touch "$RUN_FLAG_POWER"
-    echo $$ > "$PID_FILE_POWER"
+    touch "$RUN_FLAG"
+    echo $$ > "$PID_FILE"
     echo "Starting PowerControl (PID $$)."
     
 
-    while [ -f "$RUN_FLAG_POWER" ]; do
+    while [ -f "$RUN_FLAG" ]; do
         load_config
         validate_config
         min_temp_c=$MIN_TEMP
@@ -319,7 +317,7 @@ start_monitoring_loop() {
     done
 
     echo "PowerControl stopped."
-    rm -f "$PID_FILE_POWER"
+    rm -f "$PID_FILE"
 }
 
 show_status() {
@@ -352,13 +350,13 @@ show_status() {
 
     echo "PowerControl Status:"
 
-    if [ -f "$PID_FILE_POWER" ]; then
-        PID=$(cat "$PID_FILE_POWER")
+    if [ -f "$PID_FILE" ]; then
+        PID=$(cat "$PID_FILE")
         if ps -p "$PID" > /dev/null 2>&1; then
             echo "  Status: RUNNING (PID $PID)"
         else
-            rm -f "$PID_FILE_POWER"
-            rm -f "$RUN_FLAG_POWER"
+            rm -f "$PID_FILE"
+            rm -f "$RUN_FLAG"
             echo "  Status: STOPPED"
         fi
     else
@@ -403,31 +401,31 @@ stop_monitoring() {
     fi
     POWERCONTROL_STOPPING=1
 
-    if [ ! -f "$PID_FILE_POWER" ]; then
+    if [ ! -f "$PID_FILE" ]; then
         return
     fi
 
-    PID=$(cat "$PID_FILE_POWER")
+    PID=$(cat "$PID_FILE")
     if ps -p "$PID" > /dev/null 2>&1; then
         echo "$(date '+%Y-%m-%d %H:%M:%S') - Stopping PowerControl (PID $PID)..."  | tee -a "$POWER_LOG"
-        rm -f "$RUN_FLAG_POWER"
+        rm -f "$RUN_FLAG"
         kill "$PID"
 
         for i in {1..10}; do
             if ! ps -p "$PID" > /dev/null 2>&1; then
                 echo "PowerControl stopped."
-                rm -f "$PID_FILE_POWER"
+                rm -f "$PID_FILE"
                 restore_no_turbo
                 return
             fi
             sleep 1
         done
         kill -9 "$PID"
-        rm -f "$PID_FILE_POWER"
+        rm -f "$PID_FILE"
         restore_no_turbo
     else
-        rm -f "$PID_FILE_POWER"
-        rm -f "$RUN_FLAG_POWER"
+        rm -f "$PID_FILE"
+        rm -f "$RUN_FLAG"
         restore_no_turbo
     fi
 }
@@ -543,22 +541,22 @@ echo "$(date '+%Y-%m-%d %H:%M:%S') - PowerControl monitoring started in backgrou
         ;;
   monitor)
     LOG_FILE="/var/log/powercontrol.log"
-    MONITOR_POWER_PID_FILE="/tmp/powercontrol_tail_fan_monitor.pid"
+    MONITOR_PID_FILE="/tmp/powercontrol_tail_fan_monitor.pid"
 
     if [ -f "$MONITOR_PID_POWER" ]; then
-        MONITOR_PID_POWER=$(cat "$MONITOR_POWER_PID_FILE")
+        MONITOR_PID_POWER=$(cat "$MONITOR_PID_FILE")
         if ps -p "$MONITOR_PID_POWER" > /dev/null 2>&1; then
             echo "Stopping monitor (PID $MONITOR_PID_POWER)..."
             kill "$MONITOR_PID_POWER"
-            rm -f "$MONITOR_POWER_PID_FILE"
+            rm -f "$MONITOR_PID_FILE"
             exit 0
         else
-            rm -f "$MONITOR_POWER_PID_FILE"
+            rm -f "$MONITOR_PID_FILE"
         fi
     fi
 
     tail -fn +1 "$POWER_LOG" &
-    echo $! > "$MONITOR_POWER_PID_FILE"
+    echo $! > "$MONITOR_PID_FILE"
     echo "Monitor started (PID $!)"
     ;;
      startup)
