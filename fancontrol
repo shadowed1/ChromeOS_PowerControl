@@ -28,6 +28,7 @@ STEP_UP=$DEFAULT_STEP_UP
 STEP_DOWN=$DEFAULT_STEP_DOWN
 
 load_config() {
+    echo "Loading config from: $CONFIG_FILE"
     if [ -f "$CONFIG_FILE" ]; then
         source "$CONFIG_FILE"
     else
@@ -42,9 +43,8 @@ load_config() {
     fi
 }
 
+
 save_config() {
-    mkdir -p "$(dirname "$CONFIG_FILE")"
-    cat > "$CONFIG_FILE" <<EOF
 FAN_MIN_TEMP=$FAN_MIN_TEMP
 FAN_MAX_TEMP=$FAN_MAX_TEMP
 MIN_FAN=$MIN_FAN
@@ -52,7 +52,6 @@ MAX_FAN=$MAX_FAN
 SLEEP_INTERVAL=$SLEEP_INTERVAL
 STEP_UP=$STEP_UP
 STEP_DOWN=$STEP_DOWN
-EOF
 }
 
 # === Fan logic with hysteresis ===
