@@ -1,40 +1,53 @@
 #!/bin/bash
 
-# POWERCONTROL
-MAX_TEMP=86
-MAX_PERF_PCT=100
-MIN_TEMP=60
-MIN_PERF_PCT=50
+# Default install directory
+if [ -z "$INSTALL_DIR" ]; then
+    INSTALL_DIR="/usr/local/bin/ChromeOS_PowerControl"
+fi
 
-# BATTERYCONTROL
-CHARGE_MAX=77
-CHARGE_MIN=74
+# Default Settings for Control
+DEFAULT_CHARGE_MAX=77
+DEFAULT_CHARGE_MIN=74
+DEFAULT_FAN_MIN_TEMP=48   
+DEFAULT_FAN_MAX_TEMP=81   
+DEFAULT_MIN_FAN=0         
+DEFAULT_MAX_FAN=100       
+DEFAULT_SLEEP_INTERVAL=3   
+DEFAULT_STEP_UP=20        
+DEFAULT_STEP_DOWN=1
 
-# FANCONTROL
-FAN_MIN_TEMP=48
-FAN_MAX_TEMP=81
-FAN_MIN=0
-FAN_MAX=100
-FAN_SLEEP_INTERVAL=3
-FAN_STEP_UP=20
-FAN_STEP_DOWN=1
+DEFAULT_MIN_TEMP=60  
+DEFAULT_MAX_TEMP=86  
+DEFAULT_MIN_PERF_PCT=50    
+DEFAULT_MAX_PERF_PCT=100   
+MAX_TEMP_LIMIT=90          
 
 # Service startup flags
 STARTUP_BATTERYCONTROL=1
 STARTUP_FANCONTROL=1
 STARTUP_POWERCONTROL=1
 
-# CPU Information & Control
-PERF_PATH=""
-TURBO_PATH=""
-IS_AMD=0
-IS_INTEL=0
-IS_ARM=0
+# Set variables from environment or default
+CHARGE_MAX="${CHARGE_MAX:-$DEFAULT_CHARGE_MAX}"
+CHARGE_MIN="${CHARGE_MIN:-$DEFAULT_CHARGE_MIN}"
+
+FAN_MIN_TEMP="${FAN_MIN_TEMP:-$DEFAULT_FAN_MIN_TEMP}"
+FAN_MAX_TEMP="${FAN_MAX_TEMP:-$DEFAULT_FAN_MAX_TEMP}"
+MIN_FAN="${MIN_FAN:-$DEFAULT_MIN_FAN}"
+MAX_FAN="${MAX_FAN:-$DEFAULT_MAX_FAN}"
+SLEEP_INTERVAL="${SLEEP_INTERVAL:-$DEFAULT_SLEEP_INTERVAL}"
+STEP_UP="${STEP_UP:-$DEFAULT_STEP_UP}"
+STEP_DOWN="${STEP_DOWN:-$DEFAULT_STEP_DOWN}"
+
+MIN_TEMP=${MIN_TEMP:-$DEFAULT_MIN_TEMP}
+MAX_TEMP=${MAX_TEMP:-$DEFAULT_MAX_TEMP}
+MIN_PERF_PCT=${MIN_PERF_PCT:-$DEFAULT_MIN_PERF_PCT}
+MAX_PERF_PCT=${MAX_PERF_PCT:-$DEFAULT_MAX_PERF_PCT}
 
 # Log Files
 BATTERY_LOG="/var/log/batterycontrol.log"
 POWER_LOG="/var/log/powercontrol.log"
-FAN_LOG="/var/log/fancontrol.log"
+FAN_LOG="/var/log/fancontrol.log" 
 
 # System Paths
 CHARGER_PATH="/sys/class/power_supply/CROS_USBPD_CHARGER0/online"
@@ -46,12 +59,20 @@ RUN_FLAG_BATTERY="$INSTALL_DIR/.batterycontrol_enabled"
 RUN_FLAG_FAN="$INSTALL_DIR/.fan_curve_running"
 RUN_FLAG_POWER="$INSTALL_DIR/.powercontrol_enabled"
 
-# PID Files
+# PID 
 PID_FILE_BATTERY="$INSTALL_DIR/.batterycontrol_pid"
 PID_FILE_POWER="$INSTALL_DIR/.powercontrol_pid"
 PID_FILE_FAN="$INSTALL_DIR/.fan_curve_pid"
-MONITOR_POWER_PID_FILE="$INSTALL_DIR/.powercontrol_tail_fan_monitor.pid"
-MONITOR_FAN_PID_FILE="$INSTALL_DIR/.fancontrol_tail_fan_monitor.pid"
+
+# Monitors
+
+
+# CPU Information & Control
+PERF_PATH=""
+TURBO_PATH=""
+IS_AMD=0
+IS_INTEL=0
+IS_ARM=0
 
 # Function to detect CPU type (Intel, AMD, ARM)
 detect_cpu_type() {
@@ -82,57 +103,23 @@ detect_cpu_type() {
     fi
 }
 
+# Validate configuration variables
+validate_config() {
+    if [ -z "$FAN_MIN_TEMP" ]; then FAN_MIN_TEMP=$DEFAULT_FAN_MIN_TEMP; fi
+    if [ -z "$FAN_MAX_TEMP" ]; then FAN_MAX_TEMP=$DEFAULT_FAN_MAX_TEMP; fi
+    if [ -z "$MIN_TEMP" ]; then MIN_TEMP=$DEFAULT_MIN_TEMP; fi
+    if [ -z "$MAX_TEMP" ]; then MAX_TEMP=$DEFAULT_MAX_TEMP; fi
+}
+
 # Load the configuration from the variables
 load_config() {
     detect_cpu_type
+    validate_config
 }
 
 # Save the configuration for later
 save_config() {
-    echo "Saving configuration to $INSTALL_DIR/config.sh..."
-    cat <<EOF > "$INSTALL_DIR/config.sh"
-# POWERCONTROL
-MAX_TEMP=$MAX_TEMP
-MAX_PERF_PCT=$MAX_PERF_PCT
-MIN_TEMP=$MIN_TEMP
-MIN_PERF_PCT=$MIN_PERF_PCT
-
-# BATTERYCONTROL
-CHARGE_MAX=$CHARGE_MAX
-CHARGE_MIN=$CHARGE_MIN
-
-# FANCONTROL
-FAN_MIN_TEMP=$FAN_MIN_TEMP
-FAN_MAX_TEMP=$FAN_MAX_TEMP
-FAN_MIN=$FAN_MIN
-FAN_MAX=$FAN_MAX
-FAN_SLEEP_INTERVAL=$FAN_SLEEP_INTERVAL
-FAN_STEP_UP=$FAN_STEP_UP
-FAN_STEP_DOWN=$FAN_STEP_DOWN
-
-# Service startup flags
-STARTUP_BATTERYCONTROL=$STARTUP_BATTERYCONTROL
-STARTUP_FANCONTROL=$STARTUP_FANCONTROL
-STARTUP_POWERCONTROL=$STARTUP_POWERCONTROL
-
-# CPU Information & Control
-PERF_PATH=$PERF_PATH
-TURBO_PATH=$TURBO_PATH
-IS_AMD=$IS_AMD
-IS_INTEL=$IS_INTEL
-IS_ARM=$IS_ARM
-
-# Log Files
-BATTERY_LOG=$BATTERY_LOG
-POWER_LOG=$POWER_LOG
-FAN_LOG=$FAN_LOG
-
-# System Paths
-CHARGER_PATH=$CHARGER_PATH
-BATTERY_PATH=$BATTERY_PATH
-ZONE_PATH=$ZONE_PATH
-
-EOF
+    validate_config
 }
 
 # Export variables for access by other scripts
@@ -141,11 +128,11 @@ export CHARGE_MAX
 export CHARGE_MIN
 export FAN_MIN_TEMP
 export FAN_MAX_TEMP
-export FAN_MIN
-export FAN_MAX
-export FAN_SLEEP_INTERVAL
-export FAN_STEP_UP
-export FAN_STEP_DOWN
+export MIN_FAN
+export MAX_FAN
+export SLEEP_INTERVAL
+export STEP_UP
+export STEP_DOWN
 export MIN_TEMP
 export MAX_TEMP
 export MIN_PERF_PCT
@@ -164,3 +151,11 @@ export TURBO_PATH
 export IS_AMD
 export IS_INTEL
 export IS_ARM
+
+# For configuring services startup status
+export STARTUP_BATTERYCONTROL
+export STARTUP_FANCONTROL
+export STARTUP_POWERCONTROL
+
+# Load the configuration
+load_config
