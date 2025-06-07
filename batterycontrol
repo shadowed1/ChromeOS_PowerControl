@@ -26,7 +26,6 @@ load_config() {
     if [ -f "$CONFIG_FILE" ]; then
         source "$CONFIG_FILE"
     fi
-    echo "Config file location: $CONFIG_FILE"
     validate_config
 }
 
