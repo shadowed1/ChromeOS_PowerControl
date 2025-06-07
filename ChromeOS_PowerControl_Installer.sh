@@ -25,7 +25,8 @@ detect_cpu_type() {
             ;;
     esac
 }
-
+echo "Enabling sudo in crosh or run in VT-2 is required for this to download successfully."
+echo ""
 read -rp "Enter Install Path - leave blank for: /usr/local/bin/ChromeOS_PowerControl: " INSTALL_DIR
 INSTALL_DIR="${INSTALL_DIR:-/usr/local/bin/ChromeOS_PowerControl}"
 INSTALL_DIR="${INSTALL_DIR%/}"
@@ -34,7 +35,7 @@ echo "$INSTALL_DIR" | sudo tee usr/local/bin/ChromeOS_PowerControl.install_dir >
 echo "Installing to: $INSTALL_DIR"
 echo ""
 sudo mkdir -p "$INSTALL_DIR"
-echo "Enabling sudo in crosh or run in VT-2 is required for this to download successfully."
+
 
 declare -a files=("powercontrol" "batterycontrol" "fancontrol" "Uninstall_ChromeOS_PowerControl.sh" "LICENSE" "README.md" "no_turbo.conf" "batterycontrol.conf" "powercontrol.conf" "fancontrol.conf" "config.sh")
 for file in "${files[@]}"; do
