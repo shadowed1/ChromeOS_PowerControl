@@ -219,7 +219,7 @@ fan_min_temp() {
         save_config
         echo "$(date '+%Y-%m-%d %H:%M:%S') - Min temp set to $FAN_MIN_TEMP°C"
     else
-        echo "Usage: $0 min_temp <number>"
+        echo "Usage: $0 fan_min_temp <number>"
     fi
 }
 
@@ -230,7 +230,7 @@ fan_max_temp() {
         save_config
         echo "$(date '+%Y-%m-%d %H:%M:%S') - Max temp set to $FAN_MAX_TEMP°C"
     else
-        echo "Usage: $0 max_temp <number (<=90)>"
+        echo "Usage: $0 fan_max_temp <number (<=90)>"
     fi
 }
 
@@ -304,8 +304,8 @@ show_help() {
     echo "  start                 Start custom fan curve."
     echo "  stop                  Stop fancontrol and restore autofanctrl"
     echo "  monitor               Toggle log monitor on/off"
-    echo "  min_temp <°C>         Set minimum temperature (Celsius)"
-    echo "  max_temp <°C>         Set maximum temperature (Celsius, max 90)"
+    echo "  fan_min_temp <°C>         Set minimum temperature (Celsius)"
+    echo "  fan_max_temp <°C>         Set maximum temperature (Celsius, max 90)"
     echo "  min_fan <0–100>       Set fan duty at min temp"
     echo "  max_fan <0–100>       Set fan duty at max temp (must be > min_fan)"
     echo "  update <seconds>      Set sleep interval between fan checks (1-10)"
@@ -320,10 +320,10 @@ case "$1" in
     start) start ;;
     stop) stop ;;
     monitor) monitor ;;
-    min_temp) set_min_temp "$@" ;;
-    max_temp) set_max_temp "$@" ;;
-    min_fan)  set_min_fan "$@" ;;
-    max_fan)  set_max_fan "$@" ;;
+    fan_min_temp) fan_min_temp "$@" ;;
+    fan_max_temp) fan_max_temp "$@" ;;
+    min_fan)  min_fan "$@" ;;
+    max_fan)  max_fan "$@" ;;
     update)   set_sleep_interval "$@" ;;
     stepup)   set_stepup "$@" ;;
     stepdown) set_stepdown "$@" ;;
@@ -350,7 +350,7 @@ case "$1" in
         echo
         sudo ectool pwmgetnumfans
         sudo ectool pwmgetfanrpm all
-        echo "Fan curve: $MIN_TEMP°C = ${MIN_FAN}%, $MAX_TEMP°C = ${MAX_FAN}%"
+        echo "Fan curve: $FAN_MIN_TEMP°C = ${MIN_FAN}%, $FAN_MAX_TEMP°C = ${MAX_FAN}%"
         echo "Sleep interval: $SLEEP_INTERVAL seconds"
         echo "Step-up: $STEP_UP%, Step-down: $STEP_DOWN%"
         ;;
