@@ -46,15 +46,6 @@ PID_FILE_BATTERY="$INSTALL_DIR/.batterycontrol_pid"
 PID_FILE_POWER="$INSTALL_DIR/.powercontrol_pid"
 PID_FILE_FAN="$INSTALL_DIR/.fan_curve_pid"
 
-# Monitors
-
-
-# CPU Information & Control
-PERF_PATH=""
-TURBO_PATH=""
-IS_AMD=0
-IS_INTEL=0
-IS_ARM=0
 
 export STARTUP_BATTERYCONTROL
 export STARTUP_FANCONTROL
