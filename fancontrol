@@ -333,7 +333,7 @@ case "$1" in
         run_loop
         ;;
         
-        if [ "$2" == "1" ]; then
+        if [ "$2" = "1" ]; then
             if [ -f "$CONF_SOURCE" ]; then
                 echo "Copying fancontrol.conf to /etc/init/..."
                 sudo cp "$CONF_SOURCE" "$CONF_TARGET"
