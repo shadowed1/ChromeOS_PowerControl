@@ -106,7 +106,7 @@ case "$choice" in
             echo "Installation directory not found or still contains files: $INSTALL_DIR"
         fi
 
-        echo "Full uninstall complete."
+        echo "Uninstall complete."
         ;;
     *)
         echo "Invalid option."
