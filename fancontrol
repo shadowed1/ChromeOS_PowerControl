@@ -27,7 +27,6 @@ SLEEP_INTERVAL=$DEFAULT_SLEEP_INTERVAL
 STEP_UP=$DEFAULT_STEP_UP
 STEP_DOWN=$DEFAULT_STEP_DOWN
 load_config() {
-    echo "Loading config from: $CONFIG_FILE"
     if [ -f "$CONFIG_FILE" ]; then
         source "$CONFIG_FILE"
     fi
