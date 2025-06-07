@@ -75,8 +75,6 @@ load_config() {
 
 save_config() {
     validate_config
-    save_config() {
-    validate_config
 
     if [ "$MAX_TEMP" != "$DEFAULT_MAX_TEMP" ]; then
         sed -i "s/^MAX_TEMP=.*/MAX_TEMP=$MAX_TEMP/" "$CONFIG_FILE" || echo "MAX_TEMP=$MAX_TEMP" >> "$CONFIG_FILE"
