@@ -119,7 +119,22 @@ load_config() {
 
 # Save the configuration for later
 save_config() {
-    validate_config
+    validate_config  
+
+    if [ "$MIN_TEMP" != "$DEFAULT_MIN_TEMP" ]; then
+        sed -i "s/^DEFAULT_MIN_TEMP=.*/DEFAULT_MIN_TEMP=$MIN_TEMP/" "$INSTALL_DIR/config.sh"
+    fi
+    if [ "$MAX_TEMP" != "$DEFAULT_MAX_TEMP" ]; then
+        sed -i "s/^DEFAULT_MAX_TEMP=.*/DEFAULT_MAX_TEMP=$MAX_TEMP/" "$INSTALL_DIR/config.sh"
+    fi
+    if [ "$MIN_PERF_PCT" != "$DEFAULT_MIN_PERF_PCT" ]; then
+        sed -i "s/^DEFAULT_MIN_PERF_PCT=.*/DEFAULT_MIN_PERF_PCT=$MIN_PERF_PCT/" "$INSTALL_DIR/config.sh"
+    fi
+    if [ "$MAX_PERF_PCT" != "$DEFAULT_MAX_PERF_PCT" ]; then
+        sed -i "s/^DEFAULT_MAX_PERF_PCT=.*/DEFAULT_MAX_PERF_PCT=$MAX_PERF_PCT/" "$INSTALL_DIR/config.sh"
+    fi
+
+    echo "Configuration saved to $INSTALL_DIR/config.sh"
 }
 
 # Export variables for access by other scripts
