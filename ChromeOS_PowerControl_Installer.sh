@@ -46,20 +46,18 @@ detect_cpu_type
 echo "Detected CPU Vendor: $CPU_VENDOR"
 echo "PERF_PATH: $PERF_PATH"
 echo "TURBO_PATH: $TURBO_PATH"
-
 echo "$INSTALL_DIR" | sudo tee /usr/local/bin/ChromeOS_PowerControl.install_dir > /dev/null
-
+echo ""
 sudo chmod +x "$INSTALL_DIR/powercontrol" "$INSTALL_DIR/batterycontrol" "$INSTALL_DIR/fancontrol" "$INSTALL_DIR/Uninstall_ChromeOS_PowerControl.sh" "$INSTALL_DIR/config.sh"
-echo "Executable permissions set for key scripts."
 sudo touch "$INSTALL_DIR/.batterycontrol_enabled" "$INSTALL_DIR/.powercontrol_enabled" "$INSTALL_DIR/.fancontrol_enabled"
 sudo touch "$INSTALL_DIR/.fan_curve_pid" "$INSTALL_DIR/.fancontrol_tail_fan_monitor.pid" "$INSTALL_DIR/.batterycontrol_pid" "$INSTALL_DIR/.powercontrol_tail_fan_monitor.pid" "$INSTALL_DIR/.powercontrol_pid"
-echo "Flag files created for BatteryControl, PowerControl, and FanControl."
+
 LOG_DIR="/var/log"
 CONFIG_FILE="$INSTALL_DIR/config.sh"
 sudo touch "$LOG_DIR/powercontrol.log" "$LOG_DIR/batterycontrol.log" "$LOG_DIR/fancontrol.log"
 sudo chmod +x "$LOG_DIR/powercontrol.log" "$LOG_DIR/batterycontrol.log" "$LOG_DIR/fancontrol.log"
-echo "Log files created for PowerControl, BatteryControl, and FanControl."
-
+echo "Log files for PowerControl, BatteryControl, and FanControl are stored in /var/log/"
+echo ""
 USER_HOME="/home/chronos"
 if [ ! -f "$CONFIG_FILE" ]; then
     echo "Creating config at $CONFIG_FILE"
@@ -86,25 +84,31 @@ echo "TURBO_PATH=$TURBO_PATH" >> "$CONFIG_FILE"
 echo "IS_AMD=$IS_AMD" >> "$CONFIG_FILE"
 echo "IS_INTEL=$IS_INTEL" >> "$CONFIG_FILE"
 echo "IS_ARM=$IS_ARM" >> "$CONFIG_FILE"
+echo ""
 
 if [ "$IS_INTEL" -eq 1 ]; then
     read -rp "Do you want Intel Turbo Boost disabled on boot? (y/n): " move_no_turbo
     if [[ "$move_no_turbo" =~ ^[Yy]$ ]]; then
         sudo cp "$INSTALL_DIR/no_turbo.conf" /etc/init/
         echo "Turbo Boost will be disabled on restart."
+        echo ""
     else
         echo "Turbo Boost will remain enabled."
+        echo ""
     fi
 
     read -rp "Do you want to disable Intel Turbo Boost now? (y/n): " run_no_turbo
     if [[ "$run_no_turbo" =~ ^[Yy]$ ]]; then
         echo 1 | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo > /dev/null
         echo "Turbo Boost disabled immediately."
+        echo ""
     else
         echo "Turbo Boost remains enabled."
+        echo ""
     fi
 else
     echo "This is not an Intel CPU, skipping Turbo Boost options."
+    echo ""
 fi
 
 read -rp "Do you want to create global commands 'powercontrol', 'batterycontrol', and 'fancontrol'? (y/n): " link_cmd
@@ -113,8 +117,10 @@ if [[ "$link_cmd" =~ ^[Yy]$ ]]; then
     sudo ln -sf "$INSTALL_DIR/batterycontrol" /usr/local/bin/batterycontrol
     sudo ln -sf "$INSTALL_DIR/fancontrol" /usr/local/bin/fancontrol
     echo "Global commands created for 'powercontrol', 'batterycontrol', and 'fancontrol'."
+    echo ""
 else
     echo "Skipped creating global commands."
+    echo ""
 fi
 
 enable_component_on_boot() {
@@ -124,8 +130,10 @@ enable_component_on_boot() {
     if [[ "$move_config" =~ ^[Yy]$ ]]; then
         sudo cp "$config_file" /etc/init/
         echo "$component will start on boot."
+        echo ""
     else
         echo "$component must be started manually on boot."
+        echo ""
     fi
 }
 
@@ -140,8 +148,10 @@ start_component_now() {
     if [[ "$start_now" =~ ^[Yy]$ ]]; then
         sudo "$command" start
         echo "$component started in the background."
+        echo ""
     else
         echo "You can run it later with: sudo $command start"
+        echo ""
     fi
 }
 
