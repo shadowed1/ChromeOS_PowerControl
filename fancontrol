@@ -43,16 +43,68 @@ load_config() {
     fi
 }
 
+validate_config() {
+    if [[ -z "$FAN_MAX" || ! "$FAN_MAX" =~ ^[0-9]+$ ]]; then
+        FAN_MAX=$DEFAULT_FAN_MAX
+    fi
+    if [[ -z "$FAN_MIN" || ! "$FAN_MIN" =~ ^[0-9]+$ ]]; then
+        FAN_MIN=$DEFAULT_FAN_MIN
+    fi
+    if (( FAN_MIN >= FAN_MAX )); then
+        FAN_MIN=$DEFAULT_FAN_MIN
+        FAN_MAX=$DEFAULT_FAN_MAX
+    fi
+
+    if [[ -z "$FAN_MAX_TEMP" || ! "$FAN_MAX_TEMP" =~ ^[0-9]+$ ]]; then
+        FAN_MAX_TEMP=$DEFAULT_FAN_MAX_TEMP
+    fi
+    if [[ -z "$FAN_MIN_TEMP" || ! "$FAN_MIN_TEMP" =~ ^[0-9]+$ ]]; then
+        FAN_MIN_TEMP=$DEFAULT_FAN_MIN_TEMP
+    fi
+    if (( FAN_MIN_TEMP >= FAN_MAX_TEMP )); then
+        FAN_MIN_TEMP=$DEFAULT_FAN_MIN_TEMP
+        FAN_MAX_TEMP=$DEFAULT_FAN_MAX_TEMP
+    fi
+
+    if [[ -z "$STEP_UP" || ! "$STEP_UP" =~ ^[0-9]+$ ]]; then
+        STEP_UP=$DEFAULT_STEP_UP
+    fi
+    if [[ -z "$STEP_DOWN" || ! "$STEP_DOWN" =~ ^[0-9]+$ ]]; then
+        STEP_DOWN=$DEFAULT_STEP_DOWN
+    fi
+    if [[ -z "$SLEEP_INTERVAL" || ! "$SLEEP_INTERVAL" =~ ^[0-9]+$ ]]; then
+        SLEEP_INTERVAL=$DEFAULT_SLEEP_INTERVAL
+    fi
+}
+
 
 save_config() {
 
-echo "FAN_MAX_TEMP=$FAN_MAX_TEMP" >> "$CONFIG_FILE"
-echo "FAN_MIN_TEMP=$FAN_MIN_TEMP" >> "$CONFIG_FILE"
-echo "FAN_MAX=$FAN_MAX" >> "$CONFIG_FILE"
-echo "FAN_MIN=$FAN_MIN" >> "$CONFIG_FILE"
-echo "SLEEP_INTERVAL=$SLEEP_INTERVAL" >> "$CONFIG_FILE"
-echo "STEP_UP=$STEP_UP" >> "$CONFIG_FILE"
-echo "STEP_DOWN=$STEP_DOWN" >> "$CONFIG_FILE"
+if [ "$FAN_MAX_TEMP" != "$DEFAULT_FAN_MAX_TEMP" ]; then
+        sed -i "s/^FAN_MAX_TEMP=.*/FAN_MAX_TEMP=$FAN_MAX_TEMP/" "$CONFIG_FILE" || echo "FAN_MAX_TEMP=$FAN_MAX_TEMP" >> "$CONFIG_FILE"
+    fi
+    if [ "$FAN_MIN_TEMP" != "$DEFAULT_FAN_MIN_TEMP" ]; then
+        sed -i "s/^FAN_MIN_TEMP=.*/FAN_MIN_TEMP=$FAN_MIN_TEMP/" "$CONFIG_FILE" || echo "FAN_MIN_TEMP=$FAN_MIN_TEMP" >> "$CONFIG_FILE"
+    fi
+
+if [ "$FAN_MAX" != "$DEFAULT_FAN_MAX" ]; then
+        sed -i "s/^FAN_MAX=.*/FAN_MAX=$FAN_MAX/" "$CONFIG_FILE" || echo "FAN_MAX=$FAN_MAX" >> "$CONFIG_FILE"
+    fi
+    if [ "$FAN_MIN" != "$DEFAULT_FAN_MIN" ]; then
+        sed -i "s/^FAN_MIN=.*/FAN_MIN=$FAN_MIN/" "$CONFIG_FILE" || echo "FAN_MIN=$FAN_MIN" >> "$CONFIG_FILE"
+    fi
+
+if [ "$SLEEP_INTERVAL" != "$DEFAULT_SLEEP_INTERVAL" ]; then
+        sed -i "s/^SLEEP_INTERVAL=.*/SLEEP_INTERVAL=$SLEEP_INTERVAL/" "$CONFIG_FILE" || echo "SLEEP_INTERVAL=$SLEEP_INTERVAL" >> "$CONFIG_FILE"
+    fi
+    if [ "$STEP_UP" != "$DEFAULT_STEP_UP" ]; then
+        sed -i "s/^STEP_UP=.*/STEP_UP=$STEP_UP/" "$CONFIG_FILE" || echo "STEP_UP=$STEP_UP" >> "$CONFIG_FILE"
+    fi
+
+if [ "$STEP_DOWN" != "$DEFAULT_STEP_DOWN" ]; then
+        sed -i "s/^STEP_DOWN=.*/STEP_DOWN=$STEP_DOWN/" "$CONFIG_FILE" || echo "STEP_DOWN=$STEP_DOWN" >> "$CONFIG_FILE"
+    fi
+
 }
 
 # === Fan logic with hysteresis ===
