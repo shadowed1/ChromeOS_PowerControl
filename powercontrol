@@ -68,9 +68,32 @@ load_config() {
         MAX_TEMP=${MAX_TEMP:-$DEFAULT_MAX_TEMP}
         MIN_PERF_PCT=${MIN_PERF_PCT:-$DEFAULT_MIN_PERF_PCT}
         MAX_PERF_PCT=${MAX_PERF_PCT:-$DEFAULT_MAX_PERF_PCT}
-        save_config
+        validate_config
     fi
 }
+
+validate_config() {
+    if (( MAX_TEMP > MAX_TEMP_LIMIT )); then
+        echo "Warning: MAX_TEMP exceeds limit ($MAX_TEMP_LIMIT), resetting."
+        MAX_TEMP=$DEFAULT_MAX_TEMP
+    fi
+
+    if (( MIN_TEMP >= MAX_TEMP )); then
+        echo "Warning: MIN_TEMP >= MAX_TEMP, adjusting."
+        MIN_TEMP=$(( MAX_TEMP - 10 ))
+    fi
+
+    if (( MIN_PERF_PCT < 10 || MIN_PERF_PCT > 100 )); then
+        echo "Warning: MIN_PERF_PCT out of bounds, resetting."
+        IN_PERF_PCT=$DEFAULT_MIN_PERF_PCT
+    fi
+
+    if (( MAX_PERF_PCT < MIN_PERF_PCT )); then
+        echo "Warning: MAX_PERF_PCT < MIN_PERF_PCT, adjusting."
+        MAX_PERF_PCT=$(( MIN_PERF_PCT + 10 ))
+    fi
+}
+
 
 
 save_config() {
@@ -94,7 +117,7 @@ save_config() {
     echo "Configuration saved to $CONFIG_FILE"
 }
 
-
+load_config
 
 get_temp() {
     local temp_celsius
@@ -111,7 +134,7 @@ get_temp() {
 
 set_max_perf_pct() {
     local pct=$1
-
+    load_config
     if { [ "$IS_INTEL" -eq 1 ] || [ "$IS_AMD" -eq 1 ]; } && [[ "$PERF_PATH" == *max_perf_pct ]]; then
         if [ -w "$PERF_PATH" ]; then
             echo "$pct" | tee "$PERF_PATH" > /dev/null
@@ -176,29 +199,6 @@ set_min_perf_pct() {
     save_config
     echo "Minimum performance percentage set to $MIN_PERF_PCT%"
 }
-
-validate_config() {
-    if (( MAX_TEMP > MAX_TEMP_LIMIT )); then
-        echo "Warning: MAX_TEMP exceeds limit ($MAX_TEMP_LIMIT), resetting."
-        MAX_TEMP=$DEFAULT_MAX_TEMP
-    fi
-
-    if (( MIN_TEMP >= MAX_TEMP )); then
-        echo "Warning: MIN_TEMP >= MAX_TEMP, adjusting."
-        MIN_TEMP=$(( MAX_TEMP - 10 ))
-    fi
-
-    if (( MIN_PERF_PCT < 10 || MIN_PERF_PCT > 100 )); then
-        echo "Warning: MIN_PERF_PCT out of bounds, resetting."
-        IN_PERF_PCT=$DEFAULT_MIN_PERF_PCT
-    fi
-
-    if (( MAX_PERF_PCT < MIN_PERF_PCT )); then
-        echo "Warning: MAX_PERF_PCT < MIN_PERF_PCT, adjusting."
-        MAX_PERF_PCT=$(( MIN_PERF_PCT + 10 ))
-    fi
-}
-
 
 set_no_turbo() {
     local value="$1"
