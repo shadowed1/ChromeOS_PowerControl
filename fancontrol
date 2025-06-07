@@ -147,7 +147,7 @@ run_loop() {
 
         KICKSTART_DUTY=50
 
-        echo "$(date '+%Y-%m-%d %H:%M:%S') Temp: ${TEMP_C}°C -> Fan Duty: ${target_duty}%" >> "$LOG_FILE"
+        echo "$(date '+%Y-%m-%d %H:%M:%S') CPU: ${TEMP_C}°C -> Fan: ${target_duty}%" >> "$LOG_FILE"
 
         if (( last_duty > 0 && target_duty == 0 )); then
             echo "Applying kickstart at ${KICKSTART_DUTY}% before setting to 0%" >> "$LOG_FILE"
