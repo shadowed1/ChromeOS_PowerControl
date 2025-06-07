@@ -52,6 +52,7 @@ echo "$INSTALL_DIR" | sudo tee /usr/local/bin/ChromeOS_PowerControl.install_dir 
 sudo chmod +x "$INSTALL_DIR/powercontrol" "$INSTALL_DIR/batterycontrol" "$INSTALL_DIR/fancontrol" "$INSTALL_DIR/Uninstall_ChromeOS_PowerControl.sh" "$INSTALL_DIR/config.sh"
 echo "Executable permissions set for key scripts."
 sudo touch "$INSTALL_DIR/.batterycontrol_enabled" "$INSTALL_DIR/.powercontrol_enabled" "$INSTALL_DIR/.fancontrol_enabled"
+sudo touch "$INSTALL_DIR/.powercontrol_tail_fan_monitor.pid" "$INSTALL_DIR/.fan_curve_pid" "$INSTALL_DIR/.powercontrol_pid" "$INSTALL_DIR/.fancontrol_tail_fan_monitor.pid"
 echo "Flag files created for BatteryControl, PowerControl, and FanControl."
 LOG_DIR="/var/log"
 CONFIG_FILE="$INSTALL_DIR/config.sh"
@@ -60,13 +61,14 @@ sudo chmod +x "$LOG_DIR/powercontrol.log" "$LOG_DIR/batterycontrol.log" "$LOG_DI
 echo "Log files created for PowerControl, BatteryControl, and FanControl."
 
 USER_HOME="/home/chronos"
+if [ ! -f "$CONFIG_FILE" ]; then
     echo "Creating config at $CONFIG_FILE"
-    echo "CHARGE_MAX=77" >> "$CONFIG_FILE"
-    echo "CHARGE_MIN=74" >> "$CONFIG_FILE"
     echo "MAX_TEMP=86" >> "$CONFIG_FILE"
     echo "MAX_PERF_PCT=100" >> "$CONFIG_FILE"
     echo "MIN_TEMP=60" >> "$CONFIG_FILE"
     echo "MIN_PERF_PCT=50" >> "$CONFIG_FILE"
+    echo "CHARGE_MAX=77" >> "$CONFIG_FILE"
+    echo "CHARGE_MIN=74" >> "$CONFIG_FILE"
     echo "FAN_MIN_TEMP=48" >> "$CONFIG_FILE"
     echo "FAN_MAX_TEMP=81" >> "$CONFIG_FILE"
     echo "FAN_MIN=0" >> "$CONFIG_FILE"
@@ -74,6 +76,10 @@ USER_HOME="/home/chronos"
     echo "FAN_SLEEP_INTERVAL=3" >> "$CONFIG_FILE"
     echo "FAN_STEP_UP=20" >> "$CONFIG_FILE"
     echo "FAN_STEP_DOWN=1" >> "$CONFIG_FILE"
+    echo "Config created."
+else
+    echo "Config file already exists at $CONFIG_FILE"
+fi
 
 echo "PERF_PATH=$PERF_PATH" >> "$CONFIG_FILE"
 echo "TURBO_PATH=$TURBO_PATH" >> "$CONFIG_FILE"
