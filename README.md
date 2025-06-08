@@ -6,11 +6,14 @@
 </p>  
 <br> <br>
 
-- Requires Developer Mode - Supports AMD, ARM, and Intel. 
+- Requires Developer Mode - Supports AMD, ARM, and Intel.
+  <br> <br>
 - Control battery charging limit instead of relying on Adaptive Charging to maximize battery longevity.
 - Control CPU clockspeed in relation to temperature; enabling lower temperatures under load and longer battery life.
 - Control fan curve in relation to temperature with built-in hysteresis and 0% RPM mode.
-- Features global commands for ease of use, config files that save settings, and an uninstaller to clean up after itself.
+  <br> <br>
+- Features global commands for ease of use, a unified config file with real-time settings, and performance logs.
+- Has a feature-rich installer, and an uninstaller that cleans up after itself. 
 - Optionally have BatteryControl, PowerControl, FanControl start on boot; as well as disabling Turbo Boost on boot if user has rootfs verification disabled.
 <br> <br> <br>
 
@@ -101,6 +104,7 @@ __How It Works:__
 - Pairs user adjustable max_perf_pct and thermal0 temp sensor to create a user adjustable clockspeed-temperature curve. 
 - If $min_temp threshold is below a certain point, the CPU will be able to reach max_perf_pct of its speed.
 - The closer the CPU approaches $max_temp, the closer it is to min_perf_pct.
+- PowerControl will always be more conservative regarding thermals and performance than native behavior.
 
 <br>
 
@@ -109,7 +113,8 @@ __How It Works:__
 - Uses ectool's chargecontrol to toggle between normal or idle.
 - Check's ectool usbpdpower to identify which charge port is being used. 
 - Check's BAT0/capacity to measure when to control chargecontrol.
-- ChromeOS reports slightly higher values than what BatteryControl sets the charge limit to.<br>
+- ChromeOS reports slightly higher values than what BatteryControl sets the charge limit to.
+- 
 
 <br>
 
@@ -119,6 +124,7 @@ __How It Works:__
 - Pairs fanduty with thermal0 temperature sensor for a user adjustable fan-temperature curve.
 - Uses hysteresis formula to attempt a better sounding and performing fan curve than the OEM provides. 
 - Uses a kickstart mechanism when fan leaves 0% to enable zero RPM mode for any fan type.
+- Default FanControl behavior has aggressive fan ramp-up behavior with a graceful decrease. 
 
 <br>
 
