@@ -328,7 +328,7 @@ case "$1" in
             sudo cp "$CONF_SOURCE" "$CONF_TARGET"
             echo "${GREEN}fancontrol.conf copied.${RESET}"
         else
-            echo "${RED} fancontrol.conf not found at $CONF_SOURCE${RESET}"
+            echo "${RED}fancontrol.conf not found at $CONF_SOURCE${RESET}"
         fi
     else
         echo "FanControl will not startup automatically."
