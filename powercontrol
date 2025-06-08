@@ -121,29 +121,18 @@ validate_config() {
     fi
 }
 
-
-
-
-
 save_config() {
     validate_config
 
-    if [ "$MAX_TEMP" != "$DEFAULT_MAX_TEMP" ]; then
-        sed -i "s/^MAX_TEMP=.*/MAX_TEMP=$MAX_TEMP/" "$CONFIG_FILE" || echo "MAX_TEMP=$MAX_TEMP" >> "$CONFIG_FILE"
-    fi
-    if [ "$MIN_TEMP" != "$DEFAULT_MIN_TEMP" ]; then
-        sed -i "s/^MIN_TEMP=.*/MIN_TEMP=$MIN_TEMP/" "$CONFIG_FILE" || echo "MIN_TEMP=$MIN_TEMP" >> "$CONFIG_FILE"
-    fi
-    if [ "$MAX_PERF_PCT" != "$DEFAULT_MAX_PERF_PCT" ]; then
-        sed -i "s/^MAX_PERF_PCT=.*/MAX_PERF_PCT=$MAX_PERF_PCT/" "$CONFIG_FILE" || echo "MAX_PERF_PCT=$MAX_PERF_PCT" >> "$CONFIG_FILE"
-    fi
-    if [ "$MIN_PERF_PCT" != "$DEFAULT_MIN_PERF_PCT" ]; then
-        sed -i "s/^MIN_PERF_PCT=.*/MIN_PERF_PCT=$MIN_PERF_PCT/" "$CONFIG_FILE" || echo "MIN_PERF_PCT=$MIN_PERF_PCT" >> "$CONFIG_FILE"
-    fi
+    sed -i "s/^MAX_TEMP=.*/MAX_TEMP=$MAX_TEMP/" "$CONFIG_FILE" || echo "MAX_TEMP=$MAX_TEMP" >> "$CONFIG_FILE"
+    sed -i "s/^MIN_TEMP=.*/MIN_TEMP=$MIN_TEMP/" "$CONFIG_FILE" || echo "MIN_TEMP=$MIN_TEMP" >> "$CONFIG_FILE"
+    sed -i "s/^MAX_PERF_PCT=.*/MAX_PERF_PCT=$MAX_PERF_PCT/" "$CONFIG_FILE" || echo "MAX_PERF_PCT=$MAX_PERF_PCT" >> "$CONFIG_FILE"
+    sed -i "s/^MIN_PERF_PCT=.*/MIN_PERF_PCT=$MIN_PERF_PCT/" "$CONFIG_FILE" || echo "MIN_PERF_PCT=$MIN_PERF_PCT" >> "$CONFIG_FILE"
 
-    source "$INSTALL_DIR/config.sh"  
+    source "$INSTALL_DIR/config.sh"
     echo "Configuration saved to $CONFIG_FILE"
 }
+
 
 load_config
 
