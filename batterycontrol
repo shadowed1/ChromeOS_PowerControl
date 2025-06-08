@@ -204,7 +204,7 @@ stop_monitoring() {
         PID=$(cat "$PID_FILE")
         if ps -p "$PID" > /dev/null 2>&1; then
             kill "$PID"
-            echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') - Stopped BatteryControl (PID $PID).${RESET}"
+            echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') - Stopping BatteryControl (PID $PID).${RESET}"
         fi
         rm -f "$PID_FILE"
     fi
