@@ -289,7 +289,10 @@ set_stepdown() {
     fi
 }
 show_help() {
-echo "${MAGENTA}sudo fancontrol                       # Show FanControl status"
+echo "${MAGENTA}"
+echo "FanControl commands with examples:"
+echo ""
+echo "sudo fancontrol                       # Show FanControl status"
 echo "sudo fancontrol start                 # Start FanControl"
 echo "sudo fancontrol stop                  # Stop FanControl"
 echo "sudo fancontrol min_temp 48           # Min temp threshold"
@@ -300,6 +303,7 @@ echo "sudo fancontrol stepup 20             # Fan step-up %"
 echo "sudo fancontrol stepdown 1            # Fan step-down %"
 echo "sudo fancontrol startup               # Initiate fancontrol startup on-boot installer"
 echo "sudo fancontrol help                  # Help menu${RESET}"
+echo ""
 }
 
 case "$1" in
