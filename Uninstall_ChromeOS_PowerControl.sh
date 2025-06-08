@@ -5,7 +5,7 @@ YELLOW=$(tput setaf 3)
 CYAN=$(tput setaf 6)
 BOLD=$(tput bold)
 RESET=$(tput sgr0)
-INSTALL_DIR_FILE="/usr/local/bin/ChromeOS_PowerControl.install_dir"
+INSTALL_DIR_FILE="/usr/local/bin/.ChromeOS_PowerControl.install_dir"
 if [ -f "$INSTALL_DIR_FILE" ]; then
     INSTALL_DIR=$(cat "$INSTALL_DIR_FILE")
 else
@@ -64,9 +64,9 @@ case "$choice" in
         remove_file_with_message "$INSTALL_DIR/fancontrol.conf"
 
         remove_file_with_message /usr/local/bin/ChromeOS_PowerControl_Installer.sh
-        remove_file_with_message /usr/local/bin/powercontrol_conf.sh
-        remove_file_with_message /usr/local/bin/fancontrol_conf.sh
-        remove_file_with_message /usr/local/bin/batterycontrol_conf.sh
+        remove_file_with_message /usr/local/bin/.powercontrol_conf.sh
+        remove_file_with_message /usr/local/bin/.fancontrol_conf.sh
+        remove_file_with_message /usr/local/bin/.batterycontrol_conf.sh
 
         remove_file_with_message /usr/local/bin/powercontrol
         remove_file_with_message /usr/local/bin/batterycontrol
@@ -94,7 +94,7 @@ case "$choice" in
 
         remove_file_with_message "$INSTALL_DIR/LICENSE"
         remove_file_with_message "$INSTALL_DIR/README.md"
-        remove_file_with_message "/usr/local/bin/ChromeOS_PowerControl.install_dir"
+        remove_file_with_message "/usr/local/bin/.ChromeOS_PowerControl.install_dir"
         remove_file_with_message "$INSTALL_DIR/Uninstall_ChromeOS_PowerControl.sh"
 
         if [ -d "$INSTALL_DIR" ] && [ -z "$(ls -A "$INSTALL_DIR")" ]; then
