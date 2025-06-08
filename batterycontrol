@@ -82,15 +82,16 @@ set_thresholds() {
 }
 
 show_help() {
+    echo "${GREEN}"
     echo "BatteryControl commands with examples:"
     echo
-    echo "sudo batterycontrol                   # Check BatteryControl status"
-    echo "sudo batterycontrol start             # Start BatteryControl"
-    echo "sudo batterycontrol stop              # Stop BatteryControl"
-    echo "sudo batterycontrol set 80 75         # Set max/min battery charge thresholds"
-    echo "sudo batterycontrol startup           # Initiate batterycontrol /etc/init .conf installer"
-    echo "sudo batterycontrol help              # Help menu"
-    echo
+echo "sudo batterycontrol                   # Check BatteryControl status"
+echo "sudo batterycontrol start             # Start BatteryControl"
+echo "sudo batterycontrol stop              # Stop BatteryControl"
+echo "sudo batterycontrol set 77 74         # Set max/min battery charge thresholds"
+echo "sudo batterycontrol startup           # Initiate batterycontrol startup on-boot installer"
+echo "sudo batterycontrol help              # Help menu${RESET}"
+echo ""
 }
 
 detect_active_usbpd_port() {
