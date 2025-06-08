@@ -458,6 +458,7 @@ echo "sudo powercontrol min_temp 60         # Min temperature threshold"
 echo "sudo powercontrol monitor             # Toggle live temperature monitoring"
 echo "sudo powercontrol startup             # Initiate no_turbo and powercontrol startup on-boot installer"
 echo "sudo powercontrol help                # Help menu${RESET}"
+echo ""
 }
 
 max_perf_pct() {
