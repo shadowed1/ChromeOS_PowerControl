@@ -30,7 +30,7 @@ __How to Install:__
 - In *VT-2* or *crosh shell with sudo enabled* run:
 
  `sudo mkdir -p /usr/local/bin` <br>
- `sudo mv ~/tmp/ChromeOS_PowerControl_Installer.sh /usr/local/bin` <br>
+ `sudo mv /home/chronos/ChromeOS_PowerControl_Installer.sh /usr/local/bin` <br>
  `sudo bash /usr/local/bin/ChromeOS_PowerControl_Installer.sh`
 
 - Installer has prompts to customize installation.
