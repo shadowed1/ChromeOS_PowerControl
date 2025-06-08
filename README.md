@@ -129,9 +129,8 @@ __How It Works:__
 <br>
 
 __Bonus:__
-- To disable rootfs verification open VT-2, login as root, and run:
- `/usr/libexec/debugd/helpers/dev_features_rootfs_verification`
-- Reboot to apply. 
+- To disable rootfs verification for /etc/init startup options, open VT-2, login as root, and reboot after running:
+ `/usr/libexec/debugd/helpers/dev_features_rootfs_verification` 
 - Enable sudo for crosh: `https://gist.github.com/velzie/a5088c9ade6ec4d35435b9826b45d7a3`
 
 <br>
