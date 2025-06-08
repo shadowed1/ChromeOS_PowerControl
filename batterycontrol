@@ -89,7 +89,7 @@ echo "sudo batterycontrol                   # Check BatteryControl status"
 echo "sudo batterycontrol start             # Start BatteryControl"
 echo "sudo batterycontrol stop              # Stop BatteryControl"
 echo "sudo batterycontrol set 77 74         # Set max/min battery charge thresholds"
-echo "sudo batterycontrol startup           # Initiate batterycontrol startup on-boot installer"
+echo "sudo batterycontrol startup           # Copy or Remove batterycontrol.conf at: /etc/init/"
 echo "sudo batterycontrol help              # Help menu${RESET}"
 echo ""
 }
