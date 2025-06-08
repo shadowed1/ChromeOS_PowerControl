@@ -20,6 +20,7 @@ CONFIG_FILE="$INSTALL_DIR/config.sh"
 POWER_LOG="/var/log/powercontrol.log"
 RUN_FLAG="$INSTALL_DIR/.powercontrol_enabled"
 PID_FILE="$INSTALL_DIR/.powercontrol_pid"
+NO_TURBO_BACKUP="$INSTALL_DIR/.no_turbo_backup"
 CPU_VENDOR=$(grep -m1 'vendor_id' /proc/cpuinfo | awk '{print $3}' || echo "unknown")
 MONITOR_PID_FILE="$INSTALL_DIR/.powercontrol_tail_fan_monitor.pid"
 PERF_PATH=""
@@ -77,13 +78,6 @@ load_config() {
 }
 
 validate_config() {
-    # Set defaults if empty
-    if [[ -z "$MAX_TEMP" ]]; then MAX_TEMP=$DEFAULT_MAX_TEMP; fi
-    if [[ -z "$MIN_TEMP" ]]; then MIN_TEMP=$DEFAULT_MIN_TEMP; fi
-    if [[ -z "$MAX_PERF_PCT" ]]; then MAX_PERF_PCT=$DEFAULT_MAX_PERF_PCT; fi
-    if [[ -z "$MIN_PERF_PCT" ]]; then MIN_PERF_PCT=$DEFAULT_MIN_PERF_PCT; fi
-
-    # Clamp temps to limits
     if (( MAX_TEMP > MAX_TEMP_LIMIT )); then
         echo "Warning: MAX_TEMP exceeds limit ($MAX_TEMP_LIMIT), resetting."
         MAX_TEMP=$DEFAULT_MAX_TEMP
@@ -94,34 +88,16 @@ validate_config() {
         MIN_TEMP=$(( MAX_TEMP - 10 ))
     fi
 
-    # Clamp perf pct to [10..100]
-    if (( MIN_PERF_PCT < 10 )); then
-        echo "Warning: MIN_PERF_PCT below 10, resetting."
-        MIN_PERF_PCT=10
-    elif (( MIN_PERF_PCT > 100 )); then
-        echo "Warning: MIN_PERF_PCT above 100, resetting."
-        MIN_PERF_PCT=100
-    fi
-
-    if (( MAX_PERF_PCT < 10 )); then
-        echo "Warning: MAX_PERF_PCT below 10, resetting."
-        MAX_PERF_PCT=10
-    elif (( MAX_PERF_PCT > 100 )); then
-        echo "Warning: MAX_PERF_PCT above 100, resetting."
-        MAX_PERF_PCT=100
+    if (( MIN_PERF_PCT < 10 || MIN_PERF_PCT > 100 )); then
+        echo "Warning: MIN_PERF_PCT out of bounds, resetting."
+        IN_PERF_PCT=$DEFAULT_MIN_PERF_PCT
     fi
 
     if (( MAX_PERF_PCT < MIN_PERF_PCT )); then
         echo "Warning: MAX_PERF_PCT < MIN_PERF_PCT, adjusting."
-        if (( MIN_PERF_PCT <= 90 )); then
-            MAX_PERF_PCT=$(( MIN_PERF_PCT + 10 ))
-        else
-            MAX_PERF_PCT=100
-        fi
+        MAX_PERF_PCT=$(( MIN_PERF_PCT + 10 ))
     fi
 }
-
-
 
 
 
@@ -142,6 +118,7 @@ save_config() {
     fi
 
     source "$INSTALL_DIR/config.sh"  
+
     echo "Configuration saved to $CONFIG_FILE"
 }
 
@@ -163,14 +140,14 @@ get_temp() {
 set_max_perf_pct() {
     local pct=$1
     load_config
-    if (( IS_INTEL == 1 || IS_AMD == 1 )) && [[ "$PERF_PATH" == *max_perf_pct ]]; then
+    if { [ "$IS_INTEL" -eq 1 ] || [ "$IS_AMD" -eq 1 ]; } && [[ "$PERF_PATH" == *max_perf_pct ]]; then
         if [ -w "$PERF_PATH" ]; then
             echo "$pct" | tee "$PERF_PATH" > /dev/null
         else
             echo "${RED}Permission denied: Cannot write to $PERF_PATH${RESET}" >&2
             exit 1
         fi
-   elif (( IS_AMD == 1 || IS_ARM == 1 )); then
+    elif [ "$IS_AMD" -eq 1 ] || [ "$IS_ARM" -eq 1 ]; then
         local max_freq=$(cat /sys/devices/system/cpu/cpufreq/policy0/cpuinfo_max_freq)
         local min_freq=$(cat /sys/devices/system/cpu/cpufreq/policy0/cpuinfo_min_freq)
         local target_freq=$(( min_freq + (max_freq - min_freq) * pct / 100 ))
@@ -250,17 +227,35 @@ set_no_turbo() {
     fi
 }
 
+backup_no_turbo() {
+    if [ -f "$TURBO_PATH" ]; then
+        sudo cat "$TURBO_PATH" > "$NO_TURBO_BACKUP"
+    fi
+}
+
 cleanup() {
-    echo "Caught interrupt signal, stopping PowerControl..."
+    echo "Caught interrupt signal, stopping PowerControl and restoring Turbo Boost setting..."
     stop_monitoring
     exit 0
 }
 
 trap cleanup SIGINT SIGTERM
 
+
+restore_no_turbo() {
+    if [ -f "$NO_TURBO_BACKUP" ]; then
+        saved_val=$(cat "$NO_TURBO_BACKUP")
+        if [[ "$saved_val" == "0" || "$saved_val" == "1" ]]; then
+            set_no_turbo "$saved_val"
+        fi
+        rm -f "$NO_TURBO_BACKUP"
+    fi
+}
+
 start_monitoring_loop() {
     load_config
     detect_cpu_type
+    backup_no_turbo
     touch "$RUN_FLAG"
     echo $$ > "$PID_FILE"
     echo "Starting PowerControl (PID $$)."
@@ -419,15 +414,18 @@ stop_monitoring() {
             if ! ps -p "$PID" > /dev/null 2>&1; then
                 echo "PowerControl stopped."
                 rm -f "$PID_FILE"
+                restore_no_turbo
                 return
             fi
             sleep 1
         done
         kill -9 "$PID"
         rm -f "$PID_FILE"
+        restore_no_turbo
     else
         rm -f "$PID_FILE"
         rm -f "$RUN_FLAG"
+        restore_no_turbo
     fi
 }
 
@@ -466,7 +464,7 @@ show_help() {
     echo "sudo powercontrol max_temp 86         # Max temperature threshold"
     echo "sudo powercontrol min_temp 60         # Min temperature threshold"
     echo "sudo powercontrol monitor             # Live temperature monitoring"
-    echo "sudo powercontrol startup             # Initiate powercontrol + no_turbo /etc/init .conf installer"
+    echo "sudo powercontrol startup             # Initiate powercontrol /etc/init .conf installer"
     echo "sudo powercontrol help                # Help menu"
     echo "sudo powercontrol uninstall           # Initiate uninstaller"
     echo ""
