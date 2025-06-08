@@ -104,7 +104,7 @@ __How It Works:__
 - Pairs user adjustable max_perf_pct and thermal0 temp sensor to create a user adjustable clockspeed-temperature curve. 
 - If $min_temp threshold is below a certain point, the CPU will be able to reach max_perf_pct of its speed.
 - The closer the CPU approaches $max_temp, the closer it is to min_perf_pct.
-- PowerControl will always be more conservative regarding thermals and performance than native behavior.
+- PowerControl will always be stringent regarding thermals and performance versus native behavior.
 
 <br>
 
@@ -112,9 +112,9 @@ __How It Works:__
 
 - Uses ectool's chargecontrol to toggle between normal or idle.
 - Check's ectool usbpdpower to identify which charge port is being used. 
-- Check's BAT0/capacity to measure when to control chargecontrol.
+- Check's BAT0/capacity to measure when to toggle ectool's chargecontrol.
 - ChromeOS reports slightly higher values than what BatteryControl sets the charge limit to.
-- Battery charging limit is able to stay preserved during sleep
+- Charge limit is preserved during sleep. 
 
 <br>
 
