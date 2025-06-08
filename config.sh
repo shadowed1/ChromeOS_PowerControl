@@ -25,13 +25,6 @@ STEP_DOWN=1
 
 ###############################################################################################################
 
-# Startup Flags
-STARTUP_BATTERYCONTROL=1
-STARTUP_FANCONTROL=1
-STARTUP_POWERCONTROL=1
-
-###############################################################################################################
-
 if [ -z "$INSTALL_DIR" ]; then
     INSTALL_DIR="/usr/local/bin/ChromeOS_PowerControl"
 fi
