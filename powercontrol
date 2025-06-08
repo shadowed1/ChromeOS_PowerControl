@@ -227,9 +227,9 @@ set_no_turbo() {
     if [ "$IS_INTEL" -eq 1 ] && [ -w "$TURBO_PATH" ]; then
         echo "$value" | sudo tee "$TURBO_PATH" > /dev/null
         if [ "$value" -eq 1 ]; then
-            echo "Turbo Boost Disabled (Intel)"
+            echo "Intel Turbo Boost ${CYAN}Disabled${RESET}"
         else
-            echo "Turbo Boost Enabled (Intel)"
+            echo "Intel Turbo Boost ${RED}Enabled${RESET}"
         fi
     elif [ "$IS_AMD" -eq 1 ]; then
         echo "Turbo disable is not directly supported on AMD via no_turbo."
@@ -573,7 +573,7 @@ echo "${GREEN}$(date '+%Y-%m-%d %H:%M:%S') - PowerControl monitoring started in 
         if [ -f "$CONF_SOURCE" ]; then
             echo "Copying powercontrol.conf to /etc/init/..."
             sudo cp "$CONF_SOURCE" "$CONF_TARGET"
-            echo "powercontrol.conf copied."
+            echo "${GREEN}powercontrol.conf copied.${RESET}"
         else
             echo "${RED}powercontrol.conf not found at $CONF_SOURCE${RESET}"
         fi
