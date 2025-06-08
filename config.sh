@@ -59,8 +59,8 @@ detect_cpu_type() {
     esac
 }
 # System Paths
-CHARGER_PATH="/sys/class/power_supply/CROS_USBPD_CHARGER0/online"
 BATTERY_PATH="/sys/class/power_supply/BAT0/capacity"
+BATTERY_STATUS_PATH="/sys/class/power_supply/BAT0/status"
 ZONE_PATH="/sys/class/thermal/thermal_zone0/temp"
 export STARTUP_BATTERYCONTROL
 export STARTUP_FANCONTROL
