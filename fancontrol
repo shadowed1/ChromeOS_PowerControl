@@ -346,12 +346,12 @@ case "$1" in
         if [ -f "$RUN_FLAG" ]; then
             PID=$(cat "$PID_FILE")
             if ps -p "$PID" > /dev/null 2>&1; then
-                echo "  Status: ENABLED (PID $PID)"
+                echo "${GREEN}Status: ENABLED (PID $PID)${RESET}"
             else
-                echo "  Status: RUN FLAG PRESENT, but process not running"
+                echo "${YELLOW}Status: RUN FLAG PRESENT, but process not running${RESET}"
             fi
         else
-            echo "  Status: DISABLED"
+            echo "${RED}Status: DISABLED${RESET}"
         fi
         echo
         echo "Hardware Info:"
