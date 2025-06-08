@@ -240,12 +240,10 @@ set_no_turbo() {
 }
 
 cleanup() {
-    echo "Caught interrupt signal, stopping PowerControl..."
     stop_monitoring
     exit 0
 }
 
-trap cleanup SIGINT SIGTERM
 
 start_monitoring_loop() {
     load_config
