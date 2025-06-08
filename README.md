@@ -12,8 +12,8 @@
 - Control CPU clockspeed in relation to temperature; enabling lower temperatures under load and longer battery life.
 - Control fan curve in relation to temperature with built-in hysteresis and 0% RPM mode.
   <br> <br>
-- Features global commands for ease of use, a unified config file with real-time settings, and performance logs.
-- Has a feature-rich installer, an uninstaller that cleans up after itself, and logs stored in /var/log/ for statistics.  
+- Features global commands for ease of use, a unified config file, and the ability to change settings in real-time. 
+- Has a feature-rich installer, an uninstaller that cleans up after itself, and logs stored in /var/log/ for statistics.
 - Optionally have BatteryControl, PowerControl, FanControl start on boot; as well as disabling Turbo Boost on boot if user has rootfs verification disabled.
 <br> <br> <br>
 
@@ -131,6 +131,7 @@ __How It Works:__
 __Bonus:__
 - To disable rootfs verification open VT-2, login as root, and run:
  `/usr/libexec/debugd/helpers/dev_features_rootfs_verification`
+- Reboot to apply. 
 - Enable sudo for crosh: `https://gist.github.com/velzie/a5088c9ade6ec4d35435b9826b45d7a3`
 
 <br>
