@@ -38,7 +38,7 @@ echo ""
 echo "${RED}${BOLD}VT-2 (or enabling sudo in crosh) is required to run this installer.$RESET"
 echo "${YELLOW}${BOLD}Must be installed in a location without the ${RESET}${MAGENTA}${BOLD}noexec mount.$RESET"
 echo ""
-read -rp "${GREEN}${BOLD}Enter desired Install Path - leave blank for default: /usr/local/bin/ChromeOS_PowerControl:$RESET" INSTALL_DIR
+read -rp "${GREEN}${BOLD}Enter desired Install Path - leave blank for default: /usr/local/bin/ChromeOS_PowerControl:$RESET " INSTALL_DIR
 INSTALL_DIR="${INSTALL_DIR:-/usr/local/bin/ChromeOS_PowerControl}"
 INSTALL_DIR="${INSTALL_DIR%/}"
 
