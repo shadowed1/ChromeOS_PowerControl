@@ -75,32 +75,15 @@ validate_config() {
 }
 
 save_config() {
+    sed -i "s/^FAN_MAX_TEMP=.*/FAN_MAX_TEMP=$FAN_MAX_TEMP/" "$CONFIG_FILE" || echo "FAN_MAX_TEMP=$FAN_MAX_TEMP" >> "$CONFIG_FILE"
+    sed -i "s/^FAN_MIN_TEMP=.*/FAN_MIN_TEMP=$FAN_MIN_TEMP/" "$CONFIG_FILE" || echo "FAN_MIN_TEMP=$FAN_MIN_TEMP" >> "$CONFIG_FILE"
+    sed -i "s/^FAN_MAX=.*/FAN_MAX=$FAN_MAX/" "$CONFIG_FILE" || echo "FAN_MAX=$FAN_MAX" >> "$CONFIG_FILE"
+    sed -i "s/^FAN_MIN=.*/FAN_MIN=$FAN_MIN/" "$CONFIG_FILE" || echo "FAN_MIN=$FAN_MIN" >> "$CONFIG_FILE"
+    sed -i "s/^SLEEP_INTERVAL=.*/SLEEP_INTERVAL=$SLEEP_INTERVAL/" "$CONFIG_FILE" || echo "SLEEP_INTERVAL=$SLEEP_INTERVAL" >> "$CONFIG_FILE"
+    sed -i "s/^STEP_UP=.*/STEP_UP=$STEP_UP/" "$CONFIG_FILE" || echo "STEP_UP=$STEP_UP" >> "$CONFIG_FILE"
+    sed -i "s/^STEP_DOWN=.*/STEP_DOWN=$STEP_DOWN/" "$CONFIG_FILE" || echo "STEP_DOWN=$STEP_DOWN" >> "$CONFIG_FILE"
 
-if [ "$FAN_MAX_TEMP" != "$DEFAULT_FAN_MAX_TEMP" ]; then
-        sed -i "s/^FAN_MAX_TEMP=.*/FAN_MAX_TEMP=$FAN_MAX_TEMP/" "$CONFIG_FILE" || echo "FAN_MAX_TEMP=$FAN_MAX_TEMP" >> "$CONFIG_FILE"
-    fi
-    if [ "$FAN_MIN_TEMP" != "$DEFAULT_FAN_MIN_TEMP" ]; then
-        sed -i "s/^FAN_MIN_TEMP=.*/FAN_MIN_TEMP=$FAN_MIN_TEMP/" "$CONFIG_FILE" || echo "FAN_MIN_TEMP=$FAN_MIN_TEMP" >> "$CONFIG_FILE"
-    fi
-
-if [ "$FAN_MAX" != "$DEFAULT_FAN_MAX" ]; then
-        sed -i "s/^FAN_MAX=.*/FAN_MAX=$FAN_MAX/" "$CONFIG_FILE" || echo "FAN_MAX=$FAN_MAX" >> "$CONFIG_FILE"
-    fi
-    if [ "$FAN_MIN" != "$DEFAULT_FAN_MIN" ]; then
-        sed -i "s/^FAN_MIN=.*/FAN_MIN=$FAN_MIN/" "$CONFIG_FILE" || echo "FAN_MIN=$FAN_MIN" >> "$CONFIG_FILE"
-    fi
-
-if [ "$SLEEP_INTERVAL" != "$DEFAULT_SLEEP_INTERVAL" ]; then
-        sed -i "s/^SLEEP_INTERVAL=.*/SLEEP_INTERVAL=$SLEEP_INTERVAL/" "$CONFIG_FILE" || echo "SLEEP_INTERVAL=$SLEEP_INTERVAL" >> "$CONFIG_FILE"
-    fi
-    if [ "$STEP_UP" != "$DEFAULT_STEP_UP" ]; then
-        sed -i "s/^STEP_UP=.*/STEP_UP=$STEP_UP/" "$CONFIG_FILE" || echo "STEP_UP=$STEP_UP" >> "$CONFIG_FILE"
-    fi
-
-if [ "$STEP_DOWN" != "$DEFAULT_STEP_DOWN" ]; then
-        sed -i "s/^STEP_DOWN=.*/STEP_DOWN=$STEP_DOWN/" "$CONFIG_FILE" || echo "STEP_DOWN=$STEP_DOWN" >> "$CONFIG_FILE"
-    fi
-
+    echo "FanControl configuration saved to $CONFIG_FILE"
 }
 
 # === Fan logic with hysteresis ===
