@@ -111,7 +111,6 @@ detect_active_usbpd_port() {
 }
 
 battery_status() {
-    echo "BatteryControl Status:"
     if [ -f "$RUN_FLAG" ]; then
         if [ -f "$PID_FILE" ]; then
             PID=$(cat "$PID_FILE")
