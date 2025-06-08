@@ -114,7 +114,7 @@ __How It Works:__
 - Check's ectool usbpdpower to identify which charge port is being used. 
 - Check's BAT0/capacity to measure when to control chargecontrol.
 - ChromeOS reports slightly higher values than what BatteryControl sets the charge limit to.
-- 
+- Battery charging limit is able to stay preserved during sleep
 
 <br>
 
