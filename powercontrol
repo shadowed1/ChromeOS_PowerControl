@@ -444,7 +444,7 @@ uninstall_script() {
 
 
 show_help() {
-    echo "${BLUE}"
+    echo "${CYAN}${BOLD}"
     echo "PowerControl commands with examples:"
     echo ""
 echo "sudo powercontrol                     # Show status"
