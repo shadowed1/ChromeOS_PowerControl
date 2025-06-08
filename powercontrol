@@ -229,7 +229,7 @@ set_no_turbo() {
         if [ "$value" -eq 1 ]; then
             echo "Intel Turbo Boost ${CYAN}Disabled${RESET}"
         else
-            echo "Intel Turbo Boost ${RED}Enabled${RESET}"
+            echo "Intel Turbo Boost ${YELLOW}Enabled${RESET}"
         fi
     elif [ "$IS_AMD" -eq 1 ]; then
         echo "Turbo disable is not directly supported on AMD via no_turbo."
