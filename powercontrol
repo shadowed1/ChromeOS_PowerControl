@@ -87,16 +87,24 @@ validate_config() {
         MIN_TEMP=$(( MAX_TEMP - 10 ))
     fi
 
+    # Validate performance percentages
     if (( MIN_PERF_PCT < 10 || MIN_PERF_PCT > 100 )); then
         echo "Warning: MIN_PERF_PCT out of bounds, resetting."
-        IN_PERF_PCT=$DEFAULT_MIN_PERF_PCT
+        MIN_PERF_PCT=$DEFAULT_MIN_PERF_PCT
     fi
 
+    if (( MAX_PERF_PCT < 10 || MAX_PERF_PCT > 100 )); then
+        echo "Warning: MAX_PERF_PCT out of bounds, resetting."
+        MAX_PERF_PCT=$DEFAULT_MAX_PERF_PCT
+    fi
+
+    # Make sure MAX >= MIN
     if (( MAX_PERF_PCT < MIN_PERF_PCT )); then
         echo "Warning: MAX_PERF_PCT < MIN_PERF_PCT, adjusting."
-        MAX_PERF_PCT=$(( MIN_PERF_PCT + 10 ))
+        MAX_PERF_PCT=$MIN_PERF_PCT
     fi
 }
+
 
 
 
