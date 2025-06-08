@@ -1,13 +1,27 @@
 #!/bin/bash
+RED=$(tput setaf 1)
+GREEN=$(tput setaf 2)
+YELLOW=$(tput setaf 3)
+BLUE=$(tput setaf 4)
+MAGENTA=$(tput setaf 5)
+CYAN=$(tput setaf 6)
+BOLD=$(tput bold)
+RESET=$(tput sgr0)
+INSTALL_DIR_FILE="/usr/local/bin/ChromeOS_PowerControl.install_dir"
+if [ -f "$INSTALL_DIR_FILE" ]; then
+    INSTALL_DIR=$(cat "$INSTALL_DIR_FILE")
+else
+    INSTALL_DIR="/usr/local/bin/ChromeOS_PowerControl"
+fi
+INSTALL_DIR="${INSTALL_DIR%/}"
 
-# Define paths using the new install folder
-INSTALL_DIR="/usr/local/bin/ChromeOS_PowerControl"
-USER_HOME="/home/chronos"
-CONFIG_FILE="$INSTALL_DIR/.batterycontrol_config"
+CONFIG_FILE="$INSTALL_DIR/config.sh"
+
 CHARGER_PATH="/sys/class/power_supply/CROS_USBPD_CHARGER0/online"
 BATTERY_PATH="/sys/class/power_supply/BAT0/capacity"
 RUN_FLAG="$INSTALL_DIR/.batterycontrol_enabled"
 PID_FILE="$INSTALL_DIR/.batterycontrol_pid"
+LOG="/var/log/batterycontrol.log"
 
 DEFAULT_CHARGE_MAX=77
 DEFAULT_CHARGE_MIN=74
@@ -15,7 +29,6 @@ DEFAULT_CHARGE_MIN=74
 CHARGE_MAX=
 CHARGE_MIN=
 
-# Load the configuration from the install directory
 load_config() {
     if [ -f "$CONFIG_FILE" ]; then
         source "$CONFIG_FILE"
@@ -23,14 +36,32 @@ load_config() {
     validate_config
 }
 
-# Save the configuration to the install directory
-save_config() {
-    validate_config
-    echo "CHARGE_MAX=$CHARGE_MAX" > "$CONFIG_FILE"
-    echo "CHARGE_MIN=$CHARGE_MIN" >> "$CONFIG_FILE"
+validate_config() {
+    if [[ -z "$CHARGE_MAX" || ! "$CHARGE_MAX" =~ ^[0-9]+$ ]]; then
+        CHARGE_MAX=$DEFAULT_CHARGE_MAX
+    fi
+    if [[ -z "$CHARGE_MIN" || ! "$CHARGE_MIN" =~ ^[0-9]+$ ]]; then
+        CHARGE_MIN=$DEFAULT_CHARGE_MIN
+    fi
+    if (( CHARGE_MIN >= CHARGE_MAX )); then
+        CHARGE_MIN=$DEFAULT_CHARGE_MIN
+        CHARGE_MAX=$DEFAULT_CHARGE_MAX
+    fi
 }
 
-# Set the charge thresholds (max and min)
+save_config() {
+    validate_config
+
+ if [ "$CHARGE_MAX" != "$DEFAULT_CHARGE_MAX" ]; then
+        sed -i "s/^CHARGE_MAX=.*/CHARGE_MAX=$CHARGE_MAX/" "$CONFIG_FILE" || echo "CHARGE_MAX=$CHARGE_MAX" >> "$CONFIG_FILE"
+    fi
+    if [ "$CHARGE_MIN" != "$DEFAULT_CHARGE_MIN" ]; then
+        sed -i "s/^CHARGE_MIN=.*/CHARGE_MIN=$CHARGE_MIN/" "$CONFIG_FILE" || echo "CHARGE_MIN=$CHARGE_MIN" >> "$CONFIG_FILE"
+    fi
+}
+
+load_config
+
 set_thresholds() {
     if ! [[ "$1" =~ ^[0-9]+$ && "$2" =~ ^[0-9]+$ ]]; then
         echo "Error: Both thresholds must be integers."
@@ -47,78 +78,66 @@ set_thresholds() {
 
     load_config
 
-    echo "Battery Charge Status: MAX=$1, MIN=$2"
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - Battery Charge Status: MAX=$1, MIN=$2"
     CHARGE_MAX=$1
     CHARGE_MIN=$2
     save_config
 }
 
-validate_config() {
-    if [[ -z "$CHARGE_MAX" || ! "$CHARGE_MAX" =~ ^[0-9]+$ ]]; then
-        CHARGE_MAX=$DEFAULT_CHARGE_MAX
-    fi
-    if [[ -z "$CHARGE_MIN" || ! "$CHARGE_MIN" =~ ^[0-9]+$ ]]; then
-        CHARGE_MIN=$DEFAULT_CHARGE_MIN
-    fi
-    if (( CHARGE_MIN >= CHARGE_MAX )); then
-        CHARGE_MIN=$DEFAULT_CHARGE_MIN
-        CHARGE_MAX=$DEFAULT_CHARGE_MAX
-    fi
-}
-
-
-# Show the help message
 show_help() {
-    echo "Battery Control Script - Available Commands:"
+    echo "BatteryControl commands with examples:"
     echo
-    echo "  help               Show this help message."
-    echo "  set <MAX> <MIN>    Set battery charge thresholds."
-    echo "  start              Start BatteryControl monitoring."
-    echo "  stop               Stop BatteryControl monitoring."
-    echo "  status             Show BatteryControl status."
-    echo "  uninstall          Run the uninstaller script."
+    echo "sudo batterycontrol                   # Check BatteryControl status"
+    echo "sudo batterycontrol start             # Start BatteryControl"
+    echo "sudo batterycontrol stop              # Stop BatteryControl"
+    echo "sudo batterycontrol set 80 75         # Set max/min battery charge thresholds"
+    echo "sudo batterycontrol startup           # Initiate batterycontrol /etc/init .conf installer"
+    echo "sudo batterycontrol help              # Help menu"
     echo
 }
 
-# Show the current status of BatteryControl
-show_status() {
+battery_status() {
     echo "BatteryControl Status:"
     if [ -f "$RUN_FLAG" ]; then
         if [ -f "$PID_FILE" ]; then
             PID=$(cat "$PID_FILE")
             if ps -p "$PID" > /dev/null 2>&1; then
-                echo "  BatteryControl is: ENABLED (running, PID $PID)"
+                echo "${GREEN}BatteryControl is: ENABLED (running, PID $PID)${RESET}"
             else
-                echo "  BatteryControl is: ENABLED (but process is NOT running)"
+                echo "${YELLOW}BatteryControl is: ENABLED (but process is NOT running)${RESET}"
                 rm -f "$PID_FILE"
             fi
         else
-            echo "  BatteryControl is: ENABLED (PID not found)"
+            echo "${YELLOW}BatteryControl is: ENABLED (PID not found)${RESET}"
         fi
     else
-        echo "  BatteryControl is: DISABLED"
+        echo "${RED}BatteryControl is: DISABLED{$RESET}"
     fi
 
-    load_config
     echo "  CHARGE_MAX: $CHARGE_MAX"
     echo "  CHARGE_MIN: $CHARGE_MIN"
 }
 
-# Start the monitoring loop
 start_monitoring_loop() {
     touch "$RUN_FLAG"
     echo $$ > "$PID_FILE"
 
-    echo "BatteryControl started - keep it running for it to remain functioning. (PID $$)."
+    echo "${GREEN}$(date '+%Y-%m-%d %H:%M:%S') - BatteryControl started. (PID $$).${RESET}"
+
+    local last_reload_time=0
 
     while true; do
         if [ ! -f "$RUN_FLAG" ]; then
-            echo "BatteryControl disabled, exiting monitoring loop."
+            echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') - BatteryControl stopped, exiting monitoring loop${RESET}."
             rm -f "$PID_FILE"
             exit 0
         fi
 
-    load_config
+        now=$(date +%s)
+        if (( now - last_reload_time >= 30 )); then
+            load_config
+            last_reload_time=$now
+        fi
 
         if [ -f "$BATTERY_PATH" ]; then
             CHARGE=$(cat "$BATTERY_PATH" 2>/dev/null)
@@ -148,55 +167,61 @@ start_monitoring_loop() {
     done
 }
 
-# Stop the monitoring loop
+
 stop_monitoring() {
     if [ -f "$PID_FILE" ]; then
         PID=$(cat "$PID_FILE")
         if ps -p "$PID" > /dev/null 2>&1; then
             kill "$PID"
-            echo "Stopped BatteryControl process (PID $PID)."
-        else
-            echo "Process with PID $PID not found. Cleaning up stale PID file."
+            echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') - Stopped BatteryControl (PID $PID).${RESET}"
         fi
         rm -f "$PID_FILE"
     fi
+
     rm -f "$RUN_FLAG"
     echo "BatteryControl disabled."
 }
 
-# Main command handling
+
+
 case "$1" in
     set)
         set_thresholds "$2" "$3"
         ;;
     start)
-       stop_monitoring >/dev/null 2>&1
+        stop_monitoring >/dev/null 2>&1
+        LOG_FILE="/var/log/batterycontrol.log"
 
-        # Start monitoring loop in background
-       LOG_FILE="/usr/local/bin/ChromeOS_PowerControl/batterycontrol.log"
+        if [ -f "$LOG_FILE" ] && [ "$(stat -c%s "$LOG_FILE")" -gt 32768 ]; then
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - Truncated log file (exceeded 32KB)" > "$LOG_FILE"
+        fi
 
-    # Truncate if it exceeds 32 KB
-    if [ -f "$LOG_FILE" ] && [ "$(stat -c%s "$LOG_FILE")" -gt 32768 ]; then
-    echo "Truncated log file (exceeded 32KB)" > "$LOG_FILE"
-    fi
-
-nohup "$0" __monitor__ >> "$LOG_FILE" 2>&1 &
-echo "BatteryControl monitoring started in background. Output is logged to $LOG_FILE"
-
+        nohup "$0" __monitor__ >> "$LOG_FILE" 2>&1 &
+        echo "${GREEN}$(date '+%Y-%m-%d %H:%M:%S') - BatteryControl monitoring started in background. Output is logged to $LOG_FILE${RESET}"
         ;;
     stop)
         stop_monitoring
         ;;
     status)
-        show_status
+        battery_status
         ;;
-    uninstall)
-        if [ -x "$INSTALL_DIR/Uninstall_ChromeOS_PowerControl.sh" ]; then
-            sudo bash "$INSTALL_DIR/Uninstall_ChromeOS_PowerControl.sh"
+        startup)
+        CONF_SOURCE="$INSTALL_DIR/batterycontrol.conf"
+        CONF_TARGET="/etc/init/batterycontrol.conf"
+
+        read -p "Do you want BatteryControl to startup automatically? (y/n): " choice
+    if [[ "$choice" =~ ^[Yy]$ ]]; then
+        if [ -f "$CONF_SOURCE" ]; then
+            echo "Copying batterycontrol.conf to /etc/init/..."
+            sudo cp "$CONF_SOURCE" "$CONF_TARGET"
+            echo "batterycontrol.conf copied."
         else
-            echo "Uninstall script not found or not executable."
-            exit 1
+            echo "${RED}batterycontrol.conf not found at $CONF_SOURCE${RESET}"
         fi
+    else
+        echo "BatteryControl will not startup automatically."
+        sudo rm -r /etc/init/batterycontrol.conf
+    fi
         ;;
     help | --help | -h)
         show_help
@@ -205,12 +230,12 @@ echo "BatteryControl monitoring started in background. Output is logged to $LOG_
         start_monitoring_loop
         ;;
     "")
-        show_status
-        echo
         echo "=== ectool battery ==="
+        echo
         sudo ectool battery 2>/dev/null || echo "Failed to run ectool battery (is ectool installed and available?)"
         echo
-        echo "Run 'batterycontrol start' to enable monitoring, or 'batterycontrol stop' to disable."
+        battery_status
+        echo
         ;;
     *)
         echo "Unknown command: $1"
