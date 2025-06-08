@@ -16,9 +16,8 @@ fi
 INSTALL_DIR="${INSTALL_DIR%/}"
 
 CONFIG_FILE="$INSTALL_DIR/config.sh"
-
-CHARGER_PATH="/sys/class/power_supply/CROS_USBPD_CHARGER0/online"
 BATTERY_PATH="/sys/class/power_supply/BAT0/capacity"
+STATUS_PATH="/sys/class/power_supply/BAT0/status"
 RUN_FLAG="$INSTALL_DIR/.batterycontrol_enabled"
 PID_FILE="$INSTALL_DIR/.batterycontrol_pid"
 LOG="/var/log/batterycontrol.log"
@@ -51,8 +50,7 @@ validate_config() {
 
 save_config() {
     validate_config
-
- if [ "$CHARGE_MAX" != "$DEFAULT_CHARGE_MAX" ]; then
+    if [ "$CHARGE_MAX" != "$DEFAULT_CHARGE_MAX" ]; then
         sed -i "s/^CHARGE_MAX=.*/CHARGE_MAX=$CHARGE_MAX/" "$CONFIG_FILE" || echo "CHARGE_MAX=$CHARGE_MAX" >> "$CONFIG_FILE"
     fi
     if [ "$CHARGE_MIN" != "$DEFAULT_CHARGE_MIN" ]; then
@@ -96,6 +94,22 @@ show_help() {
     echo
 }
 
+detect_active_usbpd_port() {
+    local port_output
+    port_output=$(sudo ectool usbpdpower 2>/dev/null)
+    local line port
+
+    while IFS= read -r line; do
+        if [[ "$line" =~ ^Port[[:space:]]+([0-9]+):[[:space:]]+SNK[[:space:]]+Charger ]]; then
+            port="${BASH_REMATCH[1]}"
+            echo "$port"
+            return
+        fi
+    done <<< "$port_output"
+
+    echo "-1"
+}
+
 battery_status() {
     echo "BatteryControl Status:"
     if [ -f "$RUN_FLAG" ]; then
@@ -111,11 +125,19 @@ battery_status() {
             echo "${YELLOW}BatteryControl is: ENABLED (PID not found)${RESET}"
         fi
     else
-        echo "${RED}BatteryControl is: DISABLED{$RESET}"
+        echo "${RED}BatteryControl is: DISABLED${RESET}"
     fi
 
     echo "  CHARGE_MAX: $CHARGE_MAX"
     echo "  CHARGE_MIN: $CHARGE_MIN"
+
+    local active_port
+    active_port=$(detect_active_usbpd_port)
+    if [ "$active_port" != "-1" ]; then
+        echo "  Active USB-PD Charger Port: $active_port (CROS_USBPD_CHARGER$active_port)"
+    else
+        echo "  Active USB-PD Charger Port: None detected"
+    fi
 }
 
 start_monitoring_loop() {
@@ -146,11 +168,22 @@ start_monitoring_loop() {
             continue
         fi
 
-        if [ -f "$CHARGER_PATH" ]; then
-            AC_ON=$(cat "$CHARGER_PATH" 2>/dev/null)
+        STATUS=$(cat "$STATUS_PATH" 2>/dev/null)
+        if [[ "$STATUS" == "Charging" ]]; then
+            ACTIVE_PORT=$(detect_active_usbpd_port)
         else
-            sleep 10
-            continue
+            ACTIVE_PORT="-1"
+        fi
+
+        if [ "$ACTIVE_PORT" != "-1" ]; then
+            CHARGER_PATH="/sys/class/power_supply/CROS_USBPD_CHARGER${ACTIVE_PORT}/online"
+            if [ -f "$CHARGER_PATH" ]; then
+                AC_ON=$(cat "$CHARGER_PATH" 2>/dev/null)
+            else
+                AC_ON=0
+            fi
+        else
+            AC_ON=0
         fi
 
         if [ "$AC_ON" -eq 1 ]; then
@@ -167,7 +200,6 @@ start_monitoring_loop() {
     done
 }
 
-
 stop_monitoring() {
     if [ -f "$PID_FILE" ]; then
         PID=$(cat "$PID_FILE")
@@ -181,8 +213,6 @@ stop_monitoring() {
     rm -f "$RUN_FLAG"
     echo "BatteryControl disabled."
 }
-
-
 
 case "$1" in
     set)
@@ -205,23 +235,23 @@ case "$1" in
     status)
         battery_status
         ;;
-        startup)
+    startup)
         CONF_SOURCE="$INSTALL_DIR/batterycontrol.conf"
         CONF_TARGET="/etc/init/batterycontrol.conf"
 
         read -p "Do you want BatteryControl to startup automatically? (y/n): " choice
-    if [[ "$choice" =~ ^[Yy]$ ]]; then
-        if [ -f "$CONF_SOURCE" ]; then
-            echo "Copying batterycontrol.conf to /etc/init/..."
-            sudo cp "$CONF_SOURCE" "$CONF_TARGET"
-            echo "batterycontrol.conf copied."
+        if [[ "$choice" =~ ^[Yy]$ ]]; then
+            if [ -f "$CONF_SOURCE" ]; then
+                echo "Copying batterycontrol.conf to /etc/init/..."
+                sudo cp "$CONF_SOURCE" "$CONF_TARGET"
+                echo "batterycontrol.conf copied."
+            else
+                echo "${RED}batterycontrol.conf not found at $CONF_SOURCE${RESET}"
+            fi
         else
-            echo "${RED}batterycontrol.conf not found at $CONF_SOURCE${RESET}"
+            echo "BatteryControl will not startup automatically."
+            sudo rm -r /etc/init/batterycontrol.conf
         fi
-    else
-        echo "BatteryControl will not startup automatically."
-        sudo rm -r /etc/init/batterycontrol.conf
-    fi
         ;;
     help | --help | -h)
         show_help
@@ -234,6 +264,7 @@ case "$1" in
         echo
         sudo ectool battery 2>/dev/null || echo "Failed to run ectool battery (is ectool installed and available?)"
         echo
+        sudo ectool usbpdpower 2>/dev/null || echo "Failed to run ectool usbpdpower (is ectool installed and available?)"
         battery_status
         echo
         ;;
