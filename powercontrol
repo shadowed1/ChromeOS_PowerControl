@@ -227,7 +227,7 @@ set_no_turbo() {
 }
 
 cleanup() {
-    echo "Caught interrupt signal, stopping PowerControl and restoring Turbo Boost setting..."
+    echo "Caught interrupt signal, stopping PowerControl..."
     stop_monitoring
     exit 0
 }
