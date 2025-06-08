@@ -557,7 +557,7 @@ echo "${GREEN}$(date '+%Y-%m-%d %H:%M:%S') - PowerControl monitoring started in 
             if [ -f "$CONF_SOURCE_NO_TURBO" ]; then
                 echo "Copying no_turbo.conf to /etc/init/..."
                 sudo cp "$CONF_SOURCE_NO_TURBO" "/etc/init/"
-                echo "no_turbo.conf copied."
+                echo "${GREEN}no_turbo.conf copied.${RESET}"
             else
                 echo "Intel Turbo Boost will start automatically."
             fi
