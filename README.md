@@ -13,7 +13,7 @@
 - Control fan curve in relation to temperature with built-in hysteresis and 0% RPM mode.
   <br> <br>
 - Features global commands for ease of use, a unified config file with real-time settings, and performance logs.
-- Has a feature-rich installer, and an uninstaller that cleans up after itself. 
+- Has a feature-rich installer, an uninstaller that cleans up after itself, and logs stored in /var/log/ for statistics.  
 - Optionally have BatteryControl, PowerControl, FanControl start on boot; as well as disabling Turbo Boost on boot if user has rootfs verification disabled.
 <br> <br> <br>
 
