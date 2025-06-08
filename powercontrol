@@ -250,7 +250,6 @@ start_monitoring_loop() {
     detect_cpu_type
     touch "$RUN_FLAG"
     echo $$ > "$PID_FILE"
-    echo "Starting PowerControl (PID $$)."
     
 
     last_reload_time=0
