@@ -50,7 +50,7 @@ __Commands with examples:__
 `sudo powercontrol max_temp 86         # Max temperature threshold - Limit is 90 C`<br>
 `sudo powercontrol min_temp 60         # Min temperature threshold`<br>
 `sudo powercontrol monitor             # Toggle live temperature monitoring`<br>
-`sudo powercontrol startup             # Initiate no_turbo and powercontrol startup on-boot installer`<br>
+`sudo powercontrol startup             # Copy or Remove no_turbo.conf & powercontrol.conf at: /etc/init/`<br>
 `sudo powercontrol help                # Help menu`<br>
   
 ----------------------------------------------------------------------------------------------
@@ -61,7 +61,7 @@ __Commands with examples:__
 `sudo batterycontrol start             # Start BatteryControl`<br>
 `sudo batterycontrol stop              # Stop BatteryControl`<br>
 `sudo batterycontrol set 77 74         # Set max/min battery charge thresholds`<br>
-`sudo batterycontrol startup           # Initiate batterycontrol startup on-boot installer`<br>
+`sudo batterycontrol startup           # Copy or Remove batterycontrol.conf at: /etc/init/`<br>
 `sudo batterycontrol help              # Help menu`<br>
 
 ----------------------------------------------------------------------------------------------
@@ -77,7 +77,7 @@ __Commands with examples:__
 `sudo fancontrol max_fan 100           # Max fan speed %`<br>
 `sudo fancontrol stepup 20             # Fan step-up %`<br>
 `sudo fancontrol stepdown 1            # Fan step-down %`<br>
-`sudo fancontrol startup               # Initiate fancontrol startup on-boot installer`<br>
+`sudo fancontrol startup               # Copy or Remove fancontrol.conf at: /etc/init/`<br>
 `sudo fancontrol help                  # Help menu`<br>
 
 ----------------------------------------------------------------------------------------------
