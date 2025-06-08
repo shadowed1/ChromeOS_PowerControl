@@ -148,20 +148,24 @@ else
     echo "Skipped creating global commands."
     echo ""
 fi
-
 enable_component_on_boot() {
     local component="$1"
     local config_file="$2"
+    local var_name="STARTUP_$(echo "$component" | tr '[:lower:]' '[:upper:]')"  # e.g., BatteryControl -> STARTUP_BATTERYCONTROL
+
     read -rp "${BOLD}${MAGENTA}Do you want $component enabled on boot? (y/n):$RESET " move_config
     if [[ "$move_config" =~ ^[Yy]$ ]]; then
         sudo cp "$config_file" /etc/init/
         echo "$component will start on boot."
+        echo "$var_name=1" | sudo tee -a "$CONFIG_FILE" > /dev/null
         echo ""
     else
         echo "$component must be started manually on boot."
+        echo "$var_name=0" | sudo tee -a "$CONFIG_FILE" > /dev/null
         echo ""
     fi
 }
+
 
 enable_component_on_boot "BatteryControl" "$INSTALL_DIR/batterycontrol.conf"
 enable_component_on_boot "PowerControl" "$INSTALL_DIR/powercontrol.conf"
