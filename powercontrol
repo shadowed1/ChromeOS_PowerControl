@@ -87,7 +87,6 @@ validate_config() {
         MIN_TEMP=$(( MAX_TEMP - 10 ))
     fi
 
-    # Validate performance percentages
     if (( MIN_PERF_PCT < 10 || MIN_PERF_PCT > 100 )); then
         echo "Warning: MIN_PERF_PCT out of bounds, resetting."
         MIN_PERF_PCT=$DEFAULT_MIN_PERF_PCT
@@ -98,7 +97,6 @@ validate_config() {
         MAX_PERF_PCT=$DEFAULT_MAX_PERF_PCT
     fi
 
-    # Make sure MAX >= MIN
     if (( MAX_PERF_PCT < MIN_PERF_PCT )); then
         echo "Warning: MAX_PERF_PCT < MIN_PERF_PCT, adjusting."
         MAX_PERF_PCT=$MIN_PERF_PCT
@@ -125,7 +123,6 @@ save_config() {
     fi
 
     source "$INSTALL_DIR/config.sh"  
-
     echo "Configuration saved to $CONFIG_FILE"
 }
 
@@ -147,14 +144,14 @@ get_temp() {
 set_max_perf_pct() {
     local pct=$1
     load_config
-    if { [ "$IS_INTEL" -eq 1 ] || [ "$IS_AMD" -eq 1 ]; } && [[ "$PERF_PATH" == *max_perf_pct ]]; then
+    if (( IS_INTEL == 1 || IS_AMD == 1 )) && [[ "$PERF_PATH" == *max_perf_pct ]]; then
         if [ -w "$PERF_PATH" ]; then
             echo "$pct" | tee "$PERF_PATH" > /dev/null
         else
             echo "${RED}Permission denied: Cannot write to $PERF_PATH${RESET}" >&2
             exit 1
         fi
-    elif [ "$IS_AMD" -eq 1 ] || [ "$IS_ARM" -eq 1 ]; then
+   elif (( IS_AMD == 1 || IS_ARM == 1 )); then
         local max_freq=$(cat /sys/devices/system/cpu/cpufreq/policy0/cpuinfo_max_freq)
         local min_freq=$(cat /sys/devices/system/cpu/cpufreq/policy0/cpuinfo_min_freq)
         local target_freq=$(( min_freq + (max_freq - min_freq) * pct / 100 ))
