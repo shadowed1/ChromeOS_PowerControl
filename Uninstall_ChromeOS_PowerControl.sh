@@ -68,9 +68,9 @@ case "$choice" in
         remove_file_with_message /usr/local/bin/.fancontrol_conf.sh
         remove_file_with_message /usr/local/bin/.batterycontrol_conf.sh
 
-        remove_file_with_message "$INSTALL_DIR/symlink/powercontrol"
-        remove_file_with_message "$INSTALL_DIR/symlink/batterycontrol"
-        remove_file_with_message "$INSTALL_DIR/symlink/fancontrol"
+        remove_file_with_message /usr/local/bin/powercontrol
+        remove_file_with_message /usr/local/bin/batterycontrol
+        remove_file_with_message /usr/local/bin/fancontrol
 
         remove_file_with_message /var/log/powercontrol.log
         remove_file_with_message /var/log/fancontrol.log
