@@ -28,7 +28,7 @@ echo ""
 echo ""
 echo "${CYAN}${BOLD}Downloading to: /home/chronos/ChromeOS_PowerControl_Installer.sh $RESET"
 curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/ChromeOS_PowerControl_Installer.sh -o /home/chronos/ChromeOS_PowerControl_Installer.sh
-echo "${GREEN}${BOLD}Download complete. Run the installer with VT-2 or (enable sudo in crosh)."
+echo "${GREEN}${BOLD}Download complete. Run the installer with VT-2 or enable sudo in crosh."
 echo "Move it to an executable location or run these commands with VT-2:$RESET"
 echo ""
 echo "${BOLD}sudo mkdir -p /usr/local/bin"
