@@ -41,44 +41,44 @@ __Commands with examples:__
 
 *PowerControl:*
 
-`sudo powercontrol                     # Show status"`<br>
-`sudo powercontrol start               # Throttle CPU based on temperature curve"`<br>
-`sudo powercontrol stop                # Restore default CPU settings"`<br>
-`sudo powercontrol no_turbo 1          # 0 = Enable, 1 = Disable Turbo Boost"`<br>
-`sudo powercontrol max_perf_pct 75     # Set max performance percentage"`<br>
-`sudo powercontrol min_perf_pct 50     # Set minimum performance at max temp"`<br>
-`sudo powercontrol max_temp 86         # Max temperature threshold - Limit is 90 C"`<br>
-`sudo powercontrol min_temp 60         # Min temperature threshold"`<br>
-`sudo powercontrol monitor             # Toggle live temperature monitoring"`<br>
-`sudo powercontrol startup             # Initiate no_turbo and powercontrol startup on-boot installer"`<br>
-`sudo powercontrol help                # Help menu"`<br>
+`sudo powercontrol                     # Show status`<br>
+`sudo powercontrol start               # Throttle CPU based on temperature curve`<br>
+`sudo powercontrol stop                # Restore default CPU settings`<br>
+`sudo powercontrol no_turbo 1          # 0 = Enable, 1 = Disable Turbo Boost`<br>
+`sudo powercontrol max_perf_pct 75     # Set max performance percentage`<br>
+`sudo powercontrol min_perf_pct 50     # Set minimum performance at max temp`<br>
+`sudo powercontrol max_temp 86         # Max temperature threshold - Limit is 90 C`<br>
+`sudo powercontrol min_temp 60         # Min temperature threshold`<br>
+`sudo powercontrol monitor             # Toggle live temperature monitoring`<br>
+`sudo powercontrol startup             # Initiate no_turbo and powercontrol startup on-boot installer`<br>
+`sudo powercontrol help                # Help menu`<br>
   
 ----------------------------------------------------------------------------------------------
 
 *BatteryControl:*
 
-`sudo batterycontrol                   # Check BatteryControl status"`<br>
-`sudo batterycontrol start             # Start BatteryControl"`<br>
-`sudo batterycontrol stop              # Stop BatteryControl"`<br>
-`sudo batterycontrol set 77 74         # Set max/min battery charge thresholds"`<br>
-`sudo batterycontrol startup           # Initiate batterycontrol startup on-boot installer"`<br>
-`sudo batterycontrol help              # Help menu"`<br>
+`sudo batterycontrol                   # Check BatteryControl status`<br>
+`sudo batterycontrol start             # Start BatteryControl`<br>
+`sudo batterycontrol stop              # Stop BatteryControl`<br>
+`sudo batterycontrol set 77 74         # Set max/min battery charge thresholds`<br>
+`sudo batterycontrol startup           # Initiate batterycontrol startup on-boot installer`<br>
+`sudo batterycontrol help              # Help menu`<br>
 
 ----------------------------------------------------------------------------------------------
 
 *FanControl:*
 
-`sudo fancontrol                       # Show FanControl status"`<br>
-`sudo fancontrol start                 # Start FanControl"`<br>
-`sudo fancontrol stop                  # Stop FanControl"`<br>
-`sudo fancontrol min_temp 48           # Min temp threshold"`<br>
-`sudo fancontrol max_temp 81           # Max temp threshold - Limit is 90 C"`<br>
-`sudo fancontrol min_fan 0             # Min fan speed %"`<br>
-`sudo fancontrol max_fan 100           # Max fan speed %"`<br>
-`sudo fancontrol stepup 20             # Fan step-up %"`<br>
-`sudo fancontrol stepdown 1            # Fan step-down %"`<br>
-`sudo fancontrol startup               # Initiate fancontrol startup on-boot installer"`<br>
-`sudo fancontrol help                  # Help menu"`<br>
+`sudo fancontrol                       # Show FanControl status`<br>
+`sudo fancontrol start                 # Start FanControl`<br>
+`sudo fancontrol stop                  # Stop FanControl`<br>
+`sudo fancontrol min_temp 48           # Min temp threshold`<br>
+`sudo fancontrol max_temp 81           # Max temp threshold - Limit is 90 C`<br>
+`sudo fancontrol min_fan 0             # Min fan speed %`<br>
+`sudo fancontrol max_fan 100           # Max fan speed %`<br>
+`sudo fancontrol stepup 20             # Fan step-up %`<br>
+`sudo fancontrol stepdown 1            # Fan step-down %`<br>
+`sudo fancontrol startup               # Initiate fancontrol startup on-boot installer`<br>
+`sudo fancontrol help                  # Help menu`<br>
 
 ----------------------------------------------------------------------------------------------
 
