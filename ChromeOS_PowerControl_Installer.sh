@@ -38,7 +38,7 @@ echo ""
 echo "${RED}${BOLD}VT-2 (or enabling sudo in crosh) is required to run this installer.$RESET"
 echo "${YELLOW}${BOLD}Must be installed in a location without the ${RESET}${MAGENTA}${BOLD}noexec mount.$RESET"
 echo ""
-read -rp "${GREEN}${BOLD}Enter desired Install Path - leave blank for default: /usr/local/bin/ChromeOS_PowerControl:$RESET" INSTALL_DIR
+read -rp "${GREEN}${BOLD}Enter desired install path - leave blank for default: /usr/local/bin/ChromeOS_PowerControl:$RESET" INSTALL_DIR
 INSTALL_DIR="${INSTALL_DIR:-/usr/local/bin/ChromeOS_PowerControl}"
 INSTALL_DIR="${INSTALL_DIR%/}"
 
@@ -139,9 +139,10 @@ fi
 
 read -rp "${BOLD}${YELLOW}Do you want to create global commands 'powercontrol', 'batterycontrol', and 'fancontrol'? (y/n):$RESET " link_cmd
 if [[ "$link_cmd" =~ ^[Yy]$ ]]; then
-    sudo ln -sf "$INSTALL_DIR/powercontrol" /usr/local/bin/powercontrol
-    sudo ln -sf "$INSTALL_DIR/batterycontrol" /usr/local/bin/batterycontrol
-    sudo ln -sf "$INSTALL_DIR/fancontrol" /usr/local/bin/fancontrol
+    sudo mkdir -p "$INSTALL_DIR/symlink"
+    sudo ln -sf "$INSTALL_DIR/powercontrol" "$INSTALL_DIR/symlink/powercontrol"
+    sudo ln -sf "$INSTALL_DIR/batterycontrol" "$INSTALL_DIR/symlink/batterycontrol"
+    sudo ln -sf "$INSTALL_DIR/fancontrol" "$INSTALL_DIR/symlink/fancontrol"
     echo "Global commands created for 'powercontrol', 'batterycontrol', and 'fancontrol'."
     echo ""
 else
