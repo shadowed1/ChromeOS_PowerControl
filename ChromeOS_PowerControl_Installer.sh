@@ -173,7 +173,6 @@ start_component_now() {
     read -rp "${BOLD}${GREEN}Do you want to start $component now in the background? (y/n): $RESET " start_now
     if [[ "$start_now" =~ ^[Yy]$ ]]; then
         sudo "$command" start
-        echo "component started in the background."
         echo ""
     else
         echo "You can run it later with: sudo $command start"
