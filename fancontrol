@@ -289,7 +289,7 @@ set_stepdown() {
     fi
 }
 show_help() {
-echo "${MAGENTA}"
+echo "${YELLOW}"
 echo "FanControl commands with examples:"
 echo ""
 echo "sudo fancontrol                       # Show FanControl status"
