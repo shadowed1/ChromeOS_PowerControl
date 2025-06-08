@@ -324,9 +324,9 @@ case "$1" in
         read -p "Do you want FanControl to startup automatically? (y/n): " choice
     if [[ "$choice" =~ ^[Yy]$ ]]; then
         if [ -f "$CONF_SOURCE" ]; then
-            echo "Copying batterycontrol.conf to /etc/init/..."
+            echo "Copying fancontrol.conf to /etc/init/..."
             sudo cp "$CONF_SOURCE" "$CONF_TARGET"
-            echo "batterycontrol.conf copied."
+            echo "${GREEN}fancontrol.conf copied.${RESET}"
         else
             echo "${RED} fancontrol.conf not found at $CONF_SOURCE${RESET}"
         fi
