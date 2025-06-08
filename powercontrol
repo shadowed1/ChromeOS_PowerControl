@@ -395,18 +395,15 @@ stop_monitoring() {
             if ! ps -p "$PID" > /dev/null 2>&1; then
                 echo "PowerControl stopped."
                 rm -f "$PID_FILE"
-                restore_no_turbo
                 return
             fi
             sleep 1
         done
         kill -9 "$PID"
         rm -f "$PID_FILE"
-        restore_no_turbo
     else
         rm -f "$PID_FILE"
         rm -f "$RUN_FLAG"
-        restore_no_turbo
     fi
 }
 
@@ -445,7 +442,7 @@ show_help() {
     echo "sudo powercontrol max_temp 86         # Max temperature threshold"
     echo "sudo powercontrol min_temp 60         # Min temperature threshold"
     echo "sudo powercontrol monitor             # Live temperature monitoring"
-    echo "sudo powercontrol startup             # Initiate powercontrol /etc/init .conf installer"
+    echo "sudo powercontrol startup             # Initiate powercontrol + no_turbo /etc/init .conf installer"
     echo "sudo powercontrol help                # Help menu"
     echo "sudo powercontrol uninstall           # Initiate uninstaller"
     echo ""
