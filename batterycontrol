@@ -50,12 +50,11 @@ validate_config() {
 
 save_config() {
     validate_config
-    if [ "$CHARGE_MAX" != "$DEFAULT_CHARGE_MAX" ]; then
-        sed -i "s/^CHARGE_MAX=.*/CHARGE_MAX=$CHARGE_MAX/" "$CONFIG_FILE" || echo "CHARGE_MAX=$CHARGE_MAX" >> "$CONFIG_FILE"
-    fi
-    if [ "$CHARGE_MIN" != "$DEFAULT_CHARGE_MIN" ]; then
-        sed -i "s/^CHARGE_MIN=.*/CHARGE_MIN=$CHARGE_MIN/" "$CONFIG_FILE" || echo "CHARGE_MIN=$CHARGE_MIN" >> "$CONFIG_FILE"
-    fi
+
+    sed -i "s/^CHARGE_MAX=.*/CHARGE_MAX=$CHARGE_MAX/" "$CONFIG_FILE" || echo "CHARGE_MAX=$CHARGE_MAX" >> "$CONFIG_FILE"
+    sed -i "s/^CHARGE_MIN=.*/CHARGE_MIN=$CHARGE_MIN/" "$CONFIG_FILE" || echo "CHARGE_MIN=$CHARGE_MIN" >> "$CONFIG_FILE"
+
+    echo "BatteryControl configuration saved to $CONFIG_FILE"
 }
 
 load_config
