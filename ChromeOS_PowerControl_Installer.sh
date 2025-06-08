@@ -52,21 +52,21 @@ for file in "${files[@]}"; do
     echo ""
 done
 
-curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/powercontrol_conf.sh -o /usr/local/bin/powercontrol_conf.sh
-echo " /usr/local/bin/ChromeOS_PowerControl/powercontrol_conf.sh downloaded."
+curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/.powercontrol_conf.sh -o /usr/local/bin/.powercontrol_conf.sh
+echo " /usr/local/bin/ChromeOS_PowerControl/.powercontrol_conf.sh downloaded."
 echo ""
-curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/batterycontrol_conf.sh -o /usr/local/bin/batterycontrol_conf.sh
-echo " /usr/local/bin/ChromeOS_PowerControl/batterycontrol_conf.sh downloaded."
+curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/.batterycontrol_conf.sh -o /usr/local/bin/.batterycontrol_conf.sh
+echo " /usr/local/bin/ChromeOS_PowerControl/.batterycontrol_conf.sh downloaded."
 echo ""
-curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/fancontrol_conf.sh -o /usr/local/bin/fancontrol_conf.sh
-echo " /usr/local/bin/ChromeOS_PowerControl/fancontrol_conf.sh downloaded."
+curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/.fancontrol_conf.sh -o /usr/local/bin/.fancontrol_conf.sh
+echo " /usr/local/bin/ChromeOS_PowerControl/.fancontrol_conf.sh downloaded."
 echo ""
 
 detect_cpu_type
 echo "${CYAN}Detected CPU Vendor: $CPU_VENDOR"
 echo "PERF_PATH: $PERF_PATH"
 echo "TURBO_PATH: $TURBO_PATH"
-echo "$INSTALL_DIR" | sudo tee /usr/local/bin/ChromeOS_PowerControl.install_dir > /dev/null
+echo "$INSTALL_DIR" | sudo tee /usr/local/bin/.ChromeOS_PowerControl.install_dir > /dev/null
 echo "$RESET"
 sudo chmod +x "$INSTALL_DIR/powercontrol" "$INSTALL_DIR/batterycontrol" "$INSTALL_DIR/fancontrol" "$INSTALL_DIR/Uninstall_ChromeOS_PowerControl.sh" "$INSTALL_DIR/config.sh"
 sudo touch "$INSTALL_DIR/.batterycontrol_enabled" "$INSTALL_DIR/.powercontrol_enabled" "$INSTALL_DIR/.fancontrol_enabled"
@@ -76,9 +76,9 @@ LOG_DIR="/var/log"
 CONFIG_FILE="$INSTALL_DIR/config.sh"
 sudo touch "$LOG_DIR/powercontrol.log" "$LOG_DIR/batterycontrol.log" "$LOG_DIR/fancontrol.log"
 sudo chmod 644 "$LOG_DIR/powercontrol.log" "$LOG_DIR/batterycontrol.log" "$LOG_DIR/fancontrol.log"
-sudo chmod +x /usr/local/bin/powercontrol_conf.sh
-sudo chmod +x /usr/local/bin/fancontrol_conf.sh
-sudo chmod +x /usr/local/bin/batterycontrol_conf.sh
+sudo chmod +x /usr/local/bin/.powercontrol_conf.sh
+sudo chmod +x /usr/local/bin/.fancontrol_conf.sh
+sudo chmod +x /usr/local/bin/.batterycontrol_conf.sh
 echo "${YELLOW}Log files for PowerControl, BatteryControl, and FanControl are stored in /var/log/$RESET"
 echo ""
 USER_HOME="/home/chronos"
