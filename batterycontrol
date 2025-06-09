@@ -146,7 +146,6 @@ start_monitoring_loop() {
     echo "${GREEN}$(date '+%Y-%m-%d %H:%M:%S') - BatteryControl started. (PID $$).${RESET}"
 
     local last_reload_time=0
-    local LAST_CHARGE_MODE=""
 
     while true; do
         if [ ! -f "$RUN_FLAG" ]; then
@@ -186,25 +185,19 @@ start_monitoring_loop() {
             AC_ON=0
         fi
 
-        desired_mode="normal"
         if [ "$AC_ON" -eq 1 ]; then
             if [ "$CHARGE" -ge "$CHARGE_MAX" ]; then
-                desired_mode="idle"
+                sudo ectool chargecontrol idle >/dev/null 2>&1
             elif [ "$CHARGE" -le "$CHARGE_MIN" ]; then
-                desired_mode="normal"
+                sudo ectool chargecontrol normal >/dev/null 2>&1
             fi
-        fi
-
-        if [ "$desired_mode" != "$LAST_CHARGE_MODE" ]; then
-            sudo ectool chargecontrol "$desired_mode" >/dev/null 2>&1
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - chargecontrol switched to $desired_mode" >> "$LOG"
-            LAST_CHARGE_MODE=$desired_mode
+        else
+            sudo ectool chargecontrol normal >/dev/null 2>&1
         fi
 
         sleep 10
     done
 }
-
 
 stop_monitoring() {
     if [ -f "$PID_FILE" ]; then
