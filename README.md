@@ -71,8 +71,8 @@ __Commands with examples:__
 `sudo fancontrol                       # Show FanControl status`<br>
 `sudo fancontrol start                 # Start FanControl`<br>
 `sudo fancontrol stop                  # Stop FanControl`<br>
-`sudo fancontrol min_temp 48           # Min temp threshold`<br>
-`sudo fancontrol max_temp 81           # Max temp threshold - Limit is 90 C`<br>
+`sudo fancontrol fan_min_temp 48           # Min temp threshold`<br>
+`sudo fancontrol fan_max_temp 81           # Max temp threshold - Limit is 90 C`<br>
 `sudo fancontrol min_fan 0             # Min fan speed %`<br>
 `sudo fancontrol max_fan 100           # Max fan speed %`<br>
 `sudo fancontrol stepup 20             # Fan step-up %`<br>
