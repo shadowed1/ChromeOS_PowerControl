@@ -73,7 +73,7 @@ set_thresholds() {
 
     load_config
 
-    echo "$(date '+%Y-%m-%d %H:%M:%S') - Battery Charge Status: MAX=$1, MIN=$2" > "$LOG_FILE"
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - Battery Charge Status: MAX=$1, MIN=$2" | tee -a "$LOG_FILE"
     CHARGE_MAX=$1
     CHARGE_MIN=$2
     save_config
