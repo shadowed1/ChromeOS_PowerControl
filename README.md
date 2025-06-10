@@ -160,7 +160,8 @@ __Bonus:__
 
 <br>
 
-__Changelog:__
+*Changelog:*
+
 `0.1:  Released BatteryControl.`<br>
 `0.11: Released PowerControl with CPU performance curve and combined BatteryControl.`<br>
 `0.12: Added support for AMD and ARM.`<br>
