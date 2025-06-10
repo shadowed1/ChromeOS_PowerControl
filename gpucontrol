@@ -1,0 +1,225 @@
+#!/bin/bash
+RED=$(tput setaf 1)
+GREEN=$(tput setaf 2)
+YELLOW=$(tput setaf 3)
+BLUE=$(tput setaf 4)
+MAGENTA=$(tput setaf 5)
+CYAN=$(tput setaf 6)
+BOLD=$(tput bold)
+RESET=$(tput sgr0)
+
+INSTALL_DIR_FILE="/usr/local/bin/.ChromeOS_PowerControl.install_dir"
+if [ -f "$INSTALL_DIR_FILE" ]; then
+    INSTALL_DIR=$(cat "$INSTALL_DIR_FILE")
+else
+    INSTALL_DIR="/usr/local/bin/ChromeOS_PowerControl"
+fi
+INSTALL_DIR="${INSTALL_DIR%/}"
+
+CONFIG_FILE="$INSTALL_DIR/config.sh"
+
+if [[ -f "$CONFIG_FILE" ]]; then
+    source "$CONFIG_FILE"
+else
+    echo "${RED}Error: GPU config file missing. Please re-run the installer.${RESET}"
+    exit 1
+fi
+
+if ! [[ "$ORIGINAL_GPU_MAX_FREQ" =~ ^[0-9]+$ ]]; then
+    echo "${RED}Error: Could not verify original max GPU frequency. Aborting.${RESET}"
+    exit 1
+fi
+
+get_current_freq() {
+    case "$1" in
+        intel)
+            if [[ -f "$GPU_FREQ_PATH" ]]; then
+                cat "$GPU_FREQ_PATH"
+            else
+                echo "Unavailable"
+            fi
+            ;;
+        amd)
+            if [[ -f "$GPU_FREQ_PATH" ]]; then
+                grep '*' "$GPU_FREQ_PATH" | awk '{print $2}'
+            else
+                echo "Unavailable"
+            fi
+            ;;
+        mali|adreno)
+            if [[ -f "$GPU_FREQ_PATH" ]]; then
+                cat "$GPU_FREQ_PATH"
+            else
+                echo "Unavailable"
+            fi
+            ;;
+        *)
+            echo "Unsupported GPU type"
+            ;;
+    esac
+}
+
+help() {
+    echo "Commands with examples:"
+    echo "sudo gpucontrol                  # Show current GPU info and frequency"
+    echo "sudo gpucontrol intel 700        # Set Intel GPU max frequency to 700 MHz"
+    echo "sudo gpucontrol amd 800          # Set AMD GPU max frequency to 800 MHz (chooses DPM automatically)"
+    echo "sudo gpucontrol amd auto         # Restores AMD GPU behavior. Altering clock speeds above will switch it to manual."
+    echo "sudo gpucontrol adreno 500000    # Set Adreno GPU max frequency to 500000 kHz (or 500 MHz)"
+    echo "sudo gpucontrol mali 600000      # Set Mali GPU max frequency to 600000 kHz (or 600 MHz)"
+}
+
+if [[ $# -eq 0 ]]; then
+    echo "GPU Type: $GPU_TYPE"
+    echo "Default Max Frequency: $ORIGINAL_GPU_MAX_FREQ"
+    echo -n "Current Max Frequency: "
+    get_current_freq "$GPU_TYPE"
+    exit 0
+fi
+
+if [[ "$1" == "help" ]]; then
+    help
+    exit 0
+fi
+
+
+GPU_ARG=$(echo "$1" | tr '[:upper:]' '[:lower:]')
+
+if [[ "$GPU_ARG" != "$GPU_TYPE" ]]; then
+    echo "${RED}Error: Requested GPU type '$GPU_ARG' does not match detected GPU type '$GPU_TYPE'.${RESET}"
+    echo "You can only run commands for the detected GPU type: '$GPU_TYPE'."
+    exit 1
+fi
+
+SUBCMD=$(echo "$2" | tr '[:upper:]' '[:lower:]')
+REQUESTED_FREQ="$3"
+
+# Allow skipping 'max'
+if [[ "$SUBCMD" =~ ^[0-9]+$ ]]; then
+    REQUESTED_FREQ="$SUBCMD"
+    SUBCMD="max"
+fi
+
+if [[ "$GPU_ARG" == "amd" && ( "$SUBCMD" == "auto" || "$SUBCMD" == "manual" ) ]]; then
+    echo "$SUBCMD" | sudo tee /sys/class/drm/card0/device/power_dpm_force_performance_level > /dev/null
+    echo "${GREEN}AMD GPU set to $SUBCMD power performance mode${RESET}"
+    exit 0
+fi
+
+# Check if we now have a number as REQUESTED_FREQ
+if [[ "$SUBCMD" != "max" || -z "$REQUESTED_FREQ" ]]; then
+    help
+    exit 1
+fi
+
+if ! [[ "$REQUESTED_FREQ" =~ ^[0-9]+$ ]]; then
+    echo "${RED}Error: Frequency must be a whole number (no letters, decimals, or symbols).${RESET}"
+    exit 1
+fi
+
+
+if ! [[ "$REQUESTED_FREQ" =~ ^[0-9]+$ ]]; then
+    echo "${RED}Error: Frequency must be a whole number (no letters, decimals, or symbols).${RESET}"
+    exit 1
+fi
+
+case "$GPU_ARG" in
+    intel)
+        UNIT="MHz"
+        if [[ "$REQUESTED_FREQ" -gt "$ORIGINAL_GPU_MAX_FREQ" ]]; then
+            echo "${RED}Error: Requested frequency ($REQUESTED_FREQ MHz) exceeds original maximum ($GPU_MAX_FREQ MHz).${RESET}"
+            exit 1
+        fi
+        if ! echo "$REQUESTED_FREQ" | sudo tee "$GPU_FREQ_PATH" > /dev/null; then
+            echo "${RED}Error: Failed to write frequency. Try running with elevated privileges.${RESET}"
+            exit 1
+        fi
+        echo "${GREEN}Max Intel GPU frequency set to $REQUESTED_FREQ $UNIT${RESET}"
+        ;;
+     amd)
+        UNIT="MHz"
+
+        if [[ "$SUBCMD" == "manual" ]]; then
+            echo "manual" | sudo tee /sys/class/drm/card0/device/power_dpm_force_performance_level > /dev/null
+            echo "${GREEN}AMD GPU set to manual power performance mode${RESET}"
+            exit 0
+        elif [[ "$SUBCMD" == "auto" ]]; then
+            echo "auto" | sudo tee /sys/class/drm/card0/device/power_dpm_force_performance_level > /dev/null
+            echo "${GREEN}AMD GPU set to auto power performance mode${RESET}"
+            exit 0
+        elif [[ "$SUBCMD" == "max" ]]; then
+            if [[ "$REQUESTED_FREQ" -gt "$ORIGINAL_GPU_MAX_FREQ" ]]; then
+                echo "${RED}Error: Requested frequency ($REQUESTED_FREQ MHz) exceeds original maximum ($GPU_MAX_FREQ MHz).${RESET}"
+                exit 1
+            fi
+
+            echo "manual" | sudo tee /sys/class/drm/card0/device/power_dpm_force_performance_level > /dev/null
+
+            DPM_STATES=$(sed -n 's/^\([0-9]\+\): \([0-9]\+\)Mhz$/\1: \2/p' "$GPU_FREQ_PATH")
+            MATCH_INDEX=""
+            MATCH_FREQ=0
+            while read -r line; do
+                index=$(echo "$line" | cut -d: -f1)
+                freq=$(echo "$line" | cut -d: -f2 | tr -d ' ')
+                if [[ "$freq" -le "$REQUESTED_FREQ" && "$freq" -ge "$MATCH_FREQ" ]]; then
+                    MATCH_INDEX="$index"
+                    MATCH_FREQ="$freq"
+                fi
+            done <<< "$DPM_STATES"
+
+            if [[ -z "$MATCH_INDEX" ]]; then
+                echo "${RED}Error: No suitable DPM state found for requested frequency.${RESET}"
+                exit 1
+            fi
+            if ! echo "$MATCH_INDEX" | sudo tee "$GPU_FREQ_PATH" > /dev/null; then
+                echo "${RED}Error: Failed to write DPM level. Try running with elevated privileges.${RESET}"
+                exit 1
+            fi
+            echo "${GREEN}Max AMD GPU frequency set to DPM level $MATCH_INDEX ($MATCH_FREQ MHz)${RESET}"
+            exit 0
+        else
+            help
+            exit 1
+        fi
+        ;;
+    adreno)
+        UNIT="kHz"
+        REQUESTED_FREQ_KHZ=$REQUESTED_FREQ
+        if [[ "$REQUESTED_FREQ" -lt 10000 ]]; then
+            REQUESTED_FREQ_KHZ=$((REQUESTED_FREQ * 1000))
+        fi
+        if [[ "$REQUESTED_FREQ_KHZ" -gt "$ORIGINAL_GPU_MAX_FREQ" ]]; then
+            echo "${RED}Error: Requested frequency ($REQUESTED_FREQ_KHZ kHz) exceeds original maximum ($GPU_MAX_FREQ kHz).${RESET}"
+            exit 1
+        fi
+        if ! echo "$REQUESTED_FREQ_KHZ" | sudo tee "$GPU_FREQ_PATH" > /dev/null; then
+            echo "${RED}Error: Failed to write frequency. Try running with elevated privileges.${RESET}"
+            exit 1
+        fi
+        echo "${GREEN}Max Adreno GPU frequency set to $REQUESTED_FREQ_KHZ $UNIT${RESET}"
+        ;;
+    mali)
+        UNIT="kHz"
+        REQUESTED_FREQ_KHZ=$REQUESTED_FREQ
+        if [[ "$REQUESTED_FREQ" -lt 10000 ]]; then
+            REQUESTED_FREQ_KHZ=$((REQUESTED_FREQ * 1000))
+        fi
+        if [[ "$REQUESTED_FREQ_KHZ" -gt "$ORIGINAL_GPU_MAX_FREQ" ]]; then
+            echo "${RED}Error: Requested frequency ($REQUESTED_FREQ_KHZ kHz) exceeds original maximum ($GPU_MAX_FREQ kHz).${RESET}"
+            exit 1
+        fi
+        if ! echo "$REQUESTED_FREQ_KHZ" | sudo tee "$GPU_FREQ_PATH" > /dev/null; then
+            echo "${RED}Error: Failed to write frequency. Try running with elevated privileges.${RESET}"
+            exit 1
+        fi
+        echo "${GREEN}Max Mali GPU frequency set to $REQUESTED_FREQ_KHZ $UNIT${RESET}"
+        ;;
+        help)
+        ;;
+    *)
+        echo "${RED}Error: Unsupported GPU type '$GPU_ARG'.${RESET}"
+        usage
+        exit 1
+        ;;
+esac
+exit 0
