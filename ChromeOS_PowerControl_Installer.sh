@@ -50,7 +50,6 @@ detect_gpu_freq() {
     if [ -f "/sys/class/drm/card0/device/pp_dpm_sclk" ]; then
         GPU_FREQ_PATH="/sys/class/drm/card0/device/pp_dpm_sclk"
         MAX_MHZ=$(grep -oP '[0-9]+Mhz' "$GPU_FREQ_PATH" | sed 's/Mhz//' | sort -nr | head -n1)
-        GPU_MAX_FREQ=$(( MAX_MHZ * 1000 )) 
         GPU_TYPE="amd"
         return
     fi
