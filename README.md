@@ -161,15 +161,15 @@ __Bonus:__
 <br>
 
 __Changelog:__
-`0.1:  Released BatteryControl.`
-`0.11: Released PowerControl with CPU performance curve and combined BatteryControl.`
-`0.12: Added support for AMD and ARM.`
-`0.13: Added FanControl.`
-`0.14: Updated BatteryControl to support switching charging ports.`
-`0.15: Updated UI, added customizing install location, merged config files into one, and added commands.`
-`0.16: Fixed several syntax errors and improved color coding.`
-`0.17: Added GPUControl, cleaned up useless code, improved logs, config settings preserved on reinstalling, and fixed syntax errors.`
-`0.18: Added gpucontrol restore command. Uninstaller will also prevent requiring user to reboot to restore GPU clockspeed. `
+`0.1:  Released BatteryControl.`<br>
+`0.11: Released PowerControl with CPU performance curve and combined BatteryControl.`<br>
+`0.12: Added support for AMD and ARM.`<br>
+`0.13: Added FanControl.`<br>
+`0.14: Updated BatteryControl to support switching charging ports.`<br>
+`0.15: Updated UI, added customizing install location, merged config files into one, and added commands.`<br>
+`0.16: Fixed several syntax errors and improved color coding.`<br>
+`0.17: Added GPUControl, cleaned up useless code, improved logs, config settings preserved on reinstalling, and fixed syntax errors.`<br>
+`0.18: Added gpucontrol restore command. Uninstaller will also prevent requiring user to reboot to restore GPU clockspeed. `<br>
 
 <br>
 
