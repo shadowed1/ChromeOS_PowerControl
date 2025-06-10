@@ -6,7 +6,7 @@
 </p>  
 <br> <br>
 
-- Requires Developer Mode - Supports AMD, ARM, and Intel.
+__Requires Developer Mode - Supports AMD, ARM, and Intel.__
   <br> <br>
 - Control battery charging limit instead of relying on Adaptive Charging to maximize battery longevity.
 - Control CPU clockspeed in relation to temperature; enabling lower temperatures under load and longer battery life.
