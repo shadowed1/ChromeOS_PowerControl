@@ -17,8 +17,8 @@ fi
 INSTALL_DIR="${INSTALL_DIR%/}"
 CONFIG_FILE="$INSTALL_DIR/config.sh"
 ZONE_PATH="/sys/class/thermal/thermal_zone0/temp"
-RUN_FLAG="$INSTALL_DIR/.fan_curve_running"
-PID_FILE="$INSTALL_DIR/.fan_curve_pid"
+RUN_FLAG="$INSTALL_DIR/.fancontrol_running"
+PID_FILE="$INSTALL_DIR/.fancontrol_pid"
 LOG_FILE="/var/log/fancontrol.log"
 MONITOR_PID_FILE="$INSTALL_DIR/.fancontrol_tail_fan_monitor.pid"
 
@@ -40,16 +40,32 @@ load_config() {
     validate_config
 }
 
+get_temp() {
+    if [[ -r "$ZONE_PATH" ]]; then
+        local raw_temp
+        raw_temp=$(cat "$ZONE_PATH")
+        if [[ "$raw_temp" =~ ^[0-9]+$ ]]; then
+            echo $((raw_temp / 1000))
+            return 0
+        else
+            return 1
+        fi
+    else
+        return 1
+    fi
+}
+
+
 validate_config() {
-    if [[ -z "$FAN_MAX" || ! "$FAN_MAX" =~ ^[0-9]+$ ]]; then
-        FAN_MAX=$DEFAULT_FAN_MAX
+    if [[ -z "$MAX_FAN" || ! "$MAX_FAN" =~ ^[0-9]+$ ]]; then
+        MAX_FAN=$DEFAULT_MAX_FAN
     fi
-    if [[ -z "$FAN_MIN" || ! "$FAN_MIN" =~ ^[0-9]+$ ]]; then
-        FAN_MIN=$DEFAULT_FAN_MIN
+    if [[ -z "$MIN_FAN" || ! "$MIN_FAN" =~ ^[0-9]+$ ]]; then
+        MIN_FAN=$DEFAULT_MIN_FAN
     fi
-    if (( FAN_MIN >= FAN_MAX )); then
-        FAN_MIN=$DEFAULT_FAN_MIN
-        FAN_MAX=$DEFAULT_FAN_MAX
+    if (( MIN_FAN >= MAX_FAN )); then
+        MIN_FAN=$DEFAULT_MIN_FAN
+        MAX_FAN=$DEFAULT_MAX_FAN
     fi
 
     if [[ -z "$FAN_MAX_TEMP" || ! "$FAN_MAX_TEMP" =~ ^[0-9]+$ ]]; then
@@ -77,13 +93,11 @@ validate_config() {
 save_config() {
     sed -i "s/^FAN_MAX_TEMP=.*/FAN_MAX_TEMP=$FAN_MAX_TEMP/" "$CONFIG_FILE" || echo "FAN_MAX_TEMP=$FAN_MAX_TEMP" >> "$CONFIG_FILE"
     sed -i "s/^FAN_MIN_TEMP=.*/FAN_MIN_TEMP=$FAN_MIN_TEMP/" "$CONFIG_FILE" || echo "FAN_MIN_TEMP=$FAN_MIN_TEMP" >> "$CONFIG_FILE"
-    sed -i "s/^FAN_MAX=.*/FAN_MAX=$FAN_MAX/" "$CONFIG_FILE" || echo "FAN_MAX=$FAN_MAX" >> "$CONFIG_FILE"
-    sed -i "s/^FAN_MIN=.*/FAN_MIN=$FAN_MIN/" "$CONFIG_FILE" || echo "FAN_MIN=$FAN_MIN" >> "$CONFIG_FILE"
+    sed -i "s/^MAX_FAN=.*/MAX_FAN=$MAX_FAN/" "$CONFIG_FILE" || echo "MAX_FAN=$MAX_FAN" >> "$CONFIG_FILE"
+    sed -i "s/^MIN_FAN=.*/MIN_FAN=$MIN_FAN/" "$CONFIG_FILE" || echo "MIN_FAN=$MIN_FAN" >> "$CONFIG_FILE"
     sed -i "s/^SLEEP_INTERVAL=.*/SLEEP_INTERVAL=$SLEEP_INTERVAL/" "$CONFIG_FILE" || echo "SLEEP_INTERVAL=$SLEEP_INTERVAL" >> "$CONFIG_FILE"
     sed -i "s/^STEP_UP=.*/STEP_UP=$STEP_UP/" "$CONFIG_FILE" || echo "STEP_UP=$STEP_UP" >> "$CONFIG_FILE"
     sed -i "s/^STEP_DOWN=.*/STEP_DOWN=$STEP_DOWN/" "$CONFIG_FILE" || echo "STEP_DOWN=$STEP_DOWN" >> "$CONFIG_FILE"
-
-    echo "FanControl configuration saved to $CONFIG_FILE"
 }
 
 # === Fan logic with hysteresis ===
@@ -168,7 +182,7 @@ start() {
     fi
 
     nohup "$0" __monitor__ >> "$LOG_FILE" 2>&1 &
-    echo "${GREEN} $(date '+%Y-%m-%d %H:%M:%S') - FanControl started in background. Output is logged to $LOG_FILE${RESET}"
+    echo "${GREEN} $(date '+%Y-%m-%d %H:%M:%S') - FanControl started in background. Output is logged to $LOG_FILE${RESET}" | tee -a "$LOG_FILE"
 }
 
 stop() {
@@ -181,7 +195,7 @@ stop() {
     fi
     sudo ectool fanduty 50 | grep -v "Fan duty cycle set for all fans." >> "$LOG_FILE"
     sleep 1
-    echo "$(date '+%Y-%m-%d %H:%M:%S') - Restoring automatic fan control..." | tee -a "$LOG_FILE"
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - Restoring automatic fan control..." | tee -a "$LOG_FILE" | tee -a "$LOG_FILE"
     sudo ectool autofanctrl
     rm -f "$RUN_FLAG" "$PID_FILE"
 }
@@ -209,7 +223,7 @@ fan_min_temp() {
         load_config
         FAN_MIN_TEMP=$2
         save_config
-        echo "$(date '+%Y-%m-%d %H:%M:%S') - Min temp set to $FAN_MIN_TEMP°C"
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - Min temp set to $FAN_MIN_TEMP°C" | tee -a "$LOG_FILE"
     else
         echo "Usage: $0 fan_min_temp <number>"
     fi
@@ -220,7 +234,7 @@ fan_max_temp() {
         load_config
         FAN_MAX_TEMP=$2
         save_config
-        echo "$(date '+%Y-%m-%d %H:%M:%S') - Max temp set to $FAN_MAX_TEMP°C"
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - Max temp set to $FAN_MAX_TEMP°C" | tee -a "$LOG_FILE"
     else
         echo "Usage: $0 fan_max_temp <number (<=90)>"
     fi
@@ -232,7 +246,7 @@ min_fan() {
         if (( MAX_FAN > $2 )); then
             MIN_FAN=$2
             save_config
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - Min fan set to $MIN_FAN%"
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - Min fan set to $MIN_FAN%" | tee -a "$LOG_FILE"
         else
             echo "Error: MIN_FAN must be less than MAX_FAN ($MAX_FAN)"
         fi
@@ -247,7 +261,7 @@ max_fan() {
         if (( $2 > MIN_FAN )); then
             MAX_FAN=$2
             save_config
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - Max fan set to $MAX_FAN%"
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - Max fan set to $MAX_FAN%" | tee -a "$LOG_FILE"
         else
             echo "Error: MAX_FAN must be greater than MIN_FAN ($MIN_FAN)"
         fi
@@ -261,7 +275,7 @@ set_sleep_interval() {
         load_config
         SLEEP_INTERVAL=$2
         save_config
-        echo "$(date '+%Y-%m-%d %H:%M:%S') - Sleep interval set to $SLEEP_INTERVAL seconds"
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - Sleep interval set to $SLEEP_INTERVAL seconds" | tee -a "$LOG_FILE"
     else
         echo "Usage: $0 update <sleep_interval_seconds (1-10)>"
     fi
@@ -272,7 +286,7 @@ set_stepup() {
         load_config
         STEP_UP=$2
         save_config
-        echo "$(date '+%Y-%m-%d %H:%M:%S') - Step-up size set to $STEP_UP%"
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - Step-up size set to $STEP_UP%" | tee -a "$LOG_FILE"
     else
         echo "Usage: $0 stepup <step_size_percent (1-100)>"
     fi
@@ -283,7 +297,7 @@ set_stepdown() {
         load_config
         STEP_DOWN=$2
         save_config
-        echo "$(date '+%Y-%m-%d %H:%M:%S') - Step-down size set to $STEP_DOWN%"
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - Step-down size set to $STEP_DOWN%" | tee -a "$LOG_FILE"
     else
         echo "Usage: $0 stepdown <step_size_percent (1-100)>"
     fi
@@ -358,6 +372,7 @@ case "$1" in
         echo
         sudo ectool pwmgetnumfans
         sudo ectool pwmgetfanrpm all
+        echo "Current CPU temp: $(get_temp)°C"
         echo "Fan Curve: $FAN_MIN_TEMP°C = ${MIN_FAN}%, $FAN_MAX_TEMP°C = ${MAX_FAN}%"
         echo "Sleep interval: $SLEEP_INTERVAL seconds"
         echo "Step-up: $STEP_UP%, Step-down: $STEP_DOWN%"
