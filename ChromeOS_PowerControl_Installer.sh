@@ -47,18 +47,18 @@ sudo mkdir -p "$INSTALL_DIR"
 
 declare -a files=("powercontrol" "batterycontrol" "fancontrol" "Uninstall_ChromeOS_PowerControl.sh" "LICENSE" "README.md" "no_turbo.conf" "batterycontrol.conf" "powercontrol.conf" "fancontrol.conf" "config.sh")
 for file in "${files[@]}"; do
-    curl -L "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/$file" -o "$INSTALL_DIR/$file"
+    curl -L "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/0.16/$file" -o "$INSTALL_DIR/$file"
     echo "$INSTALL_DIR/$file downloaded."
     echo ""
 done
 
-curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/.powercontrol_conf.sh -o /usr/local/bin/.powercontrol_conf.sh
+curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/0.16/.powercontrol_conf.sh -o /usr/local/bin/.powercontrol_conf.sh
 echo " /usr/local/bin/ChromeOS_PowerControl/.powercontrol_conf.sh downloaded."
 echo ""
-curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/.batterycontrol_conf.sh -o /usr/local/bin/.batterycontrol_conf.sh
+curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/0.16/.batterycontrol_conf.sh -o /usr/local/bin/.batterycontrol_conf.sh
 echo " /usr/local/bin/ChromeOS_PowerControl/.batterycontrol_conf.sh downloaded."
 echo ""
-curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/.fancontrol_conf.sh -o /usr/local/bin/.fancontrol_conf.sh
+curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/0.16/.fancontrol_conf.sh -o /usr/local/bin/.fancontrol_conf.sh
 echo " /usr/local/bin/ChromeOS_PowerControl/.fancontrol_conf.sh downloaded."
 echo ""
 
