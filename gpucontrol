@@ -62,6 +62,7 @@ get_current_freq() {
 help() {
     echo "Commands with examples:"
     echo "sudo gpucontrol                  # Show current GPU info and frequency"
+    echo "sudo gpucontrol restore          # Restore GPU max frequency to original value"
     echo "sudo gpucontrol intel 700        # Set Intel GPU max frequency to 700 MHz"
     echo "sudo gpucontrol amd 800          # Set AMD GPU max frequency to 800 MHz (chooses DPM automatically)"
     echo "sudo gpucontrol amd auto         # Restores AMD GPU behavior. Altering clock speeds above will switch it to manual."
@@ -79,6 +80,38 @@ fi
 
 if [[ "$1" == "help" ]]; then
     help
+    exit 0
+fi
+
+if [[ "$1" == "restore" ]]; then
+    echo "${YELLOW}Restoring GPU to original max frequency: $ORIGINAL_GPU_MAX_FREQ...${RESET}"
+
+    case "$GPU_TYPE" in
+        intel)
+            if ! echo "$ORIGINAL_GPU_MAX_FREQ" | sudo tee "$GPU_FREQ_PATH" > /dev/null; then
+                echo "${RED}Failed to restore Intel GPU frequency.${RESET}"
+                exit 1
+            fi
+            echo "${GREEN}Intel GPU frequency restored to $ORIGINAL_GPU_MAX_FREQ MHz${RESET}"
+            ;;
+        amd)
+            echo "auto" | sudo tee /sys/class/drm/card0/device/power_dpm_force_performance_level > /dev/null
+            echo "${GREEN}AMD GPU set to automatic performance mode.${RESET}"
+            ;;
+        adreno|mali)
+            RESTORE_FREQ="$ORIGINAL_GPU_MAX_FREQ"
+            if ! echo "$RESTORE_FREQ" | sudo tee "$GPU_FREQ_PATH" > /dev/null; then
+                echo "${RED}Failed to restore GPU frequency for $GPU_TYPE.${RESET}"
+                exit 1
+            fi
+            echo "${GREEN}${GPU_TYPE^} GPU frequency restored to $RESTORE_FREQ kHz${RESET}"
+            ;;
+        *)
+            echo "${RED}Restore not supported for GPU type: $GPU_TYPE${RESET}"
+            exit 1
+            ;;
+    esac
+
     exit 0
 fi
 
@@ -145,7 +178,7 @@ case "$GPU_ARG" in
             exit 0
         elif [[ "$SUBCMD" == "auto" ]]; then
             echo "auto" | sudo tee /sys/class/drm/card0/device/power_dpm_force_performance_level > /dev/null
-            echo "${GREEN}AMD GPU set to auto power performance mode${RESET}"
+            echo "${GREEN}AMD GPU set to automatic performance mode${RESET}"
             exit 0
         elif [[ "$SUBCMD" == "max" ]]; then
             if [[ "$REQUESTED_FREQ" -gt "$ORIGINAL_GPU_MAX_FREQ" ]]; then
