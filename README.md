@@ -86,7 +86,7 @@ __Commands with examples:__
 *GPUControl:*
 
 `sudo gpucontrol                        # Show current GPU info and frequency`<br>
-`sudo gpucontrol restore          # Restore GPU max frequency to original value`<br>
+`sudo gpucontrol restore                # Restore GPU max frequency to original value`<br>
 `sudo gpucontrol intel 700              # Clamp Intel GPU max frequency to 700 MHz`<br>
 `sudo gpucontrol amd 800                # Clamp AMD GPU max frequency to 800 MHz (DPM level chosen automatically)`<br>
 `sudo gpucontrol amd auto               # Restores AMD GPU behavior. Altering clock speeds above will switch it to manual.`<br>
