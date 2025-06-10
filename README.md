@@ -89,7 +89,7 @@ __Commands with examples:__
 `sudo gpucontrol restore                # Restore GPU max frequency to original value`<br>
 `sudo gpucontrol intel 700              # Clamp Intel GPU max frequency to 700 MHz`<br>
 `sudo gpucontrol amd 800                # Clamp AMD GPU max frequency to 800 MHz (DPM level chosen automatically)`<br>
-`sudo gpucontrol amd auto               # Restores AMD GPU behavior. Altering clock speeds above will switch it to manual.`<br>
+`sudo gpucontrol amd auto               # Restores AMD GPU behavior. Altering clock speeds above will switch it to manual`<br>
 `sudo gpucontrol adreno 500000          # Clamp Adreno GPU max frequency to 500000 kHz (or 500 MHz)`<br>
 `sudo gpucontrol mali 600000            # Clamp Mali GPU max frequency to 600000 kHz (or 600 MHz)`<br>
 
