@@ -16,8 +16,7 @@ fi
 INSTALL_DIR="${INSTALL_DIR%/}"
 
 CONFIG_FILE="$INSTALL_DIR/config.sh"
-
-POWER_LOG="/var/log/powercontrol.log"
+LOG_FILE="/var/log/powercontrol.log"
 RUN_FLAG="$INSTALL_DIR/.powercontrol_enabled"
 PID_FILE="$INSTALL_DIR/.powercontrol_pid"
 CPU_VENDOR=$(grep -m1 'vendor_id' /proc/cpuinfo | awk '{print $3}' || echo "unknown")
@@ -130,13 +129,12 @@ save_config() {
     sed -i "s/^MIN_PERF_PCT=.*/MIN_PERF_PCT=$MIN_PERF_PCT/" "$CONFIG_FILE" || echo "MIN_PERF_PCT=$MIN_PERF_PCT" >> "$CONFIG_FILE"
 
     source "$INSTALL_DIR/config.sh"
-    echo "Configuration saved to $CONFIG_FILE"
 }
 
 
 load_config
 
-get_temp() {
+ get_temp() {
     local temp_celsius
     temp_celsius=$(cat /sys/class/thermal/thermal_zone0/temp 2>/dev/null)
 
@@ -148,6 +146,7 @@ get_temp() {
         return 1
     fi
 }
+
 
 set_max_perf_pct() {
     local pct=$1
@@ -214,22 +213,22 @@ set_min_perf_pct() {
     load_config
     MIN_PERF_PCT=$1
     save_config
-    echo "Minimum performance percentage set to $MIN_PERF_PCT%"
+    echo "Minimum performance percentage set to $MIN_PERF_PCT%" | tee -a "$LOG_FILE"
 }
 
 set_no_turbo() {
     local value="$1"
     if [[ "$value" != "0" && "$value" != "1" ]]; then
-        echo "Usage: $0 no_turbo {0|1}"
+        echo "Usage: $0 no_turbo 0 or 1"
         exit 1
     fi
 
     if [ "$IS_INTEL" -eq 1 ] && [ -w "$TURBO_PATH" ]; then
         echo "$value" | sudo tee "$TURBO_PATH" > /dev/null
         if [ "$value" -eq 1 ]; then
-            echo "Intel Turbo Boost ${CYAN}Disabled${RESET}"
+            echo "Intel Turbo Boost ${CYAN}Disabled${RESET}" | tee -a "$LOG_FILE"
         else
-            echo "Intel Turbo Boost ${YELLOW}Enabled${RESET}"
+            echo "Intel Turbo Boost ${MAGENTA}Enabled${RESET}" | tee -a "$LOG_FILE"
         fi
     elif [ "$IS_AMD" -eq 1 ]; then
         echo "Turbo disable is not directly supported on AMD via no_turbo."
@@ -238,6 +237,8 @@ set_no_turbo() {
         echo "Turbo control is unsupported on this platform (likely ARM)."
     fi
 }
+
+
 
 cleanup() {
     stop_monitoring
@@ -299,14 +300,14 @@ while [ -f "$RUN_FLAG" ]; do
     fi
 
     if [[ "$current_pct" != "$pct" ]]; then
-        echo "$(date '+%Y-%m-%d %H:%M:%S') - CPU $temp_c°C -> Clockspeed $pct%" | tee -a "$POWER_LOG"
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - CPU $temp_c°C -> Clockspeed $pct%" | tee -a "$LOG_FILE"
         set_max_perf_pct "$pct"
     fi
 
     sleep 1
 done
 
-    echo "${YELLOW}PowerControl stopped.${RESET}"
+    echo "${YELLOW}PowerControl stopped.${RESET}" | tee -a "$LOG_FILE"
     rm -f "$PID_FILE"
 }
 
@@ -352,7 +353,8 @@ show_status() {
     else
         echo "${YELLOW}  Status: STOPPED ${YELLOW}"
     fi
-
+    temp_c=$(get_temp)
+    echo "  Current CPU temp: $temp_c°C"
     echo "  Configured max_temp: $MAX_TEMP°C"
     echo "  Configured min_temp: $MIN_TEMP°C"
     echo "  Configured max_perf_pct: $MAX_PERF_PCT%"
@@ -385,6 +387,12 @@ show_status() {
     echo
 }
 
+# display cpu temp in status
+if [ $# -eq 0 ]; then
+    show_status
+    exit 0
+fi
+
 stop_monitoring() {
     if [ -n "$POWERCONTROL_STOPPING" ]; then
         return
@@ -397,7 +405,7 @@ stop_monitoring() {
 
     PID=$(cat "$PID_FILE")
     if ps -p "$PID" > /dev/null 2>&1; then
-        echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') - Stopping PowerControl (PID $PID)...${RESET}"  | tee -a "$POWER_LOG"
+        echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') - Stopping PowerControl (PID $PID)...${RESET}"  | tee -a "$LOG_FILE"
         rm -f "$RUN_FLAG"
         kill "$PID"
 
@@ -480,7 +488,7 @@ max_perf_pct() {
 
         MAX_PERF_PCT=$2
         save_config
-        echo "Setting max_perf_pct to $MAX_PERF_PCT%"
+        echo "Setting max_perf_pct to $MAX_PERF_PCT%" | tee -a "$LOG_FILE"
         set_max_perf_pct "$MAX_PERF_PCT"
     fi
 }
@@ -494,12 +502,12 @@ fi
         stop_monitoring >/dev/null 2>&1
        LOG_FILE="/var/log/powercontrol.log"
 
-if [ -f "$POWER_LOG" ] && [ "$(stat -c%s "$POWER_LOG")" -gt 32768 ]; then
-    echo "$(date '+%Y-%m-%d %H:%M:%S') - Truncated log file (exceeded 32KB)" > "$POWER_LOG"
+if [ -f "$LOG_FILE" ] && [ "$(stat -c%s "$LOG_FILE")" -gt 32768 ]; then
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - Truncated log file (exceeded 32KB)" > "$LOG_FILE"
 fi
 
-nohup "$0" __monitor__ >> "$POWER_LOG" 2>&1 &
-echo "${GREEN}$(date '+%Y-%m-%d %H:%M:%S') - PowerControl monitoring started in background. Output is logged to $POWER_LOG${RESET}"
+nohup "$0" __monitor__ >> "$LOG_FILE" 2>&1 &
+echo "${GREEN}$(date '+%Y-%m-%d %H:%M:%S') -PowerControl monitoring started in background. Output is logged to $LOG_FILE${RESET}" | tee -a "$LOG_FILE"
 
         ;;
     stop)
