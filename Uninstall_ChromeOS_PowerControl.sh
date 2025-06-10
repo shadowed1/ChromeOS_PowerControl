@@ -54,6 +54,7 @@ case "$choice" in
         "$INSTALL_DIR/powercontrol" no_turbo 0
         "$INSTALL_DIR/batterycontrol" stop
         "$INSTALL_DIR/fancontrol" stop
+        "$INSTALL_DIR/gpucontrol" restore
 
         remove_file_with_message "$INSTALL_DIR/no_turbo.conf"
         remove_file_with_message "$INSTALL_DIR/batterycontrol.conf"
