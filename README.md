@@ -159,10 +159,10 @@ __Bonus:__
 <br>
 
 __Changelog:__
-- 0.1:  Released BatteryControl
-- 0.11: Released PowerControl with CPU performance curve and combined BatteryControl
-- 0.12: Added support for AMD, ARM, and Intel
-- 0.13: Added FanControl
+- 0.1:  Released BatteryControl.
+- 0.11: Released PowerControl with CPU performance curve and combined BatteryControl.
+- 0.12: Added support for AMD and ARM.
+- 0.13: Added FanControl.
 - 0.14: Updated BatteryControl to support switching charging ports.
 - 0.15: Updated UI, added customizing install location, merged config files into one, and added commands.
 - 0.16: Fixed several syntax errors and improved color coding.
