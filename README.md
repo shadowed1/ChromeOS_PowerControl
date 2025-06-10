@@ -86,6 +86,7 @@ __Commands with examples:__
 *GPUControl:*
 
 `sudo gpucontrol                        # Show current GPU info and frequency`<br>
+`sudo gpucontrol restore          # Restore GPU max frequency to original value`<br>
 `sudo gpucontrol intel 700              # Clamp Intel GPU max frequency to 700 MHz`<br>
 `sudo gpucontrol amd 800                # Clamp AMD GPU max frequency to 800 MHz (DPM level chosen automatically)`<br>
 `sudo gpucontrol amd auto               # Restores AMD GPU behavior. Altering clock speeds above will switch it to manual.`<br>
@@ -144,7 +145,7 @@ __How It Works:__
 
 - Identifies the GPU (AMD, Adreno, Mali, and Intel) based on the name of the device's path in /sys/class/
 - Limits control to only below the maximum clock speed for safety and with Chromebooks in mind.
-- Restarting ChromeOS will restore the GPU's max clockspeed back to default. 
+- Restarting ChromeOS will restore the GPU's max clockspeed back to default.
 - Intel GPU's can have their maximum clock speed adjusted from /sys/class/drm/card0/gt_max_freq_mhz
 - AMD GPU's can have their Power Profile changed with /sys/class/drm/card0/device/pp_dpm_sclk and manual power_dpm_force_performance_level.
 - Adreno GPU's max clock speed is adjusted from /sys/class/kgsl/kgsl-3d0/max_gpuclk
@@ -160,14 +161,15 @@ __Bonus:__
 <br>
 
 __Changelog:__
-- 0.1:  Released BatteryControl.
-- 0.11: Released PowerControl with CPU performance curve and combined BatteryControl.
-- 0.12: Added support for AMD and ARM.
-- 0.13: Added FanControl.
-- 0.14: Updated BatteryControl to support switching charging ports.
-- 0.15: Updated UI, added customizing install location, merged config files into one, and added commands.
-- 0.16: Fixed several syntax errors and improved color coding.
-- 0.17: Added GPUControl, cleaned up useless code, improved logs, config settings preserved on reinstalling, and fixed syntax errors.
+`0.1:  Released BatteryControl.`
+`0.11: Released PowerControl with CPU performance curve and combined BatteryControl.`
+`0.12: Added support for AMD and ARM.`
+`0.13: Added FanControl.`
+`0.14: Updated BatteryControl to support switching charging ports.`
+`0.15: Updated UI, added customizing install location, merged config files into one, and added commands.`
+`0.16: Fixed several syntax errors and improved color coding.`
+`0.17: Added GPUControl, cleaned up useless code, improved logs, config settings preserved on reinstalling, and fixed syntax errors.`
+`0.18: Added gpucontrol restore command. Uninstaller will also prevent requiring user to reboot to restore GPU clockspeed. `
 
 <br>
 
