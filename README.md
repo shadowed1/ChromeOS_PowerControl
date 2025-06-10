@@ -143,7 +143,8 @@ __How It Works:__
 *GPUControl:*
 
 - Identifies the GPU (AMD, Adreno, Mali, and Intel) based on the name of the device's path in /sys/class/
-- Limits control to only below the maximum clock speed for safety and with Chromebooks in mind. 
+- Limits control to only below the maximum clock speed for safety and with Chromebooks in mind.
+- Restarting ChromeOS will restore the GPU's max clockspeed back to default. 
 - Intel GPU's can have their maximum clock speed adjusted from /sys/class/drm/card0/gt_max_freq_mhz
 - AMD GPU's can have their Power Profile changed with /sys/class/drm/card0/device/pp_dpm_sclk and manual power_dpm_force_performance_level.
 - Adreno GPU's max clock speed is adjusted from /sys/class/kgsl/kgsl-3d0/max_gpuclk
