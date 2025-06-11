@@ -368,12 +368,12 @@ case "$1" in
         if [ -f "$RUN_FLAG" ]; then
             PID=$(cat "$PID_FILE")
             if ps -p "$PID" > /dev/null 2>&1; then
-                echo "FanControl Status:${GREEN} ENABLED (PID $PID)${RESET}"
+                echo "${GREEN}FanControl Status: ENABLED (PID $PID)${RESET}"
             else
-                echo "FanControl Status:${YELLOW} RUN FLAG PRESENT, but process not running${RESET}"
+                echo "${YELLOW}FanControl Status: RUN FLAG PRESENT, but process not running${RESET}"
             fi
         else
-            echo "FanControl Status:${RED} DISABLED${RESET}"
+            echo "${RED}FanControl Status: DISABLED${RESET}"
         fi
         echo
         sudo ectool pwmgetnumfans
