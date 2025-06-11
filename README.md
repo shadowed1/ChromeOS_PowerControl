@@ -175,7 +175,7 @@ __Bonus:__
 - 0.14: Updated BatteryControl to support switching charging ports.<br> <br>
 - 0.15: Updated UI, added customizing install location, merged config files into one, and added commands.<br> <br>
 - 0.16: Fixed several syntax errors and improved color coding.<br> <br>
-- 0.17: Added GPUControl, cleaned up useless code, improved logs, config settings preserved on reinstalling, and fixed syntax errors.`<br> <br>
+- 0.17: Added GPUControl, cleaned up useless code, improved logs, config settings preserved on reinstalling, and fixed syntax errors.<br> <br>
 - 0.18: Added gpucontrol restore command. Added ability to boot up with desired GPU clockspeed with 120s delay.
 AMD GPU support tweaked to allow idle clocks when overriding clockspeed. Added reinstall command for fast updating.
 Uninstaller no longer requiring user to reboot to restore GPU clockspeed. Fixed duplicate log entry and other bugs.
