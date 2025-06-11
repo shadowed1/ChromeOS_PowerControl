@@ -78,6 +78,7 @@ __Commands with examples:__
 `sudo fancontrol max_fan 100           # Max fan speed %`<br>
 `sudo fancontrol stepup 20             # Fan step-up %`<br>
 `sudo fancontrol stepdown 1            # Fan step-down %`<br>
+`sudo fancontrol monitor               # Toggle on/off live monitoring in terminal`<br>
 `sudo fancontrol startup               # Copy or Remove fancontrol.conf at: /etc/init/`<br>
 `sudo fancontrol help                  # Help menu`<br>
 
