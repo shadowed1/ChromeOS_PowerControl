@@ -363,7 +363,7 @@ show_status() {
     if [ -f "$PID_FILE" ]; then
         PID=$(cat "$PID_FILE")
         if ps -p "$PID" > /dev/null 2>&1; then
-            echo "${GREEN}  PowerControl Status: RUNNING (PID $PID)${RESET}"
+            echo "${GREEN}PowerControl Status: RUNNING (PID $PID)${RESET}"
             echo ""
         else
             rm -f "$PID_FILE"
@@ -374,13 +374,13 @@ show_status() {
         echo "${RED}Powercontrol Status: STOPPED ${RESET}"
     fi
     temp_c=$(get_temp)
-    echo "  Current CPU temp: $temp_c°C"
-    echo "  Configured max_temp: $MAX_TEMP°C"
-    echo "  Configured min_temp: $MIN_TEMP°C"
-    echo "  Configured max_perf_pct: $MAX_PERF_PCT%"
-    echo "  Configured min_perf_pct: $MIN_PERF_PCT%"
-    echo "  Configured ramp_up pct: $RAMP_UP%"
-    echo "  Configured ramp_down pct: $RAMP_DOWN%"
+    echo "Current CPU temp: $temp_c°C"
+    echo "Configured max_temp: $MAX_TEMP°C"
+    echo "Configured min_temp: $MIN_TEMP°C"
+    echo "Configured max_perf_pct: $MAX_PERF_PCT%"
+    echo "Configured min_perf_pct: $MIN_PERF_PCT%"
+    echo "Configured ramp_up pct: $RAMP_UP%"
+    echo "Configured ramp_down pct: $RAMP_DOWN%"
 
     if [ -f "$PERF_PATH" ]; then
         current_val=$(cat "$PERF_PATH")
