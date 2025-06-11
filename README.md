@@ -51,7 +51,7 @@ __Commands with examples:__
 `sudo powercontrol max_temp 86         # Max temperature threshold - Limit is 90 C`<br>
 `sudo powercontrol min_temp 60         # Min temperature threshold`<br>
 `sudo powercontrol monitor             # Toggle live temperature monitoring`<br>
-`sudo powercontrol startup             # Copy or Remove no_turbo.conf & powercontrol.conf at: /etc/init/`<br>
+`sudo powercontrol startup             # Copy/Remove no_turbo.conf & powercontrol.conf at: /etc/init/`<br>
 `sudo powercontrol help                # Help menu`<br>
   
 ----------------------------------------------------------------------------------------------
@@ -62,7 +62,7 @@ __Commands with examples:__
 `sudo batterycontrol start             # Start BatteryControl`<br>
 `sudo batterycontrol stop              # Stop BatteryControl`<br>
 `sudo batterycontrol set 77 74         # Set max/min battery charge thresholds`<br>
-`sudo batterycontrol startup           # Copy or Remove batterycontrol.conf at: /etc/init/`<br>
+`sudo batterycontrol startup           # Copy/Remove batterycontrol.conf at: /etc/init/`<br>
 `sudo batterycontrol help              # Help menu`<br>
 
 ----------------------------------------------------------------------------------------------
@@ -79,7 +79,7 @@ __Commands with examples:__
 `sudo fancontrol stepup 20             # Fan step-up %`<br>
 `sudo fancontrol stepdown 1            # Fan step-down %`<br>
 `sudo fancontrol monitor               # Toggle on/off live monitoring in terminal`<br>
-`sudo fancontrol startup               # Copy or Remove fancontrol.conf at: /etc/init/`<br>
+`sudo fancontrol startup               # Copy/Remove fancontrol.conf at: /etc/init/`<br>
 `sudo fancontrol help                  # Help menu`<br>
 
 ----------------------------------------------------------------------------------------------
@@ -92,7 +92,7 @@ __Commands with examples:__
 `sudo gpucontrol amd 800                # Clamp AMD GPU max frequency to 800 MHz (rounds down)`<br>
 `sudo gpucontrol adreno 500000          # Clamp Adreno GPU max frequency to 500000 kHz (or 500 MHz)`<br>
 `sudo gpucontrol mali 600000            # Clamp Mali GPU max frequency to 600000 kHz (or 600 MHz)`<br>
-`sudo gpucontrol startup                # Copy or Remove gpucontrol.conf at: /etc/init/`<br>
+`sudo gpucontrol startup                # Copy/Remove gpucontrol.conf at: /etc/init/`<br>
 `sudo gpucontrol help                   # Help menu"`<br>
 
 ----------------------------------------------------------------------------------------------
