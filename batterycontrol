@@ -113,20 +113,21 @@ battery_status() {
         if [ -f "$PID_FILE" ]; then
             PID=$(cat "$PID_FILE")
             if ps -p "$PID" > /dev/null 2>&1; then
-                echo "${GREEN}BatteryControl is: ENABLED (running, PID $PID)${RESET}"
+                echo "BatteryControl is:${GREEN} ENABLED (running, PID $PID)${RESET}"
             else
-                echo "${YELLOW}BatteryControl is: ENABLED (but process is NOT running)${RESET}"
+                echo "BatteryControl is:${YELLOW} ENABLED (but process is NOT running)${RESET}"
                 rm -f "$PID_FILE"
             fi
         else
-            echo "${YELLOW}BatteryControl is: ENABLED (PID not found)${RESET}"
+            echo "BatteryControl is:${YELLOW} ENABLED (PID not found)${RESET}"
         fi
     else
-        echo "${RED}BatteryControl is: DISABLED${RESET}"
+        echo "BatteryControl is:${RED} DISABLED${RESET}"
     fi
-
+    echo ""
     echo "  CHARGE_MAX: $CHARGE_MAX"
     echo "  CHARGE_MIN: $CHARGE_MIN"
+    echo ""
 
     local active_port
     active_port=$(detect_active_usbpd_port)
@@ -257,12 +258,11 @@ case "$1" in
         start_monitoring_loop
         ;;
     "")
-        echo "=== ectool battery ==="
-        echo
-        sudo ectool battery 2>/dev/null || echo "Failed to run ectool battery (is ectool installed and available?)"
+        battery_status
         echo
         sudo ectool usbpdpower 2>/dev/null || echo "Failed to run ectool usbpdpower (is ectool installed and available?)"
-        battery_status
+        echo
+        sudo ectool battery 2>/dev/null || echo "Failed to run ectool battery (is ectool installed and available?)"
         echo
         ;;
     *)
