@@ -22,7 +22,7 @@ __How to Install:__
 
 - Open crosh shell and run: <br>
 
- `bash <(curl -s "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/ChromeOS_PowerControl_Downloader.sh?$(date +%s)")`
+ `bash <(curl -s "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/beta/ChromeOS_PowerControl_Downloader.sh?$(date +%s)")`
 
 - The installer will be placed: <br>
 
@@ -88,12 +88,16 @@ __Commands with examples:__
 `sudo gpucontrol                        # Show current GPU info and frequency`<br>
 `sudo gpucontrol restore                # Restore GPU max frequency to original value`<br>
 `sudo gpucontrol intel 700              # Clamp Intel GPU max frequency to 700 MHz`<br>
-`sudo gpucontrol amd 800                # Clamp AMD GPU max frequency to 800 MHz (DPM level chosen automatically)`<br>
-`sudo gpucontrol amd auto               # Restores AMD GPU behavior. Altering clock speeds above will switch it to manual`<br>
+`sudo gpucontrol amd 800                # Clamp AMD GPU max frequency to 800 MHz (rounds down)`<br>
 `sudo gpucontrol adreno 500000          # Clamp Adreno GPU max frequency to 500000 kHz (or 500 MHz)`<br>
 `sudo gpucontrol mali 600000            # Clamp Mali GPU max frequency to 600000 kHz (or 600 MHz)`<br>
+`sudo gpucontrol startup                # Copy or Remove gpucontrol.conf at: /etc/init/`<br>
+`sudo gpucontrol help                   # Help menu"`<br>
 
 ----------------------------------------------------------------------------------------------
+*Reinstall:
+
+`sudo powercontrol reinstall           # Download and reinstall ChromeOS_PowerControl from main branch on Github.`<br>
 
 *Uninstall:*
 
@@ -124,7 +128,8 @@ __How It Works:__
 *BatteryControl:*
 
 - Uses ectool's chargecontrol to toggle between normal or idle.
-- Check's ectool usbpdpower to identify which charge port is being used. 
+- Check's ectool usbpdpower to identify which charge port is being used
+- Recommend turning off adatpive charging in ChromeOS to avoid notification spam.
 - Check's BAT0/capacity to measure when to toggle ectool's chargecontrol.
 - ChromeOS reports slightly higher values than what BatteryControl sets the charge limit to.
 - Charge limit is preserved during sleep. 
@@ -146,10 +151,10 @@ __How It Works:__
 - Identifies the GPU (AMD, Adreno, Mali, and Intel) based on the name of the device's path in /sys/class/
 - Limits control to only below the maximum clock speed for safety and with Chromebooks in mind.
 - Restarting ChromeOS will restore the GPU's max clockspeed back to default.
-- Intel GPU's can have their maximum clock speed adjusted from /sys/class/drm/card0/gt_max_freq_mhz
-- AMD GPU's can have their Power Profile changed with /sys/class/drm/card0/device/pp_dpm_sclk and manual power_dpm_force_performance_level.
-- Adreno GPU's max clock speed is adjusted from /sys/class/kgsl/kgsl-3d0/max_gpuclk
-- Mali GPU's max clock speed is adjusted from: /sys/class/devfreq/mali0/max_freq
+- Intel GPU's maximum clock speed changed from: /sys/class/drm/card0/gt_max_freq_mhz
+- AMD GPU's maximum clockspeed changed from: /sys/class/drm/card0/pp_od_clk_voltage
+- Adreno GPU's maximum clockspeed changed from /sys/class/kgsl/kgsl-3d0/max_gpuclk
+- Mali GPU's maximum clockspeed changed from: /sys/class/devfreq/mali0/max_freq
 
 <br>
 
@@ -170,7 +175,7 @@ __Bonus:__
 `0.15: Updated UI, added customizing install location, merged config files into one, and added commands.`<br>
 `0.16: Fixed several syntax errors and improved color coding.`<br>
 `0.17: Added GPUControl, cleaned up useless code, improved logs, config settings preserved on reinstalling, and fixed syntax errors.`<br>
-`0.18: Added gpucontrol restore command. Uninstaller will also prevent requiring user to reboot to restore GPU clockspeed. `<br>
+`0.18: Added gpucontrol restore command. Added ability to boot up with desired GPU clockspeed with 120s delay. AMD GPU support tweaked to allow idle clocks when overriding clockspeed. Added reinstall command to quickly download directly the latest version of ChromeOS_PowerControl from Github. Uninstaller no longer requiring user to reboot to restore GPU clockspeed. Fixed duplicate log entry and other bugs. Added ramp_up and ramp_down commands for PowerControl CPU scaling speed. Added stop processes command and better cleanup when running startup, reinstalling and uninstalling. Reformatted status for better readability.`<br>
 
 <br>
 
