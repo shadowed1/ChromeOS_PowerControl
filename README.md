@@ -102,7 +102,7 @@ __Commands with examples:__
 
 *Uninstall:*
 
-`sudo powercontrol uninstall            # Global uninstaller that will clean up after itself`
+`sudo powercontrol uninstall            # Global uninstaller that will clean up after itself.`
 
 *Alternative uninstall:* <br>
 
