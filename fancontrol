@@ -186,7 +186,7 @@ start() {
 
     if pgrep -f "[f]ancontrol __monitor__" >/dev/null; then
         echo "${YELLOW} $(date '+%Y-%m-%d %H:%M:%S') - FanControl monitor already running. Showing live output...${RESET}" | tee -a "$LOG_FILE"
-        tail -n 20 -f "$LOG_FILE"
+        tail -n 10 -f "$LOG_FILE"
     else
         nohup "$0" __monitor__ >> "$LOG_FILE" 2>&1 &
         echo "${GREEN} $(date '+%Y-%m-%d %H:%M:%S') - FanControl started in background. Output is logged to $LOG_FILE${RESET}" | tee -a "$LOG_FILE"
