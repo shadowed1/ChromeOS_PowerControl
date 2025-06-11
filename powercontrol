@@ -55,12 +55,16 @@ detect_cpu_type() {
     DEFAULT_MAX_TEMP=85
     DEFAULT_MIN_PERF_PCT=40
     DEFAULT_MAX_PERF_PCT=100
+    DEFAULT_RAMP_UP=15
+    DEFAULT_RAMP_DOWN=20
     MAX_TEMP_LIMIT=90
 
-MAX_TEMP=""
-MAX_PERF_PCT=""
-MIN_TEMP=""
-MIN_PERF_PCT=""
+    MAX_TEMP=""
+    MAX_PERF_PCT=""
+    MIN_TEMP=""
+    MIN_PERF_PCT=""
+    RAMP_UP=""
+    RAMP_DOWN=""
 
 load_config() {
     if [ -f "$CONFIG_FILE" ]; then
@@ -71,6 +75,8 @@ load_config() {
         MAX_TEMP=${MAX_TEMP:-$DEFAULT_MAX_TEMP}
         MIN_PERF_PCT=${MIN_PERF_PCT:-$DEFAULT_MIN_PERF_PCT}
         MAX_PERF_PCT=${MAX_PERF_PCT:-$DEFAULT_MAX_PERF_PCT}
+        RAMP_UP=${RAMP_UP:-$DEFAULT_RAMP_UP}
+        RAMP_DOWN=${RAMP_DOWN:-$DEFAULT_RAMP_DOWN}
         validate_config
     fi
 }
@@ -81,6 +87,8 @@ validate_config() {
     if [[ -z "$MIN_TEMP" ]]; then MIN_TEMP=$DEFAULT_MIN_TEMP; fi
     if [[ -z "$MAX_PERF_PCT" ]]; then MAX_PERF_PCT=$DEFAULT_MAX_PERF_PCT; fi
     if [[ -z "$MIN_PERF_PCT" ]]; then MIN_PERF_PCT=$DEFAULT_MIN_PERF_PCT; fi
+    if [[ -z "$RAMP_UP" ]]; then RAMP_UP=$DEFAULT_RAMP_UP; fi
+    if [[ -z "$RAMP_DOWN" ]]; then RAMP_DOWN=$DEFAULT_RAMP_DOWN; fi
 
     # Clamp temps to limits
     if (( MAX_TEMP > MAX_TEMP_LIMIT )); then
@@ -238,74 +246,85 @@ set_no_turbo() {
     fi
 }
 
-
-
 cleanup() {
     stop_monitoring
     exit 0
 }
-
 
 start_monitoring_loop() {
     load_config
     detect_cpu_type
     touch "$RUN_FLAG"
     echo $$ > "$PID_FILE"
-    
 
     last_reload_time=0
+    cooldown_mode=false
+    last_pct=0
 
-while [ -f "$RUN_FLAG" ]; do
-    now=$(date +%s)
-    if (( now - last_reload_time >= 10 )); then
-        load_config
-        validate_config
-        min_temp_c=$MIN_TEMP
-        high_temp_c=$MAX_TEMP
-        min_perf_pct=$MIN_PERF_PCT
-        max_perf_pct=$MAX_PERF_PCT
-        last_reload_time=$now
-    fi
+    while [ -f "$RUN_FLAG" ]; do
+        now=$(date +%s)
+        if (( now - last_reload_time >= 10 )); then
+            load_config
+            validate_config
+            min_temp_c=$MIN_TEMP
+            high_temp_c=$MAX_TEMP
+            min_perf_pct=$MIN_PERF_PCT
+            max_perf_pct=$MAX_PERF_PCT
+            ramp_up=$RAMP_UP
+            ramp_down=$RAMP_DOWN
+            last_reload_time=$now
+        fi
 
-    temp_c=$(get_temp)
-    if [ $? -ne 0 ]; then
-        echo "Failed to get temperature. Retrying..."
+        temp_c=$(get_temp)
+        if [ $? -ne 0 ] || [ -z "$temp_c" ]; then
+            echo "Failed to get temperature. Retrying..."
+            sleep 1
+            continue
+        fi
+
+        current_pct=$(cat "$PERF_PATH" 2>/dev/null || echo "0")
+
+        if (( temp_c >= high_temp_c )); then
+            # Begin cooldown mode with gradual ramp down
+            if [ "$cooldown_mode" = false ]; then
+                cooldown_mode=true
+                last_pct=$current_pct
+            fi
+            pct=$(( last_pct - ramp_down ))
+            if (( pct < min_perf_pct )); then
+                pct=$min_perf_pct
+            fi
+            last_pct=$pct
+
+        elif (( temp_c <= min_temp_c )); then
+            # Ramp up slowly when temp is back to safe
+            if [ "$cooldown_mode" = true ]; then
+                cooldown_mode=false
+                last_pct=$min_perf_pct
+            fi
+            pct=$(( last_pct + ramp_up ))
+            if (( pct > max_perf_pct )); then
+                pct=$max_perf_pct
+            fi
+            last_pct=$pct
+
+        else
+            # In normal range, scale linearly
+            cooldown_mode=false
+            delta_c=$(( high_temp_c - min_temp_c ))
+            temp_offset=$(( temp_c - min_temp_c ))
+            reduction=$(( (max_perf_pct - min_perf_pct) * temp_offset / delta_c ))
+            pct=$(( max_perf_pct - reduction ))
+            last_pct=$pct
+        fi
+
+        if [[ "$current_pct" != "$pct" ]]; then
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - CPU ${temp_c}°C -> Clockspeed ${pct}%" >> "$LOG_FILE"
+            set_max_perf_pct "$pct"
+        fi
+
         sleep 1
-        continue
-    fi
-
-    if [ -z "$temp_c" ]; then
-        echo "Error: No temperature value returned. Retrying..."
-        sleep 1
-        continue
-    fi
-
-    if ! [[ "$min_temp_c" =~ ^[0-9]+$ && "$high_temp_c" =~ ^[0-9]+$ && "$max_perf_pct" =~ ^[0-9]+$ && "$min_perf_pct" =~ ^[0-9]+$ ]]; then
-        echo "Invalid configuration values detected. Skipping."
-        sleep 1
-        continue
-    fi
-
-    current_pct=$(cat "$PERF_PATH" 2>/dev/null || echo "0")
-
-    if (( temp_c <= min_temp_c )); then
-        pct=$max_perf_pct
-    elif (( temp_c >= high_temp_c )); then
-        pct=$min_perf_pct
-    else
-        delta_c=$(( high_temp_c - min_temp_c ))
-        temp_offset=$(( temp_c - min_temp_c ))
-        reduction=$(( (max_perf_pct - min_perf_pct) * temp_offset / delta_c ))
-        pct=$(( max_perf_pct - reduction ))
-    fi
-
-    if [[ "$current_pct" != "$pct" ]]; then
-        echo "$(date '+%Y-%m-%d %H:%M:%S') - CPU $temp_c°C -> Clockspeed $pct%" | tee -a "$LOG_FILE"
-        set_max_perf_pct "$pct"
-    fi
-
-    sleep 1
-done
+    done
 
     echo "${YELLOW}PowerControl stopped.${RESET}" | tee -a "$LOG_FILE"
     rm -f "$PID_FILE"
@@ -339,19 +358,19 @@ show_status() {
             ;;
     esac
 
-    echo "PowerControl Status:"
+    #PowerControl Status
 
     if [ -f "$PID_FILE" ]; then
         PID=$(cat "$PID_FILE")
         if ps -p "$PID" > /dev/null 2>&1; then
-            echo "${GREEN}Status: RUNNING (PID $PID)${RESET}"
+            echo "PowerControl Status:${GREEN} RUNNING (PID $PID)${RESET}"
         else
             rm -f "$PID_FILE"
             rm -f "$RUN_FLAG"
-            echo "${YELLOW}  Status: STOPPED ${YELLOW}"
+            echo "PowerControl Status:${RED} STOPPED ${RESET}"
         fi
     else
-        echo "${YELLOW}  Status: STOPPED ${YELLOW}"
+        echo "Powercontrol Status:${RED} STOPPED ${RESET}"
     fi
     temp_c=$(get_temp)
     echo "  Current CPU temp: $temp_c°C"
@@ -359,6 +378,8 @@ show_status() {
     echo "  Configured min_temp: $MIN_TEMP°C"
     echo "  Configured max_perf_pct: $MAX_PERF_PCT%"
     echo "  Configured min_perf_pct: $MIN_PERF_PCT%"
+    echo "  Configured ramp_up pct: $RAMP_UP%"
+    echo "  Configured ramp_down pct: $RAMP_DOWN%"
 
     if [ -f "$PERF_PATH" ]; then
         current_val=$(cat "$PERF_PATH")
@@ -462,6 +483,8 @@ echo "sudo powercontrol max_temp 86         # Max temperature threshold - Limit 
 echo "sudo powercontrol min_temp 60         # Min temperature threshold"
 echo "sudo powercontrol monitor             # Toggle live temperature monitoring"
 echo "sudo powercontrol startup             # Copy or Remove no_turbo.conf & powercontrol.conf at: /etc/init/"
+echo "sudo powercontrol reinstall           # Redownload and reinstall ChromeOS_PowerControl from Github."
+echo "sudo powercontrol uninstall           # Uninstall ChromeOS_PowerControl."
 echo "sudo powercontrol help                # Help menu${RESET}"
 echo ""
 }
@@ -494,22 +517,31 @@ max_perf_pct() {
 }
 
 case "$1" in
-    start)
-        if [ ! -f "$CONFIG_FILE" ]; then
-    echo "Initializing config file with default values..."
-    load_config
-fi
-        stop_monitoring >/dev/null 2>&1
-       LOG_FILE="/var/log/powercontrol.log"
+   start)
+    if [ ! -f "$CONFIG_FILE" ]; then
+        echo "Initializing config file with default values..."
+        load_config
+    fi
 
-if [ -f "$LOG_FILE" ] && [ "$(stat -c%s "$LOG_FILE")" -gt 32768 ]; then
-    echo "$(date '+%Y-%m-%d %H:%M:%S') - Truncated log file (exceeded 32KB)" > "$LOG_FILE"
-fi
+    stop_monitoring >/dev/null 2>&1
 
-nohup "$0" __monitor__ >> "$LOG_FILE" 2>&1 &
-echo "${GREEN}$(date '+%Y-%m-%d %H:%M:%S') -PowerControl monitoring started in background. Output is logged to $LOG_FILE${RESET}" | tee -a "$LOG_FILE"
+    LOG_FILE="/var/log/powercontrol.log"
 
-        ;;
+    # Truncate log if > 32KB
+    if [ -f "$LOG_FILE" ] && [ "$(stat -c%s "$LOG_FILE")" -gt 32768 ]; then
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - Truncated log file (exceeded 32KB)" > "$LOG_FILE"
+    fi
+
+    if pgrep -f "$0 __monitor__" >/dev/null; then
+        echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') - Monitor is already running. Showing live output...${RESET}" | tee -a "$LOG_FILE"
+        tail -n 40 -f "$LOG_FILE"
+    else
+        nohup "$0" __monitor__ >> "$LOG_FILE" 2>&1 &
+        echo "${GREEN}$(date '+%Y-%m-%d %H:%M:%S') - PowerControl monitoring started in background. Output is logged to $LOG_FILE${RESET}" | tee -a "$LOG_FILE"
+    fi
+    ;;
+
+
     stop)
         stop_monitoring
         ;;
@@ -568,6 +600,7 @@ echo "${GREEN}$(date '+%Y-%m-%d %H:%M:%S') -PowerControl monitoring started in b
                 echo "${GREEN}no_turbo.conf copied.${RESET}"
             else
                 echo "Intel Turbo Boost will start automatically."
+                sudo rm -f /etc/init/no_turbo.conf
             fi
         else
             echo "Intel Turbo Boost enabled on startup."
@@ -588,6 +621,46 @@ echo "${GREEN}$(date '+%Y-%m-%d %H:%M:%S') -PowerControl monitoring started in b
         echo "PowerControl will not startup automatically on boot."
         sudo rm -f /etc/init/powercontrol.conf
     fi
+    ;;
+      ramp_up)
+    if [[ "$2" =~ ^[0-9]+$ ]]; then
+        if (( $2 < 1 || $2 > 100 )); then
+            echo "Error: ramp_up must be between 1 and 100"
+            exit 1
+        fi
+        sed -i "s/^RAMP_UP=.*/RAMP_UP=$2/" "$CONFIG_FILE"
+        echo "RAMP_UP set to $2%"
+    else
+        echo "Usage: sudo powercontrol ramp_up <value_between_10_and_100>"
+        exit 1
+    fi
+    ;;
+  ramp_down)
+    if [[ "$2" =~ ^[0-9]+$ ]]; then
+        if (( $2 < 1 || $2 > 100 )); then
+            echo "Error: ramp_down must be between 1 and 100"
+            exit 1
+        fi
+        sed -i "s/^RAMP_DOWN=.*/RAMP_DOWN=$2/" "$CONFIG_FILE"
+        echo "RAMP_DOWN set to $2%"
+    else
+        echo "Usage: sudo powercontrol ramp_down <value_between_20_and_100>"
+        exit 1
+    fi
+    ;;
+    reinstall)
+    echo "Downloading to:${CYAN} /home/chronos/ChromeOS_PowerControl_Installer.sh $RESET"
+    curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/beta/ChromeOS_PowerControl_Installer.sh -o /home/chronos/ChromeOS_PowerControl_Installer.sh
+    echo "Moving installer to: ${CYAN}/usr/local/bin/${RESET}"
+    echo ""
+    echo "Running commands:"
+    echo ""
+    sudo mkdir -p /usr/local/bin
+    echo "sudo mkdir -p /usr/local/bin"
+    sudo mv /home/chronos/ChromeOS_PowerControl_Installer.sh /usr/local/bin
+    echo "sudo mv /home/chronos/ChromeOS_PowerControl_Installer.sh /usr/local/bin"
+    echo "sudo bash /usr/local/bin/ChromeOS_PowerControl_Installer.sh"
+    sudo bash /usr/local/bin/ChromeOS_PowerControl_Installer.sh
     ;;
     __monitor__)
         LOG_FILE="/var/log/powercontrol.log"
