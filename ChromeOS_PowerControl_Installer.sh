@@ -283,12 +283,12 @@ if [ "$IS_INTEL" -eq 1 ]; then
     if [[ "$move_no_turbo" =~ ^[Yy]$ ]]; then
         sudo cp "$INSTALL_DIR/no_turbo.conf" /etc/init/
         echo "Turbo Boost will be disabled on restart."
-        echo "sudo powercontrol startup     # To re-enable Turbo Boost on boot."
+        echo "${CYAN}sudo powercontrol startup${RESET}     # To re-enable Turbo Boost on boot."
         echo ""
     else
         sudo rm -f /etc/init/no_turbo.conf
         echo "Turbo Boost will remain enabled."
-        echo "sudo powercontrol startup     # To disable Intel Turbo Boost on boot."
+        echo "${CYAN}sudo powercontrol startup${RESET}     # To disable Intel Turbo Boost on boot."
         echo ""
     fi
     
@@ -296,12 +296,12 @@ if [ "$IS_INTEL" -eq 1 ]; then
     if [[ "$run_no_turbo" =~ ^[Yy]$ ]]; then
         echo 1 | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo > /dev/null
         echo "Turbo Boost disabled immediately."
-        echo "sudo powercontrol no_turbo 0     # To re-enable Intel Turbo Boost"
+        echo "${CYAN}sudo powercontrol no_turbo 0${RESET}     # To re-enable Intel Turbo Boost"
         echo ""
     else
         echo 0 | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo > /dev/null
         echo "Turbo Boost remains enabled."
-        echo "sudo powercontrol no_turbo 1    # To disable Intel Turbo Boost"
+        echo "${CYAN}sudo powercontrol no_turbo 1${RESET}    # To disable Intel Turbo Boost"
         echo ""
     fi
 else
