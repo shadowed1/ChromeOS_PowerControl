@@ -197,7 +197,6 @@ set_temp_threshold() {
     echo "Max temperature threshold set to $MAX_TEMP°C"
 }
 
-
 set_min_temp() {
     if ! [[ "$1" =~ ^[0-9]+$ ]]; then
         echo "Error: Min temperature must be an integer."
