@@ -43,33 +43,41 @@ case "$choice" in
         remove_file_with_message /etc/init/batterycontrol.conf
         remove_file_with_message /etc/init/powercontrol.conf
         remove_file_with_message /etc/init/fancontrol.conf
+        remove_file_with_message /etc/init/gpucontrol.conf
         ;;
     2)
         echo "Stopping background services..."
 
         sudo initctl stop no_turbo 2>/dev/null
+        sudo initctl stop batterycontrol 2>/dev/null
+        sudo initctl stop powercontrol 2>/dev/null
+        sudo initctl stop fancontrol 2>/dev/null
+        sudo initctl stop gpu_control 2>/dev/null
         
-        "$INSTALL_DIR/powercontrol" stop
-        "$INSTALL_DIR/powercontrol" max_perf_pct 100
-        "$INSTALL_DIR/powercontrol" no_turbo 0
-        "$INSTALL_DIR/batterycontrol" stop
-        "$INSTALL_DIR/fancontrol" stop
-        "$INSTALL_DIR/gpucontrol" restore
+        sudo bash "$INSTALL_DIR/powercontrol" stop
+        sudo bash "$INSTALL_DIR/powercontrol" max_perf_pct 100
+        sudo bash "$INSTALL_DIR/powercontrol" no_turbo 0
+        sudo bash "$INSTALL_DIR/batterycontrol" stop
+        sudo bash "$INSTALL_DIR/fancontrol" stop
+        sudo bash "$INSTALL_DIR/gpucontrol" restore
 
         remove_file_with_message "$INSTALL_DIR/no_turbo.conf"
         remove_file_with_message "$INSTALL_DIR/batterycontrol.conf"
         remove_file_with_message "$INSTALL_DIR/powercontrol.conf"
         remove_file_with_message "$INSTALL_DIR/fancontrol.conf"
+        remove_file_with_message "$INSTALL_DIR/gpucontrol.conf"
 
         remove_file_with_message /etc/init/no_turbo.conf
         remove_file_with_message /etc/init/batterycontrol.conf
         remove_file_with_message /etc/init/powercontrol.conf
         remove_file_with_message /etc/init/fancontrol.conf
+        remove_file_with_message /etc/init/gpucontrol.conf
 
         remove_file_with_message /usr/local/bin/ChromeOS_PowerControl_Installer.sh
         remove_file_with_message /usr/local/bin/.powercontrol_conf.sh
         remove_file_with_message /usr/local/bin/.fancontrol_conf.sh
         remove_file_with_message /usr/local/bin/.batterycontrol_conf.sh
+        remove_file_with_message /usr/local/bin/.gpucontrol_conf.sh
 
         remove_file_with_message /usr/local/bin/powercontrol
         remove_file_with_message /usr/local/bin/batterycontrol
@@ -111,7 +119,7 @@ case "$choice" in
             echo "Installation directory not found or still contains files: $INSTALL_DIR"
         fi
 
-        echo "${GREEN}Uninstall complete.$RESET"
+        echo "${GREEN}Uninstall Complete.$RESET"
         ;;
     *)
         echo "${RED}Invalid option.$RESET"
