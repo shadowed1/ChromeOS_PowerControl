@@ -167,15 +167,20 @@ __Bonus:__
 
 *Changelog:*
 
-`0.1:  Released BatteryControl.`<br>
-`0.11: Released PowerControl with CPU performance curve and combined BatteryControl.`<br>
-`0.12: Added support for AMD and ARM.`<br>
-`0.13: Added FanControl.`<br>
-`0.14: Updated BatteryControl to support switching charging ports.`<br>
-`0.15: Updated UI, added customizing install location, merged config files into one, and added commands.`<br>
-`0.16: Fixed several syntax errors and improved color coding.`<br>
-`0.17: Added GPUControl, cleaned up useless code, improved logs, config settings preserved on reinstalling, and fixed syntax errors.`<br>
-`0.18: Added gpucontrol restore command. Added ability to boot up with desired GPU clockspeed with 120s delay. AMD GPU support tweaked to allow idle clocks when overriding clockspeed. Added reinstall command to quickly download directly the latest version of ChromeOS_PowerControl from Github. Uninstaller no longer requiring user to reboot to restore GPU clockspeed. Fixed duplicate log entry and other bugs. Added ramp_up and ramp_down commands for PowerControl CPU scaling speed. Added stop processes command and better cleanup when running startup, reinstalling and uninstalling. Reformatted status for better readability.`<br>
+`0.1:  Released BatteryControl.`<br> <br>
+`0.11: Released PowerControl with CPU performance curve and combined BatteryControl.`<br> <br>
+`0.12: Added support for AMD and ARM.`<br> <br>
+`0.13: Added FanControl.`<br> <br>
+`0.14: Updated BatteryControl to support switching charging ports.`<br> <br>
+`0.15: Updated UI, added customizing install location, merged config files into one, and added commands.`<br> <br>
+`0.16: Fixed several syntax errors and improved color coding.`<br> <br>
+`0.17: Added GPUControl, cleaned up useless code, improved logs, config settings preserved on reinstalling, and fixed syntax errors.`<br> <br>
+`0.18: Added gpucontrol restore command. Added ability to boot up with desired GPU clockspeed with 120s delay. ` <br>
+`AMD GPU support tweaked to allow idle clocks when overriding clockspeed. Added reinstall command for fast updating.` <br>
+`Uninstaller no longer requiring user to reboot to restore GPU clockspeed. Fixed duplicate log entry and other bugs.` <br>
+`Added ramp_up and ramp_down commands for PowerControl CPU scaling speed.` <br>
+`Added stop processes commands and better cleanup when running startup, reinstalling and uninstalling. `<br>
+`Reformatted status for better readability. Added post-install notes for BatteryControl and GPUControl`<br>
 
 <br>
 
