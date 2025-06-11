@@ -177,13 +177,22 @@ run_loop() {
 start() {
     "$0" stop >/dev/null 2>&1
 
+    LOG_FILE="/var/log/fancontrol.log"
+
+    # Truncate if log exceeds 32KB
     if [ -f "$LOG_FILE" ] && [ "$(stat -c%s "$LOG_FILE")" -gt 32768 ]; then
         echo "$(date '+%Y-%m-%d %H:%M:%S') - Truncated log file (exceeded 32KB)" > "$LOG_FILE"
     fi
 
-    nohup "$0" __monitor__ >> "$LOG_FILE" 2>&1 &
-    echo "${GREEN} $(date '+%Y-%m-%d %H:%M:%S') - FanControl started in background. Output is logged to $LOG_FILE${RESET}" | tee -a "$LOG_FILE"
+    if pgrep -f "[f]ancontrol __monitor__" >/dev/null; then
+        echo "${YELLOW} $(date '+%Y-%m-%d %H:%M:%S') - FanControl monitor already running. Showing live output...${RESET}" | tee -a "$LOG_FILE"
+        tail -n 20 -f "$LOG_FILE"
+    else
+        nohup "$0" __monitor__ >> "$LOG_FILE" 2>&1 &
+        echo "${GREEN} $(date '+%Y-%m-%d %H:%M:%S') - FanControl started in background. Output is logged to $LOG_FILE${RESET}" | tee -a "$LOG_FILE"
+    fi
 }
+
 
 stop() {
     if [ -f "$PID_FILE" ]; then
@@ -309,8 +318,8 @@ echo ""
 echo "sudo fancontrol                       # Show FanControl status"
 echo "sudo fancontrol start                 # Start FanControl"
 echo "sudo fancontrol stop                  # Stop FanControl"
-echo "sudo fancontrol fan_min_temp 48           # Min temp threshold"
-echo "sudo fancontrol fan_max_temp 81           # Max temp threshold - Limit is 90 C"
+echo "sudo fancontrol fan_min_temp 48       # Min temp threshold"
+echo "sudo fancontrol fan_max_temp 81       # Max temp threshold - Limit is 90 C"
 echo "sudo fancontrol min_fan 0             # Min fan speed %"
 echo "sudo fancontrol max_fan 100           # Max fan speed %"
 echo "sudo fancontrol stepup 20             # Fan step-up %"
@@ -356,19 +365,16 @@ case "$1" in
         ;;
     ""|status)
         load_config
-        echo "FanControl Status:"
         if [ -f "$RUN_FLAG" ]; then
             PID=$(cat "$PID_FILE")
             if ps -p "$PID" > /dev/null 2>&1; then
-                echo "${GREEN}Status: ENABLED (PID $PID)${RESET}"
+                echo "FanControl Status:${GREEN} ENABLED (PID $PID)${RESET}"
             else
-                echo "${YELLOW}Status: RUN FLAG PRESENT, but process not running${RESET}"
+                echo "FanControl Status:${YELLOW} RUN FLAG PRESENT, but process not running${RESET}"
             fi
         else
-            echo "${RED}Status: DISABLED${RESET}"
+            echo "FanControl Status:${RED} DISABLED${RESET}"
         fi
-        echo
-        echo "Hardware Info:"
         echo
         sudo ectool pwmgetnumfans
         sudo ectool pwmgetfanrpm all
