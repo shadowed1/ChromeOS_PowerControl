@@ -96,7 +96,7 @@ __Commands with examples:__
 `sudo gpucontrol help                   # Help menu"`<br>
 
 ----------------------------------------------------------------------------------------------
-*Reinstall:
+*Reinstall:*
 
 `sudo powercontrol reinstall           # Download and reinstall ChromeOS_PowerControl from main branch on Github.`<br>
 
