@@ -180,7 +180,7 @@ __Bonus:__
 `AMD GPU support tweaked to allow idle clocks when overriding clockspeed. Added reinstall command for fast updating.` <br>
 `Uninstaller no longer requiring user to reboot to restore GPU clockspeed. Fixed duplicate log entry and other bugs.` <br>
 `Added ramp_up and ramp_down commands for PowerControl CPU scaling speed.` <br>
-`Added stop processes commands and better cleanup when running startup, reinstalling and uninstalling. `<br>
+`Added stop processes commands and better cleanup when running startup, reinstalling and uninstalling.`<br>
 `Reformatted status for better readability. Added post-install notes for BatteryControl and GPUControl`<br>
 
 <br>
