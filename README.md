@@ -15,7 +15,7 @@ __Requires Developer Mode - Supports AMD, ARM, and Intel.__
   <br> <br>
 - Features global commands for ease of use, a unified config file, and the ability to change settings in real-time. 
 - Has a feature-rich installer, an uninstaller that cleans up after itself, and logs stored in /var/log/ for statistics.
-- Optionally have BatteryControl, PowerControl, FanControl start on boot; as well as disabling Turbo Boost on boot if user has rootfs verification disabled.
+- Optionally have BatteryControl, PowerControl, FanControl, an GPUControl start on boot; as well as disabling Turbo Boost on boot if user has rootfs verification disabled.
 <br> <br> <br>
 
 __How to Install:__
