@@ -468,7 +468,6 @@ uninstall_script() {
     fi
 }
 
-
 show_help() {
     echo "${CYAN}"
     echo "PowerControl commands with examples:"
@@ -631,7 +630,7 @@ case "$1" in
         sed -i "s/^RAMP_UP=.*/RAMP_UP=$2/" "$CONFIG_FILE"
         echo "RAMP_UP set to $2%"
     else
-        echo "Usage: sudo powercontrol ramp_up <value_between_10_and_100>"
+        echo "Error: ramp_up must be between 1 and 100"
         exit 1
     fi
     ;;
@@ -644,14 +643,14 @@ case "$1" in
         sed -i "s/^RAMP_DOWN=.*/RAMP_DOWN=$2/" "$CONFIG_FILE"
         echo "RAMP_DOWN set to $2%"
     else
-        echo "Usage: sudo powercontrol ramp_down <value_between_20_and_100>"
+        echo "Error: ramp_down must be between 1 and 100"
         exit 1
     fi
     ;;
     reinstall)
+    echo"
     echo "Downloading to:${CYAN} /home/chronos/ChromeOS_PowerControl_Installer.sh $RESET"
     curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/ChromeOS_PowerControl_Installer.sh -o /home/chronos/ChromeOS_PowerControl_Installer.sh
-    echo "Moving installer to: ${CYAN}/usr/local/bin/${RESET}"
     echo ""
     echo "Running commands:"
     echo ""
