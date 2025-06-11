@@ -151,7 +151,7 @@ help() {
 
 if [[ $# -eq 0 ]]; then
     load_config
-    echo -n "${GREEN}GPUControl Current Max Frequency: "
+    echo -n "${GREEN}GPUControl Max Frequency: "
     get_current_freq "$GPU_TYPE"
     echo "${RESET}"
     echo "GPU Type: $GPU_TYPE"
