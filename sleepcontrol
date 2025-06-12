@@ -195,7 +195,7 @@ case "$1" in
                 fi
                 BATTERY_DELAY=$actual_delay
                 save_config
-                echo "${GREEN}Battery sleep delayed by $user_input minutes.${GREEN}"
+                echo "${GREEN}When ${RESET}${GREEN}${BOLD}idling on battery${RESET}${GREEN}, ChromeOS will sleep in $user_input minutes.${GREEN}"
             else
                 echo "Invalid delay value. Please enter a positive integer."
                 exit 1
@@ -215,7 +215,7 @@ case "$1" in
                 fi
                 POWER_DELAY=$actual_delay
                 save_config
-                echo "${GREEN}Power sleep delayed by $user_input minutes.${RESET}"
+                echo "${GREEN}When ${RESET}${GREEN}${BOLD}idling plugged${RESET}${GREEN} in ChromeOS will sleep in $user_input minutes.${RESET}"
                 else
             echo "${RED}Invalid delay value. Please enter a positive integer.${RESET}"
             exit 1
@@ -249,10 +249,10 @@ case "$1" in
             load_config
             echo "${GREEN}SleepControl is running.${RESET}"
             echo ""
-            echo "Sleep delayed: Battery=$BATTERY_DELAY, Power=$POWER_DELAY"
+            echo "Sleep set for: ${GREEN}On Battery=$((BATTERY_DELAY + 6))${RESET}, ${YELLOW}On Power=$((POWER_DELAY + 8))${RESET}"
         else
             load_config
-            echo "${YELLOW}sleepcontrol is not running.${RESET}"
+            echo "${YELLOW}SleepControl is not running.${RESET}"
             echo ""
             echo "Sleep delayed: Battery=$BATTERY_DELAY, Power=$POWER_DELAY"
         fi
