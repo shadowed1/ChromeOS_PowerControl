@@ -156,6 +156,7 @@ case "$1" in
         ;;
         __monitor__)
             monitor_idle_activity
+        ;;
     *)
         echo "Usage: sleepcontrol [start | stop | battery [minutes] | power [minutes]]"
         exit 1
