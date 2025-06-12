@@ -87,6 +87,7 @@ case "$choice" in
         remove_file_with_message /var/log/powercontrol.log
         remove_file_with_message /var/log/fancontrol.log
         remove_file_with_message /var/log/batterycontrol.log
+        remove_file_with_message /var/log/gpucontrol.log
 
         remove_file_with_message "$INSTALL_DIR/config.sh"
 
