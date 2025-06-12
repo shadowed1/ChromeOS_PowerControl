@@ -384,9 +384,9 @@ show_status() {
     if [ -f "$PERF_PATH" ]; then
         current_val=$(cat "$PERF_PATH")
         if [[ "$PERF_PATH" == *max_perf_pct ]]; then
-            echo "  Current max_perf_pct: $current_val%"
+            echo "Current max_perf_pct: $current_val%"
         else
-            echo "  Current max frequency: $((current_val / 1000)) MHz"
+            echo "Current max frequency: $((current_val / 1000)) MHz"
         fi
     else
         echo "${RED}max_perf_pct/frequency path not found.${RESET}"
@@ -395,14 +395,14 @@ show_status() {
     if [ "$IS_INTEL" -eq 1 ] && [ -f "$TURBO_PATH" ]; then
         turbo_val=$(cat "$TURBO_PATH")
         if [[ "$turbo_val" -eq 1 ]]; then
-            echo "  Turbo Boost: Disabled"
+            echo "Turbo Boost: Disabled"
         else
-            echo "  Turbo Boost: Enabled"
+            echo "Turbo Boost: Enabled"
         fi
     elif [ "$IS_AMD" -eq 1 ]; then
-        echo "  Turbo Boost: Control unavailable via no_turbo path on AMD."
+        echo "Turbo Boost: Control unavailable via no_turbo path on AMD."
     else
-        echo "  Turbo Boost: Not supported on this platform."
+        echo "Turbo Boost: Not supported on this platform."
     fi
 
     echo
