@@ -316,7 +316,7 @@ else
     echo ""
 fi
 
-read -rp "${BOLD}Enable Global Commands for ${RESET}${BOLD}${CYAN}PowerControl${RESET}${BOLD}, ${GREEN}${BOLD}BatteryControl${RESET}${BOLD}, ${YELLOW}${BOLD}FanControl${RESET}{$BOLD}, ${MAGENTA}GPUControl${RESET}$${BOLD}${BLUE}, and ${RESET}${BLUE}SleepControl${RESET}${BOLD}? (y/n):$RESET " link_cmd
+read -rp "${BOLD}Enable Global Commands for ${RESET}${BOLD}${CYAN}PowerControl${RESET}${BOLD}, ${GREEN}${BOLD}BatteryControl${RESET}${BOLD}, ${YELLOW}${BOLD}FanControl${RESET}${BOLD}, ${MAGENTA}GPUControl${RESET}${BOLD}, and ${RESET}${BLUE}SleepControl${RESET}${BOLD}? (y/n):$RESET " link_cmd
 if [[ "$link_cmd" =~ ^[Yy]$ ]]; then
     sudo ln -sf "$INSTALL_DIR/powercontrol" /usr/local/bin/powercontrol
     sudo ln -sf "$INSTALL_DIR/batterycontrol" /usr/local/bin/batterycontrol
