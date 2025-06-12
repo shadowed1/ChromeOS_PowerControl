@@ -81,6 +81,7 @@ monitor_idle_activity() {
             audio_active=1
         elif echo "$line" | grep -q "Audio activity stopped"; then
             audio_active=0
+        sleep 120
         fi
 
         # Check for backlight timeout when idle without audio alerts.
@@ -137,6 +138,7 @@ monitor_idle_activity() {
         # Activity Simulation!
         if echo "$line" | grep -q "User activity stopped"; then
             if [ "$active" -eq 1 ]; then
+                sleep 120
                 active=0
                 (
                     end=$((SECONDS + delay_minutes * 60))
