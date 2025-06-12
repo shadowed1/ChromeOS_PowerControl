@@ -184,35 +184,48 @@ case "$1" in
     stop)
         stop_monitoring
         ;;
-    battery)
+        battery)
         if [ -n "$2" ]; then
             if [[ "$2" =~ ^[0-9]+$ ]]; then
-                BATTERY_DELAY=$2
+                local user_input=$2
+                local actual_delay=$((user_input - 6))  # 6m30s rounded down to 6
+                if (( actual_delay < 7 )); then
+                    echo "ChromeOS has a built in 6m30s timer for battery; making a -7m offset for ease-of-use."
+                    exit 1
+                fi
+                BATTERY_DELAY=$actual_delay
                 save_config
-                echo "Sleep delayed by $BATTERY_DELAY minutes when on battery power."
+                echo "${GREEN}Battery sleep delayed by $user_input minutes.${GREEN}"
             else
                 echo "Invalid delay value. Please enter a positive integer."
                 exit 1
             fi
         else
             load_config
-            echo "Battery delay: $BATTERY_DELAY minutes"
+            echo "Battery delay: $((BATTERY_DELAY + 6)) minutes."
         fi
         ;;
-    power)
+        power)
         if [ -n "$2" ]; then
             if [[ "$2" =~ ^[0-9]+$ ]]; then
-                POWER_DELAY=$2
+                local user_input=$2
+                local actual_delay=$((user_input - 8))  # 8m30s rounded down to 8
+                if (( actual_delay < 9 )); then
+                    echo "ChromeOS has a built in 8m30s timer for power; making a -9m offset for ease-of-use."
+                    exit 1
+                fi
+                POWER_DELAY=$actual_delay
                 save_config
-                echo "Sleep delayed by $POWER_DELAY minutes when plugged in."
+                echo "${GREEN}Power sleep delayed by $user_input minutes.${RESET}"
             else
                 echo "Invalid delay value. Please enter a positive integer."
                 exit 1
             fi
         else
             load_config
-            echo "Power delay: $POWER_DELAY minutes"
+            echo "Power delay: $((POWER_DELAY + 8)) minutes."
         fi
+        ;;
         ;;
         startup)
         CONF_SOURCE="$INSTALL_DIR/sleepcontrol.conf"
