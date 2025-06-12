@@ -184,7 +184,7 @@ start() {
         echo "$(date '+%Y-%m-%d %H:%M:%S') - Truncated log file (exceeded 32KB)" > "$LOG_FILE"
     fi
 
-    if pgrep -f "__monitor__" >/dev/null; then
+    if pgrep -f "[f]ancontrol __monitor__" >/dev/null; then
         echo "${YELLOW} $(date '+%Y-%m-%d %H:%M:%S') - FanControl monitor already running. Showing live output...${RESET}" | tee -a "$LOG_FILE"
         tail -n 10 -f "$LOG_FILE"
     else
