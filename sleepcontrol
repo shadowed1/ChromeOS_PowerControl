@@ -32,7 +32,7 @@ load_config() {
     if [ -f "$CONFIG_FILE" ]; then
         source "$CONFIG_FILE"
     fi
-    # Fallback defaults
+
     BATTERY_DELAY="${BATTERY_DELAY:-$DEFAULT_BATTERY_DELAY}"
     POWER_DELAY="${POWER_DELAY:-$DEFAULT_POWER_DELAY}"
 }
@@ -87,7 +87,6 @@ monitor_idle_activity() {
             last_reload_time=$now
         fi
 
-        # Determine delay based on battery status
         if [ -f "$BATTERY_STATUS_PATH" ]; then
             status=$(cat "$BATTERY_STATUS_PATH")
             if [ "$status" = "Discharging" ]; then
