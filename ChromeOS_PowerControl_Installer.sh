@@ -8,6 +8,7 @@ CYAN=$(tput setaf 6)
 BOLD=$(tput bold)
 RESET=$(tput sgr0)
 SHOW_BATTERYCONTROL_NOTICE=0
+SHOW_SLEEPCONTROL_NOTICE=0
 SHOW_GPUCONTROL_NOTICE=0
 detect_cpu_type() {
     CPU_VENDOR=$(grep -m1 'vendor_id' /proc/cpuinfo | awk '{print $3}' || echo "unknown")
@@ -383,6 +384,10 @@ if grep -q '^STARTUP_BATTERYCONTROL=1' "$CONFIG_FILE"; then
     SHOW_BATTERYCONTROL_NOTICE=1
 fi
 
+if grep -q '^STARTUP_SLEEPCONTROL=1' "$CONFIG_FILE"; then
+    SHOW_SLEEPCONTROL_NOTICE=1
+fi
+
 start_component_now() {
    
     local component="$1"
@@ -405,8 +410,11 @@ start_component_now() {
         if [[ "$component" == "BatteryControl" ]]; then
             SHOW_BATTERYCONTROL_NOTICE=1
         fi
-         if [[ "$component" == "GPUControl" ]]; then
+        if [[ "$component" == "GPUControl" ]]; then
             SHOW_GPUCONTROL_NOTICE=1
+        fi
+        if [[ "$component" == "SleepControl" ]]; then
+            SHOW_SLEEPCONTROL_NOTICE=1
         fi
     else
         echo "You can run it later with: sudo $command start"
@@ -515,12 +523,19 @@ echo ""
 if [[ "$SHOW_BATTERYCONTROL_NOTICE" -eq 1 ]]; then
 echo ""
 echo "${GREEN}${BOLD}BatteryControl:${RESET}"
-echo "${GREEN}Please disable Adaptive Charging in Settings → System Preferences → Power to avoid notification spam.${RESET}"
+echo "${GREEN}${BOLD}Disable${RESET}${GREEN} Adaptive Charging in Settings → System Preferences → Power to avoid notification spam.${RESET}"
+echo ""
+fi
+if [[ "$SHOW_SLEEPCONTROL_NOTICE" -eq 1 ]]; then
+echo ""
+echo "${BLUE}${BOLD}SleepControl:${RESET}"
+echo "${BLUE}${BOLD}Enable${RESET}${BLUE} Sleep while inactive in Settings → System Preferences → Power for SleepControl to function.${RESET}${BLUE} ."
 echo ""
 fi
 if [[ "$SHOW_GPUCONTROL_NOTICE" -eq 1 ]]; then
 echo ""
 echo "${MAGENTA}${BOLD}GPUControl:${RESET}"
-echo "${MAGENTA}As a precaution GPUControl has a 2 minute delay before applying custom clockspeed on boot.${RESET}"
+echo "${MAGENTA}As a precaution GPUControl has a ${RESET}${BOLD}${MAGENTA}2 minute delay${RESET}${MAGENTA} before applying custom clockspeed on boot.${RESET}"
 echo ""
 fi
+
