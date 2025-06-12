@@ -329,7 +329,7 @@ case "$1" in
     *)
         echo "${BLUE}# SleepControl Commands with examples"
         echo ""
-        echo "sudo sleepcontrol                        # Show current GPU info and frequency"
+        echo "sudo sleepcontrol                        # Show current SleepControl settings"
         echo "sudo sleepcontrol start                  # Start SleepControl"
         echo "sudo sleepcontrol stop                   # Stop SleepControl"
         echo "sudo sleepcontrol battery 15             # Delays sleep by 15 minutes when on battery "
