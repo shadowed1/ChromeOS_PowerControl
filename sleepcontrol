@@ -174,22 +174,32 @@ monitor_idle_activity() {
                     fi
                 done
 
-                if [ "$matched_recent_sim" -eq 0 ]; then
-                    # Detect real user activity so fake activity can stop. 
-                    if [ "$active" -eq 0 ]; then
-                        active=1
-                        if [ -n "$sim_pid" ]; then
-                            kill "$sim_pid" 2>/dev/null
-                            echo "$(date '+%Y-%m-%d %H:%M:%S') - Real user active, killed simulate_activity_loop (PID $sim_pid)." > "$LOG_FILE"
-                            sim_pid=
-                        fi
-                        echo "$(date '+%Y-%m-%d %H:%M:%S') - Waiting for user to go idle again." > "$LOG_FILE"
-                    fi
-                fi
-            fi
+                # Load the simulated timestamps from temp file
+readarray -t last_simulated_times < "$sim_file"
+
+matched_recent_sim=0
+for sim_ts in "${last_simulated_times[@]}"; do
+    diff=$((reported_epoch - sim_ts))
+    if [ "$diff" -ge 0 ] && [ "$diff" -lt 10 ]; then
+        matched_recent_sim=1
+        break
+    fi
+done
+
+# Now we can check if it's a real user activity
+if [ "$matched_recent_sim" -eq 0 ]; then
+    # Detect real user activity so fake activity can stop. 
+    if [ "$active" -eq 0 ]; then
+        active=1
+        if [ -n "$sim_pid" ]; then
+            kill "$sim_pid" 2>/dev/null
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - Real user active, stopping simulate_activity_loop (PID $sim_pid)." > "$LOG_FILE"
+            sim_pid=
         fi
-    done
-}
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - Waiting for user to go idle again." > "$LOG_FILE"
+    fi
+fi
+
 
 stop_monitoring() {
     if [ -f "$PID_FILE" ]; then
