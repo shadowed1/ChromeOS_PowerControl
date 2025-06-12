@@ -149,7 +149,7 @@ monitor_idle_activity() {
                             /org/chromium/PowerManager \
                             org.chromium.PowerManager.HandleUserActivity \
                             int32:0 int32:0
-                        ts=$(date -u +"%s")
+                        ts=$(( $(date -u +"%s") + 4 ))
                         last_simulated_times+=("$ts")
                         if [ "${#last_simulated_times[@]}" -gt 10 ]; then
                             last_simulated_times=("${last_simulated_times[@]: -10}")
@@ -165,10 +165,10 @@ monitor_idle_activity() {
                 reported_time_utc="${BASH_REMATCH[1]}"
                 reported_epoch=$(date -u -d "$reported_time_utc" +%s 2>/dev/null)
                 matched_recent_sim=0
-
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Detected user activity log time $reported_epoch, comparing to simulated $sim_ts (diff: $diff)" >> "$LOG_FILE"
                 for sim_ts in "${last_simulated_times[@]}"; do
                     diff=$((reported_epoch - sim_ts))
-                    if (( diff >= 0 && diff <= 5 )); then
+                    if (( diff >= -3 && diff <= 6 )); then
                         matched_recent_sim=1
                         break
                     fi
