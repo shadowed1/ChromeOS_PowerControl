@@ -68,7 +68,7 @@ simulate_activity_loop() {
 monitor_idle_activity() {
     touch "$RUN_FLAG"
     echo $$ > "$PID_FILE"
-    echo "$(date '+%Y-%m-%d %H:%M:%S') - sleepcontrol started (PID $$)." | tee -a "$LOG_FILE"
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - sleepcontrol started (PID $$)." > "$LOG_FILE"
     local last_reload_time=0
     local delay_minutes
     local active=1
