@@ -1,4 +1,4 @@
-#!/bin/bash
+    #!/bin/bash
 RED=$(tput setaf 1)
 GREEN=$(tput setaf 2)
 YELLOW=$(tput setaf 3)
@@ -315,12 +315,14 @@ case "$1" in
             load_config
             echo "${GREEN}SleepControl is running.${RESET}"
             echo ""
-            echo "Sleep set for: ${GREEN}On Battery=$((BATTERY_DELAY + 6))${RESET}, ${YELLOW}Plugged-In=$((POWER_DELAY + 8))${RESET}"
+            echo "Sleep set for: ${GREEN}On Battery=$((BATTERY_DELAY + 6))m${RESET}, ${YELLOW}Plugged-In=$((POWER_DELAY + 8))m${RESET}"
+            echo "Display timeout set for: ${GREEN}On Battery= ${BATTERY_BACKLIGHT}m${RESET}, ${YELLOW}Plugged-In= ${POWER_BACKLIGHT}m${RESET} 
         else
             load_config
-            echo "${YELLOW}SleepControl is not running.${RESET}"
+            echo "${RED}SleepControl is not running.${RESET}"
             echo ""
-            echo "Sleep delayed: Battery=$BATTERY_DELAY, Power=$POWER_DELAY"
+             echo "Sleep set for: ${GREEN}On Battery=$((BATTERY_DELAY + 6))m${RESET}, ${YELLOW}Plugged-In=$((POWER_DELAY + 8))m${RESET}"
+            echo "Display timeout set for: ${GREEN}On Battery= ${BATTERY_BACKLIGHT}m${RESET}, ${YELLOW}Plugged-In= ${POWER_BACKLIGHT}m${RESET}
         fi
         ;;
     __monitor__)
