@@ -536,7 +536,7 @@ fi
 if [[ "$SHOW_SLEEPCONTROL_NOTICE" -eq 1 ]]; then
 echo ""
 echo "${BLUE}${BOLD}SleepControl:${RESET}"
-echo "${BLUE}${BOLD}Enable${RESET}${BLUE} Sleep while inactive in Settings → System Preferences → Power for SleepControl to function.${RESET}${BLUE} ."
+echo "${BLUE}${BOLD}Enable${RESET}${BLUE} Sleep while inactive in Settings → System Preferences → Power for SleepControl to function.${RESET}${BLUE}"
 echo ""
 fi
 if [[ "$SHOW_GPUCONTROL_NOTICE" -eq 1 ]]; then
