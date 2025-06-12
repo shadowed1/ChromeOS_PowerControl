@@ -475,7 +475,7 @@ echo "sudo gpucontrol help                  # Help menu"
 echo "${RESET}{$BLUE}"
 echo "# SleepControl"
 echo "sudo sleepcontrol                     # Show current GPU info and frequency"
-echo "sudo sleepcontrol start               # Start SleepControl
+echo "sudo sleepcontrol start               # Start SleepControl"
 echo "sudo sleepcontrol stop                # Stop SleepControl"
 echo "sudo sleepcontrol battery 15          # Delays sleep by 15 minutes when on battery "
 echo "sudo sleepcontrol power 60            # Delays sleep by 60 minutes when plugged in." 
