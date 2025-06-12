@@ -157,7 +157,7 @@ case "$1" in
             if [[ "$2" =~ ^[0-9]+$ ]]; then
                 BATTERY_DELAY=$2
                 save_config
-                echo "Battery delay set to $BATTERY_DELAY minutes."
+                echo "Sleep delayed by $BATTERY_DELAY minutes when on battery power."
             else
                 echo "Invalid delay value. Please enter a positive integer."
                 exit 1
@@ -172,7 +172,7 @@ case "$1" in
             if [[ "$2" =~ ^[0-9]+$ ]]; then
                 POWER_DELAY=$2
                 save_config
-                echo "Power delay set to $POWER_DELAY minutes."
+                echo "Sleep delayed by $POWER_DELAY minutes when plugged in."
             else
                 echo "Invalid delay value. Please enter a positive integer."
                 exit 1
