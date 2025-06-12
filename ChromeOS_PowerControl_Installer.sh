@@ -336,20 +336,22 @@ else
     echo ""
 fi
 enable_component_on_boot() {
+    
     local COLOR
-    case "$component" in
-    "PowerControl") COLOR=${CYAN}${BOLD} ;;
-    "GPUControl")   COLOR=${MAGENTA}${BOLD} ;;
-    "FanControl")   COLOR=${YELLOW}${BOLD} ;;
-    "BatteryControl") COLOR=${GREEN}${BOLD} ;;
-    "SleepControl") COLOR=${BLUE}${BOLD} ;;
-    *) COLOR=${RESET} ;;
-esac
     local component="$1"
     local config_file="$2"
     local var_name="STARTUP_$(echo "$component" | tr '[:lower:]' '[:upper:]')"
     local target_file="/etc/init/$(basename "$config_file")"
 
+     case "$component" in
+        "PowerControl")   COLOR=${CYAN}${BOLD} ;;
+        "GPUControl")     COLOR=${MAGENTA}${BOLD} ;;
+        "FanControl")     COLOR=${YELLOW}${BOLD} ;;
+        "BatteryControl") COLOR=${GREEN}${BOLD} ;;
+        "SleepControl")   COLOR=${BLUE}${BOLD} ;;
+        *)                COLOR=${RESET} ;;
+    esac
+    
     read -rp "Do you want $component enabled on boot? (y/n):${RESET} " move_config
     if [[ "$move_config" =~ ^[Yy]$ ]]; then
         sudo cp "$config_file" "$target_file"
@@ -382,17 +384,20 @@ if grep -q '^STARTUP_BATTERYCONTROL=1' "$CONFIG_FILE"; then
 fi
 
 start_component_now() {
-    
-     case "$component" in
-    "PowerControl") COLOR=${CYAN}${BOLD} ;;
-    "GPUControl")   COLOR=${MAGENTA}${BOLD} ;;
-    "FanControl")   COLOR=${YELLOW}${BOLD} ;;
-    "BatteryControl") COLOR=${GREEN}${BOLD} ;;
-    "SleepControl") COLOR=${BLUE}${BOLD} ;;
-    *) COLOR=${RESET} ;;
-    
+   
     local component="$1"
     local command="$2"
+    local COLOR
+    
+    case "$component" in
+        "PowerControl")   COLOR=${CYAN}${BOLD} ;;
+        "GPUControl")     COLOR=${MAGENTA}${BOLD} ;;
+        "FanControl")     COLOR=${YELLOW}${BOLD} ;;
+        "BatteryControl") COLOR=${GREEN}${BOLD} ;;
+        "SleepControl")   COLOR=${BLUE}${BOLD} ;;
+        *)                COLOR=${RESET} ;;
+    esac
+   
     read -rp "Do you want to start $component now? (y/n): ${RESET} " start_now
     if [[ "$start_now" =~ ^[Yy]$ ]]; then
         sudo "$command" start
