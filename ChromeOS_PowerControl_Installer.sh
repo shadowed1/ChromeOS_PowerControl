@@ -122,7 +122,7 @@ declare -a files=(
   "powercontrol" "batterycontrol" "fancontrol" "gpucontrol"
   "Uninstall_ChromeOS_PowerControl.sh" "LICENSE" "README.md"
   "no_turbo.conf" "batterycontrol.conf" "powercontrol.conf"
-  "fancontrol.conf" "gpucontrol.conf" "config.sh"
+  "fancontrol.conf" "gpucontrol.conf" "sleepcontrol" "sleepcontrol.conf" "config.sh"
 )
 
 for file in "${files[@]}"; do
@@ -136,7 +136,7 @@ for file in "${files[@]}"; do
     echo ""
 done
 
-declare -a files=(".powercontrol_conf.sh" ".batterycontrol_conf.sh" ".fancontrol_conf.sh" ".gpucontrol_conf.sh")
+declare -a files=(".powercontrol_conf.sh" ".batterycontrol_conf.sh" ".fancontrol_conf.sh" ".gpucontrol_conf.sh" ".sleepcontrol_conf.sh")
 for file in "${files[@]}"; do
     curl -L "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/$file" -o /usr/local/bin/$file
     echo "/usr/local/bin/$file downloaded."
@@ -192,6 +192,8 @@ declare -a ordered_keys=(
   "GPU_TYPE"
   "GPU_FREQ_PATH"
   "GPU_MAX_FREQ"
+  "BATTERY_DELAY"
+  "POWER_DELAY"
   "PERF_PATH"
   "TURBO_PATH"
   "ORIGINAL_GPU_MAX_FREQ"
@@ -202,12 +204,13 @@ declare -a ordered_keys=(
   "IS_ARM"
 )
 
-declare -a ordered_categories=("PowerControl" "BatteryControl" "FanControl" "GPUControl" "Platform Configuration")
+declare -a ordered_categories=("PowerControl" "BatteryControl" "FanControl" "GPUControl" "SleepControl" "Platform Configuration")
 declare -A categories=(
   ["PowerControl"]="MAX_TEMP MIN_TEMP MAX_PERF_PCT MIN_PERF_PCT RAMP_UP RAMP_DOWN"
   ["BatteryControl"]="CHARGE_MAX CHARGE_MIN"
   ["FanControl"]="MIN_FAN MAX_FAN FAN_MIN_TEMP FAN_MAX_TEMP STEP_UP STEP_DOWN SLEEP_INTERVAL"
   ["GPUControl"]="GPU_MAX_FREQ"
+  ["SleepControl"]="BATTERY_DELAY" "POWER_DELAY"
   ["Platform Configuration"]="IS_AMD IS_INTEL IS_ARM PERF_PATH TURBO_PATH GPU_TYPE GPU_FREQ_PATH ORIGINAL_GPU_MAX_FREQ PP_OD_FILE AMD_SELECTED_SCLK_INDEX"
 )
 
@@ -222,6 +225,8 @@ if [[ -z "${CHARGE_MAX}" ]]; then CHARGE_MAX=77; fi
 if [[ -z "${CHARGE_MIN}" ]]; then CHARGE_MIN=74; fi
 if [[ -z "${MIN_FAN}" ]]; then MIN_FAN=0; fi
 if [[ -z "${MAX_FAN}" ]]; then MAX_FAN=100; fi
+if [[ -z "${BATTERY_DELAY}" ]]; then BATTERY_DELAY=14; fi
+if [[ -z "${POWER_DELAY}" ]]; then POWER_DELAY=30; fi
 if [[ -z "${FAN_MIN_TEMP}" ]]; then FAN_MIN_TEMP=46; fi
 if [[ -z "${FAN_MAX_TEMP}" ]]; then FAN_MAX_TEMP=80; fi
 if [[ -z "${STEP_UP}" ]]; then STEP_UP=20; fi
@@ -246,6 +251,8 @@ declare -A defaults=(
   [SLEEP_INTERVAL]=$SLEEP_INTERVAL
   [GPU_MAX_FREQ]=$GPU_MAX_FREQ
   [GPU_TYPE]=$GPU_TYPE
+  [BATTERY_DELAY]=$BATTERY_DELAY
+  [POWER_DELAY]=$POWER_DELAY
   [PERF_PATH]=$PERF_PATH
   [TURBO_PATH]=$TURBO_PATH
   [GPU_FREQ_PATH]=$GPU_FREQ_PATH
@@ -309,13 +316,14 @@ else
     echo ""
 fi
 
-read -rp "${BOLD}${BLUE}Enable ${RESET}${BOLD}${BLUE}Global Commands${RESET}${BOLD}${BLUE} for ${RESET}${BOLD}${CYAN}PowerControl${RESET}${BOLD}${BLUE}, ${GREEN}${BOLD}BatteryControl${RESET}${BOLD}${BLUE}, ${YELLOW}${BOLD}FanControl${RESET}${BOLD}${BLUE}, and ${RESET}${BOLD}${MAGENTA}GPUControl${RESET}${BOLD}${BLUE}? (y/n):$RESET " link_cmd
+read -rp "${BOLD}Enable Global Commands for ${RESET}${BOLD}${CYAN}PowerControl${RESET}${BOLD}, ${GREEN}${BOLD}BatteryControl${RESET}${BOLD}, ${YELLOW}${BOLD}FanControl${RESET}{$BOLD}, ${MAGENTA}GPUControl${RESET}$${BOLD}${BLUE}, and ${RESET}${BLUE}SleepControl${RESET}${BOLD}? (y/n):$RESET " link_cmd
 if [[ "$link_cmd" =~ ^[Yy]$ ]]; then
     sudo ln -sf "$INSTALL_DIR/powercontrol" /usr/local/bin/powercontrol
     sudo ln -sf "$INSTALL_DIR/batterycontrol" /usr/local/bin/batterycontrol
     sudo ln -sf "$INSTALL_DIR/fancontrol" /usr/local/bin/fancontrol
     sudo ln -sf "$INSTALL_DIR/gpucontrol" /usr/local/bin/gpucontrol
-    echo "Global commands created for 'powercontrol', 'batterycontrol', 'gpucontrol', and 'fancontrol'."
+    sudo ln -sf "$INSTALL_DIR/sleepcontrol" /usr/local/bin/sleepcontrol
+    echo "Global commands created for 'powercontrol', 'batterycontrol', 'fancontrol', 'gpucontrol', 'sleepcontrol'."
     echo ""
 else
     echo "Skipped creating global commands."
@@ -323,6 +331,7 @@ else
     sudo rm -r /usr/local/bin/batterycontrol
     sudo rm -r /usr/local/bin/fancontrol
     sudo rm -r /usr/local/bin/gpucontrol
+    sudo rm -r /usr/local/bin/sleepcontrol
     echo ""
 fi
 enable_component_on_boot() {
