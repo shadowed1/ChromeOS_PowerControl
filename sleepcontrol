@@ -24,9 +24,12 @@ BATTERY_STATUS_PATH="/sys/class/power_supply/BAT0/status"
 
 DEFAULT_BATTERY_DELAY=14
 DEFAULT_POWER_DELAY=30
+DEFAULT_BATTERY_BACKLIGHT=10
+DEFAULT_POWER_BACKLIGHT=30
 
 BATTERY_DELAY=
 POWER_DELAY=
+audio_active=0
 
 load_config() {
     if [ -f "$CONFIG_FILE" ]; then
@@ -41,6 +44,9 @@ save_config() {
     {
         echo "BATTERY_DELAY=$BATTERY_DELAY"
         echo "POWER_DELAY=$POWER_DELAY"
+        echo "BATTERY_BACKLIGHT=$BATTERY_BACKLIGHT"
+        echo "POWER_BACKLIGHT=$POWER_BACKLIGHT"
+
     } > "$CONFIG_FILE"
 }
 
@@ -71,6 +77,37 @@ monitor_idle_activity() {
     local -a last_simulated_times=()
 
     tail -Fn0 /var/log/power_manager/powerd.LATEST | while read -r line; do
+        if echo "$line" | grep -q "Audio activity started"; then
+            audio_active=1
+        elif echo "$line" | grep -q "Audio activity stopped"; then
+            audio_active=0
+        fi
+
+        # Check for backlight timeout when idle without audio alerts.
+        if [ "$active" -eq 0 ] && [ "$audio_active" -eq 0 ]; then
+            # Determine delay for backlight
+            if [ "$status" = "Discharging" ]; then
+                backlight_delay=$BATTERY_BACKLIGHT
+            else
+                backlight_delay=$POWER_BACKLIGHT
+            fi
+
+            now_epoch=$(date +%s)
+            if [ -z "$backlight_ts" ]; then
+                backlight_ts=$now_epoch
+            elif (( now_epoch - backlight_ts >= backlight_delay * 60 )); then
+                dbus-send --system --type=method_call \
+                    --dest=org.chromium.PowerManager \
+                    /org/chromium/PowerManager \
+                    org.chromium.PowerManager.HandleUserActivity \
+                    int32:0 int32:0
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Prevented backlight timeout via HandleUserActivity (backlight delay $backlight_delay min)." | tee -a "$LOG_FILE"
+                backlight_ts=$now_epoch
+            fi
+        else
+            backlight_ts=""
+        fi
+
 
         if [ ! -f "$RUN_FLAG" ]; then
             echo "$(date '+%Y-%m-%d %H:%M:%S') - sleepcontrol stopped, exiting loop." | tee -a "$LOG_FILE"
@@ -97,7 +134,7 @@ monitor_idle_activity() {
             delay_minutes=$DEFAULT_POWER_DELAY
         fi
 
-        # Simulate activity
+        # Activity Simulation!
         if echo "$line" | grep -q "User activity stopped"; then
             if [ "$active" -eq 1 ]; then
                 active=0
@@ -225,6 +262,35 @@ case "$1" in
         echo "Power delay: $((POWER_DELAY + 8)) minutes."
     fi
     ;;
+    battery_backlight)
+        if [ -n "$2" ]; then
+            if [[ "$2" =~ ^[0-9]+$ ]]; then
+                BATTERY_BACKLIGHT=$2
+                save_config
+                echo "${GREEN}Battery backlight timeout set to ${BOLD}$BATTERY_BACKLIGHT${RESET}${GREEN} minutes.${RESET}"
+            else
+                echo "${RED}Invalid value. Enter a number in minutes.${RESET}"
+            fi
+        else
+            load_config
+            echo "Battery backlight timeout: $BATTERY_BACKLIGHT minutes"
+        fi
+        ;;
+    power_backlight)
+        if [ -n "$2" ]; then
+            if [[ "$2" =~ ^[0-9]+$ ]]; then
+                POWER_BACKLIGHT=$2
+                save_config
+                echo "${GREEN}Power backlight timeout set to ${BOLD}$POWER_BACKLIGHT${RESET}${GREEN} minutes.${RESET}"
+            else
+                echo "${RED}Invalid value. Enter a number in minutes.${RESET}"
+            fi
+        else
+            load_config
+            echo "Power backlight timeout: $POWER_BACKLIGHT minutes"
+        fi
+        ;;
+
 
         startup)
         CONF_SOURCE="$INSTALL_DIR/sleepcontrol.conf"
@@ -249,7 +315,7 @@ case "$1" in
             load_config
             echo "${GREEN}SleepControl is running.${RESET}"
             echo ""
-            echo "Sleep set for: ${GREEN}On Battery=$((BATTERY_DELAY + 6))${RESET}, ${YELLOW}On Power=$((POWER_DELAY + 8))${RESET}"
+            echo "Sleep set for: ${GREEN}On Battery=$((BATTERY_DELAY + 6))${RESET}, ${YELLOW}Plugged-In=$((POWER_DELAY + 8))${RESET}"
         else
             load_config
             echo "${YELLOW}SleepControl is not running.${RESET}"
@@ -263,13 +329,15 @@ case "$1" in
     *)
         echo "${BLUE}# SleepControl Commands with examples"
         echo ""
-        echo "sudo sleepcontrol                     # Show current GPU info and frequency"
-        echo "sudo sleepcontrol start               # Start SleepControl"
-        echo "sudo sleepcontrol stop                # Stop SleepControl"
-        echo "sudo sleepcontrol battery 15          # Delays sleep by 15 minutes when on battery "
-        echo "sudo sleepcontrol power 60            # Delays sleep by 60 minutes when plugged in." 
-        echo "sudo sleepcontrol startup             # Copy or Remove fanontrol.conf at: /etc/init/"
-        echo "sudo sleepcontrol help                # Help menu${RESET}"
+        echo "sudo sleepcontrol                        # Show current GPU info and frequency"
+        echo "sudo sleepcontrol start                  # Start SleepControl"
+        echo "sudo sleepcontrol stop                   # Stop SleepControl"
+        echo "sudo sleepcontrol battery 15             # Delays sleep by 15 minutes when on battery "
+        echo "sudo sleepcontrol power 60               # Delays sleep by 60 minutes when plugged in."
+        echo "sudo sleepcontrol battery_backlight 10   # Turn off display after 15 mins when idling on battery."
+        echo "sudo sleepcontrol power_backlight 30     # Turn off display after 60 mins when idling plugged-in."
+        echo "sudo sleepcontrol startup                # Copy or Remove fanontrol.conf at: /etc/init/"
+        echo "sudo sleepcontrol help                   # Help menu${RESET}"
         exit 1
         ;;
 esac
