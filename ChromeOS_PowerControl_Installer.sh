@@ -353,7 +353,7 @@ enable_component_on_boot() {
         *)                COLOR=${RESET} ;;
     esac
     
-    read -rp "Do you want $component enabled on boot? (y/n):${RESET} " move_config
+    read -rp "${COLOR}Do you want $component enabled on boot? (y/n):${RESET} " move_config
     if [[ "$move_config" =~ ^[Yy]$ ]]; then
         sudo cp "$config_file" "$target_file"
         echo "$component will start on boot."
@@ -403,7 +403,7 @@ start_component_now() {
         *)                COLOR=${RESET} ;;
     esac
    
-    read -rp "Do you want to start $component now? (y/n): ${RESET} " start_now
+    read -rp "${COLOR}Do you want to start $component now? (y/n): ${RESET} " start_now
     if [[ "$start_now" =~ ^[Yy]$ ]]; then
         sudo "$command" start
         echo ""
