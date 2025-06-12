@@ -1,0 +1,147 @@
+#!/bin/bash
+RED=$(tput setaf 1)
+GREEN=$(tput setaf 2)
+YELLOW=$(tput setaf 3)
+BLUE=$(tput setaf 4)
+MAGENTA=$(tput setaf 5)
+CYAN=$(tput setaf 6)
+BOLD=$(tput bold)
+
+INSTALL_DIR_FILE="/usr/local/bin/.ChromeOS_PowerControl.install_dir"
+if [ -f "$INSTALL_DIR_FILE" ]; then
+    INSTALL_DIR=$(cat "$INSTALL_DIR_FILE")
+else
+    INSTALL_DIR="/usr/local/bin/ChromeOS_PowerControl"
+fi
+INSTALL_DIR="${INSTALL_DIR%/}"
+PID_FILE="$INSTALL_DIR/.sleepcontrol_pid"
+STATE_FILE="$INSTALL_DIR/.sleepcontrol_delay"
+DELAY_CONFIG="$INSTALL_DIR/delay.conf"
+BATTERY_STATUS_PATH="/sys/class/power_supply/BAT0/status"
+
+DEFAULT_BATTERY_DELAY=14
+DEFAULT_POWER_DELAY=30
+
+BATTERY_DELAY=
+POWER_DELAY=
+
+load_config() {
+    if [ -f "$CONFIG_FILE" ]; then
+        source "$CONFIG_FILE"
+    fi
+}
+
+save_config() {
+    validate_config
+        BATTERY_DELAY=$BATTERY_DELAY" >> "$CONFIG_FILE"
+        POWER_DELAY=$POWER_DELAY" >> "$CONFIG_FILE"
+}
+
+simulate_activity_loop() {
+    local delay_minutes=$1
+    local end=$((SECONDS + delay_minutes * 60))
+    while [ $SECONDS -lt $end ]; do
+        dbus-send --system --type=method_call \
+            --dest=org.chromium.PowerManager \
+            /org/chromium/PowerManager \
+            org.chromium.PowerManager.HandleUserActivity \
+            int32:0 int32:0
+        sleep 60
+    done
+}
+
+monitor_idle_activity() {
+    local delay_minutes
+    local active=1
+    local sim_pid
+    tail -Fn0 /var/log/power_manager/powerd.LATEST | while read -r line; do
+
+        if [ -f "$BATTERY_STATUS_PATH" ]; then
+            status=$(cat "$BATTERY_STATUS_PATH")
+            if [ "$status" = "Discharging" ]; then
+                delay_minutes=$BATTERY_DELAY
+            else
+                delay_minutes=$$POWER_DELAY
+            fi
+        else
+            delay_minutes=$DEFAULT_POWER_DELAY
+        fi
+
+        if echo "$line" | grep -q "User activity stopped"; then
+            if [ "$active" -eq 1 ]; then
+                active=0
+                simulate_activity_loop "$delay_minutes" &
+                sim_pid=$!
+            fi
+
+        elif echo "$line" | grep -q "User activity reported"; then
+            if [ "$active" -eq 0 ]; then
+                active=1
+                [ -n "$sim_pid" ] && kill "$sim_pid" 2>/dev/null
+            fi
+        fi
+    done
+}
+
+case "$1" in
+    start)
+        if [ -f "$PID_FILE" ] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
+            echo "sleepcontrol is already running."
+            exit 1
+        fi
+        ( monitor_idle_activity ) &
+        echo $! > "$PID_FILE"
+        echo "sleepcontrol started."
+        ;;
+    stop)
+        if [ -f "$PID_FILE" ]; then
+            kill "$(cat "$PID_FILE")" 2>/dev/null && echo "sleepcontrol stopped."
+            rm -f "$PID_FILE"
+        else
+            echo "sleepcontrol is not running."
+        fi
+        ;;
+    battery)
+        if [ -n "$2" ]; then
+            # Validate input is a positive integer
+            if [[ "$2" =~ ^[0-9]+$ ]]; then
+                BATTERY_DELAY=$2
+                save_delays
+                echo "Battery delay set to $BATTERY_DELAY minutes."
+            else
+                echo "Invalid delay value. Please enter a positive integer."
+                exit 1
+            fi
+        else
+            echo "Battery delay: $BATTERY_DELAY minutes"
+        fi
+        ;;
+    power)
+        if [ -n "$2" ]; then
+            # Validate input is a positive integer
+            if [[ "$2" =~ ^[0-9]+$ ]]; then
+                POWER_DELAY=$2
+                save_delays
+                echo "Power delay set to $POWER_DELAY minutes."
+            else
+                echo "Invalid delay value. Please enter a positive integer."
+                exit 1
+            fi
+        else
+            echo "Power delay: $POWER_DELAY minutes"
+        fi
+        ;;
+    "")
+        if [ -f "$PID_FILE" ] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
+            echo "sleepcontrol is running."
+            echo "Sleep delayed: Battery=$BATTERY_DELAY, Power=$POWER_DELAY"
+        else
+            echo "sleepcontrol is not running."
+            echo "Sleep delayed: Battery=$BATTERY_DELAY, Power=$POWER_DELAY"
+        fi
+        ;;
+    *)
+        echo "Usage: sleepcontrol [start | stop | battery [minutes] | power [minutes]]"
+        exit 1
+        ;;
+esac
