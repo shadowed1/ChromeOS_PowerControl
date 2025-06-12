@@ -55,8 +55,11 @@ save_config() {
 simulate_activity_loop() {
     local delay_minutes=$1
     local end=$((SECONDS + delay_minutes * 60))
+    : > "$sim_file"
     echo "$(date '+%Y-%m-%d %H:%M:%S') - Starting simulate_activity_loop for $delay_minutes minutes." > "$LOG_FILE"
+
     while [ $SECONDS -lt $end ]; do
+        date +%s >> "$sim_file"
         dbus-send --system --type=method_call \
             --dest=org.chromium.PowerManager \
             /org/chromium/PowerManager \
@@ -64,6 +67,7 @@ simulate_activity_loop() {
             int32:0 int32:0
         sleep 120
     done
+
     echo "$(date '+%Y-%m-%d %H:%M:%S') - simulate_activity_loop ended." > "$LOG_FILE"
 }
 
