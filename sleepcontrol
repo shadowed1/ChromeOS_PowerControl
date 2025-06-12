@@ -226,7 +226,6 @@ case "$1" in
             echo "Power delay: $((POWER_DELAY + 8)) minutes."
         fi
         ;;
-        ;;
         startup)
         CONF_SOURCE="$INSTALL_DIR/sleepcontrol.conf"
         CONF_TARGET="/etc/init/sleepcontrol.conf"
