@@ -93,7 +93,23 @@ __Commands with examples:__
 `sudo gpucontrol adreno 500000          # Clamp Adreno GPU max frequency to 500000 kHz (or 500 MHz)`<br>
 `sudo gpucontrol mali 600000            # Clamp Mali GPU max frequency to 600000 kHz (or 600 MHz)`<br>
 `sudo gpucontrol startup                # Copy/Remove gpucontrol.conf at: /etc/init/`<br>
-`sudo gpucontrol help                   # Help menu"`<br>
+`sudo gpucontrol help                   # Help menu`<br>
+
+----------------------------------------------------------------------------------------------
+
+*SleepControl:*
+
+
+`sudo sleepcontrol                        # Show current SleepControl settings`<br>
+`sudo sleepcontrol start                  # Start SleepControl`<br>
+`sudo sleepcontrol stop                   # Stop SleepControl`<br>
+`sudo sleepcontrol battery 15             # Delays sleep by 15 minutes when on battery.`<br>
+`sudo sleepcontrol power 60               # Delays sleep by 60 minutes when plugged in.`<br>
+`sudo sleepcontrol battery_backlight 10   # Turn off display after 15 mins when idling on battery.`<br>
+`sudo sleepcontrol power_backlight 30     # Turn off display after 60 mins when idling plugged-in.`<br>
+`sudo sleepcontrol startup                # Copy or Remove fanontrol.conf at: /etc/init`<br>
+`sudo sleepcontrol help                   # Help menu`<br>
+
 
 ----------------------------------------------------------------------------------------------
 *Reinstall:*
@@ -156,6 +172,14 @@ __How It Works:__
 - AMD GPU's maximum clockspeed changed from: /sys/class/drm/card0/pp_od_clk_voltage
 - Adreno GPU's maximum clockspeed changed from /sys/class/kgsl/kgsl-3d0/max_gpuclk
 - Mali GPU's maximum clockspeed changed from: /sys/class/devfreq/mali0/max_freq
+
+*SleepControl:*
+
+- By reading powerd.LATEST log file, SleepControl monitors when the powerd daemon reports when the user is idle.
+- Once the user is idle, SleepControl uses dbus-send --system to input an empty dummy user input.
+- SleepControl monitors reports of audio activity the same way to prevent the screen going black when watching a video.
+- This simulated input tricks ChromeOS thinking the user is actually still there until its set timer runs out.
+- SleepControl compares its fake inputs timestamps with powerd's reports to know when real input occurs; going to sleep until user inactivity is reported again. 
 
 <br>
 
