@@ -175,7 +175,7 @@ __How It Works:__
 
 *SleepControl:*
 
-- By reading powerd.LATEST log file, SleepControl monitors when the powerd daemon reports when the user is idle.
+- By reading powerd.LATEST log, SleepControl monitors when the powerd daemon reports when the user is idle.
 - Once the user is idle, SleepControl uses dbus-send --system to input an empty dummy user input.
 - SleepControl monitors reports of audio activity the same way to prevent the screen going black when watching a video.
 - This simulated input tricks ChromeOS thinking the user is actually still there until its set timer runs out.
