@@ -520,7 +520,7 @@ echo "sudo sleepcontrol power 60            # Delays sleep by 60 minutes when pl
 echo "sudo sleepcontrol startup             # Copy or Remove sleepcontrol.conf at: /etc/init/"
 echo "sudo sleepcontrol help                # Help menu"
 echo "${RESET}${BOLD}"
-echo "# ${BOLD}${GREEN}Chrome${RESET}${BOLD}${RED}OS${RESET}${BOLD}${YELLOW}_${RESET}${BOLD}${BLUE}PowerControl${RESET}:${CYAN}"
+echo "${CYAN}#${RESET} ${BOLD}${GREEN}Chrome${RESET}${BOLD}${RED}OS${RESET}${BOLD}${YELLOW}_${RESET}${BOLD}${BLUE}PowerControl${RESET}:${CYAN}"
 echo "sudo powercontrol reinstall           # Download and reinstall ChromeOS_PowerControl from Github."
 echo "sudo powercontrol uninstall           # Run uninstaller."
 echo "sudo bash "$INSTALL_DIR/Uninstall_ChromeOS_PowerControl.sh"    # Alternate uninstall method$RESET"
