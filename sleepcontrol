@@ -127,7 +127,7 @@ stop_monitoring() {
         fi
         rm -f "$PID_FILE"
     else
-        echo "sleepcontrol is not running."
+        echo "${YELLOW}sleepcontrol is not running.${RESET}"
     fi
     rm -f "$RUN_FLAG"
 }
@@ -186,10 +186,12 @@ case "$1" in
         if [ -f "$PID_FILE" ] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
             load_config
             echo "${GREEN}SleepControl is running.${RESET}"
+            echo ""
             echo "Sleep delayed: Battery=$BATTERY_DELAY, Power=$POWER_DELAY"
         else
             load_config
             echo "${YELLOW}sleepcontrol is not running.${RESET}"
+            echo ""
             echo "Sleep delayed: Battery=$BATTERY_DELAY, Power=$POWER_DELAY"
         fi
         ;;
