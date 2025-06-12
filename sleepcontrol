@@ -56,7 +56,7 @@ simulate_activity_loop() {
     local delay_minutes=$1
     local end=$((SECONDS + delay_minutes * 60))
     : > "$sim_file"
-    echo "$(date '+%Y-%m-%d %H:%M:%S') - Starting simulate_activity_loop for $delay_minutes minutes." > "$LOG_FILE"
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - Starting simulate_activity_loop for $delay_minutes minutes." >> "$LOG_FILE"
 
     while [ $SECONDS -lt $end ]; do
         date +%s >> "$sim_file"
@@ -68,13 +68,13 @@ simulate_activity_loop() {
         sleep 120
     done
 
-    echo "$(date '+%Y-%m-%d %H:%M:%S') - simulate_activity_loop ended." > "$LOG_FILE"
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - simulate_activity_loop ended." >> "$LOG_FILE"
 }
 
 monitor_idle_activity() {
     touch "$RUN_FLAG"
     echo $$ > "$PID_FILE"
-    echo "$(date '+%Y-%m-%d %H:%M:%S') - sleepcontrol started (PID $$)." > "$LOG_FILE"
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - sleepcontrol started (PID $$)." >> "$LOG_FILE"
     local last_reload_time=0
     local delay_minutes
     local active=1
@@ -107,7 +107,7 @@ monitor_idle_activity() {
                     /org/chromium/PowerManager \
                     org.chromium.PowerManager.HandleUserActivity \
                     int32:0 int32:0
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Prevented backlight timeout via HandleUserActivity (backlight delay $backlight_delay min)." > "$LOG_FILE"
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Prevented backlight timeout via HandleUserActivity (backlight delay $backlight_delay min)." >> "$LOG_FILE"
                 backlight_ts=$now_epoch
             fi
         else
@@ -116,7 +116,7 @@ monitor_idle_activity() {
 
 
         if [ ! -f "$RUN_FLAG" ]; then
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - sleepcontrol stopped, exiting loop." > "$LOG_FILE"
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - sleepcontrol stopped, exiting loop." >> "$LOG_FILE"
             [ -n "$sim_pid" ] && kill "$sim_pid" 2>/dev/null
             rm -f "$PID_FILE"
             exit 0
@@ -125,7 +125,7 @@ monitor_idle_activity() {
         now=$(date +%s)
         if (( now - last_reload_time >= 120 )); then
             load_config
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - Config reloaded: BATTERY_DELAY=$BATTERY_DELAY, POWER_DELAY=$POWER_DELAY" > "$LOG_FILE"
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - Config reloaded: BATTERY_DELAY=$BATTERY_DELAY, POWER_DELAY=$POWER_DELAY" >> "$LOG_FILE"
             last_reload_time=$now
         fi
 
@@ -162,7 +162,7 @@ monitor_idle_activity() {
                     done
                 ) &
                 sim_pid=$!
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - User inactive, started simulate_activity_loop (PID $sim_pid)." > "$LOG_FILE"
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - User inactive, started simulate_activity_loop (PID $sim_pid)." >> "$LOG_FILE"
             fi
         elif echo "$line" | grep -q "User activity reported"; then
             if [[ "$line" =~ ([0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}) ]]; then
@@ -197,10 +197,10 @@ if [ "$matched_recent_sim" -eq 0 ]; then
         active=1
         if [ -n "$sim_pid" ]; then
             kill "$sim_pid" 2>/dev/null
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - Real user active, stopping simulate_activity_loop (PID $sim_pid)." > "$LOG_FILE"
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - Real user active, stopping simulate_activity_loop (PID $sim_pid)." >> "$LOG_FILE"
             sim_pid=
         fi
-        echo "$(date '+%Y-%m-%d %H:%M:%S') - Waiting for user to go idle again." > "$LOG_FILE"
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - Waiting for user to go idle again." >> "$LOG_FILE"
     fi
 fi
 
@@ -222,8 +222,8 @@ case "$1" in
     start)
         stop_monitoring >/dev/null 2>&1
         if [ -f "$LOG_FILE" ] && [ "$(stat -c%s "$LOG_FILE")" -gt 32768 ]; then
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - Truncated log file (exceeded 32KB)." > "$LOG_FILE"
-            > "$LOG_FILE"
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - Truncated log file (exceeded 32KB)." >> "$LOG_FILE"
+            >> "$LOG_FILE"
         fi
 
         if [ -f "$PID_FILE" ] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
