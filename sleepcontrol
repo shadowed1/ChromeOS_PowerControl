@@ -206,26 +206,26 @@ case "$1" in
         fi
         ;;
         power)
-        if [ -n "$2" ]; then
+            if [ -n "$2" ]; then
             if [[ "$2" =~ ^[0-9]+$ ]]; then
-                local user_input=$2
-                local actual_delay=$((user_input - 8))  # 8m30s rounded down to 8
+                user_input=$2
+                actual_delay=$((user_input - 8))  # 8m30s rounded down to 8
                 if (( actual_delay < 9 )); then
-                    echo "ChromeOS has a built in 8m30s timer for power; making a -9m offset for ease-of-use."
                     exit 1
                 fi
                 POWER_DELAY=$actual_delay
                 save_config
                 echo "${GREEN}Power sleep delayed by $user_input minutes.${RESET}"
-            else
-                echo "Invalid delay value. Please enter a positive integer."
-                exit 1
-            fi
-        else
-            load_config
-            echo "Power delay: $((POWER_DELAY + 8)) minutes."
+                else
+            echo "${RED}Invalid delay value. Please enter a positive integer.${RESET}"
+            exit 1
         fi
-        ;;
+    else
+        load_config
+        echo "Power delay: $((POWER_DELAY + 8)) minutes."
+    fi
+    ;;
+
         startup)
         CONF_SOURCE="$INSTALL_DIR/sleepcontrol.conf"
         CONF_TARGET="/etc/init/sleepcontrol.conf"
