@@ -1,0 +1,12 @@
+sim_file="$INSTALL_DIR/.last_simulated_times"
+> "$sim_file"
+
+(
+    end=$((SECONDS + delay_minutes * 60))
+    while [ $SECONDS -lt $end ]; do
+        ts=$(date -u +"%s")
+        echo "$ts" >> "$sim_file"
+        dbus-send ...
+        sleep 120
+    done
+) &
