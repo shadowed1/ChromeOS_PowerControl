@@ -44,6 +44,7 @@ case "$choice" in
         remove_file_with_message /etc/init/powercontrol.conf
         remove_file_with_message /etc/init/fancontrol.conf
         remove_file_with_message /etc/init/gpucontrol.conf
+        remove_file_with_message /etc/init/sleepcontrol.conf
         ;;
     2)
         echo "Stopping background services..."
@@ -53,6 +54,7 @@ case "$choice" in
         sudo initctl stop powercontrol 2>/dev/null
         sudo initctl stop fancontrol 2>/dev/null
         sudo initctl stop gpu_control 2>/dev/null
+        sudo initctl stop sleep_control 2>/dev/null
         
         sudo bash "$INSTALL_DIR/powercontrol" stop
         sudo bash "$INSTALL_DIR/powercontrol" max_perf_pct 100
@@ -60,40 +62,47 @@ case "$choice" in
         sudo bash "$INSTALL_DIR/batterycontrol" stop
         sudo bash "$INSTALL_DIR/fancontrol" stop
         sudo bash "$INSTALL_DIR/gpucontrol" restore
+        sudo bash "$INSTALL_DIR/sleepcontrol" stop
 
         remove_file_with_message "$INSTALL_DIR/no_turbo.conf"
         remove_file_with_message "$INSTALL_DIR/batterycontrol.conf"
         remove_file_with_message "$INSTALL_DIR/powercontrol.conf"
         remove_file_with_message "$INSTALL_DIR/fancontrol.conf"
         remove_file_with_message "$INSTALL_DIR/gpucontrol.conf"
+        remove_file_with_message "$INSTALL_DIR/sleepcontrol.conf"
 
         remove_file_with_message /etc/init/no_turbo.conf
         remove_file_with_message /etc/init/batterycontrol.conf
         remove_file_with_message /etc/init/powercontrol.conf
         remove_file_with_message /etc/init/fancontrol.conf
         remove_file_with_message /etc/init/gpucontrol.conf
+        remove_file_with_message /etc/init/sleepcontrol.conf
 
         remove_file_with_message /usr/local/bin/ChromeOS_PowerControl_Installer.sh
         remove_file_with_message /usr/local/bin/.powercontrol_conf.sh
         remove_file_with_message /usr/local/bin/.fancontrol_conf.sh
         remove_file_with_message /usr/local/bin/.batterycontrol_conf.sh
         remove_file_with_message /usr/local/bin/.gpucontrol_conf.sh
+        remove_file_with_message /usr/local/bin/.sleepcontrol_conf.sh
 
         remove_file_with_message /usr/local/bin/powercontrol
         remove_file_with_message /usr/local/bin/batterycontrol
         remove_file_with_message /usr/local/bin/fancontrol
         remove_file_with_message /usr/local/bin/gpucontrol
+        remove_file_with_message /usr/local/bin/sleepcontrol
 
         remove_file_with_message /var/log/powercontrol.log
         remove_file_with_message /var/log/fancontrol.log
         remove_file_with_message /var/log/batterycontrol.log
         remove_file_with_message /var/log/gpucontrol.log
+        remove_file_with_message /var/log/sleepcontrol.log
 
         remove_file_with_message "$INSTALL_DIR/config.sh"
 
         sudo rm -f "$INSTALL_DIR/.fancontrol_enabled"
         sudo rm -f "$INSTALL_DIR/.powercontrol_enabled"
         sudo rm -f "$INSTALL_DIR/.batterycontrol_enabled"
+        sudo rm -f "$INSTALL_DIR/.sleepcontrol_enabled"
         
         sudo rm -f "$INSTALL_DIR/.fan_curve_pid"
         sudo rm -f "$INSTALL_DIR/.fan_curve_running"
@@ -108,6 +117,7 @@ case "$choice" in
         remove_file_with_message "$INSTALL_DIR/fancontrol"
         remove_file_with_message "$INSTALL_DIR/batterycontrol"
         remove_file_with_message "$INSTALL_DIR/gpucontrol"
+        remove_file_with_message "$INSTALL_DIR/sleepcontrol"
 
         remove_file_with_message "$INSTALL_DIR/LICENSE"
         remove_file_with_message "$INSTALL_DIR/README.md"
