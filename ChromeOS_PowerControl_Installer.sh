@@ -336,12 +336,21 @@ else
     echo ""
 fi
 enable_component_on_boot() {
+    local COLOR
+    case "$component" in
+    "PowerControl") COLOR=${CYAN}${BOLD} ;;
+    "GPUControl")   COLOR=${MAGENTA}${BOLD} ;;
+    "FanControl")   COLOR=${YELLOW}${BOLD} ;;
+    "BatteryControl") COLOR=${GREEN}${BOLD} ;;
+    "SleepControl") COLOR=${BLUE}${BOLD} ;;
+    *) COLOR=${RESET} ;;
+esac
     local component="$1"
     local config_file="$2"
     local var_name="STARTUP_$(echo "$component" | tr '[:lower:]' '[:upper:]')"
     local target_file="/etc/init/$(basename "$config_file")"
 
-    read -rp "${BOLD}${MAGENTA}Do you want $component enabled on boot? (y/n):$RESET " move_config
+    read -rp "Do you want $component enabled on boot? (y/n):${RESET} " move_config
     if [[ "$move_config" =~ ^[Yy]$ ]]; then
         sudo cp "$config_file" "$target_file"
         echo "$component will start on boot."
@@ -373,9 +382,18 @@ if grep -q '^STARTUP_BATTERYCONTROL=1' "$CONFIG_FILE"; then
 fi
 
 start_component_now() {
+    
+     case "$component" in
+    "PowerControl") COLOR=${CYAN}${BOLD} ;;
+    "GPUControl")   COLOR=${MAGENTA}${BOLD} ;;
+    "FanControl")   COLOR=${YELLOW}${BOLD} ;;
+    "BatteryControl") COLOR=${GREEN}${BOLD} ;;
+    "SleepControl") COLOR=${BLUE}${BOLD} ;;
+    *) COLOR=${RESET} ;;
+    
     local component="$1"
     local command="$2"
-    read -rp "${BOLD}${GREEN}Do you want to start $component now in the background? (y/n): $RESET " start_now
+    read -rp "Do you want to start $component now? (y/n): ${RESET} " start_now
     if [[ "$start_now" =~ ^[Yy]$ ]]; then
         sudo "$command" start
         echo ""
@@ -407,8 +425,8 @@ echo ""
 
 start_component_now "BatteryControl" "$INSTALL_DIR/batterycontrol"
 start_component_now "PowerControl" "$INSTALL_DIR/powercontrol"
-start_component_now "FanControl" "$INSTALL_DIR/fancontrol"
 start_component_now "SleepControl" "$INSTALL_DIR/sleepcontrol"
+start_component_now "FanControl" "$INSTALL_DIR/fancontrol"
 
 echo ""
 echo "           ${RED}████████████${RESET}           "
@@ -472,18 +490,18 @@ echo "sudo gpucontrol adreno 500000         # Set Adreno GPU max frequency to 50
 echo "sudo gpucontrol mali 600000           # Set Mali GPU max frequency to 600000 kHz (or 600 MHz)"
 echo "sudo gpucontrol startup               # Copy or Remove gpucontrol.conf at: /etc/init/"
 echo "sudo gpucontrol help                  # Help menu"
-echo "${RESET}{$BLUE}"
+echo "${RESET}${BLUE}"
 echo "# SleepControl"
 echo "sudo sleepcontrol                     # Show current GPU info and frequency"
 echo "sudo sleepcontrol start               # Start SleepControl"
 echo "sudo sleepcontrol stop                # Stop SleepControl"
 echo "sudo sleepcontrol battery 15          # Delays sleep by 15 minutes when on battery "
 echo "sudo sleepcontrol power 60            # Delays sleep by 60 minutes when plugged in." 
-echo "sudo sleepcontrol startup             # Copy or Remove fanontrol.conf at: /etc/init/"
+echo "sudo sleepcontrol startup             # Copy or Remove sleepcontrol.conf at: /etc/init/"
 echo "sudo sleepcontrol help                # Help menu"
 echo "${RESET}${BOLD}"
-echo "# ${BOLD}${GREEN}Chrome${RESET}${BOLD}${RED}OS${RESET}${BOLD}${YELLOW}_${RESET}${BOLD}${BLUE}PowerControl${RESET}:"
-echo "${CYAN}sudo powercontrol reinstall           # Download and reinstall ChromeOS_PowerControl from Github."
+echo "# ${BOLD}${GREEN}Chrome${RESET}${BOLD}${RED}OS${RESET}${BOLD}${YELLOW}_${RESET}${BOLD}${BLUE}PowerControl${RESET}:${CYAN}"
+echo "sudo powercontrol reinstall           # Download and reinstall ChromeOS_PowerControl from Github."
 echo "sudo powercontrol uninstall           # Run uninstaller."
 echo "sudo bash "$INSTALL_DIR/Uninstall_ChromeOS_PowerControl.sh"    # Alternate uninstall method$RESET"
 echo ""
