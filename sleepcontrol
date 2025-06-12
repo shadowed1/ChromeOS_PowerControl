@@ -182,6 +182,24 @@ case "$1" in
             echo "Power delay: $POWER_DELAY minutes"
         fi
         ;;
+        startup)
+        CONF_SOURCE="$INSTALL_DIR/sleepcontrol.conf"
+        CONF_TARGET="/etc/init/sleepcontrol.conf"
+
+        read -p "Do you want SleepControl to startup automatically? (y/n): " choice
+        if [[ "$choice" =~ ^[Yy]$ ]]; then
+            if [ -f "$CONF_SOURCE" ]; then
+                echo "Copying sleepcontrol.conf to /etc/init/..."
+                sudo cp "$CONF_SOURCE" "$CONF_TARGET"
+                echo "${GREEN}sleepcontrol.conf copied.${RESET}"
+            else
+                echo "${RED}sleepcontrol.conf not found at $CONF_SOURCE${RESET}"
+            fi
+        else
+            echo "SleepControl will not startup automatically."
+            sudo rm -r /etc/init/sleepcontrol.conf
+        fi
+        ;;
     status|"")
         if [ -f "$PID_FILE" ] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
             load_config
@@ -199,7 +217,15 @@ case "$1" in
         monitor_idle_activity
         ;;
     *)
-        echo "Usage: sleepcontrol [start | stop | battery [minutes] | power [minutes] | status]"
+        echo "${BLUE}# SleepControl Commands with examples"
+        echo ""
+        echo "sudo sleepcontrol                     # Show current GPU info and frequency"
+        echo "sudo sleepcontrol start               # Start SleepControl"
+        echo "sudo sleepcontrol stop                # Stop SleepControl"
+        echo "sudo sleepcontrol battery 15          # Delays sleep by 15 minutes when on battery "
+        echo "sudo sleepcontrol power 60            # Delays sleep by 60 minutes when plugged in." 
+        echo "sudo sleepcontrol startup             # Copy or Remove fanontrol.conf at: /etc/init/"
+        echo "sudo sleepcontrol help                # Help menu${RESET}"
         exit 1
         ;;
 esac
