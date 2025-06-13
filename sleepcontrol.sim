@@ -1,12 +1,18 @@
-sim_file="$INSTALL_DIR/.last_simulated_times"
-> "$sim_file"
-
-(
-    end=$((SECONDS + delay_minutes * 60))
-    while [ $SECONDS -lt $end ]; do
-        ts=$(date -u +"%s")
-        echo "$ts" >> "$sim_file"
-        dbus-send ...
-        sleep 120
+SIM_FILE="/tmp/sleepcontrol.sim"
+SIM_FILE_TMP="/tmp/sleepcontrol.sim.tmp"
+#Atomically saving the timestamp array to prevent partial logs
+save_sim_times() {
+    local -n arr=$1  # pass array by name
+    : > "$SIM_FILE_TMP"  # empty tmp file
+    for ts in "${arr[@]}"; do
+        echo "$ts" >> "$SIM_FILE_TMP"
     done
-) &
+    mv "$SIM_FILE_TMP" "$SIM_FILE"
+}
+load_sim_times() {
+    local -n arr=$1
+    arr=()
+    if [ -f "$SIM_FILE" ]; then
+        mapfile -t arr < "$SIM_FILE"
+    fi
+}
