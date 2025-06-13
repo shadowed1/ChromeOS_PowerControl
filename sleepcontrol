@@ -189,9 +189,9 @@ for sim_ts in "${last_simulated_times[@]}"; do
         break
     fi
 done
-}
 
-# Now we can check if it's a real user activity
+
+# check for real user activity
 if [ "$matched_recent_sim" -eq 0 ]; then
     # Detect real user activity so fake activity can stop. 
     if [ "$active" -eq 0 ]; then
@@ -204,7 +204,7 @@ if [ "$matched_recent_sim" -eq 0 ]; then
         echo "$(date '+%Y-%m-%d %H:%M:%S') - Waiting for user to go idle again." >> "$LOG_FILE"
     fi
 fi
-
+}
 
 stop_monitoring() {
     if [ -f "$PID_FILE" ]; then
