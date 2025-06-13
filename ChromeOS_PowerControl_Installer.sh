@@ -289,16 +289,15 @@ fi
 for category in "${ordered_categories[@]}"; do
   echo "# --- ${category} ---" >> "$CONFIG_FILE"
   for key in ${categories[$category]}; do
-    if [ -n "${!key+x}" ]; then
-      val="${!key}"
-    else
-      val="${defaults[$key]}"
-    fi
-    printf '%s="%s"\n' "$key" "$val" >> "$CONFIG_FILE"
-done
+        if [ -n "${!key+x}" ]; then
+          val="${!key}"
+        else
+          val="${defaults[$key]}"
+        fi
+    echo "$key=$val" >> "$CONFIG_FILE"
+  done
   echo >> "$CONFIG_FILE"
 done
-
 echo "${GREEN}${BOLD}Installing to: $INSTALL_DIR $RESET"
 
 if [ "$IS_INTEL" -eq 1 ]; then
