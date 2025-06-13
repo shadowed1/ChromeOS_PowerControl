@@ -194,8 +194,8 @@ monitor_idle_activity() {
                 fi
 
                 (
-                    end=$((SECONDS + delay_minutes * 60))
-                    while [ $SECONDS -lt $end ]; do
+                        loop_start=$(date +%s)
+                        end=$((loop_start + delay_minutes * 60))
                         dbus-send --system --type=method_call \
                             --dest=org.chromium.PowerManager \
                             /org/chromium/PowerManager \
@@ -203,7 +203,7 @@ monitor_idle_activity() {
                             int32:0 int32:0
                         ts=$(date +%s)
                         last_simulated_times+=("$ts")
-                        if [ "${#last_simulated_times[@]}" -gt 10 ]; then
+                        if [ "${#last_simulated_times[@]}" -gt 5 ]; then
                             last_simulated_times=("${last_simulated_times[@]: -10}")
                         fi
                         printf "%s\n" "${last_simulated_times[@]}" > "$SIM_FILE_TMP" && mv "$SIM_FILE_TMP" "$SIM_FILE"
@@ -212,41 +212,38 @@ monitor_idle_activity() {
                 ) &
                 sim_pid=$!
             fi
-        elif echo "$line" | grep -q "User activity reported"; then
+               elif echo "$line" | grep -q "User activity reported"; then
             if [[ "$line" =~ ([0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}) ]]; then
                 reported_time_utc="${BASH_REMATCH[1]}"
                 reported_epoch=$(date -u -d "$reported_time_utc" +%s 2>/dev/null)
                 matched_recent_sim=0
-
-                if [ -f "$sim_file" ]; then
-                    readarray -t last_simulated_times < "$sim_file"
-                fi
-
+                readarray -t last_simulated_times < "$sim_file"
+        
                 for sim_ts in "${last_simulated_times[@]}"; do
+                    [[ "$sim_ts" =~ ^[0-9]+$ ]] || continue  # skip bad lines
                     diff=$((reported_epoch - sim_ts))
-                    if (( diff >= -10 && diff <= 10 )); then
+                    if (( diff >= -4 && diff <= 4 )); then
                         matched_recent_sim=1
                         break
                     fi
                 done
-
+        
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Detected user activity log time $reported_epoch, matched_recent_sim=$matched_recent_sim" >> "$LOG_FILE"
-
+        
                 if [ "$matched_recent_sim" -eq 0 ]; then
                     if [ "$active" -eq 0 ]; then
                         active=1
                         [ -n "$sim_pid" ] && kill "$sim_pid" 2>/dev/null && sim_pid=
                         echo "$(date '+%Y-%m-%d %H:%M:%S') - Waiting for user to go idle again." >> "$LOG_FILE"
                     fi
-
-                    # Turn display on if needed
+        
                     if [ "$backlight_off" -eq 1 ]; then
                         sudo ectool backlight 1
                         backlight_off=0
                         echo "$(date '+%Y-%m-%d %H:%M:%S') - Real user activity detected, turned display back on." >> "$LOG_FILE"
                     fi
-
-                    # Reset the timestamp so we don’t turn it off again too quickly
+        
+                    # Reset the timestamp to prevent immediate re-off
                     if [ "$status" = "Discharging" ]; then
                         battery_backlight_ts=$now_epoch
                     else
@@ -254,6 +251,7 @@ monitor_idle_activity() {
                     fi
                 fi
             fi
+
         fi
     done < <(tail -Fn0 /var/log/power_manager/powerd.LATEST)
 }
@@ -279,11 +277,6 @@ case "$1" in
         if [ -f "$LOG_FILE" ] && [ "$(stat -c%s "$LOG_FILE")" -gt 32768 ]; then
             echo "$(date '+%Y-%m-%d %H:%M:%S') - Truncated log file (exceeded 32KB)." >> "$LOG_FILE"
         fi
-       if [ -f "$PID_FILE" ] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
-            sudo bash "$INSTALL_DIR/sleepcontrol" stop
-            sudo bash "$INSTALL_DIR/sleepcontrol" start
-        fi
-
         nohup "$0" __monitor__ >> "$LOG_FILE" 2>&1 &
         echo $! > "$PID_FILE"
         touch "$RUN_FLAG"
@@ -358,8 +351,6 @@ case "$1" in
             echo "Power backlight timeout: $POWER_BACKLIGHT minutes"
         fi
         ;;
-
-
         startup)
         CONF_SOURCE="$INSTALL_DIR/sleepcontrol.conf"
         CONF_TARGET="/etc/init/sleepcontrol.conf"
@@ -379,14 +370,13 @@ case "$1" in
         fi
         ;;
     status|"")
+        load_config
         if [ -f "$PID_FILE" ] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
-            load_config
             echo "${GREEN}SleepControl is running.${RESET}"
             echo ""
             echo "Sleep set for: ${GREEN}On Battery = $((BATTERY_DELAY + 6)) minutes${RESET}, ${BLUE}On Power = $((POWER_DELAY + 8)) minutes${RESET}"
             echo "Display timeout set for: ${GREEN}On Battery = $BATTERY_BACKLIGHT minutes${RESET}, ${BLUE}On Power = $POWER_BACKLIGHT minutes${RESET}"
         else
-            load_config
             echo "${RED}SleepControl is not running.${RESET}"
             echo ""
             echo "Sleep set for: ${GREEN}On Battery = $((BATTERY_DELAY + 6)) minutes${RESET}, ${BLUE}On Power = $((POWER_DELAY + 8)) minutes${RESET}"
@@ -396,8 +386,8 @@ case "$1" in
     __monitor__)
         monitor_idle_activity
         ;;
-         help)
-        "$0"
+        help)
+            "$0" status
         ;;
     *)
         echo "${BLUE}# SleepControl Commands with examples"
