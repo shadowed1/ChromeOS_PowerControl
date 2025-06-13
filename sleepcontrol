@@ -79,7 +79,7 @@ load_config
 
 save_sim_times() {
     local -n arr=$1  # pass array by name
-    : > "$SIM_FILE_TMP"  # empty tmp file
+    : > "$SIM_FILE_TMP"
     for ts in "${arr[@]}"; do
         echo "$ts" >> "$SIM_FILE_TMP"
     done
@@ -206,7 +206,7 @@ monitor_idle_activity() {
                         if [ "${#last_simulated_times[@]}" -gt 10 ]; then
                             last_simulated_times=("${last_simulated_times[@]: -10}")
                         fi
-                        printf "%s\n" "${last_simulated_times[@]}" > "$sim_file"
+                        printf "%s\n" "${last_simulated_times[@]}" > "$SIM_FILE_TMP" && mv "$SIM_FILE_TMP" "$SIM_FILE"
                         sleep 1
                     done
                 ) &
