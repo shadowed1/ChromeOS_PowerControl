@@ -356,7 +356,7 @@ case "$1" in
         fi
     else
         echo "FanControl will not startup automatically."
-        sudo rm -r /etc/init/fancontrol.conf
+        sudo rm -f /etc/init/fancontrol.conf
     fi
         ;;
     __monitor__)
