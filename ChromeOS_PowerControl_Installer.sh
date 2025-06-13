@@ -161,7 +161,7 @@ echo "$INSTALL_DIR" | sudo tee /usr/local/bin/.ChromeOS_PowerControl.install_dir
 echo "$RESET"
 sudo chmod +x "$INSTALL_DIR/powercontrol" "$INSTALL_DIR/batterycontrol" "$INSTALL_DIR/fancontrol" "$INSTALL_DIR/gpucontrol" "$INSTALL_DIR/sleepcontrol" "$INSTALL_DIR/Uninstall_ChromeOS_PowerControl.sh" "$INSTALL_DIR/config.sh"
 sudo touch "$INSTALL_DIR/.batterycontrol_enabled" "$INSTALL_DIR/.powercontrol_enabled" "$INSTALL_DIR/.fancontrol_enabled"
-sudo touch "$INSTALL_DIR/.fancontrol_pid" "$INSTALL_DIR/.fancontrol_tail_fan_monitor.pid" "$INSTALL_DIR/.batterycontrol_pid" "$INSTALL_DIR/.powercontrol_tail_fan_monitor.pid" "$INSTALL_DIR/.powercontrol_pid" "$INSTALL_DIR/.sleepcontrol_conf.sh"
+sudo touch "$INSTALL_DIR/.fancontrol_pid" "$INSTALL_DIR/.fancontrol_tail_fan_monitor.pid" "$INSTALL_DIR/.batterycontrol_pid" "$INSTALL_DIR/.powercontrol_tail_fan_monitor.pid" "$INSTALL_DIR/.powercontrol_pid"
 
 detect_gpu_freq
 echo "${MAGENTA}Detected GPU Type: $GPU_TYPE"
