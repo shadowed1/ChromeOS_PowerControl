@@ -189,6 +189,7 @@ for sim_ts in "${last_simulated_times[@]}"; do
         break
     fi
 done
+}
 
 # Now we can check if it's a real user activity
 if [ "$matched_recent_sim" -eq 0 ]; then
