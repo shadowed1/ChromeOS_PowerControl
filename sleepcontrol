@@ -71,6 +71,7 @@ validate_config() {
 }
 
 save_config() {
+    load_config
     validate_config
 
     sed -i "s/^BATTERY_DELAY=.*/BATTERY_DELAY=$BATTERY_DELAY/" "$CONFIG_FILE" || echo "BATTERY_DELAY=$BATTERY_DELAY" >> "$CONFIG_FILE"
