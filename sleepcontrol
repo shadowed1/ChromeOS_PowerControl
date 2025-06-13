@@ -150,7 +150,6 @@ monitor_idle_activity() {
                     backlight_off=1
                     echo "$(date '+%Y-%m-%d %H:%M:%S') - Turned display off due to battery backlight timeout (${BATTERY_BACKLIGHT} min)" >> "$LOG_FILE"
                 fi
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Prevented backlight timeout via HandleUserActivity (battery backlight delay $BATTERY_BACKLIGHT min)." >> "$LOG_FILE"
                 battery_backlight_ts=$now_epoch
             fi
             power_backlight_ts=""
@@ -163,7 +162,6 @@ monitor_idle_activity() {
                     backlight_off=1
                     echo "$(date '+%Y-%m-%d %H:%M:%S') - Turned display off due to power backlight timeout (${POWER_BACKLIGHT} min)" >> "$LOG_FILE"
                 fi
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Prevented backlight timeout via HandleUserActivity (power backlight delay $POWER_BACKLIGHT min)." >> "$LOG_FILE"
                 power_backlight_ts=$now_epoch
             fi
             battery_backlight_ts=""
