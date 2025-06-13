@@ -401,14 +401,17 @@ case "$1" in
     __monitor__)
         monitor_idle_activity
         ;;
+         help)
+        "$0"
+        ;;
     *)
         echo "${BLUE}# SleepControl Commands with examples"
         echo ""
         echo "sudo sleepcontrol                        # Show current SleepControl settings"
         echo "sudo sleepcontrol start                  # Start SleepControl"
         echo "sudo sleepcontrol stop                   # Stop SleepControl"
-        echo "sudo sleepcontrol battery 15             # Sleep in 15 minutes when on battery "
-        echo "sudo sleepcontrol power 60               # Sleep in 60 minutes when plugged in."
+        echo "sudo sleepcontrol battery 15             # Sleep after 15 minutes when on battery "
+        echo "sudo sleepcontrol power 60               # Sleep after 60 minutes when plugged in."
         echo "sudo sleepcontrol battery_backlight 10   # Turn off display after 15 mins when idling on battery."
         echo "sudo sleepcontrol power_backlight 30     # Turn off display after 60 mins when idling plugged-in."
         echo "sudo sleepcontrol startup                # Copy or Remove fancontrol.conf at: /etc/init/"
