@@ -83,18 +83,6 @@ save_config() {
 }
 
 
-simulate_activity_loop()
-{
-    while [ $SECONDS -lt $end ]; do
-        sudo ectool backlight 1
-        dbus-send --system --type=method_call \
-        --dest=org.chromium.PowerManager \
-        /org/chromium/PowerManager \
-        org.chromium.PowerManager.HandleUserActivity \
-        int32:0 int32:0
-
-    echo "$(date '+%Y-%m-%d %H:%M:%S') - Simulated user activity." >> "$LOG_FILE"
-}
 
 
 monitor_idle_activity() {
@@ -217,7 +205,6 @@ monitor_idle_activity() {
         done
     ) &
     sim_pid=$!
-    echo "$(date '+%Y-%m-%d %H:%M:%S') - User inactive, started simulate_activity_loop (PID $sim_pid)." >> "$LOG_FILE"
 fi
         elif echo "$line" | grep -q "User activity reported"; then
             if [[ "$line" =~ ([0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}) ]]; then
@@ -244,7 +231,6 @@ fi
                         active=1
                         if [ -n "$sim_pid" ]; then
                             kill "$sim_pid" 2>/dev/null
-                            echo "$(date '+%Y-%m-%d %H:%M:%S') - Real user active, stopping simulate_activity_loop (PID $sim_pid)." >> "$LOG_FILE"
                             sim_pid=
                         fi
                         echo "$(date '+%Y-%m-%d %H:%M:%S') - Waiting for user to go idle again." >> "$LOG_FILE"
