@@ -163,7 +163,7 @@ monitor_idle_activity() {
 
         if echo "$line" | grep -q "User activity stopped"; then
             if [ "$active" -eq 1 ]; then
-    sleep 120
+    sleep 1
     active=0
 
     if [ -n "$sim_pid" ] && kill -0 "$sim_pid" 2>/dev/null; then
@@ -185,7 +185,7 @@ monitor_idle_activity() {
                 last_simulated_times=("${last_simulated_times[@]: -10}")
             fi
             printf "%s\n" "${last_simulated_times[@]}" > "$sim_file"
-            sleep 120
+            sleep 1
         done
     ) &
     sim_pid=$!
