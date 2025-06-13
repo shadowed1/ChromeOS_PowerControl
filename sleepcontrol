@@ -283,13 +283,14 @@ case "$1" in
         if [ -f "$LOG_FILE" ] && [ "$(stat -c%s "$LOG_FILE")" -gt 32768 ]; then
             echo "$(date '+%Y-%m-%d %H:%M:%S') - Truncated log file (exceeded 32KB)." >> "$LOG_FILE"
         fi
-       if pgrep -f "[s]leepcontrol __monitor__" >/dev/null; then
-        echo "${YELLOW} $(date '+%Y-%m-%d %H:%M:%S') - SleepControl monitor already running. Showing live output...${RESET}" | tee -a "$LOG_FILE"
-        tail -n 10 -f "$LOG_FILE"
-    else
+       if [ -f "$PID_FILE" ] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
+            sudo bash "$INSTALL_DIR/sleepcontrol" stop
+            sudo bash "$INSTALL_DIR/sleepcontrol" start
+        fi
+
         nohup "$0" __monitor__ >> "$LOG_FILE" 2>&1 &
-        echo "${GREEN} $(date '+%Y-%m-%d %H:%M:%S') - SleepControl started in background. Output is logged to $LOG_FILE${RESET}" | tee -a "$LOG_FILE"
-    fi
+        echo $! > "$PID_FILE"
+        touch "$RUN_FLAG"
         ;;
     stop)
         sudo ectool backlight 1
