@@ -278,7 +278,6 @@ case "$1" in
         stop_monitoring >/dev/null 2>&1
         if [ -f "$LOG_FILE" ] && [ "$(stat -c%s "$LOG_FILE")" -gt 32768 ]; then
             echo "$(date '+%Y-%m-%d %H:%M:%S') - Truncated log file (exceeded 32KB)." >> "$LOG_FILE"
-            >> "$LOG_FILE"
         fi
 
         if [ -f "$PID_FILE" ] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
@@ -300,15 +299,13 @@ case "$1" in
                 user_input=$2
                 actual_delay=$((user_input - 6))
                 if (( actual_delay < 7 )); then
-                    echo "ChromeOS has a built in 6m30s timer for battery; making a -7m offset for ease-of-use."
-                    exit 1
+                    echo "${RED}Please enter a larger value, this is lower than ChromeOS' sleep.${RESET}"
                 fi
                 BATTERY_DELAY=$actual_delay
                 save_config
                 echo "${GREEN}When ${RESET}${GREEN}${BOLD}idling on battery${RESET}${GREEN}, ChromeOS will sleep in $user_input minutes.${GREEN}"
             else
                 echo "Invalid delay value. Please enter a positive integer."
-                exit 1
             fi
         else
             load_config
@@ -321,14 +318,13 @@ case "$1" in
                 user_input=$2
                 actual_delay=$((user_input - 8))
                 if (( actual_delay < 9 )); then
-                    exit 1
+                    echo "${RED}Please enter a larger value, this is lower than ChromeOS' sleep."
                 fi
                 POWER_DELAY=$actual_delay
                 save_config
                 echo "${GREEN}When ${RESET}${GREEN}${BOLD}idling plugged${RESET}${GREEN} in ChromeOS will sleep in $user_input minutes.${RESET}"
-                else
+        else
             echo "${RED}Invalid delay value. Please enter a positive integer.${RESET}"
-            exit 1
         fi
     else
         load_config
