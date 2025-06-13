@@ -109,12 +109,12 @@ fi
 }
 echo ""
 echo "     ${BOLD}${GREEN}Chrome${RESET}${BOLD}${RED}OS${RESET}${BOLD}${YELLOW}_${RESET}${BOLD}${BLUE}PowerControl${RESET}"
-echo "Features:"
-echo "${CYAN}PowerControl: Control CPU clockspeed in relation to temperature; enabling lower temperatures under load and longer battery life."${RESET}
-echo "${GREEN}BatteryControl: Control battery charging limit instead of relying on Adaptive Charging to maximize battery longevity.${RESET}"
-echo "${YELLOW}FanControl: Control fan curve in relation to temperature with built-in hysteresis and 0% RPM mode."
-echo "${MAGENTA}GPUControL: Control GPU clockspeed below its default maximum; enabling lower temperatures and longer battery life when rendering 3D content.${RESET}"
-echo "${BLUE}SleepControl: Control how long ChromeOS can be idle before being able to sleep."
+echo "Features:${CYAN}"
+echo "PowerControl: Control CPU clockspeed in relation to temperature; enabling lower temperatures under load and longer battery life.${RESET}${GREEN}"
+echo "BatteryControl: Control battery charging limit instead of relying on Adaptive Charging to maximize battery longevity.${RESET}${YELLOW}"
+echo "FanControl: Control fan curve in relation to temperature with built-in hysteresis and 0% RPM mode.${RESET}${MAGENTA}"
+echo "GPUControL: Control GPU clockspeed below its default maximum; enabling lower temperatures and longer battery life when rendering 3D content.${RESET}${BLUE}"
+echo "SleepControl: Control how long ChromeOS can be idle before being able to sleep.${RESET}"
 echo ""
 echo ""
 echo "${RED}VT-2 (or enabling sudo in crosh) is ${RESET}${BOLD}${RED}required${RESET}${RED} to run this installer.$RESET"
@@ -301,37 +301,6 @@ done
 
 echo "${GREEN}${BOLD}Installing to: $INSTALL_DIR $RESET"
 
-if [ "$IS_INTEL" -eq 1 ]; then
-    read -rp "${BOLD}${BLUE}Do you want Intel Turbo Boost ${RESET}${BOLD}${CYAN}disabled on boot${RESET}${BOLD}${BLUE}? (y/n):$RESET " move_no_turbo
-    if [[ "$move_no_turbo" =~ ^[Yy]$ ]]; then
-        sudo cp "$INSTALL_DIR/no_turbo.conf" /etc/init/
-        echo "Turbo Boost will be disabled on restart."
-        echo "${CYAN}sudo powercontrol startup${RESET}     # To re-enable Turbo Boost on boot."
-        echo ""
-    else
-        sudo rm -f /etc/init/no_turbo.conf
-        echo "Turbo Boost will remain enabled."
-        echo "${CYAN}sudo powercontrol startup${RESET}     # To disable Intel Turbo Boost on boot."
-        echo ""
-    fi
-    
-    read -rp "${BOLD}${BLUE}Do you want to ${RESET}${BOLD}${CYAN}disable${RESET}${BLUE}${BOLD} Intel Turbo Boost ${RESET}${BOLD}${CYAN}now?${RESET}${BOLD}${BLUE} (y/n):$RESET " run_no_turbo
-    if [[ "$run_no_turbo" =~ ^[Yy]$ ]]; then
-        echo 1 | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo > /dev/null
-        echo "Turbo Boost disabled immediately."
-        echo "${CYAN}sudo powercontrol no_turbo 0${RESET}     # To re-enable Intel Turbo Boost"
-        echo ""
-    else
-        echo 0 | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo > /dev/null
-        echo "Turbo Boost remains enabled."
-        echo "${CYAN}sudo powercontrol no_turbo 1${RESET}    # To disable Intel Turbo Boost"
-        echo ""
-    fi
-else
-    echo "This is not an Intel CPU, skipping Turbo Boost options."
-    echo ""
-fi
-
 read -rp "Enable ${BOLD}Global Commands${RESET} for ${RESET}${BOLD}${CYAN}PowerControl${RESET}, ${GREEN}${BOLD}BatteryControl${RESET}, ${YELLOW}${BOLD}FanControl${RESET}, ${MAGENTA}GPUControl${RESET}, ${BLUE}SleepControl${RESET}? (y/n):$RESET " link_cmd
 if [[ "$link_cmd" =~ ^[Yy]$ ]]; then
     sudo ln -sf "$INSTALL_DIR/powercontrol" /usr/local/bin/powercontrol
@@ -454,6 +423,40 @@ start_component_now "BatteryControl" "$INSTALL_DIR/batterycontrol"
 start_component_now "PowerControl" "$INSTALL_DIR/powercontrol"
 start_component_now "FanControl" "$INSTALL_DIR/fancontrol"
 start_component_now "SleepControl" "$INSTALL_DIR/sleepcontrol"
+
+if [ "$IS_INTEL" -eq 1 ]; then
+    read -rp "${BOLD}${BLUE}Do you want Intel Turbo Boost ${RESET}${BOLD}${CYAN}disabled on boot${RESET}${BOLD}${BLUE}? (y/n):$RESET " move_no_turbo
+    if [[ "$move_no_turbo" =~ ^[Yy]$ ]]; then
+        sudo cp "$INSTALL_DIR/no_turbo.conf" /etc/init/
+        echo "Turbo Boost will be disabled on restart."
+        echo "${CYAN}sudo powercontrol startup${RESET}     # To re-enable Turbo Boost on boot."
+        echo ""
+    else
+        sudo rm -f /etc/init/no_turbo.conf
+        echo "Turbo Boost will remain enabled."
+        echo "${CYAN}sudo powercontrol startup${RESET}     # To disable Intel Turbo Boost on boot."
+        echo ""
+    fi
+
+    echo "${BLUE}Intel CPU detected! To further reduce temperature and increase battery life, disabling Turbo Boost is recommended."
+    echo "If unsure, toggling Intel Turbo Boost is easy to change at any time with PowerControl after the install.${RESET}"
+    read -rp "${BOLD}${BLUE}Do you want to ${RESET}${BOLD}${CYAN}disable${RESET}${BLUE}${BOLD} Intel Turbo Boost ${RESET}${BOLD}${CYAN}now?${RESET}${BOLD}${BLUE} (y/n):$RESET " run_no_turbo
+    if [[ "$run_no_turbo" =~ ^[Yy]$ ]]; then
+        echo 1 | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo > /dev/null
+        echo "Turbo Boost disabled immediately."
+        echo "${CYAN}sudo powercontrol no_turbo 0${RESET}     # To re-enable Intel Turbo Boost"
+        echo ""
+    else
+        echo 0 | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo > /dev/null
+        echo "Turbo Boost remains enabled."
+        echo "${CYAN}sudo powercontrol no_turbo 1${RESET}    # To disable Intel Turbo Boost"
+        echo ""
+    fi
+else
+    echo "This is not an Intel CPU, skipping Turbo Boost options."
+    echo ""
+fi
+
 
 echo ""
 echo "           ${RED}████████████${RESET}           "
