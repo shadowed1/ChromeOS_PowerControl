@@ -94,12 +94,12 @@ load_sim_times() {
     fi
 }
 
-
 monitor_idle_activity() {
     load_config
     touch "$RUN_FLAG"
     echo $$ > "$PID_FILE"
     echo "$(date '+%Y-%m-%d %H:%M:%S') - sleepcontrol started (PID $$)." >> "$LOG_FILE"
+
     local backlight_off=0
     local last_reload_time=0
     local delay_minutes
@@ -118,7 +118,7 @@ monitor_idle_activity() {
             audio_active=0
         fi
 
-       if [ -f "$BATTERY_STATUS_PATH" ]; then
+        if [ -f "$BATTERY_STATUS_PATH" ]; then
             status=$(cat "$BATTERY_STATUS_PATH")
             if [ "$status" = "Discharging" ]; then
                 delay_minutes=$BATTERY_DELAY
@@ -139,10 +139,9 @@ monitor_idle_activity() {
             battery_backlight_ts=$now_epoch
             power_backlight_ts=$now_epoch
             continue
-            fi
+        fi
 
-
-         if [ "$status" = "Discharging" ]; then
+        if [ "$status" = "Discharging" ]; then
             if [ -z "$battery_backlight_ts" ]; then
                 battery_backlight_ts=$now_epoch
             elif (( now_epoch - battery_backlight_ts >= BATTERY_BACKLIGHT * 60 )); then
@@ -165,16 +164,9 @@ monitor_idle_activity() {
                     echo "$(date '+%Y-%m-%d %H:%M:%S') - Turned display off due to power backlight timeout (${POWER_BACKLIGHT} min)" >> "$LOG_FILE"
                 fi
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Prevented backlight timeout via HandleUserActivity (power backlight delay $POWER_BACKLIGHT min)." >> "$LOG_FILE"
-
                 power_backlight_ts=$now_epoch
             fi
             battery_backlight_ts=""
-        fi
-
-        if [ "$active" -eq 1 ] && [ "$backlight_off" -eq 1 ]; then
-            sudo ectool backlight 1
-            backlight_off=0
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - Real user activity detected, turned display back on." >> "$LOG_FILE"
         fi
 
         now=$(date +%s)
@@ -193,33 +185,33 @@ monitor_idle_activity() {
 
         if echo "$line" | grep -q "User activity stopped"; then
             if [ "$active" -eq 1 ]; then
-    sleep 1
-    active=0
+                sleep 1
+                active=0
 
-    if [ -n "$sim_pid" ] && kill -0 "$sim_pid" 2>/dev/null; then
-        echo "$(date '+%Y-%m-%d %H:%M:%S') - Simulate loop already running (PID $sim_pid), skipping duplicate launch." >> "$LOG_FILE"
-        continue
-    fi
+                if [ -n "$sim_pid" ] && kill -0 "$sim_pid" 2>/dev/null; then
+                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Simulate loop already running (PID $sim_pid), skipping duplicate launch." >> "$LOG_FILE"
+                    continue
+                fi
 
-    (
-        end=$((SECONDS + delay_minutes * 60))
-        while [ $SECONDS -lt $end ]; do
-            dbus-send --system --type=method_call \
-                --dest=org.chromium.PowerManager \
-                /org/chromium/PowerManager \
-                org.chromium.PowerManager.HandleUserActivity \
-                int32:0 int32:0
-            ts=$(date +%s)
-            last_simulated_times+=("$ts")
-            if [ "${#last_simulated_times[@]}" -gt 10 ]; then
-                last_simulated_times=("${last_simulated_times[@]: -10}")
+                (
+                    end=$((SECONDS + delay_minutes * 60))
+                    while [ $SECONDS -lt $end ]; do
+                        dbus-send --system --type=method_call \
+                            --dest=org.chromium.PowerManager \
+                            /org/chromium/PowerManager \
+                            org.chromium.PowerManager.HandleUserActivity \
+                            int32:0 int32:0
+                        ts=$(date +%s)
+                        last_simulated_times+=("$ts")
+                        if [ "${#last_simulated_times[@]}" -gt 10 ]; then
+                            last_simulated_times=("${last_simulated_times[@]: -10}")
+                        fi
+                        printf "%s\n" "${last_simulated_times[@]}" > "$sim_file"
+                        sleep 1
+                    done
+                ) &
+                sim_pid=$!
             fi
-            printf "%s\n" "${last_simulated_times[@]}" > "$sim_file"
-            sleep 1
-        done
-    ) &
-    sim_pid=$!
-fi
         elif echo "$line" | grep -q "User activity reported"; then
             if [[ "$line" =~ ([0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}) ]]; then
                 reported_time_utc="${BASH_REMATCH[1]}"
@@ -243,22 +235,26 @@ fi
                 if [ "$matched_recent_sim" -eq 0 ]; then
                     if [ "$active" -eq 0 ]; then
                         active=1
-                        if [ -n "$sim_pid" ]; then
-                            kill "$sim_pid" 2>/dev/null
-                            sim_pid=
-                        fi
+                        [ -n "$sim_pid" ] && kill "$sim_pid" 2>/dev/null && sim_pid=
                         echo "$(date '+%Y-%m-%d %H:%M:%S') - Waiting for user to go idle again." >> "$LOG_FILE"
                     fi
-                        if [ "$backlight_off" -eq 1 ]; then
-                            sudo ectool backlight 1
-                            backlight_off=0
-                            echo "$(date '+%Y-%m-%d %H:%M:%S') - Real user activity detected, turned display back on." >> "$LOG_FILE"
-                        fi
 
+                    # Turn display on if needed
+                    if [ "$backlight_off" -eq 1 ]; then
+                        sudo ectool backlight 1
+                        backlight_off=0
+                        echo "$(date '+%Y-%m-%d %H:%M:%S') - Real user activity detected, turned display back on." >> "$LOG_FILE"
+                    fi
+
+                    # Reset the timestamp so we don’t turn it off again too quickly
+                    if [ "$status" = "Discharging" ]; then
+                        battery_backlight_ts=$now_epoch
+                    else
+                        power_backlight_ts=$now_epoch
+                    fi
                 fi
             fi
         fi
-
     done < <(tail -Fn0 /var/log/power_manager/powerd.LATEST)
 }
 
