@@ -10,6 +10,7 @@ RESET=$(tput sgr0)
 SHOW_BATTERYCONTROL_NOTICE=0
 SHOW_SLEEPCONTROL_NOTICE=0
 SHOW_GPUCONTROL_NOTICE=0
+
 detect_cpu_type() {
     CPU_VENDOR=$(grep -m1 'vendor_id' /proc/cpuinfo | awk '{print $3}' || echo "unknown")
     IS_INTEL=0
@@ -438,6 +439,7 @@ start_component_now() {
 
 echo "${BLUE}Stopping any running components of PowerControl${RESET}"
 sudo bash "$INSTALL_DIR/gpucontrol" restore
+sudo ectool backlight 1
 for component in batterycontrol powercontrol fancontrol; do
     if command -v "$INSTALL_DIR/$component" >/dev/null 2>&1; then
         sudo bash "$INSTALL_DIR/$component" stop >/dev/null 2>&1
