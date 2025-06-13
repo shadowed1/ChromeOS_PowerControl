@@ -273,8 +273,8 @@ case "$1" in
         battery)
         if [ -n "$2" ]; then
             if [[ "$2" =~ ^[0-9]+$ ]]; then
-                local user_input=$2
-                local actual_delay=$((user_input - 6))
+                user_input=$2
+                actual_delay=$((user_input - 6))
                 if (( actual_delay < 7 )); then
                     echo "ChromeOS has a built in 6m30s timer for battery; making a -7m offset for ease-of-use."
                     exit 1
