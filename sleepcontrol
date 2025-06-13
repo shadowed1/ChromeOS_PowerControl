@@ -85,11 +85,14 @@ save_config() {
 
 simulate_activity_loop()
 {
-    dbus-send --system --type=method_call \
+    while [ $SECONDS -lt $end ]; do
+        sudo ectool backlight 1
+        dbus-send --system --type=method_call \
         --dest=org.chromium.PowerManager \
         /org/chromium/PowerManager \
         org.chromium.PowerManager.HandleUserActivity \
         int32:0 int32:0
+
     echo "$(date '+%Y-%m-%d %H:%M:%S') - Simulated user activity." >> "$LOG_FILE"
 }
 
