@@ -319,10 +319,10 @@ if [[ "$link_cmd" =~ ^[Yy]$ ]]; then
     echo ""
 else
     echo "Skipped creating global commands."
-    sudo rm -r /usr/local/bin/powercontrol
-    sudo rm -r /usr/local/bin/batterycontrol
-    sudo rm -r /usr/local/bin/fancontrol
-    sudo rm -r /usr/local/bin/gpucontrol
+    sudo rm -f /usr/local/bin/powercontrol
+    sudo rm -f /usr/local/bin/batterycontrol
+    sudo rm -f /usr/local/bin/fancontrol
+    sudo rm -f /usr/local/bin/gpucontrol
     echo ""
 fi
 enable_component_on_boot() {
