@@ -170,7 +170,6 @@ monitor_idle_activity() {
         now=$(date +%s)
         if (( now - last_reload_time >= 120 )); then
             load_config
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - Config reloaded: BATTERY_DELAY=$BATTERY_DELAY, POWER_DELAY=$POWER_DELAY" >> "$LOG_FILE"
             last_reload_time=$now
         fi
 
