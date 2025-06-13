@@ -208,7 +208,6 @@ monitor_idle_activity() {
                         fi
                         printf "%s\n" "${last_simulated_times[@]}" > "$SIM_FILE_TMP" && mv "$SIM_FILE_TMP" "$SIM_FILE"
                         sleep 1
-                    done
                 ) &
                 sim_pid=$!
             fi
