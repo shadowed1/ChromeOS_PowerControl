@@ -438,8 +438,8 @@ start_component_now() {
 
 
 echo "${BLUE}Stopping any running components of PowerControl${RESET}"
-sudo bash "$INSTALL_DIR/gpucontrol" restore
-sudo ectool backlight 1
+sudo bash "$INSTALL_DIR/gpucontrol" restore >/dev/null 2>&1
+sudo ectool backlight 1 >/dev/null 2>&1
 for component in batterycontrol powercontrol fancontrol; do
     if command -v "$INSTALL_DIR/$component" >/dev/null 2>&1; then
         sudo bash "$INSTALL_DIR/$component" stop >/dev/null 2>&1
