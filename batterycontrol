@@ -248,7 +248,7 @@ case "$1" in
             fi
         else
             echo "BatteryControl will not startup automatically."
-            sudo rm -r /etc/init/batterycontrol.conf
+            sudo rm -f /etc/init/batterycontrol.conf
         fi
         ;;
     help | --help | -h)
