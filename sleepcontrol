@@ -317,16 +317,16 @@ case "$1" in
         fi
         ;;
         power)
-            if [ -n "$2" ]; then
-            if [[ "$2" =~ ^[0-9]+$ ]]; then
-                user_input=$2
-                actual_delay=$((user_input - 8))
-                if (( actual_delay < 9 )); then
-                    echo "${RED}Please enter a larger value, this is lower than ChromeOS' sleep."
-                fi
-                POWER_DELAY=$actual_delay
-                save_config
-                echo "${GREEN}When ${RESET}${GREEN}${BOLD}idling plugged${RESET}${GREEN} in ChromeOS will sleep in $user_input minutes.${RESET}"
+    if [ -n "$2" ]; then
+        if [[ "$2" =~ ^[0-9]+$ ]]; then
+            user_input=$2
+            actual_delay=$((user_input - 8))
+            if (( actual_delay < 9 )); then
+                echo "${RED}Please enter a larger value, this is lower than ChromeOS' sleep."
+            fi
+            POWER_DELAY=$actual_delay
+            save_config
+            echo "${GREEN}When ${RESET}${GREEN}${BOLD}idling plugged${RESET}${GREEN} in ChromeOS will sleep in $user_input minutes.${RESET}"
         else
             echo "${RED}Invalid delay value. Please enter a positive integer.${RESET}"
         fi
