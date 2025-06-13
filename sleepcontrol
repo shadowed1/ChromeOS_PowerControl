@@ -138,28 +138,34 @@ monitor_idle_activity() {
         # Handle idle detected
         if echo "$line" | grep -q "User activity stopped"; then
             if [ "$active" -eq 1 ]; then
-                sleep 120
-                active=0
-                (
-                    end=$((SECONDS + delay_minutes * 60))
-                    while [ $SECONDS -lt $end ]; do
-                        dbus-send --system --type=method_call \
-                            --dest=org.chromium.PowerManager \
-                            /org/chromium/PowerManager \
-                            org.chromium.PowerManager.HandleUserActivity \
-                            int32:0 int32:0
-                        ts=$(date +%s)
-                        last_simulated_times+=("$ts")
-                        if [ "${#last_simulated_times[@]}" -gt 10 ]; then
-                            last_simulated_times=("${last_simulated_times[@]: -10}")
-                        fi
-                        printf "%s\n" "${last_simulated_times[@]}" > "$sim_file"
-                        sleep 120
-                    done
-                ) &
-                sim_pid=$!
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - User inactive, started simulate_activity_loop (PID $sim_pid)." >> "$LOG_FILE"
+    sleep 120
+    active=0
+
+    if [ -n "$sim_pid" ] && kill -0 "$sim_pid" 2>/dev/null; then
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - Simulate loop already running (PID $sim_pid), skipping duplicate launch." >> "$LOG_FILE"
+        continue
+    fi
+
+    (
+        end=$((SECONDS + delay_minutes * 60))
+        while [ $SECONDS -lt $end ]; do
+            dbus-send --system --type=method_call \
+                --dest=org.chromium.PowerManager \
+                /org/chromium/PowerManager \
+                org.chromium.PowerManager.HandleUserActivity \
+                int32:0 int32:0
+            ts=$(date +%s)
+            last_simulated_times+=("$ts")
+            if [ "${#last_simulated_times[@]}" -gt 10 ]; then
+                last_simulated_times=("${last_simulated_times[@]: -10}")
             fi
+            printf "%s\n" "${last_simulated_times[@]}" > "$sim_file"
+            sleep 120
+        done
+    ) &
+    sim_pid=$!
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - User inactive, started simulate_activity_loop (PID $sim_pid)." >> "$LOG_FILE"
+fi
 
         # Handle user activity
         elif echo "$line" | grep -q "User activity reported"; then
