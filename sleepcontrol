@@ -68,7 +68,7 @@ monitor_idle_activity() {
     touch "$RUN_FLAG"
     echo $$ > "$PID_FILE"
     echo "$(date '+%Y-%m-%d %H:%M:%S') - sleepcontrol started (PID $$)." >> "$LOG_FILE"
-
+    local backlight_off=0
     local last_reload_time=0
     local delay_minutes
     local active=1
@@ -107,11 +107,12 @@ monitor_idle_activity() {
             if [ -z "$backlight_ts" ]; then
                 backlight_ts=$now_epoch
             elif (( now_epoch - backlight_ts >= backlight_delay * 60 )); then
-                dbus-send --system --type=method_call \
-                    --dest=org.chromium.PowerManager \
-                    /org/chromium/PowerManager \
-                    org.chromium.PowerManager.HandleUserActivity \
-                    int32:0 int32:0
+               if [ "$backlight_off" -eq 0 ]; then
+                sudo ectool backlight 0
+                backlight_off=1
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Turned display off due to backlight timeout (${backlight_delay} min)" >> "$LOG_FILE"
+                fi
+
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Prevented backlight timeout via HandleUserActivity (backlight delay $backlight_delay min)." >> "$LOG_FILE"
                 backlight_ts=$now_epoch
             fi
@@ -198,6 +199,12 @@ fi
                         fi
                         echo "$(date '+%Y-%m-%d %H:%M:%S') - Waiting for user to go idle again." >> "$LOG_FILE"
                     fi
+                        if [ "$backlight_off" -eq 1 ]; then
+                            sudo ectool backlight 1
+                            backlight_off=0
+                            echo "$(date '+%Y-%m-%d %H:%M:%S') - Real user activity detected, turned display back on." >> "$LOG_FILE"
+                        fi
+
                 fi
             fi
         fi
