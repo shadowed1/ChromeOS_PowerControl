@@ -72,8 +72,11 @@ validate_config() {
 
 
 save_config() {
-    validate_config
-
+    load_config
+    if ! validate_config; then
+        echo "${RED}Config not saved due to validation errors.${RESET}"
+        return 1
+    fi
     sed -i "s/^BATTERY_DELAY=.*/BATTERY_DELAY=$BATTERY_DELAY/" "$CONFIG_FILE" || echo "BATTERY_DELAY=$BATTERY_DELAY" >> "$CONFIG_FILE"
     sed -i "s/^POWER_DELAY=.*/POWER_DELAY=$POWER_DELAY/" "$CONFIG_FILE" || echo "POWER_DELAY=$POWER_DELAY" >> "$CONFIG_FILE"
     sed -i "s/^BATTERY_BACKLIGHT=.*/BATTERY_BACKLIGHT=$BATTERY_BACKLIGHT/" "$CONFIG_FILE" || echo "BATTERY_BACKLIGHT=$BATTERY_BACKLIGHT" >> "$CONFIG_FILE"
