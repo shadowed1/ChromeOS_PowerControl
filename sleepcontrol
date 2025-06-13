@@ -375,14 +375,14 @@ case "$1" in
             load_config
             echo "${GREEN}SleepControl is running.${RESET}"
             echo ""
-            echo "Sleep set for: ${GREEN}On Battery=$((BATTERY_DELAY + 6)) minutes${RESET}, ${BLUE}Plugged-In=$((POWER_DELAY + 8)) minutes${RESET}"
-            echo "Display timeout set for: ${GREEN}On Battery= $BATTERY_BACKLIGHT minutes${RESET}, ${BLUE}Plugged-In= $POWER_BACKLIGHT minutes${RESET}"
+            echo "Sleep set for: ${GREEN}On Battery = $((BATTERY_DELAY + 6)) minutes${RESET}, ${BLUE}On Power = $((POWER_DELAY + 8)) minutes${RESET}"
+            echo "Display timeout set for: ${GREEN}On Battery = $BATTERY_BACKLIGHT minutes${RESET}, ${BLUE}On Power = $POWER_BACKLIGHT minutes${RESET}"
         else
             load_config
             echo "${RED}SleepControl is not running.${RESET}"
             echo ""
-            echo "Sleep set for: ${GREEN}On Battery=$((BATTERY_DELAY + 6)) minutes${RESET}, ${BLUE}Plugged-In=$((POWER_DELAY + 8)) minutes${RESET}"
-            echo "Display timeout set for: ${GREEN}On Battery= $BATTERY_BACKLIGHT minutes${RESET}, ${BLUE}Plugged-In= $POWER_BACKLIGHT minutes${RESET}"
+            echo "Sleep set for: ${GREEN}On Battery = $((BATTERY_DELAY + 6)) minutes${RESET}, ${BLUE}On Power = $((POWER_DELAY + 8)) minutes${RESET}"
+            echo "Display timeout set for: ${GREEN}On Battery = $BATTERY_BACKLIGHT minutes${RESET}, ${BLUE}On Power = $POWER_BACKLIGHT minutes${RESET}"
         fi
         ;;
     __monitor__)
