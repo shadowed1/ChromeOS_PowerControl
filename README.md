@@ -176,10 +176,10 @@ __How It Works:__
 *SleepControl:*
 
 - By reading powerd.LATEST log, SleepControl monitors when the powerd daemon reports when the user is idle.
-- Once the user is idle, SleepControl uses dbus-send --system to input an empty dummy user input.
+- Once the user is idle, SleepControl uses dbus-send --system to input an empty dummy user input every 2 minutes.
 - SleepControl monitors reports of audio activity the same way to prevent the screen going black when watching a video.
-- This simulated input tricks ChromeOS thinking the user is actually still there until its set timer runs out.
-- SleepControl compares its fake inputs timestamps with powerd's reports to know when real input occurs; going to sleep until user inactivity is reported again. 
+- This simulated input tricks ChromeOS thinking the user is actually still there until its set timer runs out; enabling custom sleep time.
+- SleepControl compares its fake inputs timestamps with powerd's timestamps to know when real input occurs; going to sleep until user inactivity is reported again.
 
 <br>
 
@@ -206,6 +206,7 @@ Uninstaller no longer requiring user to reboot to restore GPU clockspeed. Fixed 
 Added ramp_up and ramp_down commands for PowerControl CPU scaling speed.
 Added stop processes commands and better cleanup when running startup, reinstalling and uninstalling.
 Reformatted status for better readability. Added post-install notes for BatteryControl and GPUControl.`
+- 0.19: Added SleepControl
 
 <br>
 
