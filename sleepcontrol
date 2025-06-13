@@ -407,7 +407,7 @@ case "$1" in
         echo "sudo sleepcontrol power 60               # Sleep in 60 minutes when plugged in."
         echo "sudo sleepcontrol battery_backlight 10   # Turn off display after 15 mins when idling on battery."
         echo "sudo sleepcontrol power_backlight 30     # Turn off display after 60 mins when idling plugged-in."
-        echo "sudo sleepcontrol startup                # Copy or Remove fanontrol.conf at: /etc/init/"
+        echo "sudo sleepcontrol startup                # Copy or Remove fancontrol.conf at: /etc/init/"
         echo "sudo sleepcontrol help                   # Help menu${RESET}"
         exit 1
         ;;
