@@ -225,25 +225,26 @@ monitor_idle_activity() {
                     fi
                 done
         
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Detected user activity log time $reported_epoch, matched_recent_sim=$matched_recent_sim" >> "$LOG_FILE"
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Log time $reported_epoch, matched_recent_sim=$matched_recent_sim" >> "$LOG_FILE"
         
-                if [ "$matched_recent_sim" -eq 0 ]; then
-                    if [ "$active" -eq 0 ]; then
-                        active=1
-                        [ -n "$sim_pid" ] && kill "$sim_pid" 2>/dev/null && sim_pid=
-                        echo "$(date '+%Y-%m-%d %H:%M:%S') - Waiting for user to go idle again." >> "$LOG_FILE"
-                    fi
-        
-                    if [ "$backlight_off" -eq 1 ]; then
-                        sudo ectool backlight 1
-                        backlight_off=0
-                        echo "$(date '+%Y-%m-%d %H:%M:%S') - Real user activity detected, turned display back on." >> "$LOG_FILE"
-                    fi
-        
-                    # Reset the timestamp to prevent immediate re-off
-                    if [ "$status" = "Discharging" ]; then
-                        battery_backlight_ts=$now_epoch
-                    else
+                     if [ "$matched_recent_sim" -eq 0 ]; then
+                        # Always reset timers on real user activity
+                        if [ "$active" -eq 0 ]; then
+                            active=1
+                            [ -n "$sim_pid" ] && kill "$sim_pid" 2>/dev/null && sim_pid=
+                            echo "$(date '+%Y-%m-%d %H:%M:%S') - Waiting for user to go idle again." >> "$LOG_FILE"
+                        fi
+
+                        if [ "$backlight_off" -eq 1 ]; then
+                            sudo ectool backlight 1
+                            backlight_off=0
+                            echo "$(date '+%Y-%m-%d %H:%M:%S') - Real user activity detected, turned display back on." >> "$LOG_FILE"
+                        fi
+
+                        # Reset backlight timer every time real user activity detected
+                        if [ "$status" = "Discharging" ]; then
+                            battery_backlight_ts=$now_epoch
+                        else
                         power_backlight_ts=$now_epoch
                     fi
                 fi
