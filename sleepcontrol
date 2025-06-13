@@ -127,6 +127,14 @@ monitor_idle_activity() {
 
         now_epoch=$(date +%s)
 
+        if [ "$audio_active" -eq 1 ]; then
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - Audio activity active, skipping backlight timeout." >> "$LOG_FILE"
+            battery_backlight_ts=$now_epoch
+            power_backlight_ts=$now_epoch
+            continue
+            fi
+
+
          if [ "$status" = "Discharging" ]; then
             # Battery mode
             if [ -z "$battery_backlight_ts" ]; then
@@ -153,6 +161,13 @@ monitor_idle_activity() {
                     echo "$(date '+%Y-%m-%d %H:%M:%S') - Turned display off due to power backlight timeout (${POWER_BACKLIGHT} min)" >> "$LOG_FILE"
                 fi
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Prevented backlight timeout via HandleUserActivity (power backlight delay $POWER_BACKLIGHT min)." >> "$LOG_FILE"
+
+                if [ "$backlight_off" -eq 1 ]; then
+                    sudo ectool backlight 1
+                    backlight_off=0
+                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Backlight restored due to simulated activity." >> "$LOG_FILE"
+                fi
+
                 power_backlight_ts=$now_epoch
             fi
             # Reset battery backlight timestamp (not active now)
