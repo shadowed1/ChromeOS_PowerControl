@@ -8,8 +8,8 @@
 
 __Requires Developer Mode - Supports AMD, ARM, and Intel.__
   <br> <br>
-- Control battery charging limit instead of relying on Adaptive Charging to maximize battery longevity.
 - Control CPU clockspeed in relation to temperature; enabling lower temperatures under load and longer battery life.
+- Control battery charging limit instead of relying on Adaptive Charging to maximize battery longevity.
 - Control fan curve in relation to temperature with built-in hysteresis and 0% RPM mode.
 - Clamp GPU clockspeed below its default maximum; enabling lower temperatures and longer battery life when rendering 3D content. 
   <br> <br>
