@@ -72,15 +72,16 @@ validate_config() {
 
 
 save_config() {
-    load_config
+    validate_config
 
-    {
-        echo "BATTERY_DELAY=$BATTERY_DELAY"
-        echo "POWER_DELAY=$POWER_DELAY"
-        echo "BATTERY_BACKLIGHT=$BATTERY_BACKLIGHT"
-        echo "POWER_BACKLIGHT=$POWER_BACKLIGHT"
-    } > "$CONFIG_FILE"
+    sed -i "s/^BATTERY_DELAY=.*/BATTERY_DELAY=$BATTERY_DELAY/" "$CONFIG_FILE" || echo "BATTERY_DELAY=$BATTERY_DELAY" >> "$CONFIG_FILE"
+    sed -i "s/^POWER_DELAY=.*/POWER_DELAY=$POWER_DELAY/" "$CONFIG_FILE" || echo "POWER_DELAY=$POWER_DELAY" >> "$CONFIG_FILE"
+    sed -i "s/^BATTERY_BACKLIGHT=.*/BATTERY_BACKLIGHT=$BATTERY_BACKLIGHT/" "$CONFIG_FILE" || echo "BATTERY_BACKLIGHT=$BATTERY_BACKLIGHT" >> "$CONFIG_FILE"
+    sed -i "s/^POWER_BACKLIGHT=.*/POWER_BACKLIGHT=$POWER_BACKLIGHT/" "$CONFIG_FILE" || echo "POWER_BACKLIGHT=$POWER_BACKLIGHT" >> "$CONFIG_FILE"
+
+    source "$CONFIG_FILE"
 }
+
 
 simulate_activity_loop()
 {
