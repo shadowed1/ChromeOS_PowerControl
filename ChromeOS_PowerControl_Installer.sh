@@ -429,8 +429,7 @@ start_component_now() {
 }
 
 
-
-echo "${BLUE}Stopping any running instances of components (if any)...${RESET}"
+echo "${BLUE}Stopping any running components of PowerControl${RESET}"
 sudo bash "$INSTALL_DIR/gpucontrol" restore
 for component in batterycontrol powercontrol fancontrol; do
     if command -v "$INSTALL_DIR/$component" >/dev/null 2>&1; then
@@ -445,8 +444,8 @@ done
 echo ""
 start_component_now "BatteryControl" "$INSTALL_DIR/batterycontrol"
 start_component_now "PowerControl" "$INSTALL_DIR/powercontrol"
-start_component_now "SleepControl" "$INSTALL_DIR/sleepcontrol"
 start_component_now "FanControl" "$INSTALL_DIR/fancontrol"
+start_component_now "SleepControl" "$INSTALL_DIR/sleepcontrol"
 
 echo ""
 echo "           ${RED}████████████${RESET}           "
