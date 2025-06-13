@@ -21,6 +21,9 @@ PID_FILE="$INSTALL_DIR/.sleepcontrol_pid"
 RUN_FLAG="$INSTALL_DIR/.sleepcontrol_enabled"
 LOG_FILE="/var/log/sleepcontrol.log"
 BATTERY_STATUS_PATH="/sys/class/power_supply/BAT0/status"
+SIM_FILE="/tmp/sleepcontrol.sim"
+SIM_FILE_TMP="/tmp/sleepcontrol.sim.tmp"
+
 
 DEFAULT_BATTERY_DELAY=14
 DEFAULT_POWER_DELAY=30
@@ -73,9 +76,6 @@ save_config() {
 }
 
 load_config
-
-SIM_FILE="/tmp/sleepcontrol.sim"
-SIM_FILE_TMP="/tmp/sleepcontrol.sim.tmp"
 
 save_sim_times() {
     local -n arr=$1  # pass array by name
