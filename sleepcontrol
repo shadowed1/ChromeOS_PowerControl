@@ -34,8 +34,16 @@ POWER_BACKLIGHT=
 audio_active=0
 
 load_config() {
-    [ -f "$CONFIG_FILE" ] && source "$CONFIG_FILE"
-    validate_config
+    if [ -f "$CONFIG_FILE" ]; then
+        source "$CONFIG_FILE"
+    else
+        echo "Creating default configuration..."
+        BATTERY_DELAY=${BATTERY_DELAY:-$DEFAULT_BATTERY_DELAY}
+        POWER_DELAY=${POWER_DELAY:-$DEFAULT_POWER_DELAY}
+        BATTERY_BACKLIGHT=${BATTERY_BACKLIGHT:-$DEFAULT_BATTERY_BACKLIGHT}
+        POWER_BACKLIGHT=${POWER_BACKLIGHT:-$DEFAULT_POWER_BACKLIGHT}
+        validate_config
+    fi
 }
 
 validate_config() {
@@ -60,8 +68,8 @@ validate_config() {
     fi
 }
 
-
 save_config() {
+    validate_config
 
     sed -i "s/^BATTERY_DELAY=.*/BATTERY_DELAY=$BATTERY_DELAY/" "$CONFIG_FILE" || echo "BATTERY_DELAY=$BATTERY_DELAY" >> "$CONFIG_FILE"
     sed -i "s/^POWER_DELAY=.*/POWER_DELAY=$POWER_DELAY/" "$CONFIG_FILE" || echo "POWER_DELAY=$POWER_DELAY" >> "$CONFIG_FILE"
