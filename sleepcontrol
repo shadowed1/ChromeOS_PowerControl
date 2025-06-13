@@ -73,15 +73,15 @@ validate_config() {
 
 save_config() {
     validate_config
+        val="${!var}"
 
-    sed -i "s/^BATTERY_DELAY=.*/BATTERY_DELAY=$BATTERY_DELAY/" "$CONFIG_FILE" || echo "BATTERY_DELAY=$BATTERY_DELAY" >> "$CONFIG_FILE"
-    sed -i "s/^POWER_DELAY=.*/POWER_DELAY=$POWER_DELAY/" "$CONFIG_FILE" || echo "POWER_DELAY=$POWER_DELAY" >> "$CONFIG_FILE"
-    sed -i "s/^BATTERY_BACKLIGHT=.*/BATTERY_BACKLIGHT=$BATTERY_BACKLIGHT/" "$CONFIG_FILE" || echo "BATTERY_BACKLIGHT=$BATTERY_BACKLIGHT" >> "$CONFIG_FILE"
-    sed -i "s/^POWER_BACKLIGHT=.*/POWER_BACKLIGHT=$POWER_BACKLIGHT/" "$CONFIG_FILE" || echo "POWER_BACKLIGHT=$POWER_BACKLIGHT" >> "$CONFIG_FILE"
-
-    source "$CONFIG_FILE"
+        if ! grep -q "^$var=" "$CONFIG_FILE"; then
+            echo "$var=$val" >> "$CONFIG_FILE"
+        else
+            sed -i "s/^$var=.*/$var=$val/" "$CONFIG_FILE"
+        fi
+    done
 }
-
 
 simulate_activity_loop()
 {
