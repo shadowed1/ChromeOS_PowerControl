@@ -603,7 +603,7 @@ case "$1" in
             fi
         else
             echo "Intel Turbo Boost enabled on startup."
-            sudo rm -r /etc/init/no_turbo.conf
+            sudo rm -f /etc/init/no_turbo.conf
         fi
     fi
 
