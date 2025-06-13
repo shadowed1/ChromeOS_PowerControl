@@ -116,7 +116,6 @@ monitor_idle_activity() {
             backlight_ts=""
         fi
 
-        # Exit trigger
         if [ ! -f "$RUN_FLAG" ]; then
             echo "$(date '+%Y-%m-%d %H:%M:%S') - sleepcontrol stopped, exiting loop." >> "$LOG_FILE"
             [ -n "$sim_pid" ] && kill "$sim_pid" 2>/dev/null
@@ -131,7 +130,6 @@ monitor_idle_activity() {
             last_reload_time=$now
         fi
 
-        # Determine suspend delay
         if [ -f "$BATTERY_STATUS_PATH" ]; then
             status=$(cat "$BATTERY_STATUS_PATH")
             if [ "$status" = "Discharging" ]; then
@@ -143,7 +141,6 @@ monitor_idle_activity() {
             delay_minutes=$DEFAULT_POWER_DELAY
         fi
 
-        # User inactivity detected — simulate activity
         if echo "$line" | grep -q "User activity stopped"; then
             if [ "$active" -eq 1 ]; then
                 sleep 120
