@@ -107,7 +107,15 @@ fi
     GPU_MAX_FREQ=""
     GPU_TYPE="unknown"
 }
-
+echo ""
+echo "     ${BOLD}${GREEN}Chrome${RESET}${BOLD}${RED}OS${RESET}${BOLD}${YELLOW}_${RESET}${BOLD}${BLUE}PowerControl${RESET}"
+echo "Features:"
+echo "${CYAN}PowerControl: Control CPU clockspeed in relation to temperature; enabling lower temperatures under load and longer battery life."${RESET}
+echo "${GREEN}BatteryControl: Control battery charging limit instead of relying on Adaptive Charging to maximize battery longevity.${RESET}"
+echo "${YELLOW}FanControl: Control fan curve in relation to temperature with built-in hysteresis and 0% RPM mode."
+echo "${MAGENTA}GPUControL: Control GPU clockspeed below its default maximum; enabling lower temperatures and longer battery life when rendering 3D content.${RESET}"
+echo "${BLUE}SleepControl: Control how long ChromeOS can be idle before being able to sleep."
+echo ""
 echo ""
 echo "${RED}VT-2 (or enabling sudo in crosh) is ${RESET}${BOLD}${RED}required${RESET}${RED} to run this installer.$RESET"
 echo "${YELLOW}Must be installed in a location without the ${RESET}${MAGENTA}${BOLD}noexec mount.$RESET"
