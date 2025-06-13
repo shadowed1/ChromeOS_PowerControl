@@ -9,5 +9,5 @@ else
 fi
 
 INSTALL_DIR="${INSTALL_DIR%/}"
-
+sudo ectool backlight 1
 exec "$INSTALL_DIR/sleepcontrol" __monitor__ >> /var/log/sleepcontrol.log 2>&1
