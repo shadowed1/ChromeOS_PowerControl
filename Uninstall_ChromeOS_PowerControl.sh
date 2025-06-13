@@ -55,7 +55,7 @@ case "$choice" in
         sudo initctl stop fancontrol 2>/dev/null
         sudo initctl stop gpu_control 2>/dev/null
         sudo initctl stop sleep_control 2>/dev/null
-        
+        sudo ectool backlight 1
         sudo bash "$INSTALL_DIR/powercontrol" stop
         sudo bash "$INSTALL_DIR/powercontrol" max_perf_pct 100
         sudo bash "$INSTALL_DIR/powercontrol" no_turbo 0
