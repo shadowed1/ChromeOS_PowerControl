@@ -192,22 +192,45 @@ monitor_idle_activity() {
                 fi
 
                 (
-                        loop_start=$(date +%s)
-                        end=$((loop_start + delay_minutes * 60))
-                        dbus-send --system --type=method_call \
-                            --dest=org.chromium.PowerManager \
-                            /org/chromium/PowerManager \
-                            org.chromium.PowerManager.HandleUserActivity \
-                            int32:0 int32:0
-                        ts=$(date +%s)
-                        last_simulated_times+=("$ts")
-                        if [ "${#last_simulated_times[@]}" -gt 10 ]; then
-                            last_simulated_times=("${last_simulated_times[@]: -10}")
-                        fi
-                        printf "%s\n" "${last_simulated_times[@]}" > "$SIM_FILE_TMP" && mv "$SIM_FILE_TMP" "$SIM_FILE"
-                        sleep 1
-                ) &
-                sim_pid=$!
+    loop_start=$(date +%s)
+    end=$((loop_start + delay_minutes * 60))
+    cooldown=45  # wait at least 45 seconds between fake activity
+
+    while (( $(date +%s) < end )); do
+        now=$(date +%s)
+        # only simulate if nothing real happened recently
+        recent_real_activity=0
+        if [ -f "$sim_file" ]; then
+            readarray -t last_simulated_times < "$sim_file"
+            for sim_ts in "${last_simulated_times[@]}"; do
+                [[ "$sim_ts" =~ ^[0-9]+$ ]] || continue
+                if (( now - sim_ts < cooldown )); then
+                    recent_real_activity=1
+                    break
+                fi
+            done
+        fi
+
+        if [ "$recent_real_activity" -eq 0 ]; then
+            dbus-send --system --type=method_call \
+                --dest=org.chromium.PowerManager \
+                /org/chromium/PowerManager \
+                org.chromium.PowerManager.HandleUserActivity \
+                int32:0 int32:0
+
+            ts=$(date +%s)
+            last_simulated_times+=("$ts")
+            if [ "${#last_simulated_times[@]}" -gt 10 ]; then
+                last_simulated_times=("${last_simulated_times[@]: -10}")
+            fi
+            printf "%s\n" "${last_simulated_times[@]}" > "$SIM_FILE_TMP" && mv "$SIM_FILE_TMP" "$sim_file"
+        fi
+
+        sleep "$cooldown"
+    done
+) &
+sim_pid=$!
+
             fi
                elif echo "$line" | grep -q "User activity reported"; then
             if [[ "$line" =~ ([0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}) ]]; then
@@ -219,7 +242,7 @@ monitor_idle_activity() {
                 for sim_ts in "${last_simulated_times[@]}"; do
                     [[ "$sim_ts" =~ ^[0-9]+$ ]] || continue  # skip bad lines
                     diff=$((reported_epoch - sim_ts))
-                    if (( diff >= -1 && diff <= 1 )); then
+                    if (( diff >= -2 && diff <= 2 )); then
                         matched_recent_sim=1
                         break
                     fi
