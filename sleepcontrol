@@ -142,65 +142,63 @@ monitor_idle_activity() {
         fi
 
         if echo "$line" | grep -q "User activity stopped"; then
-            if [ "$active" -eq 1 ]; then
+    if [ "$active" -eq 1 ]; then
+        sleep 120
+        active=0
+        (
+            end=$((SECONDS + delay_minutes * 60))
+            while [ $SECONDS -lt $end ]; do
+                dbus-send --system --type=method_call \
+                    --dest=org.chromium.PowerManager \
+                    /org/chromium/PowerManager \
+                    org.chromium.PowerManager.HandleUserActivity \
+                    int32:0 int32:0
+                ts=$(date +%s)
+                last_simulated_times+=("$ts")
+                if [ "${#last_simulated_times[@]}" -gt 10 ]; then
+                    last_simulated_times=("${last_simulated_times[@]: -10}")
+                fi
+                printf "%s\n" "${last_simulated_times[@]}" > "$sim_file"
                 sleep 120
-                active=0
-                (
-                    end=$((SECONDS + delay_minutes * 60))
-                    while [ $SECONDS -lt $end ]; do
-                        dbus-send --system --type=method_call \
-                            --dest=org.chromium.PowerManager \
-                            /org/chromium/PowerManager \
-                            org.chromium.PowerManager.HandleUserActivity \
-                            int32:0 int32:0
-                        ts=$(( $(date -u +"%s") + 4 ))
-                        last_simulated_times+=("$ts")
-                        if [ "${#last_simulated_times[@]}" -gt 10 ]; then
-                            last_simulated_times=("${last_simulated_times[@]: -10}")
-                        fi
-                        printf "%s\n" "${last_simulated_times[@]}" > "$sim_file"
-                        sleep 120
-                    done
-                ) &
-                sim_pid=$!
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - User inactive, started simulate_activity_loop (PID $sim_pid)." >> "$LOG_FILE"
+            done
+        ) &
+        sim_pid=$!
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - User inactive, started simulate_activity_loop (PID $sim_pid)." >> "$LOG_FILE"
+    fi
+
+elif echo "$line" | grep -q "User activity reported"; then
+    if [[ "$line" =~ ([0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}) ]]; then
+        reported_time_utc="${BASH_REMATCH[1]}"
+        reported_epoch=$(date -u -d "$reported_time_utc" +%s 2>/dev/null)
+        matched_recent_sim=0
+
+        if [ -f "$sim_file" ]; then
+            readarray -t last_simulated_times < "$sim_file"
+        fi
+
+        for sim_ts in "${last_simulated_times[@]}"; do
+            diff=$((reported_epoch - sim_ts))
+            if (( diff >= -3 && diff <= 6 )); then
+                matched_recent_sim=1
+                break
             fi
+        done
 
-        # User activity reported — check if real or simulated
-        elif echo "$line" | grep -q "User activity reported"; then
-            if [[ "$line" =~ ([0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}) ]]; then
-                reported_time_utc="${BASH_REMATCH[1]}"
-                reported_epoch=$(date -u -d "$reported_time_utc" +%s 2>/dev/null)
-                matched_recent_sim=0
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - Detected user activity log time $reported_epoch, matched_recent_sim=$matched_recent_sim" >> "$LOG_FILE"
 
-                if [ -f "$sim_file" ]; then
-                    readarray -t last_simulated_times < "$sim_file"
+        if [ "$matched_recent_sim" -eq 0 ]; then
+            if [ "$active" -eq 0 ]; then
+                active=1
+                if [ -n "$sim_pid" ]; then
+                    kill "$sim_pid" 2>/dev/null
+                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Real user active, stopping simulate_activity_loop (PID $sim_pid)." >> "$LOG_FILE"
+                    sim_pid=
                 fi
-
-                for sim_ts in "${last_simulated_times[@]}"; do
-                    diff=$((reported_epoch - sim_ts))
-                    if (( diff >= -3 && diff <= 6 )); then
-                        matched_recent_sim=1
-                        break
-                    fi
-                done
-
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Detected user activity log time $reported_epoch, matched_recent_sim=$matched_recent_sim" >> "$LOG_FILE"
-
-                if [ "$matched_recent_sim" -eq 0 ]; then
-                    if [ "$active" -eq 0 ]; then
-                        active=1
-                        if [ -n "$sim_pid" ]; then
-                            kill "$sim_pid" 2>/dev/null
-                            echo "$(date '+%Y-%m-%d %H:%M:%S') - Real user active, stopping simulate_activity_loop (PID $sim_pid)." >> "$LOG_FILE"
-                            sim_pid=
-                        fi
-                        echo "$(date '+%Y-%m-%d %H:%M:%S') - Waiting for user to go idle again." >> "$LOG_FILE"
-                    fi
-                fi
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Waiting for user to go idle again." >> "$LOG_FILE"
             fi
         fi
-    done
+    fi
+fi
 }
 
 stop_monitoring() {
