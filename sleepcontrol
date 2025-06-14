@@ -387,7 +387,6 @@ case "$1" in
     stop)
         sudo ectool backlight 1 >/dev/null 2>&1
         stop_monitoring
-        echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') - SleepControl stopped.${RESET}." | tee -a "$LOG_FILE"
         ;;
         battery)
         if [ -n "$2" ]; then
