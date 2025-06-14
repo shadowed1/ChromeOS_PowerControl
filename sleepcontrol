@@ -334,7 +334,7 @@ fi
 sim_pid=$!
 
             fi
-               elif echo "$line" | grep -q "User activity reported"; then
+               elif echo "$line" | grep -E -q "User activity (reported|ongoing)"; then
             if [[ "$line" =~ ([0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}) ]]; then
                 reported_time_utc="${BASH_REMATCH[1]}"
                 reported_epoch=$(date -u -d "$reported_time_utc" +%s 2>/dev/null)
