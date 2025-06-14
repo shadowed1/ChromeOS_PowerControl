@@ -339,7 +339,8 @@ fi
     else
         echo "$(date '+%Y-%m-%d %H:%M:%S') - Suspend aborted due to recent real activity." >> "$LOG_FILE"
     fi
-
+) &
+sim_pid=$!
 
             fi
                elif echo "$line" | grep -q "User activity reported"; then
@@ -390,8 +391,6 @@ fi
             fi
 
         fi
-) &
-sim_pid=$!
     done < <(tail -Fn0 /var/log/power_manager/powerd.LATEST)
 }
 stop_monitoring() {
