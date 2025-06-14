@@ -191,10 +191,7 @@ fi
             if [ -n "$last_kb_off_time" ] && (( now_epoch - last_kb_off_time >= 5 )); then
                 sudo ectool backlight 0 2>/dev/null
                 backlight_off=1
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Turned display off due to battery timeout (${BATTERY_BACKLIGHT} min) + keyboard backlight off 5s." >> "$LOG_FILE"
-            else
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Skipped battery timeout: keyboard backlight not off long enough (brightness $kb_brightness)." >> "$LOG_FILE"
-            fi
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Turned display off due to battery backlight timer: ${BATTERY_BACKLIGHT} minutes" >> "$LOG_FILE"
         fi
 
         battery_backlight_ts=$now_epoch
@@ -223,11 +220,8 @@ fi
             if [ -n "$last_kb_off_time" ] && (( now_epoch - last_kb_off_time >= 5 )); then
                 sudo ectool backlight 0 2>/dev/null
                 backlight_off=1
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Turned display off due to power timeout (${POWER_BACKLIGHT} min) + keyboard backlight off 5s." >> "$LOG_FILE"
-            else
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Skipped power timeout: keyboard backlight not off long enough (brightness $kb_brightness)." >> "$LOG_FILE"
-            fi
-        fi
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Turned display off due to power backlight timer: ${POWER_BACKLIGHT} minutes." >> "$LOG_FILE"
+                fi
 
         power_backlight_ts=$now_epoch
     fi
