@@ -7,6 +7,7 @@ MAGENTA=$(tput setaf 5)
 CYAN=$(tput setaf 6)
 BOLD=$(tput bold)
 RESET=$(tput sgr0)
+SHOW_POWERCONTROL_NOTICE=0
 SHOW_BATTERYCONTROL_NOTICE=0
 SHOW_SLEEPCONTROL_NOTICE=0
 SHOW_GPUCONTROL_NOTICE=0
@@ -154,6 +155,11 @@ for file in "${files[@]}"; do
 done
 
 detect_cpu_type
+
+if [ "$IS_INTEL" -eq 1 ]; then
+    SHOW_POWERCONTROL_NOTICE=1
+fi
+
 echo "${CYAN}Detected CPU Vendor: $CPU_VENDOR"
 echo "PERF_PATH: $PERF_PATH"
 echo "TURBO_PATH: $TURBO_PATH"
@@ -401,6 +407,9 @@ fi
 if grep -q '^STARTUP_SLEEPCONTROL=1' "$CONFIG_FILE"; then
     SHOW_SLEEPCONTROL_NOTICE=1
 fi
+if grep -q '^STARTUP_POWERCONTROL=1' "$CONFIG_FILE"; then
+    SHOW_BATTERYCONTROL_NOTICE=1
+fi
 
 start_component_now() {
    
@@ -535,6 +544,12 @@ echo "sudo bash "$INSTALL_DIR/Uninstall_ChromeOS_PowerControl.sh"    # Alternate
 echo ""
 echo "${BOLD}Installation Complete!${RESET}"
 echo ""
+if [[ "$SHOW_POWERCONTROL_NOTICE" -eq 1 ]]; then
+echo ""
+echo "${CYAN}${BOLD}Intel Inside!:${RESET}"
+echo "${CYAN}${BOLD}Disable${RESET}${GREEN}.${RESET}"
+echo ""
+fi
 if [[ "$SHOW_BATTERYCONTROL_NOTICE" -eq 1 ]]; then
 echo ""
 echo "${GREEN}${BOLD}BatteryControl:${RESET}"
