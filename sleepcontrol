@@ -162,18 +162,13 @@ fi
 # If keyboard backlight has been off for 5+ seconds, turn off display
 if [ -n "$last_kb_off_time" ] && (( now_epoch - last_kb_off_time >= 5 )); then
     if [ "$backlight_off" -eq 0 ]; then
-    if [ -n "$last_kb_off_time" ] && (( now_epoch - last_kb_off_time >= 5 )); then
         sudo ectool backlight 0
         backlight_off=1
-        echo "$(date '+%Y-%m-%d %H:%M:%S') - Turned display off due to $source + keyboard backlight off 5s." >> "$LOG_FILE"
-    else
-        echo "$(date '+%Y-%m-%d %H:%M:%S') - Skipped $source timeout: keyboard backlight not off long enough (brightness $kb_brightness)." >> "$LOG_FILE"
-    fi
-fi
 else
     echo "$(date '+%Y-%m-%d %H:%M:%S') - Skipped display timeout: keyboard backlight not off long enough." >> "$LOG_FILE"
 fi
 
+         
 
 
         if [ "$status" = "Discharging" ]; then
@@ -340,33 +335,6 @@ fi
         sleep "$cooldown"
     done
 
-    if [ "$matched_recent_sim" -eq 0 ]; then
-                        # Always reset timers on real user activity
-                        if [ "$active" -eq 0 ]; then
-                            active=1
-                            [ -n "$sim_pid" ] && kill "$sim_pid" 2>/dev/null && sim_pid=
-                            echo "$(date '+%Y-%m-%d %H:%M:%S') - Waiting for user to go idle again." >> "$LOG_FILE"
-                        fi
-
-                        if [ "$backlight_off" -eq 1 ]; then
-                            sudo ectool backlight 1
-                            backlight_off=0
-                            echo "$(date '+%Y-%m-%d %H:%M:%S') - Real user activity detected, turned display back on." >> "$LOG_FILE"
-                        fi
-
-                        if [ "$kb_brightness_restored" -eq 0 ] && [ "$saved_kb_brightness" -ge 0 ]; then
-                            sudo ectool pwmsetkblight "$saved_kb_brightness"
-                            echo "$(date '+%Y-%m-%d %H:%M:%S') - Restored keyboard brightness to $saved_kb_brightness%" >> "$LOG_FILE"
-                            kb_brightness_restored=1
-                        fi
-
-                        # Reset backlight timer every time real user activity detected
-                        if [ "$status" = "Discharging" ]; then
-                            battery_backlight_ts=$now_epoch
-                        else
-                        power_backlight_ts=$now_epoch
-                    fi
-                fi
     # Final safety check before suspend
     sleep 5  # Short grace period for last-moment activity
 
@@ -393,8 +361,7 @@ fi
     else
         echo "$(date '+%Y-%m-%d %H:%M:%S') - Suspend aborted due to recent real activity." >> "$LOG_FILE"
     fi
-) &
-sim_pid=$!
+
 
             fi
                elif echo "$line" | grep -q "User activity reported"; then
@@ -415,9 +382,38 @@ sim_pid=$!
         
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - $reported_epoch, matched_recent_sim=$matched_recent_sim" >> "$LOG_FILE"
         
+                     if [ "$matched_recent_sim" -eq 0 ]; then
+                        # Always reset timers on real user activity
+                        if [ "$active" -eq 0 ]; then
+                            active=1
+                            [ -n "$sim_pid" ] && kill "$sim_pid" 2>/dev/null && sim_pid=
+                            echo "$(date '+%Y-%m-%d %H:%M:%S') - Waiting for user to go idle again." >> "$LOG_FILE"
+                        fi
+
+                        if [ "$backlight_off" -eq 1 ]; then
+                            sudo ectool backlight 1
+                            backlight_off=0
+                            echo "$(date '+%Y-%m-%d %H:%M:%S') - Real user activity detected, turned display back on." >> "$LOG_FILE"
+                        fi
+
+                        if [ "$kb_brightness_restored" -eq 0 ] && [ "$saved_kb_brightness" -ge 0 ]; then
+                            sudo ectool pwmsetkblight "$saved_kb_brightness"
+                            echo "$(date '+%Y-%m-%d %H:%M:%S') - Restored keyboard brightness to $saved_kb_brightness%" >> "$LOG_FILE"
+                            kb_brightness_restored=1
+                        fi
+
+                        # Reset backlight timer every time real user activity detected
+                        if [ "$status" = "Discharging" ]; then
+                            battery_backlight_ts=$now_epoch
+                        else
+                        power_backlight_ts=$now_epoch
+                    fi
+                fi
             fi
 
         fi
+) &
+sim_pid=$!
     done < <(tail -Fn0 /var/log/power_manager/powerd.LATEST)
 }
 stop_monitoring() {
