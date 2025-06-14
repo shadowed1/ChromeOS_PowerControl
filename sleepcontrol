@@ -111,7 +111,6 @@ monitor_idle_activity() {
     local power_backlight_ts=
     local battery_backlight_ts=
     local audio_active=0
-    local lid_open_detected=0
 
     while read -r line; do
         if echo "$line" | grep -q "Audio activity started"; then
@@ -161,46 +160,21 @@ else
 fi
 
 # If keyboard backlight has been off for 5+ seconds, turn off display
-if [ -n "$last_kb_off_time" ] && (( now_epoch - last_kb_off_time >= 5 )) && [ "$backlight_off" -eq 0 ]; then
-    sudo ectool backlight 0
-    backlight_off=1
-    echo "$(date '+%Y-%m-%d %H:%M:%S') - Turned display off due to $source + keyboard backlight off 5s." >> "$LOG_FILE"
+if [ -n "$last_kb_off_time" ] && (( now_epoch - last_kb_off_time >= 5 )); then
+    if [ "$backlight_off" -eq 0 ]; then
+    if [ -n "$last_kb_off_time" ] && (( now_epoch - last_kb_off_time >= 5 )); then
+        sudo ectool backlight 0
+        backlight_off=1
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - Turned display off due to $source + keyboard backlight off 5s." >> "$LOG_FILE"
+    else
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - Skipped $source timeout: keyboard backlight not off long enough (brightness $kb_brightness)." >> "$LOG_FILE"
+    fi
 fi
-
+else
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - Skipped display timeout: keyboard backlight not off long enough." >> "$LOG_FILE"
+fi
          
-if echo "$line" | grep -q "Lid opened"; then
-            lid_open_detected=1
-        elif echo "$line" | grep -q "Chrome is using normal display mode"; then
-            if [ "$lid_open_detected" = "1" ]; then
-                lid_open_detected=0
 
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Chrome resumed normal display mode." >> "$LOG_FILE"
-
-                if [ "$active" -eq 0 ]; then
-                    active=1
-                    [ -n "$sim_pid" ] && kill "$sim_pid" 2>/dev/null && sim_pid=
-                fi
-
-                if [ "$backlight_off" -eq 1 ]; then
-                    sudo ectool backlight 1 2>/dev/null
-                    backlight_off=0
-                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Resumed display." >> "$LOG_FILE"
-                fi
-
-                if [ "$kb_brightness_restored" -eq 0 ] && [ "$saved_kb_brightness" -ge 0 ]; then
-                    sudo ectool pwmsetkblight "$saved_kb_brightness" 2>/dev/null
-                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Restored keyboard brightness to $saved_kb_brightness% after lid open." >> "$LOG_FILE"
-                    kb_brightness_restored=1
-                fi
-
-                # Reset backlight timer
-                if [ "$status" = "Discharging" ]; then
-                    battery_backlight_ts=$now_epoch
-                else
-                    power_backlight_ts=$now_epoch
-                fi
-            fi
-        fi
 
         if [ "$status" = "Discharging" ]; then
     if [ -z "$battery_backlight_ts" ]; then
@@ -226,8 +200,9 @@ if echo "$line" | grep -q "Lid opened"; then
                 sudo ectool backlight 0
                 backlight_off=1
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Turned display off due to battery timeout (${BATTERY_BACKLIGHT} min) + keyboard backlight off 5s." >> "$LOG_FILE"
+            else
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Skipped battery timeout: keyboard backlight not off long enough (brightness $kb_brightness)." >> "$LOG_FILE"
             fi
-
         fi
 
         battery_backlight_ts=$now_epoch
@@ -257,6 +232,8 @@ if echo "$line" | grep -q "Lid opened"; then
                 sudo ectool backlight 0
                 backlight_off=1
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Turned display off due to power timeout (${POWER_BACKLIGHT} min) + keyboard backlight off 5s." >> "$LOG_FILE"
+            else
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Skipped power timeout: keyboard backlight not off long enough (brightness $kb_brightness)." >> "$LOG_FILE"
             fi
         fi
 
@@ -412,6 +389,7 @@ sim_pid=$!
                     fi
                 fi
             fi
+
         fi
     done < <(tail -Fn0 /var/log/power_manager/powerd.LATEST)
 }
@@ -447,7 +425,7 @@ case "$1" in
         stop_monitoring
         echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') - SleepControl stopped.${RESET}." | tee -a "$LOG_FILE"
         ;;
-            battery|power)
+    battery|power)
         MODE=$1
         BACKLIGHT_VAL=$2
         DELAY_VAL=$3
@@ -520,6 +498,60 @@ case "$1" in
             echo "${RED}SleepControl is not running.${RESET}"
             echo ""
             echo "Sleep set for: ${GREEN}On Battery = $((BATTERY_DELAY)) minutes${RESET}, ${BLUE}On Power = $((POWER_DELAY)) minutes${RESET}"
+            echo "Display timeout set for: ${GREEN}On Battery = $BATTERY_BACKLIGHT minutes${RESET}, ${BLUE}On Power = $POWER_BACKLIGHT minutes${RESET}"
+        fi
+        ;;
+    __monitor__)
+        monitor_idle_activity
+        ;;
+        help)
+            "$0" status
+        ;;
+    *)
+        echo "${BLUE}# SleepControl Commands with examples"
+        echo ""
+        echo "sudo sleepcontrol                        # Show current SleepControl settings"
+        echo "sudo sleepcontrol start                  # Start SleepControl"
+        echo "sudo sleepcontrol stop                   # Stop SleepControl"
+        echo "sudo sleepcontrol battery 15             # Sleep after 15 minutes when on battery "
+        echo "sudo sleepcontrol power 60               # Sleep after 60 minutes when plugged in."
+        echo "sudo sleepcontrol battery_backlight 10   # Turn off display after 15 mins when idling on battery."
+        echo "sudo sleepcontrol power_backlight 30     # Turn off display after 60 mins when idling plugged-in."
+        echo "sudo sleepcontrol startup                # Copy or Remove fancontrol.conf at: /etc/init/"
+        echo "sudo sleepcontrol help                   # Help menu${RESET}"
+        exit 1
+        ;;
+esac
+
+        startup)
+        CONF_SOURCE="$INSTALL_DIR/sleepcontrol.conf"
+        CONF_TARGET="/etc/init/sleepcontrol.conf"
+
+        read -p "Do you want SleepControl to startup automatically? (y/n): " choice
+        if [[ "$choice" =~ ^[Yy]$ ]]; then
+            if [ -f "$CONF_SOURCE" ]; then
+                echo "Copying sleepcontrol.conf to /etc/init/..."
+                sudo cp "$CONF_SOURCE" "$CONF_TARGET"
+                echo "${GREEN}sleepcontrol.conf copied.${RESET}"
+            else
+                echo "${RED}sleepcontrol.conf not found at $CONF_SOURCE${RESET}"
+            fi
+        else
+            echo "SleepControl will not startup automatically."
+            sudo rm -f /etc/init/sleepcontrol.conf
+        fi
+        ;;
+    status|"")
+        load_config
+        if [ -f "$PID_FILE" ] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
+            echo "${GREEN}SleepControl is running.${RESET}"
+            echo ""
+            echo "Sleep set for: ${GREEN}On Battery = $((BATTERY_DELAY + 6)) minutes${RESET}, ${BLUE}On Power = $((POWER_DELAY + 8)) minutes${RESET}"
+            echo "Display timeout set for: ${GREEN}On Battery = $BATTERY_BACKLIGHT minutes${RESET}, ${BLUE}On Power = $POWER_BACKLIGHT minutes${RESET}"
+        else
+            echo "${RED}SleepControl is not running.${RESET}"
+            echo ""
+            echo "Sleep set for: ${GREEN}On Battery = $((BATTERY_DELAY + 6)) minutes${RESET}, ${BLUE}On Power = $((POWER_DELAY + 8)) minutes${RESET}"
             echo "Display timeout set for: ${GREEN}On Battery = $BATTERY_BACKLIGHT minutes${RESET}, ${BLUE}On Power = $POWER_BACKLIGHT minutes${RESET}"
         fi
         ;;
