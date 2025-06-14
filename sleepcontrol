@@ -167,15 +167,9 @@ if [ -n "$last_kb_off_time" ] && (( now_epoch - last_kb_off_time >= 5 )); then
         backlight_off=1
         echo "$(date '+%Y-%m-%d %H:%M:%S') - Turned display off due to $source + keyboard backlight off 5s." >> "$LOG_FILE"
     else
-        echo "$(date '+%Y-%m-%d %H:%M:%S') - Skipped $source timeout: keyboard backlight not off long enough (brightness $kb_brightness)." >> "$LOG_FILE"
     fi
 fi
-else
-    echo "$(date '+%Y-%m-%d %H:%M:%S') - Skipped display timeout: keyboard backlight not off long enough." >> "$LOG_FILE"
-fi
          
-
-
         if [ "$status" = "Discharging" ]; then
     if [ -z "$battery_backlight_ts" ]; then
         battery_backlight_ts=$now_epoch
@@ -337,7 +331,7 @@ fi
             /org/chromium/PowerManager \
             org.chromium.PowerManager.RequestSuspend
     else
-        echo "$(date '+%Y-%m-%d %H:%M:%S') - Suspend aborted due to recent real activity." >> "$LOG_FILE"
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - Suspend cancelled, non-simulated activity detected." >> "$LOG_FILE"
     fi
 ) &
 sim_pid=$!
@@ -362,7 +356,7 @@ sim_pid=$!
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - $reported_epoch, matched_recent_sim=$matched_recent_sim" >> "$LOG_FILE"
         
                      if [ "$matched_recent_sim" -eq 0 ]; then
-                        # Always reset timers on real user activity
+                        # Always reset timers on non-simulated activity
                         if [ "$active" -eq 0 ]; then
                             active=1
                             [ -n "$sim_pid" ] && kill "$sim_pid" 2>/dev/null && sim_pid=
@@ -372,7 +366,7 @@ sim_pid=$!
                         if [ "$backlight_off" -eq 1 ]; then
                             sudo ectool backlight 1
                             backlight_off=0
-                            echo "$(date '+%Y-%m-%d %H:%M:%S') - Real user activity detected, turned display back on." >> "$LOG_FILE"
+                            echo "$(date '+%Y-%m-%d %H:%M:%S')- Non-simulated activity detected, turned display back on." >> "$LOG_FILE"
                         fi
 
                         if [ "$kb_brightness_restored" -eq 0 ] && [ "$saved_kb_brightness" -ge 0 ]; then
@@ -381,7 +375,7 @@ sim_pid=$!
                             kb_brightness_restored=1
                         fi
 
-                        # Reset backlight timer every time real user activity detected
+                        # Reset backlight timer every time non-simulated activity is detected
                         if [ "$status" = "Discharging" ]; then
                             battery_backlight_ts=$now_epoch
                         else
