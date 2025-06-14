@@ -108,6 +108,7 @@ monitor_idle_activity() {
     local sim_pid=
     local -a last_simulated_times=()
     local sim_file="/tmp/sleepcontrol.sim"
+    local SIM_FILE_TMP="/tmp/sleepcontrol.sim.tmp"
     local power_backlight_ts=
     local battery_backlight_ts=
     local audio_active=0
@@ -229,10 +230,10 @@ fi
         fi
 
 
-        now=$(date +%s)
-        if (( now - last_reload_time >= 120 )); then
+        now_epoch=$(date +%s)
+        if (( now_epoch - last_reload_time >= 60 )); then
             load_config
-            last_reload_time=$now
+            last_reload_time=$now_epoch
         fi
 
         if [ ! -f "$RUN_FLAG" ]; then
@@ -267,14 +268,14 @@ fi
     cooldown=120
 
        while (( $(date +%s) < end )); do
-        now=$(date +%s)
+        now_epoch=$(date +%s)
         recent_real_activity=0
 
         if [ -f "$sim_file" ]; then
             readarray -t last_simulated_times < "$sim_file"
             for sim_ts in "${last_simulated_times[@]}"; do
                 [[ "$sim_ts" =~ ^[0-9]+$ ]] || continue
-                if (( now - sim_ts < cooldown )); then
+                if (( now_epoch - sim_ts < cooldown )); then
                     recent_real_activity=1
                     break
                 fi
@@ -302,13 +303,13 @@ fi
     # Final safety check before suspend
     sleep 5  # Short grace period for last-moment activity
 
-    now=$(date +%s)
+    now_epoch=$(date +%s)
     recent_real_activity=0
     if [ -f "$sim_file" ]; then
         readarray -t last_simulated_times < "$sim_file"
         for sim_ts in "${last_simulated_times[@]}"; do
             [[ "$sim_ts" =~ ^[0-9]+$ ]] || continue
-            if (( now - sim_ts < cooldown )); then
+            if (( now_epoch - sim_ts < cooldown )); then
                 recent_real_activity=1
                 break
             fi
