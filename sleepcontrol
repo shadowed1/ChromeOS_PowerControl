@@ -160,17 +160,14 @@ else
     last_kb_off_time=""
 fi
 
-# If keyboard backlight has been off for 5+ seconds, turn off display
 if [ -n "$last_kb_off_time" ] && (( now_epoch - last_kb_off_time >= 5 )); then
     if [ "$backlight_off" -eq 0 ]; then
-    if [ -n "$last_kb_off_time" ] && (( now_epoch - last_kb_off_time >= 5 )); then
         sudo ectool backlight 0
         backlight_off=1
         echo "$(date '+%Y-%m-%d %H:%M:%S') - Turned display off due to $source + keyboard backlight off 5s." >> "$LOG_FILE"
-    else
     fi
 fi
-         
+
         if [ "$status" = "Discharging" ]; then
     if [ -z "$battery_backlight_ts" ]; then
         battery_backlight_ts=$now_epoch
