@@ -378,12 +378,13 @@ sim_pid=$!
         
                 for sim_ts in "${last_simulated_times[@]}"; do
                     [[ "$sim_ts" =~ ^[0-9]+$ ]] || continue
-                    if (( sim_ts == reported_epoch )); then
-                        matched_recent_sim=1
-                        sudo ectool pwmsetkblight "$saved_kb_brightness"
-                        backlight_off=0
-                        break
-                    fi
+                    diff=$(( sim_ts - reported_epoch ))
+                    (( diff < 0 )) && diff=$(( -diff ))
+                    if (( diff <= 2 )); then
+                    matched_recent_sim=1
+                    break
+fi
+
                 done
 
         
