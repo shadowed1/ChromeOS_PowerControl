@@ -393,8 +393,6 @@ sim_pid=$!
         fi
     done < <(tail -Fn0 /var/log/power_manager/powerd.LATEST)
 }
-
-
 stop_monitoring() {
     if [ -f "$PID_FILE" ]; then
         PID=$(cat "$PID_FILE")
@@ -407,7 +405,6 @@ stop_monitoring() {
     fi
     rm -f "$RUN_FLAG"
 }
-
 case "$1" in
     start)
         sudo ectool backlight 1 >/dev/null 2>&1
@@ -429,7 +426,6 @@ case "$1" in
         MODE=$1
         BACKLIGHT_VAL=$2
         DELAY_VAL=$3
-
         if [ -n "$BACKLIGHT_VAL" ] && [ -n "$DELAY_VAL" ]; then
             if [[ "$BACKLIGHT_VAL" =~ ^[0-9]+$ ]] && [[ "$DELAY_VAL" =~ ^[0-9]+$ ]]; then
                 if (( BACKLIGHT_VAL > DELAY_VAL )); then
@@ -472,61 +468,6 @@ case "$1" in
         startup)
         CONF_SOURCE="$INSTALL_DIR/sleepcontrol.conf"
         CONF_TARGET="/etc/init/sleepcontrol.conf"
-
-        read -p "Do you want SleepControl to startup automatically? (y/n): " choice
-        if [[ "$choice" =~ ^[Yy]$ ]]; then
-            if [ -f "$CONF_SOURCE" ]; then
-                echo "Copying sleepcontrol.conf to /etc/init/..."
-                sudo cp "$CONF_SOURCE" "$CONF_TARGET"
-                echo "${GREEN}sleepcontrol.conf copied.${RESET}"
-            else
-                echo "${RED}sleepcontrol.conf not found at $CONF_SOURCE${RESET}"
-            fi
-        else
-            echo "SleepControl will not startup automatically."
-            sudo rm -f /etc/init/sleepcontrol.conf
-        fi
-        ;;
-    status|"")
-        load_config
-        if [ -f "$PID_FILE" ] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
-            echo "${GREEN}SleepControl is running.${RESET}"
-            echo ""
-            echo "Sleep set for: ${GREEN}On Battery = $((BATTERY_DELAY)) minutes${RESET}, ${BLUE}On Power = $((POWER_DELAY)) minutes${RESET}"
-            echo "Display timeout set for: ${GREEN}On Battery = $BATTERY_BACKLIGHT minutes${RESET}, ${BLUE}On Power = $POWER_BACKLIGHT minutes${RESET}"
-        else
-            echo "${RED}SleepControl is not running.${RESET}"
-            echo ""
-            echo "Sleep set for: ${GREEN}On Battery = $((BATTERY_DELAY)) minutes${RESET}, ${BLUE}On Power = $((POWER_DELAY)) minutes${RESET}"
-            echo "Display timeout set for: ${GREEN}On Battery = $BATTERY_BACKLIGHT minutes${RESET}, ${BLUE}On Power = $POWER_BACKLIGHT minutes${RESET}"
-        fi
-        ;;
-    __monitor__)
-        monitor_idle_activity
-        ;;
-        help)
-            "$0" status
-        ;;
-    *)
-        echo "${BLUE}# SleepControl Commands with examples"
-        echo ""
-        echo "sudo sleepcontrol                        # Show current SleepControl settings"
-        echo "sudo sleepcontrol start                  # Start SleepControl"
-        echo "sudo sleepcontrol stop                   # Stop SleepControl"
-        echo "sudo sleepcontrol battery 15             # Sleep after 15 minutes when on battery "
-        echo "sudo sleepcontrol power 60               # Sleep after 60 minutes when plugged in."
-        echo "sudo sleepcontrol battery_backlight 10   # Turn off display after 15 mins when idling on battery."
-        echo "sudo sleepcontrol power_backlight 30     # Turn off display after 60 mins when idling plugged-in."
-        echo "sudo sleepcontrol startup                # Copy or Remove fancontrol.conf at: /etc/init/"
-        echo "sudo sleepcontrol help                   # Help menu${RESET}"
-        exit 1
-        ;;
-esac
-
-        startup)
-        CONF_SOURCE="$INSTALL_DIR/sleepcontrol.conf"
-        CONF_TARGET="/etc/init/sleepcontrol.conf"
-
         read -p "Do you want SleepControl to startup automatically? (y/n): " choice
         if [[ "$choice" =~ ^[Yy]$ ]]; then
             if [ -f "$CONF_SOURCE" ]; then
