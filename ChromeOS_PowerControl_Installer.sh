@@ -292,36 +292,7 @@ for category in "${ordered_categories[@]}"; do
 done
 echo "${GREEN}${BOLD}Installing to: $INSTALL_DIR $RESET"
 
-if [ "$IS_INTEL" -eq 1 ]; then
-    read -rp "${BOLD}${BLUE}Do you want Intel Turbo Boost ${RESET}${BOLD}${CYAN}disabled on boot${RESET}${BOLD}${BLUE}? (y/n):$RESET " move_no_turbo
-    if [[ "$move_no_turbo" =~ ^[Yy]$ ]]; then
-        sudo cp "$INSTALL_DIR/no_turbo.conf" /etc/init/
-        echo "Turbo Boost will be disabled on restart."
-        echo "${CYAN}sudo powercontrol startup${RESET}     # To re-enable Turbo Boost on boot."
-        echo ""
-    else
-        sudo rm -f /etc/init/no_turbo.conf
-        echo "Turbo Boost will remain enabled."
-        echo "${CYAN}sudo powercontrol startup${RESET}     # To disable Intel Turbo Boost on boot."
-        echo ""
-    fi
-    
-    read -rp "${BOLD}${BLUE}Do you want to ${RESET}${BOLD}${CYAN}disable${RESET}${BLUE}${BOLD} Intel Turbo Boost ${RESET}${BOLD}${CYAN}now?${RESET}${BOLD}${BLUE} (y/n):$RESET " run_no_turbo
-    if [[ "$run_no_turbo" =~ ^[Yy]$ ]]; then
-        echo 1 | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo > /dev/null
-        echo "Turbo Boost disabled immediately."
-        echo "${CYAN}sudo powercontrol no_turbo 0${RESET}     # To re-enable Intel Turbo Boost"
-        echo ""
-    else
-        echo 0 | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo > /dev/null
-        echo "Turbo Boost remains enabled."
-        echo "${CYAN}sudo powercontrol no_turbo 1${RESET}    # To disable Intel Turbo Boost"
-        echo ""
-    fi
-else
-    echo "This is not an Intel CPU, skipping Turbo Boost options."
-    echo ""
-fi
+
 
 read -rp "Enable ${BOLD}Global Commands${RESET} for ${RESET}${BOLD}${CYAN}PowerControl${RESET}, ${GREEN}${BOLD}BatteryControl${RESET}, ${YELLOW}${BOLD}FanControl${RESET}, ${MAGENTA}GPUControl${RESET}, ${BLUE}SleepControl${RESET}? (y/n):$RESET " link_cmd
 if [[ "$link_cmd" =~ ^[Yy]$ ]]; then
@@ -446,6 +417,40 @@ start_component_now "BatteryControl" "$INSTALL_DIR/batterycontrol"
 start_component_now "PowerControl" "$INSTALL_DIR/powercontrol"
 start_component_now "FanControl" "$INSTALL_DIR/fancontrol"
 start_component_now "SleepControl" "$INSTALL_DIR/sleepcontrol"
+
+if [ "$IS_INTEL" -eq 1 ]; then
+    echo "${BLUE}Intel CPU detected! Intel Turbo Boost is enabled by default it can reduce battery life significantly.${RESET}"
+    echo "${BLUE}If unsure, just keep Intel Turbo Boost enabled; PowerControl and FanControl can handle the extra heat.${RESET}" 
+    read -rp "${BOLD}${BLUE}Do you want Intel Turbo Boost ${RESET}${BOLD}${CYAN}disabled on boot${RESET}${BOLD}${BLUE}? (y/n):$RESET " move_no_turbo
+    if [[ "$move_no_turbo" =~ ^[Yy]$ ]]; then
+        sudo cp "$INSTALL_DIR/no_turbo.conf" /etc/init/
+        echo "Turbo Boost will be disabled on restart."
+        echo "${CYAN}sudo powercontrol startup${RESET}     # To re-enable Turbo Boost on boot."
+        echo ""
+    else
+        sudo rm -f /etc/init/no_turbo.conf
+        echo "Turbo Boost will remain enabled."
+        echo "${CYAN}sudo powercontrol startup${RESET}     # To disable Intel Turbo Boost on boot."
+        echo ""
+    fi
+    
+    read -rp "${BOLD}${BLUE}Do you want to ${RESET}${BOLD}${CYAN}disable${RESET}${BLUE}${BOLD} Intel Turbo Boost ${RESET}${BOLD}${CYAN}now?${RESET}${BOLD}${BLUE} (y/n):$RESET " run_no_turbo
+    if [[ "$run_no_turbo" =~ ^[Yy]$ ]]; then
+        echo 1 | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo > /dev/null
+        echo "Turbo Boost disabled immediately."
+        echo "${CYAN}sudo powercontrol no_turbo 0${RESET}     # To re-enable Intel Turbo Boost"
+        echo ""
+    else
+        echo 0 | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo > /dev/null
+        echo "Turbo Boost remains enabled."
+        echo "${CYAN}sudo powercontrol no_turbo 1${RESET}    # To disable Intel Turbo Boost"
+        echo ""
+    fi
+else
+    echo "This is not an Intel CPU, skipping Turbo Boost options."
+    echo ""
+fi
+
 
 echo ""
 echo "           ${RED}████████████${RESET}           "
