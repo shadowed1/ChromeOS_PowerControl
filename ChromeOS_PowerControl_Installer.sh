@@ -417,8 +417,9 @@ start_component_now "FanControl" "$INSTALL_DIR/fancontrol"
 start_component_now "SleepControl" "$INSTALL_DIR/sleepcontrol"
 
 if [ "$IS_INTEL" -eq 1 ]; then
-    echo "${BLUE}Intel CPU detected! Intel Turbo Boost is enabled by default it can reduce battery life significantly.${RESET}"
-    echo "${BLUE}If unsure, just keep Intel Turbo Boost enabled; PowerControl and FanControl can handle the extra heat.${RESET}" 
+    echo "${BLUE}${BOLD}Intel Inside!${RESET}${BLUE} Intel Turbo Boost is enabled by default; reducing battery life.${RESET}"
+    echo "${CYAN}If unsure, just keep Turbo Boost enabled. PowerControl + FanControl was designed for a high-power, thermally constrained environment${RESET}".
+    echo ""
     read -rp "${BOLD}${BLUE}Do you want Intel Turbo Boost ${RESET}${BOLD}${CYAN}disabled on boot${RESET}${BOLD}${BLUE}? (y/n):$RESET " move_no_turbo
     if [[ "$move_no_turbo" =~ ^[Yy]$ ]]; then
         sudo cp "$INSTALL_DIR/no_turbo.conf" /etc/init/
@@ -428,7 +429,7 @@ if [ "$IS_INTEL" -eq 1 ]; then
     else
         sudo rm -f /etc/init/no_turbo.conf
         echo "Turbo Boost will remain enabled."
-        echo "${CYAN}sudo powercontrol startup${RESET}     # To disable Intel Turbo Boost on boot."
+        echo "${CYAN}sudo powercontrol startup${RESET}     # To disable Turbo Boost on boot."
         echo ""
     fi
     
