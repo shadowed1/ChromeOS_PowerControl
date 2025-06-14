@@ -99,7 +99,8 @@ monitor_idle_activity() {
     touch "$RUN_FLAG"
     echo $$ > "$PID_FILE"
     echo "$(date '+%Y-%m-%d %H:%M:%S') - sleepcontrol started (PID $$)." >> "$LOG_FILE"
-
+    local saved_kb_brightness=-1
+    local kb_brightness_restored=1
     local backlight_off=0
     local last_reload_time=0
     local delay_minutes
@@ -186,6 +187,16 @@ monitor_idle_activity() {
                 sleep 1
                 active=0
 
+                kb_line=$(sudo ectool pwmgetkblight 2>/dev/null)
+                if [[ "$kb_line" =~ ([0-9]+) ]]; then
+                    saved_kb_brightness="${BASH_REMATCH[1]}"
+                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Saved keyboard brightness: $saved_kb_brightness%" >> "$LOG_FILE"
+                    sudo ectool pwmsetkblight 0
+                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Turned keyboard backlight off during idle." >> "$LOG_FILE"
+                    kb_brightness_restored=0
+                fi
+
+
                 if [ -n "$sim_pid" ] && kill -0 "$sim_pid" 2>/dev/null; then
                     echo "$(date '+%Y-%m-%d %H:%M:%S') - Simulate loop already running (PID $sim_pid), skipping duplicate launch." >> "$LOG_FILE"
                     continue
@@ -194,7 +205,7 @@ monitor_idle_activity() {
                 (
     loop_start=$(date +%s)
     end=$((loop_start + delay_minutes * 60))
-    cooldown=60  # wait at least 45 seconds between fake activity
+    cooldown=120
 
     while (( $(date +%s) < end )); do
         now=$(date +%s)
@@ -240,13 +251,13 @@ sim_pid=$!
                 readarray -t last_simulated_times < "$sim_file"
         
                 for sim_ts in "${last_simulated_times[@]}"; do
-                    [[ "$sim_ts" =~ ^[0-9]+$ ]] || continue  # skip bad lines
-                    diff=$((reported_epoch - sim_ts))
-                    if (( diff >= 0 && diff <= 0 )); then
+                    [[ "$sim_ts" =~ ^[0-9]+$ ]] || continue
+                    if (( sim_ts == reported_epoch )); then
                         matched_recent_sim=1
                         break
                     fi
                 done
+
         
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Log time $reported_epoch, matched_recent_sim=$matched_recent_sim" >> "$LOG_FILE"
         
@@ -262,6 +273,12 @@ sim_pid=$!
                             sudo ectool backlight 1
                             backlight_off=0
                             echo "$(date '+%Y-%m-%d %H:%M:%S') - Real user activity detected, turned display back on." >> "$LOG_FILE"
+                        fi
+
+                        if [ "$kb_brightness_restored" -eq 0 ] && [ "$saved_kb_brightness" -ge 0 ]; then
+                            sudo ectool pwmsetkblight "$saved_kb_brightness"
+                            echo "$(date '+%Y-%m-%d %H:%M:%S') - Restored keyboard brightness to $saved_kb_brightness%" >> "$LOG_FILE"
+                            kb_brightness_restored=1
                         fi
 
                         # Reset backlight timer every time real user activity detected
