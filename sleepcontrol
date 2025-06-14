@@ -142,23 +142,34 @@ monitor_idle_activity() {
         fi
 
 
-                if [ "$kb_brightness" -eq 0 ]; then
-            if [ -z "$last_kb_off_time" ]; then
-                last_kb_off_time=$now_epoch
-            fi
-        else
-            last_kb_off_time=""
-        fi
-        
-        if [ -n "$last_kb_off_time" ] && (( now_epoch - last_kb_off_time >= 5 )); then
-            if [ "$backlight_off" -eq 0 ]; then
-                sudo ectool backlight 0
-                backlight_off=1
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Turned display off after keyboard backlight was off for 5s" >> "$LOG_FILE"
-            fi
-        else
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - Skipped display timeout: keyboard backlight not off long enough." >> "$LOG_FILE"
-        fi
+       # Check keyboard backlight state
+kb_line=$(sudo ectool pwmgetkblight 2>/dev/null)
+if [[ "$kb_line" =~ ([0-9]+) ]]; then
+    kb_brightness="${BASH_REMATCH[1]}"
+else
+    kb_brightness=0
+fi
+
+# Track how long keyboard backlight has been off
+if [ "$kb_brightness" -eq 0 ]; then
+    if [ -z "$last_kb_off_time" ]; then
+        last_kb_off_time=$now_epoch
+    fi
+else
+    last_kb_off_time=""
+fi
+
+# If keyboard backlight has been off for 5+ seconds, turn off display
+if [ -n "$last_kb_off_time" ] && (( now_epoch - last_kb_off_time >= 5 )); then
+    if [ "$backlight_off" -eq 0 ]; then
+        sudo ectool backlight 0
+        backlight_off=1
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - Turned display off after keyboard backlight was off for 5s" >> "$LOG_FILE"
+    fi
+else
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - Skipped display timeout: keyboard backlight not off long enough." >> "$LOG_FILE"
+fi
+         
 
 
         if [ "$status" = "Discharging" ]; then
