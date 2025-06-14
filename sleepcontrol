@@ -300,7 +300,13 @@ fi
             fi
             printf "%s\n" "${last_simulated_times[@]}" > "$SIM_FILE_TMP" && mv "$SIM_FILE_TMP" "$sim_file"
         fi
-        fi
+
+        sleep "$cooldown"
+    done
+) &
+sim_pid=$!
+
+            fi
                elif echo "$line" | grep -q "User activity reported"; then
             if [[ "$line" =~ ([0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}) ]]; then
                 reported_time_utc="${BASH_REMATCH[1]}"
@@ -344,16 +350,11 @@ fi
                             battery_backlight_ts=$now_epoch
                         else
                         power_backlight_ts=$now_epoch
-                        fi
                     fi
                 fi
             fi
-        sleep "$cooldown"
-    done
-) &
-sim_pid=$!
 
-            
+        fi
     done < <(tail -Fn0 /var/log/power_manager/powerd.LATEST)
 }
 
