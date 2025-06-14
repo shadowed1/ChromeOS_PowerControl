@@ -293,7 +293,6 @@ done
 echo "${GREEN}${BOLD}Installing to: $INSTALL_DIR $RESET"
 
 
-
 read -rp "Enable ${BOLD}Global Commands${RESET} for ${RESET}${BOLD}${CYAN}PowerControl${RESET}, ${GREEN}${BOLD}BatteryControl${RESET}, ${YELLOW}${BOLD}FanControl${RESET}, ${MAGENTA}GPUControl${RESET}, ${BLUE}SleepControl${RESET}? (y/n):$RESET " link_cmd
 if [[ "$link_cmd" =~ ^[Yy]$ ]]; then
     sudo ln -sf "$INSTALL_DIR/powercontrol" /usr/local/bin/powercontrol
@@ -329,7 +328,7 @@ enable_component_on_boot() {
         *)                COLOR=${RESET} ;;
     esac
     
-    read -rp "${COLOR}Do you want $component enabled on boot? (y/n):${RESET} " move_config
+    read -rp "${COLOR}Do you want $component enabled on boot?${RESET} (y/n): " move_config
     if [[ "$move_config" =~ ^[Yy]$ ]]; then
         sudo cp "$config_file" "$target_file"
         echo "$component will start on boot."
@@ -379,7 +378,7 @@ start_component_now() {
         *)                COLOR=${RESET} ;;
     esac
    
-    read -rp "${COLOR}Do you want to start $component now? (y/n): ${RESET} " start_now
+    read -rp "${COLOR}Do you want to start $component now?${RESET} (y/n):  " start_now
     if [[ "$start_now" =~ ^[Yy]$ ]]; then
         sudo "$command" start
         echo ""
