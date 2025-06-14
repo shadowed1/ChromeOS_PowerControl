@@ -311,12 +311,39 @@ fi
             printf "%s\n" "${last_simulated_times[@]}" > "$SIM_FILE_TMP" && mv "$SIM_FILE_TMP" "$sim_file"
         fi
 
+        if [ "$matched_recent_sim" -eq 0 ]; then
+                        # Always reset timers on real user activity
+                        if [ "$active" -eq 0 ]; then
+                            active=1
+                            [ -n "$sim_pid" ] && kill "$sim_pid" 2>/dev/null && sim_pid=
+                            echo "$(date '+%Y-%m-%d %H:%M:%S') - Waiting for user to go idle again." >> "$LOG_FILE"
+                        fi
+
+                        if [ "$backlight_off" -eq 1 ]; then
+                            sudo ectool backlight 1
+                            backlight_off=0
+                            echo "$(date '+%Y-%m-%d %H:%M:%S') - Real user activity detected, turned display back on." >> "$LOG_FILE"
+                        fi
+
+                        if [ "$kb_brightness_restored" -eq 0 ] && [ "$saved_kb_brightness" -ge 0 ]; then
+                            sudo ectool pwmsetkblight "$saved_kb_brightness"
+                            echo "$(date '+%Y-%m-%d %H:%M:%S') - Restored keyboard brightness to $saved_kb_brightness%" >> "$LOG_FILE"
+                            kb_brightness_restored=1
+                        fi
+
+                        # Reset backlight timer every time real user activity detected
+                        if [ "$status" = "Discharging" ]; then
+                            battery_backlight_ts=$now_epoch
+                        else
+                        power_backlight_ts=$now_epoch
+                    fi
         sleep "$cooldown"
     done
 
     # Final safety check before suspend
     sleep 5  # Short grace period for last-moment activity
 
+    
     now=$(date +%s)
     recent_real_activity=0
     if [ -f "$sim_file" ]; then
