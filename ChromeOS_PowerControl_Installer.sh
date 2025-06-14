@@ -1,7 +1,4 @@
 #!/bin/bash
-IS_INTEL=0
-IS_AMD=0
-IS_ARM=0
 RED=$(tput setaf 1)
 GREEN=$(tput setaf 2)
 YELLOW=$(tput setaf 3)
@@ -10,7 +7,6 @@ MAGENTA=$(tput setaf 5)
 CYAN=$(tput setaf 6)
 BOLD=$(tput bold)
 RESET=$(tput sgr0)
-SHOW_POWERCONTROL_NOTICE=0
 SHOW_BATTERYCONTROL_NOTICE=0
 SHOW_SLEEPCONTROL_NOTICE=0
 SHOW_GPUCONTROL_NOTICE=0
@@ -112,6 +108,15 @@ fi
     GPU_MAX_FREQ=""
     GPU_TYPE="unknown"
 }
+echo ""
+echo "     ${BOLD}${GREEN}Chrome${RESET}${BOLD}${RED}OS${RESET}${BOLD}${YELLOW}_${RESET}${BOLD}${BLUE}PowerControl${RESET}"
+echo "Features:"
+echo "${CYAN}PowerControl: Control CPU clockspeed in relation to temperature; enabling lower temperatures under load and longer battery life."${RESET}
+echo "${GREEN}BatteryControl: Control battery charging limit instead of relying on Adaptive Charging to maximize battery longevity.${RESET}"
+echo "${YELLOW}FanControl: Control fan curve in relation to temperature with built-in hysteresis and 0% RPM mode."
+echo "${MAGENTA}GPUControL: Control GPU clockspeed below its default maximum; enabling lower temperatures and longer battery life when rendering 3D content.${RESET}"
+echo "${BLUE}SleepControl: Control how long ChromeOS can be idle before being able to sleep."
+echo ""
 echo ""
 echo "${RED}VT-2 (or enabling sudo in crosh) is ${RESET}${BOLD}${RED}required${RESET}${RED} to run this installer.$RESET"
 echo "${YELLOW}Must be installed in a location without the ${RESET}${MAGENTA}${BOLD}noexec mount.$RESET"
@@ -296,7 +301,38 @@ for category in "${ordered_categories[@]}"; do
 done
 echo "${GREEN}${BOLD}Installing to: $INSTALL_DIR $RESET"
 
-read -rp "Enable ${BOLD}global commands${RESET} (symbolic links) for ${RESET}${BOLD}${CYAN}PowerControl${RESET}, ${GREEN}${BOLD}BatteryControl${RESET}, ${YELLOW}${BOLD}FanControl${RESET}, ${MAGENTA}GPUControl${RESET}, ${BLUE}SleepControl${RESET}? (y/n):$RESET " link_cmd
+if [ "$IS_INTEL" -eq 1 ]; then
+    read -rp "${BOLD}${BLUE}Do you want Intel Turbo Boost ${RESET}${BOLD}${CYAN}disabled on boot${RESET}${BOLD}${BLUE}? (y/n):$RESET " move_no_turbo
+    if [[ "$move_no_turbo" =~ ^[Yy]$ ]]; then
+        sudo cp "$INSTALL_DIR/no_turbo.conf" /etc/init/
+        echo "Turbo Boost will be disabled on restart."
+        echo "${CYAN}sudo powercontrol startup${RESET}     # To re-enable Turbo Boost on boot."
+        echo ""
+    else
+        sudo rm -f /etc/init/no_turbo.conf
+        echo "Turbo Boost will remain enabled."
+        echo "${CYAN}sudo powercontrol startup${RESET}     # To disable Intel Turbo Boost on boot."
+        echo ""
+    fi
+    
+    read -rp "${BOLD}${BLUE}Do you want to ${RESET}${BOLD}${CYAN}disable${RESET}${BLUE}${BOLD} Intel Turbo Boost ${RESET}${BOLD}${CYAN}now?${RESET}${BOLD}${BLUE} (y/n):$RESET " run_no_turbo
+    if [[ "$run_no_turbo" =~ ^[Yy]$ ]]; then
+        echo 1 | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo > /dev/null
+        echo "Turbo Boost disabled immediately."
+        echo "${CYAN}sudo powercontrol no_turbo 0${RESET}     # To re-enable Intel Turbo Boost"
+        echo ""
+    else
+        echo 0 | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo > /dev/null
+        echo "Turbo Boost remains enabled."
+        echo "${CYAN}sudo powercontrol no_turbo 1${RESET}    # To disable Intel Turbo Boost"
+        echo ""
+    fi
+else
+    echo "This is not an Intel CPU, skipping Turbo Boost options."
+    echo ""
+fi
+
+read -rp "Enable ${BOLD}Global Commands${RESET} for ${RESET}${BOLD}${CYAN}PowerControl${RESET}, ${GREEN}${BOLD}BatteryControl${RESET}, ${YELLOW}${BOLD}FanControl${RESET}, ${MAGENTA}GPUControl${RESET}, ${BLUE}SleepControl${RESET}? (y/n):$RESET " link_cmd
 if [[ "$link_cmd" =~ ^[Yy]$ ]]; then
     sudo ln -sf "$INSTALL_DIR/powercontrol" /usr/local/bin/powercontrol
     sudo ln -sf "$INSTALL_DIR/batterycontrol" /usr/local/bin/batterycontrol
@@ -331,7 +367,7 @@ enable_component_on_boot() {
         *)                COLOR=${RESET} ;;
     esac
     
-    read -rp "${COLOR}Do you want $component to start on boot?${RESET} (y/n): " move_config
+    read -rp "${COLOR}Do you want $component enabled on boot? (y/n):${RESET} " move_config
     if [[ "$move_config" =~ ^[Yy]$ ]]; then
         sudo cp "$config_file" "$target_file"
         echo "$component will start on boot."
@@ -381,7 +417,7 @@ start_component_now() {
         *)                COLOR=${RESET} ;;
     esac
    
-    read -rp "${COLOR}Do you want to start $component now?${RESET} (y/n):  " start_now
+    read -rp "${COLOR}Do you want to start $component now? (y/n): ${RESET} " start_now
     if [[ "$start_now" =~ ^[Yy]$ ]]; then
         sudo "$command" start
         echo ""
@@ -401,7 +437,7 @@ start_component_now() {
 }
 
 
-echo "${BLUE}Stopping any running components of PowerControl:${RESET}"
+echo "${BLUE}Stopping any running components of PowerControl${RESET}"
 sudo bash "$INSTALL_DIR/gpucontrol" restore >/dev/null 2>&1
 sudo ectool backlight 1 >/dev/null 2>&1
 for component in batterycontrol powercontrol fancontrol; do
@@ -419,11 +455,6 @@ start_component_now "BatteryControl" "$INSTALL_DIR/batterycontrol"
 start_component_now "PowerControl" "$INSTALL_DIR/powercontrol"
 start_component_now "FanControl" "$INSTALL_DIR/fancontrol"
 start_component_now "SleepControl" "$INSTALL_DIR/sleepcontrol"
-
-if [ "$IS_INTEL" -eq 1 ]; then
-    echo "${BLUE}${BOLD}Intel Inside!${RESET}${BLUE} Intel Turbo Boost is enabled by default; reducing battery life and greatly increasing temperature.${RESET}"
- 
-
 
 echo ""
 echo "           ${RED}████████████${RESET}           "
