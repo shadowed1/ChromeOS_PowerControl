@@ -13,7 +13,7 @@ if [ -f "$INSTALL_DIR_FILE" ]; then
     INSTALL_DIR=$(cat "$INSTALL_DIR_FILE")
 else
     INSTALL_DIR="/usr/local/bin/ChromeOS_PowerControl"
-fiR
+fi
 INSTALL_DIR="${INSTALL_DIR%/}"
 
 CONFIG_FILE="$INSTALL_DIR/config.sh"
@@ -142,39 +142,31 @@ monitor_idle_activity() {
             continue
         fi
 
-       if [ "$status" = "Discharging" ]; then
-    if (( now_epoch - battery_backlight_ts >= BATTERY_BACKLIGHT * 60 )); then
-        kb_brightness=$(sudo ectool pwmgetkblight 2>/dev/null | grep -o '[0-9]\+')
-        if [ "$kb_brightness" -eq 0 ]; then
-            if [ "$backlight_off" -eq 0 ]; then
-                sudo ectool backlight 0
-                backlight_off=1
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Turned display off due to battery backlight timeout (${BATTERY_BACKLIGHT} min)" >> "$LOG_FILE"
+        if [ "$status" = "Discharging" ]; then
+            if [ -z "$battery_backlight_ts" ]; then
+                battery_backlight_ts=$now_epoch
+            elif (( now_epoch - battery_backlight_ts >= BATTERY_BACKLIGHT * 60 )); then
+                if [ "$backlight_off" -eq 0 ]; then
+                    sudo ectool backlight 0
+                    backlight_off=1
+                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Turned display off due to battery backlight timeout (${BATTERY_BACKLIGHT} min)" >> "$LOG_FILE"
+                fi
+                battery_backlight_ts=$now_epoch
             fi
+            power_backlight_ts=""
         else
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - Skipped display timeout: keyboard backlight still on ($kb_brightness%)." >> "$LOG_FILE"
-        fi
-        battery_backlight_ts=$now_epoch
-    fi
-else
-    if [ -z "$power_backlight_ts" ]; then
-        power_backlight_ts=$now_epoch
-    elif (( now_epoch - power_backlight_ts >= POWER_BACKLIGHT * 60 )); then
-        kb_brightness=$(sudo ectool pwmgetkblight 2>/dev/null | grep -o '[0-9]\+')
-        if [ "$kb_brightness" -eq 0 ]; then
-            if [ "$backlight_off" -eq 0 ]; then
-                sudo ectool backlight 0
-                backlight_off=1
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Turned display off due to power backlight timeout (${POWER_BACKLIGHT} min)" >> "$LOG_FILE"
+            if [ -z "$power_backlight_ts" ]; then
+                power_backlight_ts=$now_epoch
+            elif (( now_epoch - power_backlight_ts >= POWER_BACKLIGHT * 60 )); then
+                if [ "$backlight_off" -eq 0 ]; then
+                    sudo ectool backlight 0
+                    backlight_off=1
+                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Turned display off due to power backlight timeout (${POWER_BACKLIGHT} min)" >> "$LOG_FILE"
+                fi
+                power_backlight_ts=$now_epoch
             fi
-        else
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - Skipped display timeout: keyboard backlight still on ($kb_brightness%)." >> "$LOG_FILE"
+            battery_backlight_ts=""
         fi
-        power_backlight_ts=$now_epoch
-    fi
-fi
-
-
 
         now=$(date +%s)
         if (( now - last_reload_time >= 120 )); then
