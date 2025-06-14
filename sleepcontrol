@@ -270,7 +270,7 @@ fi
                 (
     loop_start=$(date +%s)
     end=$((loop_start + delay_minutes * 60))
-    cooldown=5
+    cooldown=60
 
        while (( $(date +%s) < end )); do
         now=$(date +%s)
