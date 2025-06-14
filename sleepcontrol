@@ -194,7 +194,7 @@ monitor_idle_activity() {
                 (
     loop_start=$(date +%s)
     end=$((loop_start + delay_minutes * 60))
-    cooldown=45  # wait at least 45 seconds between fake activity
+    cooldown=60  # wait at least 45 seconds between fake activity
 
     while (( $(date +%s) < end )); do
         now=$(date +%s)
@@ -242,7 +242,7 @@ sim_pid=$!
                 for sim_ts in "${last_simulated_times[@]}"; do
                     [[ "$sim_ts" =~ ^[0-9]+$ ]] || continue  # skip bad lines
                     diff=$((reported_epoch - sim_ts))
-                    if (( diff >= -2 && diff <= 2 )); then
+                    if (( diff >= 0 && diff <= 0 )); then
                         matched_recent_sim=1
                         break
                     fi
