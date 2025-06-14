@@ -10,9 +10,6 @@ RESET=$(tput sgr0)
 SHOW_BATTERYCONTROL_NOTICE=0
 SHOW_SLEEPCONTROL_NOTICE=0
 SHOW_GPUCONTROL_NOTICE=0
-IS_INTEL=0
-IS_AMD=0
-IS_ARM=0
 
 detect_cpu_type() {
     CPU_VENDOR=$(grep -m1 'vendor_id' /proc/cpuinfo | awk '{print $3}' || echo "unknown")
@@ -503,9 +500,6 @@ echo "sudo bash "$INSTALL_DIR/Uninstall_ChromeOS_PowerControl.sh"    # Alternate
 echo ""
 echo "${BOLD}Installation Complete!${RESET}"
 echo ""
-if [ "$IS_INTEL" = 1 ]; then
-    echo "${BLUE}INTEL INSIDE!${RESET}${CYAN}For Intel CPUs, you may need to enable the 'intel_pstate' driver and check turbo boost settings manually if performance isn't applying as expected.${RESET}"
-fi
 if [[ "$SHOW_BATTERYCONTROL_NOTICE" -eq 1 ]]; then
 echo ""
 echo "${GREEN}${BOLD}BatteryControl:${RESET}"
