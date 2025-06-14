@@ -189,7 +189,7 @@ fi
             fi
 
             if [ -n "$last_kb_off_time" ] && (( now_epoch - last_kb_off_time >= 5 )); then
-                sudo ectool backlight 0
+                sudo ectool backlight 0 2>/dev/null
                 backlight_off=1
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Turned display off due to battery timeout (${BATTERY_BACKLIGHT} min) + keyboard backlight off 5s." >> "$LOG_FILE"
             else
@@ -221,7 +221,7 @@ fi
             fi
 
             if [ -n "$last_kb_off_time" ] && (( now_epoch - last_kb_off_time >= 5 )); then
-                sudo ectool backlight 0
+                sudo ectool backlight 0 2>/dev/null
                 backlight_off=1
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Turned display off due to power timeout (${POWER_BACKLIGHT} min) + keyboard backlight off 5s." >> "$LOG_FILE"
             else
@@ -257,7 +257,7 @@ fi
                 if [[ "$kb_line" =~ ([0-9]+) ]]; then
                     saved_kb_brightness="${BASH_REMATCH[1]}"
                     echo "$(date '+%Y-%m-%d %H:%M:%S') - Saved keyboard brightness: $saved_kb_brightness%" >> "$LOG_FILE"
-                    sudo ectool pwmsetkblight 0
+                    sudo ectool pwmsetkblight 0 2>/dev/null
                     echo "$(date '+%Y-%m-%d %H:%M:%S') - Turned keyboard backlight off during idle." >> "$LOG_FILE"
                     kb_brightness_restored=0
                 fi
@@ -345,13 +345,13 @@ fi
                 fi
 
                 if [ "$backlight_off" -eq 1 ]; then
-                    sudo ectool backlight 1
+                    sudo ectool backlight 1 2>/dev/null
                     backlight_off=0
                     echo "$(date '+%Y-%m-%d %H:%M:%S') - Resumed display." >> "$LOG_FILE"
                 fi
 
                 if [ "$kb_brightness_restored" -eq 0 ] && [ "$saved_kb_brightness" -ge 0 ]; then
-                    sudo ectool pwmsetkblight "$saved_kb_brightness"
+                    sudo ectool pwmsetkblight "$saved_kb_brightness" 2>/dev/null
                     echo "$(date '+%Y-%m-%d %H:%M:%S') - Restored keyboard brightness to $saved_kb_brightness% after lid open." >> "$LOG_FILE"
                     kb_brightness_restored=1
                 fi
@@ -394,13 +394,13 @@ sim_pid=$!
                         fi
 
                         if [ "$backlight_off" -eq 1 ]; then
-                            sudo ectool backlight 1
+                            sudo ectool backlight 1 2>/dev/null
                             backlight_off=0
                             echo "$(date '+%Y-%m-%d %H:%M:%S')- Real activity detected, turned display back on." >> "$LOG_FILE"
                         fi
 
                         if [ "$kb_brightness_restored" -eq 0 ] && [ "$saved_kb_brightness" -ge 0 ]; then
-                            sudo ectool pwmsetkblight "$saved_kb_brightness"
+                            sudo ectool pwmsetkblight "$saved_kb_brightness" 2>/dev/null
                             echo "$(date '+%Y-%m-%d %H:%M:%S') - Restored keyboard brightness to $saved_kb_brightness%" >> "$LOG_FILE"
                             kb_brightness_restored=1
                         fi
