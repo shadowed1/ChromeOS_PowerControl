@@ -104,7 +104,7 @@ monitor_idle_activity() {
     local backlight_off=0
     local last_reload_time=0
     local delay_minutes
-    local active=ower_backlight_ts=$now_epoch
+    local active=1
     local sim_pid=
     local -a last_simulated_times=()
     local sim_file="/tmp/sleepcontrol.sim"
