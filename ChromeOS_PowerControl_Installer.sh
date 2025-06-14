@@ -417,7 +417,7 @@ start_component_now "FanControl" "$INSTALL_DIR/fancontrol"
 start_component_now "SleepControl" "$INSTALL_DIR/sleepcontrol"
 
 if [ "$IS_INTEL" -eq 1 ]; then
-    echo "${BLUE}${BOLD}Intel Inside!${RESET}${BLUE} Intel Turbo Boost is enabled by default; reducing battery life.${RESET}"
+    echo "${BLUE}${BOLD}Intel Inside!${RESET}${BLUE} Intel Turbo Boost is enabled by default; reducing battery life and greatly increasing temperature.${RESET}"
     echo "${CYAN}If unsure, just keep Turbo Boost enabled. PowerControl + FanControl was designed for a high-power, thermally constrained environment${RESET}".
     echo ""
     read -rp "${BOLD}${BLUE}Do you want Intel Turbo Boost ${RESET}${BOLD}${CYAN}disabled on boot${RESET}${BOLD}${BLUE}? (y/n):$RESET " move_no_turbo
