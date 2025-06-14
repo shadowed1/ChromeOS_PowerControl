@@ -10,6 +10,9 @@ RESET=$(tput sgr0)
 SHOW_BATTERYCONTROL_NOTICE=0
 SHOW_SLEEPCONTROL_NOTICE=0
 SHOW_GPUCONTROL_NOTICE=0
+IS_INTEL=0
+IS_AMD=0
+IS_ARM=0
 
 detect_cpu_type() {
     CPU_VENDOR=$(grep -m1 'vendor_id' /proc/cpuinfo | awk '{print $3}' || echo "unknown")
