@@ -324,7 +324,9 @@ fi
     else
         echo "$(date '+%Y-%m-%d %H:%M:%S') - Suspend cancelled, real activity detected." >> "$LOG_FILE"
     fi
-     if echo "$line" | grep -q "Lid opened"; then
+) &
+sim_pid=$!
+            if echo "$line" | grep -q "Lid opened"; then
             lid_open_detected=1
         elif echo "$line" | grep -q "Chrome is using normal display mode"; then
             if [ "$lid_open_detected" = "1" ]; then
@@ -357,8 +359,7 @@ fi
                 fi
             fi
         fi
-) &
-sim_pid=$!
+            
 
             fi
                elif echo "$line" | grep -q "User activity reported"; then
