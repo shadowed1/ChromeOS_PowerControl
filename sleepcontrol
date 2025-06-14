@@ -314,6 +314,7 @@ if echo "$line" | grep -q "Lid opened"; then
                 [[ "$sim_ts" =~ ^[0-9]+$ ]] || continue
                 if (( now - sim_ts < cooldown )); then
                     recent_real_activity=1
+                    sudo ectool pwmsetkblight "$saved_kb_brightness"
                     break
                 fi
             done
@@ -348,6 +349,8 @@ if echo "$line" | grep -q "Lid opened"; then
             [[ "$sim_ts" =~ ^[0-9]+$ ]] || continue
             if (( now - sim_ts < cooldown )); then
                 recent_real_activity=1
+                sudo ectool pwmsetkblight "$saved_kb_brightness"
+                backlight_off=0
                 break
             fi
         done
@@ -377,6 +380,8 @@ sim_pid=$!
                     [[ "$sim_ts" =~ ^[0-9]+$ ]] || continue
                     if (( sim_ts == reported_epoch )); then
                         matched_recent_sim=1
+                        sudo ectool pwmsetkblight "$saved_kb_brightness"
+                        backlight_off=0
                         break
                     fi
                 done
@@ -393,8 +398,7 @@ sim_pid=$!
                         fi
 
                         if [ "$backlight_off" -eq 1 ]; then
-                            sudo ectool backlight 1
-                            backlight_off=0
+                            sudo ectool pwmsetkblight "$saved_kb_brightness"
                             echo "$(date '+%Y-%m-%d %H:%M:%S') - Real user activity detected, turned display back on." >> "$LOG_FILE"
                         fi
 
