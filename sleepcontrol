@@ -159,19 +159,14 @@ else
     last_kb_off_time=""
 fi
 
-# If keyboard backlight has been off for 5+ seconds, turn off display
-if [ -n "$last_kb_off_time" ] && (( now_epoch - last_kb_off_time >= 5 )); then
+# If keyboard backlight has been off for 30+ seconds, turn off display
+if [ -n "$last_kb_off_time" ] && (( now_epoch - last_kb_off_time >= 30 )); then
     if [ "$backlight_off" -eq 0 ]; then
-    if [ -n "$last_kb_off_time" ] && (( now_epoch - last_kb_off_time >= 5 )); then
+    if [ -n "$last_kb_off_time" ] && (( now_epoch - last_kb_off_time >= 30 )); then
         sudo ectool backlight 0
         backlight_off=1
-        echo "$(date '+%Y-%m-%d %H:%M:%S') - Turned display off due to $source + keyboard backlight off 5s." >> "$LOG_FILE"
-    else
-        echo "$(date '+%Y-%m-%d %H:%M:%S') - Skipped $source timeout: keyboard backlight not off long enough (brightness $kb_brightness)." >> "$LOG_FILE"
     fi
 fi
-else
-    echo "$(date '+%Y-%m-%d %H:%M:%S') - Skipped display timeout: keyboard backlight not off long enough." >> "$LOG_FILE"
 fi
          
 
@@ -200,8 +195,6 @@ fi
                 sudo ectool backlight 0
                 backlight_off=1
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Turned display off due to battery timeout (${BATTERY_BACKLIGHT} min) + keyboard backlight off 5s." >> "$LOG_FILE"
-            else
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Skipped battery timeout: keyboard backlight not off long enough (brightness $kb_brightness)." >> "$LOG_FILE"
             fi
         fi
 
@@ -232,8 +225,6 @@ fi
                 sudo ectool backlight 0
                 backlight_off=1
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Turned display off due to power timeout (${POWER_BACKLIGHT} min) + keyboard backlight off 5s." >> "$LOG_FILE"
-            else
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Skipped power timeout: keyboard backlight not off long enough (brightness $kb_brightness)." >> "$LOG_FILE"
             fi
         fi
 
@@ -279,7 +270,7 @@ fi
                 (
     loop_start=$(date +%s)
     end=$((loop_start + delay_minutes * 60))
-    cooldown=30
+    cooldown=60
 
        while (( $(date +%s) < end )); do
         now=$(date +%s)
@@ -487,12 +478,12 @@ case "$1" in
         if [ -f "$PID_FILE" ] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
             echo "${GREEN}SleepControl is running.${RESET}"
             echo ""
-            echo "Sleep set for: ${GREEN}On Battery = $((BATTERY_DELAY + 6)) minutes${RESET}, ${BLUE}On Power = $((POWER_DELAY + 8)) minutes${RESET}"
+            echo "Sleep set for: ${GREEN}On Battery = $((BATTERY_DELAY)) minutes${RESET}, ${BLUE}On Power = $((POWER_DELAY + 8)) minutes${RESET}"
             echo "Display timeout set for: ${GREEN}On Battery = $BATTERY_BACKLIGHT minutes${RESET}, ${BLUE}On Power = $POWER_BACKLIGHT minutes${RESET}"
         else
             echo "${RED}SleepControl is not running.${RESET}"
             echo ""
-            echo "Sleep set for: ${GREEN}On Battery = $((BATTERY_DELAY + 6)) minutes${RESET}, ${BLUE}On Power = $((POWER_DELAY + 8)) minutes${RESET}"
+            echo "Sleep set for: ${GREEN}On Battery = $((BATTERY_DELAY)) minutes${RESET}, ${BLUE}On Power = $((POWER_DELAY + 8)) minutes${RESET}"
             echo "Display timeout set for: ${GREEN}On Battery = $BATTERY_BACKLIGHT minutes${RESET}, ${BLUE}On Power = $POWER_BACKLIGHT minutes${RESET}"
         fi
         ;;
