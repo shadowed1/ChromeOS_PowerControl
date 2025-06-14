@@ -111,6 +111,7 @@ monitor_idle_activity() {
     local power_backlight_ts=
     local battery_backlight_ts=
     local audio_active=0
+    local lid_open_detected=0
 
     while read -r line; do
         if echo "$line" | grep -q "Audio activity started"; then
@@ -333,6 +334,39 @@ fi
     else
         echo "$(date '+%Y-%m-%d %H:%M:%S') - Suspend cancelled, real activity detected." >> "$LOG_FILE"
     fi
+     if echo "$line" | grep -q "Lid opened"; then
+            lid_open_detected=1
+        elif echo "$line" | grep -q "Chrome is using normal display mode"; then
+            if [ "$lid_open_detected" = "1" ]; then
+                lid_open_detected=0
+
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Chrome resumed normal display mode." >> "$LOG_FILE"
+
+                if [ "$active" -eq 0 ]; then
+                    active=1
+                    [ -n "$sim_pid" ] && kill "$sim_pid" 2>/dev/null && sim_pid=
+                fi
+
+                if [ "$backlight_off" -eq 1 ]; then
+                    sudo ectool backlight 1
+                    backlight_off=0
+                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Resumed display." >> "$LOG_FILE"
+                fi
+
+                if [ "$kb_brightness_restored" -eq 0 ] && [ "$saved_kb_brightness" -ge 0 ]; then
+                    sudo ectool pwmsetkblight "$saved_kb_brightness"
+                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Restored keyboard brightness to $saved_kb_brightness% after lid open." >> "$LOG_FILE"
+                    kb_brightness_restored=1
+                fi
+
+                # Reset backlight timer
+                if [ "$status" = "Discharging" ]; then
+                    battery_backlight_ts=$now_epoch
+                else
+                    power_backlight_ts=$now_epoch
+                fi
+            fi
+        fi
 ) &
 sim_pid=$!
 
