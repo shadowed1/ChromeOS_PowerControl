@@ -281,10 +281,10 @@ fi
     end=$((loop_start + delay_minutes * 60))
     cooldown=30
 
-    while (( $(date +%s) < end )); do
+       while (( $(date +%s) < end )); do
         now=$(date +%s)
-        # only simulate if nothing real happened recently
         recent_real_activity=0
+
         if [ -f "$sim_file" ]; then
             readarray -t last_simulated_times < "$sim_file"
             for sim_ts in "${last_simulated_times[@]}"; do
@@ -314,11 +314,31 @@ fi
         sleep "$cooldown"
     done
 
-     echo "$(date '+%Y-%m-%d %H:%M:%S') - Suspending system via PowerManager (after ${delay_minutes}m inactivity)." >> "$LOG_FILE"
-    dbus-send --system --type=method_call \
-      --dest=org.chromium.PowerManager \
-      /org/chromium/PowerManager \
-      org.chromium.PowerManager.RequestSuspend
+    # Final safety check before suspend
+    sleep 5  # Short grace period for last-moment activity
+
+    now=$(date +%s)
+    recent_real_activity=0
+    if [ -f "$sim_file" ]; then
+        readarray -t last_simulated_times < "$sim_file"
+        for sim_ts in "${last_simulated_times[@]}"; do
+            [[ "$sim_ts" =~ ^[0-9]+$ ]] || continue
+            if (( now - sim_ts < cooldown )); then
+                recent_real_activity=1
+                break
+            fi
+        done
+    fi
+
+    if [ "$recent_real_activity" -eq 0 ]; then
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - Suspending system via PowerManager (after ${delay_minutes}m inactivity)." >> "$LOG_FILE"
+        dbus-send --system --type=method_call \
+            --dest=org.chromium.PowerManager \
+            /org/chromium/PowerManager \
+            org.chromium.PowerManager.RequestSuspend
+    else
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - Suspend aborted due to recent real activity." >> "$LOG_FILE"
+    fi
 ) &
 sim_pid=$!
 
