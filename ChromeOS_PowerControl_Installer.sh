@@ -1,4 +1,7 @@
 #!/bin/bash
+IS_INTEL=0
+IS_AMD=0
+IS_ARM=0
 RED=$(tput setaf 1)
 GREEN=$(tput setaf 2)
 YELLOW=$(tput setaf 3)
@@ -7,6 +10,7 @@ MAGENTA=$(tput setaf 5)
 CYAN=$(tput setaf 6)
 BOLD=$(tput bold)
 RESET=$(tput sgr0)
+SHOW_POWERCONTROL_NOTICE=0
 SHOW_BATTERYCONTROL_NOTICE=0
 SHOW_SLEEPCONTROL_NOTICE=0
 SHOW_GPUCONTROL_NOTICE=0
