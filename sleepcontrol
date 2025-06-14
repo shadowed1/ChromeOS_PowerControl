@@ -161,19 +161,12 @@ else
 fi
 
 # If keyboard backlight has been off for 5+ seconds, turn off display
-if [ -n "$last_kb_off_time" ] && (( now_epoch - last_kb_off_time >= 5 )); then
-    if [ "$backlight_off" -eq 0 ]; then
-    if [ -n "$last_kb_off_time" ] && (( now_epoch - last_kb_off_time >= 5 )); then
-        sudo ectool backlight 0
-        backlight_off=1
-        echo "$(date '+%Y-%m-%d %H:%M:%S') - Turned display off due to $source + keyboard backlight off 5s." >> "$LOG_FILE"
-    else
-        echo "$(date '+%Y-%m-%d %H:%M:%S') - Skipped $source timeout: keyboard backlight not off long enough (brightness $kb_brightness)." >> "$LOG_FILE"
-    fi
+if [ -n "$last_kb_off_time" ] && (( now_epoch - last_kb_off_time >= 5 )) && [ "$backlight_off" -eq 0 ]; then
+    sudo ectool backlight 0
+    backlight_off=1
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - Turned display off due to $source + keyboard backlight off 5s." >> "$LOG_FILE"
 fi
-else
-    echo "$(date '+%Y-%m-%d %H:%M:%S') - Skipped display timeout: keyboard backlight not off long enough." >> "$LOG_FILE"
-fi
+
          
 if echo "$line" | grep -q "Lid opened"; then
             lid_open_detected=1
@@ -233,9 +226,8 @@ if echo "$line" | grep -q "Lid opened"; then
                 sudo ectool backlight 0
                 backlight_off=1
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Turned display off due to battery timeout (${BATTERY_BACKLIGHT} min) + keyboard backlight off 5s." >> "$LOG_FILE"
-            else
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Skipped battery timeout: keyboard backlight not off long enough (brightness $kb_brightness)." >> "$LOG_FILE"
             fi
+
         fi
 
         battery_backlight_ts=$now_epoch
@@ -265,8 +257,6 @@ if echo "$line" | grep -q "Lid opened"; then
                 sudo ectool backlight 0
                 backlight_off=1
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Turned display off due to power timeout (${POWER_BACKLIGHT} min) + keyboard backlight off 5s." >> "$LOG_FILE"
-            else
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Skipped power timeout: keyboard backlight not off long enough (brightness $kb_brightness)." >> "$LOG_FILE"
             fi
         fi
 
@@ -457,70 +447,48 @@ case "$1" in
         stop_monitoring
         echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') - SleepControl stopped.${RESET}." | tee -a "$LOG_FILE"
         ;;
-        battery)
-        if [ -n "$2" ]; then
-            if [[ "$2" =~ ^[0-9]+$ ]]; then
-                user_input=$2
-                actual_delay=$((user_input - 6))
-                if (( actual_delay < 7 )); then
-                    echo "${RED}Please enter a larger value, this is lower than ChromeOS' sleep.${RESET}"
+            battery|power)
+        MODE=$1
+        BACKLIGHT_VAL=$2
+        DELAY_VAL=$3
+
+        if [ -n "$BACKLIGHT_VAL" ] && [ -n "$DELAY_VAL" ]; then
+            if [[ "$BACKLIGHT_VAL" =~ ^[0-9]+$ ]] && [[ "$DELAY_VAL" =~ ^[0-9]+$ ]]; then
+                if (( BACKLIGHT_VAL > DELAY_VAL )); then
+                    echo "${RED}Backlight timeout cannot be greater than sleep delay.${RESET}"
+                    exit 1
                 fi
-                BATTERY_DELAY=$actual_delay
+                if [ "$MODE" = "battery" ]; then
+                    BATTERY_BACKLIGHT=$BACKLIGHT_VAL
+                    BATTERY_DELAY=$DELAY_VAL
+                else
+                    POWER_BACKLIGHT=$BACKLIGHT_VAL
+                    POWER_DELAY=$DELAY_VAL
+                fi
                 save_config
-                echo "${GREEN}When ${RESET}${GREEN}${BOLD}idling on battery${RESET}${GREEN}, ChromeOS will sleep in $user_input minutes.${GREEN}"
+                echo "${GREEN}${BOLD}${MODE^}${RESET}${GREEN} backlight timeout set to ${BOLD}${BACKLIGHT_VAL} min${RESET}${GREEN}, sleep delay set to ${BOLD}${DELAY_VAL} min.${RESET}"
             else
-                echo "Invalid delay value. Please enter a positive integer."
+                echo "${RED}Invalid values. Usage: sleepcontrol $MODE <backlight> <delay> (numbers only).${RESET}"
+            fi
+        elif [ -n "$BACKLIGHT_VAL" ]; then
+            if [[ "$BACKLIGHT_VAL" =~ ^[0-9]+$ ]]; then
+                if [ "$MODE" = "battery" ]; then
+                    BATTERY_DELAY=$BACKLIGHT_VAL
+                else
+                    POWER_DELAY=$BACKLIGHT_VAL
+                fi
+                save_config
+                echo "${GREEN}${BOLD}${MODE^}${RESET}${GREEN} sleep delay set to ${BOLD}${BACKLIGHT_VAL} minutes.${RESET}"
+            else
+                echo "${RED}Invalid value. Please enter a number.${RESET}"
             fi
         else
             load_config
-            echo "Battery delay: $((BATTERY_DELAY)) minutes."
-        fi
-        ;;
-        power)
-    if [ -n "$2" ]; then
-        if [[ "$2" =~ ^[0-9]+$ ]]; then
-            user_input=$2
-            actual_delay=$((user_input - 8))
-            if (( actual_delay < 9 )); then
-                echo "${RED}Please enter a larger value, this is lower than ChromeOS' sleep."
-            fi
-            POWER_DELAY=$actual_delay
-            save_config
-            echo "${GREEN}When ${RESET}${GREEN}${BOLD}idling plugged${RESET}${GREEN} in ChromeOS will sleep in $user_input minutes.${RESET}"
-        else
-            echo "${RED}Invalid delay value. Please enter a positive integer.${RESET}"
-        fi
-    else
-        load_config
-        echo "Power delay: $((POWER_DELAY)) minutes."
-    fi
-    ;;
-    battery_backlight)
-        if [ -n "$2" ]; then
-            if [[ "$2" =~ ^[0-9]+$ ]]; then
-                BATTERY_BACKLIGHT=$2
-                save_config
-                echo "${GREEN}Battery backlight timeout set to ${BOLD}$BATTERY_BACKLIGHT${RESET}${GREEN} minutes.${RESET}"
+            if [ "$MODE" = "battery" ]; then
+                echo "Battery: Backlight = $BATTERY_BACKLIGHT min, Delay = $BATTERY_DELAY min"
             else
-                echo "${RED}Invalid value. Enter a number in minutes.${RESET}"
+                echo "Power: Backlight = $POWER_BACKLIGHT min, Delay = $POWER_DELAY min"
             fi
-        else
-            load_config
-            echo "Battery backlight timeout: $BATTERY_BACKLIGHT minutes"
-        fi
-        ;;
-    power_backlight)
-        if [ -n "$2" ]; then
-            if [[ "$2" =~ ^[0-9]+$ ]]; then
-                POWER_BACKLIGHT=$2
-                save_config
-                echo "${GREEN}Power backlight timeout set to ${BOLD}$POWER_BACKLIGHT${RESET}${GREEN} minutes.${RESET}"
-            else
-                echo "${RED}Invalid value. Enter a number in minutes.${RESET}"
-            fi
-        else
-            load_config
-            echo "Power backlight timeout: $POWER_BACKLIGHT minutes"
         fi
         ;;
         startup)
@@ -546,12 +514,12 @@ case "$1" in
         if [ -f "$PID_FILE" ] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
             echo "${GREEN}SleepControl is running.${RESET}"
             echo ""
-            echo "Sleep set for: ${GREEN}On Battery = $((BATTERY_DELAY + 6)) minutes${RESET}, ${BLUE}On Power = $((POWER_DELAY + 8)) minutes${RESET}"
+            echo "Sleep set for: ${GREEN}On Battery = $((BATTERY_DELAY)) minutes${RESET}, ${BLUE}On Power = $((POWER_DELAY)) minutes${RESET}"
             echo "Display timeout set for: ${GREEN}On Battery = $BATTERY_BACKLIGHT minutes${RESET}, ${BLUE}On Power = $POWER_BACKLIGHT minutes${RESET}"
         else
             echo "${RED}SleepControl is not running.${RESET}"
             echo ""
-            echo "Sleep set for: ${GREEN}On Battery = $((BATTERY_DELAY + 6)) minutes${RESET}, ${BLUE}On Power = $((POWER_DELAY + 8)) minutes${RESET}"
+            echo "Sleep set for: ${GREEN}On Battery = $((BATTERY_DELAY)) minutes${RESET}, ${BLUE}On Power = $((POWER_DELAY)) minutes${RESET}"
             echo "Display timeout set for: ${GREEN}On Battery = $BATTERY_BACKLIGHT minutes${RESET}, ${BLUE}On Power = $POWER_BACKLIGHT minutes${RESET}"
         fi
         ;;
