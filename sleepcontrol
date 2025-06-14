@@ -162,10 +162,14 @@ fi
 # If keyboard backlight has been off for 5+ seconds, turn off display
 if [ -n "$last_kb_off_time" ] && (( now_epoch - last_kb_off_time >= 5 )); then
     if [ "$backlight_off" -eq 0 ]; then
+    if [ -n "$last_kb_off_time" ] && (( now_epoch - last_kb_off_time >= 5 )); then
         sudo ectool backlight 0
         backlight_off=1
-        echo "$(date '+%Y-%m-%d %H:%M:%S') - Turned display off after keyboard backlight was off for 5s" >> "$LOG_FILE"
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - Turned display off due to $source + keyboard backlight off 5s." >> "$LOG_FILE"
+    else
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - Skipped $source timeout: keyboard backlight not off long enough (brightness $kb_brightness)." >> "$LOG_FILE"
     fi
+fi
 else
     echo "$(date '+%Y-%m-%d %H:%M:%S') - Skipped display timeout: keyboard backlight not off long enough." >> "$LOG_FILE"
 fi
@@ -173,63 +177,69 @@ fi
 
 
         if [ "$status" = "Discharging" ]; then
-            if [ -z "$battery_backlight_ts" ]; then
-                battery_backlight_ts=$now_epoch
-            elif (( now_epoch - battery_backlight_ts >= BATTERY_BACKLIGHT * 60 )); then
-    kb_line=$(sudo ectool pwmgetkblight 2>/dev/null)
-    if [[ "$kb_line" =~ ([0-9]+) ]]; then
-        kb_brightness="${BASH_REMATCH[1]}"
-    else
-        kb_brightness=0
-    fi
-
-    if [ "$kb_brightness" -eq 0 ]; then
-        if [ -z "$last_kb_off_time" ]; then
-            last_kb_off_time=$now_epoch
-        fi
-    else
-        last_kb_off_time=""
-    fi
-
-    if [ -n "$last_kb_off_time" ] && (( now_epoch - last_kb_off_time >= 5 )); then
-        if [ "$backlight_off" -eq 0 ]; then
-            sudo ectool backlight 0
-            backlight_off=1
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - Turned display off due to battery timeout (${BATTERY_BACKLIGHT} min) + keyboard backlight off 5s." >> "$LOG_FILE"
-        fi
-    else
-        echo "$(date '+%Y-%m-%d %H:%M:%S') - Skipped battery timeout: keyboard backlight not off long enough (brightness $kb_brightness)." >> "$LOG_FILE"
-    fi
-
-    battery_backlight_ts=$now_epoch
-
-                battery_backlight_ts=$now_epoch
-            fi
-            power_backlight_ts=""
+    if [ -z "$battery_backlight_ts" ]; then
+        battery_backlight_ts=$now_epoch
+    elif (( now_epoch - battery_backlight_ts >= BATTERY_BACKLIGHT * 60 )); then
+        kb_line=$(sudo ectool pwmgetkblight 2>/dev/null)
+        if [[ "$kb_line" =~ ([0-9]+) ]]; then
+            kb_brightness="${BASH_REMATCH[1]}"
         else
-            if [ -z "$power_backlight_ts" ]; then
-                power_backlight_ts=$now_epoch
-            elif (( now_epoch - power_backlight_ts >= POWER_BACKLIGHT * 60 )); then
-    kb_line=$(sudo ectool pwmgetkblight 2>/dev/null)
-    if [[ "$kb_line" =~ ([0-9]+) ]]; then
-        kb_brightness="${BASH_REMATCH[1]}"
-    else
-        kb_brightness=0
-    fi
-
-    if [ "$kb_brightness" -eq 0 ]; then
-        if [ -z "$last_kb_off_time" ]; then
-            last_kb_off_time=$now_epoch
+            kb_brightness=0
         fi
-    else
-        last_kb_off_time=""
-    fi
 
-    power_backlight_ts=$now_epoch
-
-                power_backlight_ts=$now_epoch
+        if [ "$backlight_off" -eq 0 ]; then
+            if [ "$kb_brightness" -eq 0 ]; then
+                if [ -z "$last_kb_off_time" ]; then
+                    last_kb_off_time=$now_epoch
+                fi
+            else
+                last_kb_off_time=""
             fi
-            battery_backlight_ts=""
+
+            if [ -n "$last_kb_off_time" ] && (( now_epoch - last_kb_off_time >= 5 )); then
+                sudo ectool backlight 0
+                backlight_off=1
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Turned display off due to battery timeout (${BATTERY_BACKLIGHT} min) + keyboard backlight off 5s." >> "$LOG_FILE"
+            else
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Skipped battery timeout: keyboard backlight not off long enough (brightness $kb_brightness)." >> "$LOG_FILE"
+            fi
+        fi
+
+        battery_backlight_ts=$now_epoch
+    fi
+    power_backlight_ts=""
+       else
+    if [ -z "$power_backlight_ts" ]; then
+        power_backlight_ts=$now_epoch
+    elif (( now_epoch - power_backlight_ts >= POWER_BACKLIGHT * 60 )); then
+        kb_line=$(sudo ectool pwmgetkblight 2>/dev/null)
+        if [[ "$kb_line" =~ ([0-9]+) ]]; then
+            kb_brightness="${BASH_REMATCH[1]}"
+        else
+            kb_brightness=0
+        fi
+
+        if [ "$backlight_off" -eq 0 ]; then
+            if [ "$kb_brightness" -eq 0 ]; then
+                if [ -z "$last_kb_off_time" ]; then
+                    last_kb_off_time=$now_epoch
+                fi
+            else
+                last_kb_off_time=""
+            fi
+
+            if [ -n "$last_kb_off_time" ] && (( now_epoch - last_kb_off_time >= 5 )); then
+                sudo ectool backlight 0
+                backlight_off=1
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Turned display off due to power timeout (${POWER_BACKLIGHT} min) + keyboard backlight off 5s." >> "$LOG_FILE"
+            else
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Skipped power timeout: keyboard backlight not off long enough (brightness $kb_brightness)." >> "$LOG_FILE"
+            fi
+        fi
+
+        power_backlight_ts=$now_epoch
+    fi
+    battery_backlight_ts=""
         fi
 
 
