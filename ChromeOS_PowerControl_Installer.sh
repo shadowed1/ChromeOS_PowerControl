@@ -292,8 +292,7 @@ for category in "${ordered_categories[@]}"; do
 done
 echo "${GREEN}${BOLD}Installing to: $INSTALL_DIR $RESET"
 
-
-read -rp "Enable ${BOLD}Global Commands${RESET} for ${RESET}${BOLD}${CYAN}PowerControl${RESET}, ${GREEN}${BOLD}BatteryControl${RESET}, ${YELLOW}${BOLD}FanControl${RESET}, ${MAGENTA}GPUControl${RESET}, ${BLUE}SleepControl${RESET}? (y/n):$RESET " link_cmd
+read -rp "Enable ${BOLD}global commands${RESET} (symbolic links) for ${RESET}${BOLD}${CYAN}PowerControl${RESET}, ${GREEN}${BOLD}BatteryControl${RESET}, ${YELLOW}${BOLD}FanControl${RESET}, ${MAGENTA}GPUControl${RESET}, ${BLUE}SleepControl${RESET}? (y/n):$RESET " link_cmd
 if [[ "$link_cmd" =~ ^[Yy]$ ]]; then
     sudo ln -sf "$INSTALL_DIR/powercontrol" /usr/local/bin/powercontrol
     sudo ln -sf "$INSTALL_DIR/batterycontrol" /usr/local/bin/batterycontrol
@@ -328,7 +327,7 @@ enable_component_on_boot() {
         *)                COLOR=${RESET} ;;
     esac
     
-    read -rp "${COLOR}Do you want $component enabled on boot?${RESET} (y/n): " move_config
+    read -rp "${COLOR}Do you want $component to start on boot?${RESET} (y/n): " move_config
     if [[ "$move_config" =~ ^[Yy]$ ]]; then
         sudo cp "$config_file" "$target_file"
         echo "$component will start on boot."
@@ -398,7 +397,7 @@ start_component_now() {
 }
 
 
-echo "${BLUE}Stopping any running components of PowerControl${RESET}"
+echo "${BLUE}Stopping any running components of PowerControl:${RESET}"
 sudo bash "$INSTALL_DIR/gpucontrol" restore >/dev/null 2>&1
 sudo ectool backlight 1 >/dev/null 2>&1
 for component in batterycontrol powercontrol fancontrol; do
