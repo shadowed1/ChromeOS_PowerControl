@@ -160,9 +160,9 @@ else
 fi
 
 # If keyboard backlight has been off for 5+ seconds, turn off display
-if [ -n "$last_kb_off_time" ] && (( now_epoch - last_kb_off_time >= 30 )); then
+if [ -n "$last_kb_off_time" ] && (( now_epoch - last_kb_off_time >= 5 )); then
     if [ "$backlight_off" -eq 0 ]; then
-    if [ -n "$last_kb_off_time" ] && (( now_epoch - last_kb_off_time >= 30 )); then
+    if [ -n "$last_kb_off_time" ] && (( now_epoch - last_kb_off_time >= 5 )); then
         sudo ectool backlight 0
         backlight_off=1
         echo "$(date '+%Y-%m-%d %H:%M:%S') - Turned display off due to $source + keyboard backlight off 5s." >> "$LOG_FILE"
@@ -279,7 +279,7 @@ fi
                 (
     loop_start=$(date +%s)
     end=$((loop_start + delay_minutes * 60))
-    cooldown=60
+    cooldown=30
 
        while (( $(date +%s) < end )); do
         now=$(date +%s)
@@ -379,8 +379,10 @@ sim_pid=$!
         
                 for sim_ts in "${last_simulated_times[@]}"; do
                     [[ "$sim_ts" =~ ^[0-9]+$ ]] || continue
-                    if (( reported_epoch - sim_ts >= 0 && reported_epoch - sim_ts <= 3 )); then
-                    matched_recent_sim=1
+                    if (( sim_ts == reported_epoch )); then
+                        matched_recent_sim=1
+                        break
+                    fi
                 done
 
         
