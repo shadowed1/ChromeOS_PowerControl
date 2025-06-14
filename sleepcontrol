@@ -313,6 +313,12 @@ fi
 
         sleep "$cooldown"
     done
+
+     echo "$(date '+%Y-%m-%d %H:%M:%S') - Suspending system via PowerManager (after ${delay_minutes}m inactivity)." >> "$LOG_FILE"
+    dbus-send --system --type=method_call \
+      --dest=org.chromium.PowerManager \
+      /org/chromium/PowerManager \
+      org.chromium.PowerManager.RequestSuspend
 ) &
 sim_pid=$!
 
@@ -415,7 +421,7 @@ case "$1" in
             fi
         else
             load_config
-            echo "Battery delay: $((BATTERY_DELAY + 6)) minutes."
+            echo "Battery delay: $((BATTERY_DELAY)) minutes."
         fi
         ;;
         power)
@@ -434,7 +440,7 @@ case "$1" in
         fi
     else
         load_config
-        echo "Power delay: $((POWER_DELAY + 8)) minutes."
+        echo "Power delay: $((POWER_DELAY)) minutes."
     fi
     ;;
     battery_backlight)
