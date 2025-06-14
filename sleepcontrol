@@ -247,7 +247,7 @@ sim_pid=$!
                     fi
                 done
         
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Log time $reported_epoch, matched_recent_sim=$matched_recent_sim" >> "$LOG_FILE"
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - $reported_epoch, matched_recent_sim=$matched_recent_sim" >> "$LOG_FILE"
         
                      if [ "$matched_recent_sim" -eq 0 ]; then
                         # Always reset timers on real user activity
