@@ -161,7 +161,7 @@ monitor_idle_activity() {
                 suspend_delay=$((POWER_DELAY * 60))
             fi
 
-        last_ts=$(( status == "Discharging" ? battery_backlight_ts : power_backlight_ts ))
+
         if (( now - last_ts >= backlight_delay )); then
             if [ "$backlight_off" -eq 0 ]; then
                 sudo ectool backlight 0
