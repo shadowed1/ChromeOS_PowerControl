@@ -121,7 +121,7 @@ monitor_idle_activity() {
                 if [ -f "$SIM_FILE" ]; then
                     while read -r sim_ts; do
                         [[ "$sim_ts" =~ ^[0-9]+$ ]] || continue
-                        if (( reported_epoch - sim_ts <= 2 )); then
+                        if (( reported_epoch - sim_ts <= 1 )); then
                             matched_recent_sim=1
                             break
                         fi
@@ -142,6 +142,8 @@ monitor_idle_activity() {
                     if [ "$kb_brightness_restored" -eq 0 ] && [ "$saved_kb_brightness" -ge 0 ]; then
                         sudo ectool pwmsetkblight "$saved_kb_brightness"
                         kb_brightness_restored=1
+                        sudo ectool backlight 1
+                        active=1
                         echo "$(date '+%Y-%m-%d %H:%M:%S') - Restored keyboard brightness to $saved_kb_brightness%" >> "$LOG_FILE"
                     fi
                     if [ "$status" = "Discharging" ]; then
