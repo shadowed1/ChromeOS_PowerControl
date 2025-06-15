@@ -207,11 +207,12 @@ fi
 }
 
 stop_monitoring() {
-     if [ -f "$PID_FILE" ]; then
+    if [ -f "$PID_FILE" ]; then
         PID=$(cat "$PID_FILE")
         if ps -p "$PID" > /dev/null 2>&1; then
-        kill "$PID"
-        echo "Stopped SleepControl (PID $PID)."
+            kill "$PID"
+            echo "Stopped SleepControl (PID $PID)."
+        fi
     fi
     rm -f "$RUN_FLAG"
 }
