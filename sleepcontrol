@@ -109,7 +109,7 @@ monitor_idle_activity() {
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - User went idle." >> "$LOG_FILE"
                 ;;
 
-            *"User activity reported"*|*"User activity ongoing"*|*"Audio activity"*)
+            *"User activity reported"*|*"User activity ongoing"*|*"Audio activity"*|*"Enabling wakeup for"*|*"Chrome is using normal display mode"*)
                 timestamp=$(echo "$line" | grep -oE '[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]+Z')
                 if [[ -n "$timestamp" ]]; then
                     reported_epoch=$(date -d "${timestamp%.*}Z" +%s)
