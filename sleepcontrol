@@ -77,297 +77,115 @@ save_config() {
 
 load_config
 
-save_sim_times() {
-    local -n arr=$1  # pass array by name
-    : > "$SIM_FILE_TMP"
-    for ts in "${arr[@]}"; do
-        echo "$ts" >> "$SIM_FILE_TMP"
-    done
-    mv "$SIM_FILE_TMP" "$SIM_FILE"
+save_sim_time() {
+    date +%s >> "$SIM_FILE"
+    tail -n 10 "$SIM_FILE" > "$SIM_FILE.tmp" && mv "$SIM_FILE.tmp" "$SIM_FILE"
 }
 
-load_sim_times() {
-    local -n arr=$1
-    arr=()
-    if [ -f "$SIM_FILE" ]; then
-        mapfile -t arr < "$SIM_FILE"
-    fi
+send_fake_activity() {
+    dbus-send --system --type=method_call \
+        --dest=org.chromium.PowerManager \
+        /org/chromium/PowerManager \
+        org.chromium.PowerManager.HandleUserActivity int32:0 int32:0
+    save_sim_time
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - Simulated user activity." >> "$LOG_FILE"
 }
 
 monitor_idle_activity() {
-    load_config
-    touch "$RUN_FLAG"
     echo $$ > "$PID_FILE"
-    echo "$(date '+%Y-%m-%d %H:%M:%S') - sleepcontrol started (PID $$)." >> "$LOG_FILE"
-    local saved_kb_brightness=-1
-    local kb_brightness_restored=1
-    local backlight_off=0
-    local last_reload_time=0
-    local delay_minutes
+    touch "$RUN_FLAG"
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - SleepControl started (PID $$)." > "$LOG_FILE"
+
     local active=1
-    local sim_pid=
-    local -a last_simulated_times=()
-    local sim_file="/tmp/sleepcontrol.sim"
-    local power_backlight_ts=
-    local battery_backlight_ts=
-    local audio_active=0
+    local backlight_off=0
+    local kb_brightness_restored=1
+    local saved_kb_brightness=$(ectool pwmgetkblight)
+    local power_backlight_ts=$(date +%s)
+    local battery_backlight_ts=$(date +%s)
 
-    while read -r line; do
-        if echo "$line" | grep -q "Audio activity started"; then
-            audio_active=1
-        elif echo "$line" | grep -q "Audio activity stopped"; then
-            audio_active=0
-        fi
+    tail -Fn0 /var/log/power_manager/powerd.LATEST | while read -r line; do
+        now=$(date +%s)
+        now_epoch=$now
+        status=$(cat /sys/class/power_supply/BAT0/status 2>/dev/null)
 
-        if [ -f "$BATTERY_STATUS_PATH" ]; then
-            status=$(cat "$BATTERY_STATUS_PATH")
-            if [ "$status" = "Discharging" ]; then
-                delay_minutes=$BATTERY_DELAY
-                backlight_delay=$BATTERY_BACKLIGHT
-            else
-                delay_minutes=$POWER_DELAY
-                backlight_delay=$POWER_BACKLIGHT
-            fi
-        else
-            delay_minutes=$DEFAULT_POWER_DELAY
-            backlight_delay=$POWER_BACKLIGHT
-        fi
+        case "$line" in
+            *"User activity stopped"*)
+                active=0
+                kb_brightness_restored=0
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - User went idle." >> "$LOG_FILE"
+                ;;
 
-        now_epoch=$(date +%s)
-        if [ "$audio_active" -eq 1 ]; then
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - Audio activity active, skipping backlight timeout." >> "$LOG_FILE"
-            battery_backlight_ts=$now_epoch
-            power_backlight_ts=$now_epoch
-            continue
-        fi
+            *"User activity reported"*|*"User activity ongoing"*|*"Audio activity"*)
+                reported_epoch=$(echo "$line" | grep -oE '[0-9]{10}')
+                matched_recent_sim=0
+                
+                if [ -f "$SIM_FILE" ]; then
+                    while read -r sim_ts; do
+                        [[ "$sim_ts" =~ ^[0-9]+$ ]] || continue
+                        if (( sim_ts == reported_epoch )); then
+                            matched_recent_sim=1
+                            break
+                        fi
+                    done < "$SIM_FILE"
+                fi
 
+                if [ "$matched_recent_sim" -eq 0 ]; then
+                    if [ "$active" -eq 0 ]; then
+                        active=1
+                        echo "$(date '+%Y-%m-%d %H:%M:%S') - Real user activity resumed." >> "$LOG_FILE"
+                    fi
+                    if [ "$backlight_off" -eq 1 ]; then
+                        sudo ectool backlight 1
+                        backlight_off=0
+                    fi
+                    if [ "$kb_brightness_restored" -eq 0 ] && [ "$saved_kb_brightness" -ge 0 ]; then
+                        sudo ectool pwmsetkblight "$saved_kb_brightness"
+                        kb_brightness_restored=1
+                        echo "$(date '+%Y-%m-%d %H:%M:%S') - Restored keyboard brightness to $saved_kb_brightness%" >> "$LOG_FILE"
+                    fi
+                    if [ "$status" = "Discharging" ]; then
+                        battery_backlight_ts=$now
+                    else
+                        power_backlight_ts=$now
+                    fi
+                fi
+                ;;
+        esac
 
-       # Check keyboard backlight state
-kb_line=$(sudo ectool pwmgetkblight 2>/dev/null)
-if [[ "$kb_line" =~ ([0-9]+) ]]; then
-    kb_brightness="${BASH_REMATCH[1]}"
-else
-    kb_brightness=0
-fi
-
-# Track how long keyboard backlight has been off
-if [ "$kb_brightness" -eq 0 ]; then
-    if [ -z "$last_kb_off_time" ]; then
-        last_kb_off_time=$now_epoch
-    fi
-else
-    last_kb_off_time=""
-fi
-
-# If keyboard backlight has been off for 5+ seconds, turn off display
-if [ -n "$last_kb_off_time" ] && (( now_epoch - last_kb_off_time >= 5 )); then
+        backlight_delay=$(( status == "Discharging" ? BATTERY_BACKLIGHT * 60 : POWER_BACKLIGHT * 60 ))
+last_ts=$(( status == "Discharging" ? battery_backlight_ts : power_backlight_ts ))
+if (( now - last_ts >= backlight_delay )); then
     if [ "$backlight_off" -eq 0 ]; then
         sudo ectool backlight 0
         backlight_off=1
-        echo "$(date '+%Y-%m-%d %H:%M:%S') - Turned display off after keyboard backlight was off for 5s" >> "$LOG_FILE"
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - Turned off backlight due to inactivity." >> "$LOG_FILE"
     fi
-else
-    echo "$(date '+%Y-%m-%d %H:%M:%S') - Skipped display timeout: keyboard backlight not off long enough." >> "$LOG_FILE"
 fi
-         
+
+suspend_delay=$(( status == "Discharging" ? BATTERY_DELAY * 60 : POWER_DELAY * 60 ))
+if (( now - last_ts >= suspend_delay )); then
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - Suspending system due to inactivity." >> "$LOG_FILE"
+    dbus-send --system --type=method_call \
+        --dest=org.chromium.PowerManager \
+        /org/chromium/PowerManager \
+        org.chromium.PowerManager.RequestSuspend
+fi
 
 
-        if [ "$status" = "Discharging" ]; then
-            if [ -z "$battery_backlight_ts" ]; then
-                battery_backlight_ts=$now_epoch
-            elif (( now_epoch - battery_backlight_ts >= BATTERY_BACKLIGHT * 60 )); then
-    kb_line=$(sudo ectool pwmgetkblight 2>/dev/null)
-    if [[ "$kb_line" =~ ([0-9]+) ]]; then
-        kb_brightness="${BASH_REMATCH[1]}"
-    else
-        kb_brightness=0
-    fi
-
-    if [ "$kb_brightness" -eq 0 ]; then
-        if [ -z "$last_kb_off_time" ]; then
-            last_kb_off_time=$now_epoch
-        fi
-    else
-        last_kb_off_time=""
-    fi
-
-    if [ -n "$last_kb_off_time" ] && (( now_epoch - last_kb_off_time >= 5 )); then
-        if [ "$backlight_off" -eq 0 ]; then
-            sudo ectool backlight 0
-            backlight_off=1
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - Turned display off due to battery timeout (${BATTERY_BACKLIGHT} min) + keyboard backlight off 5s." >> "$LOG_FILE"
-        fi
-    else
-        echo "$(date '+%Y-%m-%d %H:%M:%S') - Skipped battery timeout: keyboard backlight not off long enough (brightness $kb_brightness)." >> "$LOG_FILE"
-    fi
-
-    battery_backlight_ts=$now_epoch
-
-                battery_backlight_ts=$now_epoch
+            # Send fake user input every 2 minutes
+            if (( now % 120 == 0 )); then
+                send_fake_activity
             fi
-            power_backlight_ts=""
-        else
-            if [ -z "$power_backlight_ts" ]; then
-                power_backlight_ts=$now_epoch
-            elif (( now_epoch - power_backlight_ts >= POWER_BACKLIGHT * 60 )); then
-    kb_line=$(sudo ectool pwmgetkblight 2>/dev/null)
-    if [[ "$kb_line" =~ ([0-9]+) ]]; then
-        kb_brightness="${BASH_REMATCH[1]}"
-    else
-        kb_brightness=0
-    fi
-
-    if [ "$kb_brightness" -eq 0 ]; then
-        if [ -z "$last_kb_off_time" ]; then
-            last_kb_off_time=$now_epoch
         fi
-    else
-        last_kb_off_time=""
-    fi
-
-    power_backlight_ts=$now_epoch
-
-                power_backlight_ts=$now_epoch
-            fi
-            battery_backlight_ts=""
-        fi
-
-
-        now=$(date +%s)
-        if (( now - last_reload_time >= 120 )); then
-            load_config
-            last_reload_time=$now
-        fi
-
-        if [ ! -f "$RUN_FLAG" ]; then
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - sleepcontrol stopped, exiting loop." >> "$LOG_FILE"
-            [ -n "$sim_pid" ] && kill "$sim_pid" 2>/dev/null
-            rm -f "$PID_FILE"
-            exit 0
-        fi
-
-        if echo "$line" | grep -q "User activity stopped"; then
-            if [ "$active" -eq 1 ]; then
-                sleep 1
-                active=0
-
-                kb_line=$(sudo ectool pwmgetkblight 2>/dev/null)
-                if [[ "$kb_line" =~ ([0-9]+) ]]; then
-                    saved_kb_brightness="${BASH_REMATCH[1]}"
-                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Saved keyboard brightness: $saved_kb_brightness%" >> "$LOG_FILE"
-                    sudo ectool pwmsetkblight 0
-                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Turned keyboard backlight off during idle." >> "$LOG_FILE"
-                    kb_brightness_restored=0
-                fi
-
-
-                if [ -n "$sim_pid" ] && kill -0 "$sim_pid" 2>/dev/null; then
-                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Simulate loop already running (PID $sim_pid), skipping duplicate launch." >> "$LOG_FILE"
-                    continue
-                fi
-
-                (
-    loop_start=$(date +%s)
-    end=$((loop_start + delay_minutes * 60))
-    cooldown=30
-
-    while (( $(date +%s) < end )); do
-        now=$(date +%s)
-        # only simulate if nothing real happened recently
-        recent_real_activity=0
-        if [ -f "$sim_file" ]; then
-            readarray -t last_simulated_times < "$sim_file"
-            for sim_ts in "${last_simulated_times[@]}"; do
-                [[ "$sim_ts" =~ ^[0-9]+$ ]] || continue
-                if (( now - sim_ts < cooldown )); then
-                    recent_real_activity=1
-                    break
-                fi
-            done
-        fi
-
-        if [ "$recent_real_activity" -eq 0 ]; then
-            dbus-send --system --type=method_call \
-                --dest=org.chromium.PowerManager \
-                /org/chromium/PowerManager \
-                org.chromium.PowerManager.HandleUserActivity \
-                int32:0 int32:0
-
-            ts=$(date +%s)
-            last_simulated_times+=("$ts")
-            if [ "${#last_simulated_times[@]}" -gt 10 ]; then
-                last_simulated_times=("${last_simulated_times[@]: -10}")
-            fi
-            printf "%s\n" "${last_simulated_times[@]}" > "$SIM_FILE_TMP" && mv "$SIM_FILE_TMP" "$sim_file"
-        fi
-         if [ "$matched_recent_sim" -eq 0 ]; then
-                        # Always reset timers on real user activity
-                        if [ "$active" -eq 0 ]; then
-                            active=1
-                            [ -n "$sim_pid" ] && kill "$sim_pid" 2>/dev/null && sim_pid=
-                            echo "$(date '+%Y-%m-%d %H:%M:%S') - Waiting for user to go idle again." >> "$LOG_FILE"
-                        fi
-
-                        if [ "$backlight_off" -eq 1 ]; then
-                            sudo ectool backlight 1
-                            backlight_off=0
-                            echo "$(date '+%Y-%m-%d %H:%M:%S') - Real user activity detected, turned display back on." >> "$LOG_FILE"
-                        fi
-
-                        if [ "$kb_brightness_restored" -eq 0 ] && [ "$saved_kb_brightness" -ge 0 ]; then
-                            sudo ectool pwmsetkblight "$saved_kb_brightness"
-                            echo "$(date '+%Y-%m-%d %H:%M:%S') - Restored keyboard brightness to $saved_kb_brightness%" >> "$LOG_FILE"
-                            kb_brightness_restored=1
-                        fi
-
-                        # Reset backlight timer every time real user activity detected
-                        if [ "$status" = "Discharging" ]; then
-                            battery_backlight_ts=$now_epoch
-                        else
-                        power_backlight_ts=$now_epoch
-                    fi
-                fi
-        sleep "$cooldown"
     done
-) &
-sim_pid=$!
-
-            fi
-               elif echo "$line" | grep -q "User activity reported"; then
-            if [[ "$line" =~ ([0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}) ]]; then
-                reported_time_utc="${BASH_REMATCH[1]}"
-                reported_epoch=$(date -u -d "$reported_time_utc" +%s 2>/dev/null)
-                matched_recent_sim=0
-                readarray -t last_simulated_times < "$sim_file"
-        
-                for sim_ts in "${last_simulated_times[@]}"; do
-                    [[ "$sim_ts" =~ ^[0-9]+$ ]] || continue
-                    if (( sim_ts == reported_epoch )); then
-                        matched_recent_sim=1
-                        break
-                    fi
-                done
-
-        
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - $reported_epoch, matched_recent_sim=$matched_recent_sim" >> "$LOG_FILE"
-        
-                    
-            fi
-
-        fi
-    done < <(tail -Fn0 /var/log/power_manager/powerd.LATEST)
 }
-
 
 stop_monitoring() {
     if [ -f "$PID_FILE" ]; then
         PID=$(cat "$PID_FILE")
-        if kill -0 "$PID" 2>/dev/null; then
-            kill "$PID" && echo "$(date '+%Y-%m-%d %H:%M:%S') - ${RED}sleepcontrol stopped (PID $PID).${RESET}" | tee -a "$LOG_FILE"
-        fi
+        kill "$PID" 2>/dev/null
         rm -f "$PID_FILE"
-    else
-        echo "${YELLOW}sleepcontrol is not running.${RESET}"
+        echo "Stopped SleepControl (PID $PID)."
     fi
     rm -f "$RUN_FLAG"
 }
@@ -404,7 +222,7 @@ case "$1" in
             fi
         else
             load_config
-            echo "Battery delay: $((BATTERY_DELAY + 6)) minutes."
+            echo "Battery delay: $((BATTERY_DELAY)) minutes."
         fi
         ;;
         power)
@@ -423,7 +241,7 @@ case "$1" in
         fi
     else
         load_config
-        echo "Power delay: $((POWER_DELAY + 8)) minutes."
+        echo "Power delay: $((POWER_DELAY)) minutes."
     fi
     ;;
     battery_backlight)
