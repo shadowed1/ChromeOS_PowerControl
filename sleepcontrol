@@ -137,13 +137,31 @@ monitor_idle_activity() {
             *"User activity reported"*|*"User activity ongoing"*|*"Audio activity"*|*"Enabling wakeup for"*|*"Chrome is using normal display mode"*)
                 # On any user activity, disable idle monitoring
                 if (( monitor_idle == 1 )); then
-                    echo "$(date '+%Y-%m-%d %H:%M:%S') - User activity detected. Monitoring paused." >> "$LOG_FILE"
-                fi
-                monitor_idle=0
-                active=1
-                kb_brightness_restored=1
-                stop_fake_activity
-                sudo ectool backlight 1 2>/dev/null
+                        echo "$(date '+%Y-%m-%d %H:%M:%S') - User activity detected. Monitoring paused." >> "$LOG_FILE"
+                    fi
+                    monitor_idle=0
+                    active=1
+                    stop_fake_activity
+
+                    if (( ! kb_brightness_restored )); then
+                        sudo ectool pwmsetkblight "$saved_kb_brightness" 2>/dev/null
+                        sudo ectool backlight 1 2>/dev/null  # Force display backlight ON
+                        kb_brightness_restored=1
+                        backlight_off=0
+                        echo "$(date '+%Y-%m-%d %H:%M:%S') - Restored keyboard + display backlight." >> "$LOG_FILE"
+                    fi
+
+                    if (( backlight_off == 1 )); then
+                        sudo ectool backlight 1 2>/dev/null
+                        if (( kb_brightness_restored == 0 )); then
+                            sudo ectool pwmsetkblight "$saved_kb_brightness" 2>/dev/null
+                            echo "$(date '+%Y-%m-%d %H:%M:%S') - Restored keyboard backlight to $saved_kb_brightness" >> "$LOG_FILE"
+                        fi
+                        backlight_off=0
+                        kb_brightness_restored=1
+                    fi
+
+                    
 
                 # Update timers to now because user is active
                 power_backlight_ts=$now
@@ -170,7 +188,7 @@ monitor_idle_activity() {
                 suspend_delay=$((POWER_DELAY * 60))
             fi
 
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - Idle detected, checking backlight timers. now=$now last_ts=$last_ts backlight_delay=$backlight_delay" >> "$LOG_FILE"
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - now=$now last_ts=$last_ts backlight_delay=$backlight_delay" >> "$LOG_FILE"
 
             if (( now - last_ts >= backlight_delay )); then
                 if [ "$backlight_off" -eq 0 ]; then
