@@ -23,7 +23,7 @@ LOG_FILE="/var/log/sleepcontrol.log"
 BATTERY_STATUS_PATH="/sys/class/power_supply/BAT0/status"
 SIM_FILE="/tmp/sleepcontrol.sim"
 SIM_FILE_TMP="/tmp/sleepcontrol.sim.tmp"
-MONITOR_PID_FILE="$INSTALL_DIR/.sleepcontrol_tail_fan_monitor.pid"
+MONITOR_PID_FILE="$INSTALL_DIR/.sleepcontrol_monitor.pid"
 
 DEFAULT_BATTERY_DELAY=14
 DEFAULT_POWER_DELAY=30
