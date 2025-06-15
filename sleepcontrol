@@ -295,16 +295,22 @@ case "$1" in
         ;;
     status|"")
         load_config
-        if [ -f "$PID_FILE" ] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
+       if [ -f "$RUN_FLAG" ]; then
+            PID=$(cat "$PID_FILE")
+            if ps -p "$PID" > /dev/null 2>&1; then
+                echo "${GREEN}SleepControl Status: ENABLED (PID $PID)${RESET}"
+            else
+                echo "${YELLOW}SleepControl Status: RUN FLAG PRESENT, but process not running${RESET}"
+            fi
+        else
+            echo "${RED}FanControl Status: DISABLED${RESET}"
+        fi
             echo "${GREEN}SleepControl is running.${RESET}"
             echo ""
             echo "Sleep set for: ${GREEN}On Battery = $((BATTERY_DELAY)) minutes${RESET}, ${BLUE}On Power = $((POWER_DELAY)) minutes${RESET}"
             echo "Display timeout set for: ${GREEN}On Battery = $BATTERY_BACKLIGHT minutes${RESET}, ${BLUE}On Power = $POWER_BACKLIGHT minutes${RESET}"
         else
             echo "${RED}SleepControl is not running.${RESET}"
-            echo ""
-            echo "Sleep set for: ${GREEN}On Battery = $((BATTERY_DELAY)) minutes${RESET}, ${BLUE}On Power = $((POWER_DELAY)) minutes${RESET}"
-            echo "Display timeout set for: ${GREEN}On Battery = $BATTERY_BACKLIGHT minutes${RESET}, ${BLUE}On Power = $POWER_BACKLIGHT minutes${RESET}"
         fi
         ;;
     __monitor__)
