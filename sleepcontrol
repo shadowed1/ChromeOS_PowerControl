@@ -92,7 +92,7 @@ monitor_idle_activity() {
     echo "$(date '+%Y-%m-%d %H:%M:%S') - SleepControl started (PID $$)." > "$LOG_FILE"
     load_config
     local active=1
-    local monitor_idle=0    # <--- Add this flag, initially NOT monitoring idle
+    local monitor_idle=0
     local backlight_off=0
     local kb_brightness_restored=1
     local saved_kb_brightness=$(sudo ectool pwmgetkblight | awk '{print $NF}')
@@ -127,7 +127,6 @@ monitor_idle_activity() {
 
         case "$line" in
             *"User activity stopped"*)
-                # Start monitoring idle only after User activity stopped
                 monitor_idle=1
                 active=0
                 kb_brightness_restored=0
@@ -135,7 +134,6 @@ monitor_idle_activity() {
                 ;;
 
             *"User activity reported"*|*"User activity ongoing"*|*"Audio activity"*|*"Enabling wakeup for"*|*"Chrome is using normal display mode"*)
-                # On any user activity, disable idle monitoring
                 if (( monitor_idle == 1 )); then
                         echo "$(date '+%Y-%m-%d %H:%M:%S') - User activity detected. Monitoring paused." >> "$LOG_FILE"
                     fi
@@ -145,7 +143,7 @@ monitor_idle_activity() {
 
                     if (( ! kb_brightness_restored )); then
                         sudo ectool pwmsetkblight "$saved_kb_brightness" 2>/dev/null
-                        sudo ectool backlight 1 2>/dev/null  # Force display backlight ON
+                        sudo ectool backlight 1 2>/dev/null
                         kb_brightness_restored=1
                         backlight_off=0
                         echo "$(date '+%Y-%m-%d %H:%M:%S') - Restored keyboard + display backlight." >> "$LOG_FILE"
@@ -163,19 +161,15 @@ monitor_idle_activity() {
 
                     
 
-                # Update timers to now because user is active
                 power_backlight_ts=$now
                 battery_backlight_ts=$now
                 ;;
 
             *)
-                # Ignore other lines
                 ;;
         esac
 
-        # Only do idle checks if monitoring is enabled
         if (( monitor_idle == 1 )); then
-            # Your existing logic for backlight off and suspend
             status=$(cat "$BATTERY_STATUS_PATH" 2>/dev/null)
 
             if [[ "$status" == "Discharging" ]]; then
@@ -205,10 +199,8 @@ monitor_idle_activity() {
                     /org/chromium/PowerManager \
                     org.chromium.PowerManager.RequestSuspend
 
-                # Add cooldown after suspend to prevent repeat suspend attempts
                 sleep 60
 
-                # Reset timers
                 power_backlight_ts=$now
                 battery_backlight_ts=$now
                 backlight_off=0
@@ -228,11 +220,9 @@ stop_monitoring() {
     if [ -f "$PID_FILE" ]; then
         PID=$(cat "$PID_FILE")
         if ps -p "$PID" > /dev/null 2>&1; then
-            # Kill the entire process group
             echo "Stopping SleepControl (PGID: $PID)..."
-            kill -- -"$PID" 2>/dev/null  # note the minus sign before PID for PGID
+            kill -- -"$PID" 2>/dev/null
             sleep 1
-            # Also kill the main PID explicitly
             kill "$PID" 2>/dev/null
             echo "Stopped SleepControl (PID $PID)."
         fi
