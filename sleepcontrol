@@ -21,7 +21,9 @@ PID_FILE="$INSTALL_DIR/.sleepcontrol_pid"
 RUN_FLAG="$INSTALL_DIR/.sleepcontrol_enabled"
 LOG_FILE="/var/log/sleepcontrol.log"
 BATTERY_STATUS_PATH="/sys/class/power_supply/BAT0/status"
-MONITOR_PID_FILE="$INSTALL_DIR/.sleepcontrol_monitor.pid"
+SIM_FILE="/tmp/sleepcontrol.sim"
+SIM_FILE_TMP="/tmp/sleepcontrol.sim.tmp"
+
 DEFAULT_BATTERY_DELAY=14
 DEFAULT_POWER_DELAY=30
 DEFAULT_BATTERY_BACKLIGHT=4
@@ -85,6 +87,7 @@ send_fake_activity() {
 }
 
 monitor_idle_activity() {
+    echo "$BASHPID" > "$PID_FILE"
     touch "$RUN_FLAG"
     echo "$(date '+%Y-%m-%d %H:%M:%S') - SleepControl started (PID $$)." > "$LOG_FILE"
     load_config
@@ -96,19 +99,7 @@ monitor_idle_activity() {
     local power_backlight_ts=$(date +%s)
     local battery_backlight_ts=$(date +%s)
     local fake_activity_pid=0
-     if [ -f "$MONITOR_PID_FILE" ]; then
-        MONITOR_PID=$(cat "$MONITOR_PID_FILE")
-        if ps -p "$MONITOR_PID" > /dev/null 2>&1; then
-            echo "Stopping monitor (PID $MONITOR_PID)..."
-            kill "$MONITOR_PID"
-            rm -f "$MONITOR_PID_FILE"
-            exit 0
-        else
-            rm -f "$MONITOR_PID_FILE"
-        fi
-    fi
-    echo $! > "$MONITOR_PID_FILE"
-    echo "Monitor started (PID $!)"
+
     start_fake_activity() {
         if (( fake_activity_pid == 0 )); then
             (
@@ -236,18 +227,6 @@ monitor_idle_activity() {
 stop_monitoring() {
     if [ -f "$PID_FILE" ]; then
         PID=$(cat "$PID_FILE")
-        if ps -p "$PID" > /dev/null 2>&1; then
-            # Kill the entire process group
-            echo "Stopping SleepControl (PGID: $PID)..."
-            kill -- -"$PID" 2>/dev/null  # note the minus sign before PID for PGID
-            sleep 1
-            # Also kill the main PID explicitly
-            kill "$PID" 2>/dev/null
-            echo "Stopped SleepControl (PID $PID)."
-        fi
-    fi
-    if [ -f "$MONITOR_PID_FILE" ]; then
-        MONITOR_PID=$(cat "$MONITOR_PID_FILE")
         if ps -p "$PID" > /dev/null 2>&1; then
             # Kill the entire process group
             echo "Stopping SleepControl (PGID: $PID)..."
