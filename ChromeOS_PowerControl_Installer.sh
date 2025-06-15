@@ -255,10 +255,10 @@ if [[ -z "${FAN_MAX_TEMP}" ]]; then FAN_MAX_TEMP=80; fi
 if [[ -z "${STEP_UP}" ]]; then STEP_UP=20; fi
 if [[ -z "${STEP_DOWN}" ]]; then STEP_DOWN=1; fi
 if [[ -z "${SLEEP_INTERVAL}" ]]; then SLEEP_INTERVAL=3; fi
-if [[ -z "${BATTERY_DELAY}" ]]; then BATTERY_DELAY=14; fi
+if [[ -z "${BATTERY_DELAY}" ]]; then BATTERY_DELAY=10; fi
 if [[ -z "${POWER_DELAY}" ]]; then POWER_DELAY=30; fi
 if [[ -z "${BATTERY_BACKLIGHT}" ]]; then BATTERY_BACKLIGHT=5; fi
-if [[ -z "${POWER_BACKLIGHT}" ]]; then POWER_BACKLIGHT=10; fi
+if [[ -z "${POWER_BACKLIGHT}" ]]; then POWER_BACKLIGHT=15; fi
 
 declare -A defaults=(
   [MAX_TEMP]=$MAX_TEMP
