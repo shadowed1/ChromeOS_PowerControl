@@ -86,17 +86,27 @@ send_fake_activity() {
     echo "$(date '+%Y-%m-%d %H:%M:%S') - Simulated user activity." >> "$LOG_FILE"
 }
 
+if [ -f "$PID_FILE" ] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
+    echo "SleepControl is already running with PID $(cat "$PID_FILE"). Exiting."
+    exit 1
+fi
+
+
 monitor_idle_activity() {
     echo $$ > "$PID_FILE"
     touch "$RUN_FLAG"
     echo "$(date '+%Y-%m-%d %H:%M:%S') - SleepControl started (PID $$)." > "$LOG_FILE"
-    load_config
     local active=1
     local backlight_off=0
     local kb_brightness_restored=1
     local saved_kb_brightness=$(sudo ectool pwmgetkblight | awk '{print $NF}')
     local power_backlight_ts=$(date +%s)
     local battery_backlight_ts=$(date +%s)
+
+    while read -r line; do
+    if (( now % 60 == 0 )); then
+        load_config
+    fi
 
     tail -Fn0 /var/log/power_manager/powerd.LATEST | while read -r line; do
         now=$(date +%s)
@@ -136,7 +146,9 @@ monitor_idle_activity() {
                     if [ "$backlight_off" -eq 1 ]; then
                         sudo ectool backlight 1
                         backlight_off=0
+                        saved_kb_brightness=$(sudo ectool pwmgetkblight | awk '{print $NF}')
                     fi
+
                     if [ "$kb_brightness_restored" -eq 0 ] && [ "$saved_kb_brightness" -ge 0 ]; then
                         sudo ectool pwmsetkblight "$saved_kb_brightness"
                         kb_brightness_restored=1
