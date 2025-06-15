@@ -23,6 +23,7 @@ LOG_FILE="/var/log/sleepcontrol.log"
 BATTERY_STATUS_PATH="/sys/class/power_supply/BAT0/status"
 SIM_FILE="/tmp/sleepcontrol.sim"
 SIM_FILE_TMP="/tmp/sleepcontrol.sim.tmp"
+MONITOR_PID_FILE="$INSTALL_DIR/.sleepcontrol_tail_fan_monitor.pid"
 
 DEFAULT_BATTERY_DELAY=14
 DEFAULT_POWER_DELAY=30
@@ -118,6 +119,20 @@ monitor_idle_activity() {
     local power_backlight_ts=$(date +%s)
     local battery_backlight_ts=$(date +%s)
     local fake_activity_pid=0
+    if [ -f "$MONITOR_PID_FILE" ]; then
+        local mpid=$(cat "$MONITOR_PID_FILE")
+        if ps -p "$mpid" > /dev/null 2>&1; then
+            echo "Stopping existing monitor (PID $mpid)..."
+            kill "$mpid"
+            rm -f "$MONITOR_PID_FILE"
+        else
+            rm -f "$MONITOR_PID_FILE"
+        fi
+    fi
+
+    tail -Fn0 /var/log/power_manager/powerd.LATEST &
+    echo $! > "$MONITOR_PID_FILE"
+    echo "Monitor started (PID $!)"
 
     start_fake_activity() {
         if (( fake_activity_pid == 0 )); then
