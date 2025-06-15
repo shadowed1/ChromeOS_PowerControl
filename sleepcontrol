@@ -116,7 +116,7 @@ monitor_idle_activity() {
                     reported_epoch=$(date -d "${timestamp%.*}Z" +%s)
                 else
                     reported_epoch=$now
-                fi w
+                fi
                 
                 matched_recent_sim=0
                 if [ -f "$SIM_FILE" ]; then
