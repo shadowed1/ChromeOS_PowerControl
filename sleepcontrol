@@ -349,15 +349,13 @@ flock -n 200 || {
     *)
         echo "${BLUE}# SleepControl Commands with examples"
         echo ""
-        echo "sudo sleepcontrol                        # Show current SleepControl settings"
-        echo "sudo sleepcontrol start                  # Start SleepControl"
-        echo "sudo sleepcontrol stop                   # Stop SleepControl"
-        echo "sudo sleepcontrol battery 15             # Sleep after 15 minutes when on battery "
-        echo "sudo sleepcontrol power 60               # Sleep after 60 minutes when plugged in."
-        echo "sudo sleepcontrol battery_backlight 10   # Turn off display after 15 mins when idling on battery."
-        echo "sudo sleepcontrol power_backlight 30     # Turn off display after 60 mins when idling plugged-in."
-        echo "sudo sleepcontrol startup                # Copy or Remove sleepcontrol.conf at: /etc/init/"
-        echo "sudo sleepcontrol help                   # Help menu${RESET}"
+        echo "sudo sleepcontrol                     # Show current GPU info and frequency"
+        echo "sudo sleepcontrol start               # Start SleepControl"
+        echo "sudo sleepcontrol stop                # Stop SleepControl"
+        echo "sudo sleepcontrol battery 5 10        # Turns off display in 10m and ChromeOS sleeps in 15m when on battery"
+        echo "sudo sleepcontrol power 15 30         # Turns off display in 15m and ChromeOS sleeps in 30m when on power" 
+        echo "sudo sleepcontrol startup             # Copy or Remove sleepcontrol.conf at: /etc/init/"
+        echo "sudo sleepcontrol help                # Help menu${RESET}"
         exit 0
         ;;
 esac
