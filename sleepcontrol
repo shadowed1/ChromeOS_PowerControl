@@ -74,6 +74,7 @@ load_config
 
 cleanup() {
     stop_monitoring
+    rm -f "$LOCKFILE"
     exit 0
 }
 
@@ -90,6 +91,19 @@ send_fake_activity() {
     save_sim_time
     echo "$(date '+%Y-%m-%d %H:%M:%S') - Simulated user activity." >> "$LOG_FILE"
 }
+
+LOCKFILE="$INSTALL_DIR/.sleepcontrol_lock"
+if [ -f "$LOCKFILE" ]; then
+    running_pid=$(cat "$LOCKFILE")
+    if ps -p "$running_pid" > /dev/null 2>&1; then
+        echo "SleepControl monitor already running (PID $running_pid)."
+        exit 1
+    else
+        rm -f "$LOCKFILE"
+    fi
+fi
+echo $$ > "$LOCKFILE"
+
 
 monitor_idle_activity() {
     echo "$BASHPID" > "$PID_FILE"
@@ -279,6 +293,7 @@ case "$1" in
             echo "$(date '+%Y-%m-%d %H:%M:%S') - Truncated log file (exceeded 32KB)" | tee -a "$LOG_FILE"
         fi
         nohup "$0" __monitor__ >> "$LOG_FILE" 2>&1 &
+        
         echo "${GREEN}$(date '+%Y-%m-%d %H:%M:%S') - SleepControl started in background. Output is logged to $LOG_FILE${RESET}" | tee -a "$LOG_FILE"
         ;;
     stop)
