@@ -246,6 +246,12 @@ case "$1" in
     start)
         sudo ectool backlight 1 >/dev/null 2>&1
         stop_monitoring >/dev/null 2>&1
+        existing_pids=$(pgrep -f "$0 __monitor__")
+        for pid in $existing_pids; do
+        if [ "$pid" != "$$" ]; then
+            kill -9 "$pid" 2>/dev/null
+        fi
+        done
         if [ -f "$LOG_FILE" ] && [ "$(stat -c%s "$LOG_FILE")" -gt 32768 ]; then
             echo "$(date '+%Y-%m-%d %H:%M:%S') - Truncated log file (exceeded 32KB)" | tee -a "$LOG_FILE"
         fi
@@ -339,6 +345,8 @@ case "$1" in
         ;;
     __monitor__)
         monitor_idle_activity
+        echo "$BASHPID" > "$PID_FILE"
+        trap 'rm -f "$RUN_FLAG" "$PID_FILE"; exit' EXIT
         ;;
         help)
             "$0" status
