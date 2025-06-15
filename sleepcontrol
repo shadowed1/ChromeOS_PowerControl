@@ -21,10 +21,7 @@ PID_FILE="$INSTALL_DIR/.sleepcontrol_pid"
 RUN_FLAG="$INSTALL_DIR/.sleepcontrol_enabled"
 LOG_FILE="/var/log/sleepcontrol.log"
 BATTERY_STATUS_PATH="/sys/class/power_supply/BAT0/status"
-SIM_FILE="/tmp/sleepcontrol.sim"
-SIM_FILE_TMP="/tmp/sleepcontrol.sim.tmp"
 MONITOR_PID_FILE="$INSTALL_DIR/.sleepcontrol_monitor.pid"
-
 DEFAULT_BATTERY_DELAY=14
 DEFAULT_POWER_DELAY=30
 DEFAULT_BATTERY_BACKLIGHT=4
@@ -73,12 +70,6 @@ save_config() {
 
 load_config
 
-cleanup() {
-    stop_monitoring
-    rm -f "$LOCKFILE"
-    exit 0
-}
-
 save_sim_time() {
     date +%s >> "$SIM_FILE"
     tail -n 10 "$SIM_FILE" > "$SIM_FILE.tmp" && mv "$SIM_FILE.tmp" "$SIM_FILE"
@@ -93,21 +84,7 @@ send_fake_activity() {
     echo "$(date '+%Y-%m-%d %H:%M:%S') - Simulated user activity." >> "$LOG_FILE"
 }
 
-LOCKFILE="$INSTALL_DIR/.sleepcontrol_lock"
-if [ -f "$LOCKFILE" ]; then
-    running_pid=$(cat "$LOCKFILE")
-    if ps -p "$running_pid" > /dev/null 2>&1; then
-        echo "SleepControl monitor already running (PID $running_pid)."
-        exit 1
-    else
-        rm -f "$LOCKFILE"
-    fi
-fi
-echo $$ > "$LOCKFILE"
-
-
 monitor_idle_activity() {
-    echo "$BASHPID" > "$PID_FILE"
     touch "$RUN_FLAG"
     echo "$(date '+%Y-%m-%d %H:%M:%S') - SleepControl started (PID $$)." > "$LOG_FILE"
     load_config
@@ -119,21 +96,19 @@ monitor_idle_activity() {
     local power_backlight_ts=$(date +%s)
     local battery_backlight_ts=$(date +%s)
     local fake_activity_pid=0
-    if [ -f "$MONITOR_PID_FILE" ]; then
-        local mpid=$(cat "$MONITOR_PID_FILE")
-        if ps -p "$mpid" > /dev/null 2>&1; then
-            echo "Stopping existing monitor (PID $mpid)..."
-            kill "$mpid"
+     if [ -f "$MONITOR_PID_FILE" ]; then
+        MONITOR_PID=$(cat "$MONITOR_PID_FILE")
+        if ps -p "$MONITOR_PID" > /dev/null 2>&1; then
+            echo "Stopping monitor (PID $MONITOR_PID)..."
+            kill "$MONITOR_PID"
             rm -f "$MONITOR_PID_FILE"
+            exit 0
         else
             rm -f "$MONITOR_PID_FILE"
         fi
     fi
-
-    tail -Fn0 /var/log/power_manager/powerd.LATEST &
     echo $! > "$MONITOR_PID_FILE"
     echo "Monitor started (PID $!)"
-
     start_fake_activity() {
         if (( fake_activity_pid == 0 )); then
             (
@@ -156,9 +131,7 @@ monitor_idle_activity() {
         fi
     }
 
-    exec 3< <(tail -Fn0 /var/log/power_manager/powerd.LATEST)
-    while read -r line <&3; do
-
+    tail -Fn0 /var/log/power_manager/powerd.LATEST | while read -r line; do
         now=$(date +%s)
 
         case "$line" in
@@ -257,40 +230,36 @@ monitor_idle_activity() {
             fi
         fi
     done
-
 }
 
 
 stop_monitoring() {
-    if [ -n "$POWERCONTROL_STOPPING" ]; then
-        return
-    fi
-    POWERCONTROL_STOPPING=1
-
-    if [ ! -f "$PID_FILE" ]; then
-        return
-    fi
-
-    PID=$(cat "$PID_FILE")
-    if ps -p "$PID" > /dev/null 2>&1; then
-        echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') - Stopping SleepControl (PID $PID)...${RESET}"  | tee -a "$LOG_FILE"
-        rm -f "$RUN_FLAG"
-        kill "$PID"
-
-        for i in {1..10}; do
-            if ! ps -p "$PID" > /dev/null 2>&1; then
-                echo "SleepControl stopped."
-                rm -f "$PID_FILE"
-                return
-            fi
+    if [ -f "$PID_FILE" ]; then
+        PID=$(cat "$PID_FILE")
+        if ps -p "$PID" > /dev/null 2>&1; then
+            # Kill the entire process group
+            echo "Stopping SleepControl (PGID: $PID)..."
+            kill -- -"$PID" 2>/dev/null  # note the minus sign before PID for PGID
             sleep 1
-        done
-        kill -9 "$PID"
-        rm -f "$PID_FILE"
-    else
-        rm -f "$PID_FILE"
-        rm -f "$RUN_FLAG"
+            # Also kill the main PID explicitly
+            kill "$PID" 2>/dev/null
+            echo "Stopped SleepControl (PID $PID)."
+        fi
     fi
+    if [ -f "$MONITOR_PID_FILE" ]; then
+        MONITOR_PID=$(cat "$MONITOR_PID_FILE")
+        if ps -p "$PID" > /dev/null 2>&1; then
+            # Kill the entire process group
+            echo "Stopping SleepControl (PGID: $PID)..."
+            kill -- -"$PID" 2>/dev/null  # note the minus sign before PID for PGID
+            sleep 1
+            # Also kill the main PID explicitly
+            kill "$PID" 2>/dev/null
+            echo "Stopped SleepControl (PID $PID)."
+        fi
+    fi
+    rm -f "$RUN_FLAG"
+    rm -f "$PID_FILE"
 }
 
 
@@ -298,22 +267,16 @@ case "$1" in
     start)
         sudo ectool backlight 1 >/dev/null 2>&1
         stop_monitoring >/dev/null 2>&1
-        existing_pids=$(pgrep -f "$0 __monitor__")
-        for pid in $existing_pids; do
-        if [ "$pid" != "$$" ]; then
-            kill -9 "$pid" 2>/dev/null
-        fi
-        done
         if [ -f "$LOG_FILE" ] && [ "$(stat -c%s "$LOG_FILE")" -gt 32768 ]; then
             echo "$(date '+%Y-%m-%d %H:%M:%S') - Truncated log file (exceeded 32KB)" | tee -a "$LOG_FILE"
         fi
-        nohup "$0" __monitor__ >> "$LOG_FILE" 2>&1 &
-        
+        setsid "$0" __monitor__ >> "$LOG_FILE" 2>&1 &
         echo "${GREEN}$(date '+%Y-%m-%d %H:%M:%S') - SleepControl started in background. Output is logged to $LOG_FILE${RESET}" | tee -a "$LOG_FILE"
         ;;
     stop)
         sudo ectool backlight 1 >/dev/null 2>&1
         stop_monitoring
+        echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') - SleepControl stopped.${RESET}." | tee -a "$LOG_FILE"
         ;;
     battery|power)
         MODE=$1
