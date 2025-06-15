@@ -328,6 +328,6 @@ case "$1" in
         echo "sudo sleepcontrol power_backlight 30     # Turn off display after 60 mins when idling plugged-in."
         echo "sudo sleepcontrol startup                # Copy or Remove sleepcontrol.conf at: /etc/init/"
         echo "sudo sleepcontrol help                   # Help menu${RESET}"
-        exit 1
+        exit 0
         ;;
 esac
