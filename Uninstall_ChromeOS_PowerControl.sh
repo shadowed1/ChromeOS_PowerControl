@@ -113,6 +113,9 @@ case "$choice" in
         sudo rm -f "$INSTALL_DIR/.batterycontrol_pid"
         sudo rm -f "$INSTALL_DIR/.fancontrol_tail_fan_monitor.pid"
         sudo rm -f "$INSTALL_DIR/.powercontrol_tail_fan_monitor.pid"
+        sudo rm -f "$INSTALL_DIR/.sleepcontrol_lock"
+        sudo rm -f "$INSTALL_DIR/.sleepcontrol_monitor.pid"
+        sudo rm -f "$INSTALL_DIR/.sleepcontrol_pid.lock"
 
         remove_file_with_message "$INSTALL_DIR/powercontrol"
         remove_file_with_message "$INSTALL_DIR/fancontrol"
