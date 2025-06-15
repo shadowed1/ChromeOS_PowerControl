@@ -86,12 +86,6 @@ send_fake_activity() {
     echo "$(date '+%Y-%m-%d %H:%M:%S') - Simulated user activity." >> "$LOG_FILE"
 }
 
-if [ -f "$PID_FILE" ] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
-    echo "SleepControl is already running with PID $(cat "$PID_FILE"). Exiting."
-    exit 1
-fi
-
-
 monitor_idle_activity() {
     echo $$ > "$PID_FILE"
     touch "$RUN_FLAG"
@@ -213,10 +207,10 @@ fi
 }
 
 stop_monitoring() {
-    if [ -f "$PID_FILE" ]; then
+     if [ -f "$PID_FILE" ]; then
         PID=$(cat "$PID_FILE")
-        kill "$PID" 2>/dev/null
-        rm -f "$PID_FILE"
+        if ps -p "$PID" > /dev/null 2>&1; then
+        kill "$PID"
         echo "Stopped SleepControl (PID $PID)."
     fi
     rm -f "$RUN_FLAG"
