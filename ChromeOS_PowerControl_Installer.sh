@@ -121,7 +121,7 @@ while true; do
     echo -e "\n${CYAN}You entered: ${BOLD}$INSTALL_DIR${RESET}"
     read -rp "${YELLOW}Confirm this install path? (y/n): ${RESET}" confirm
     case "$confirm" in
-        [Yy]*) 
+        [Yy]* | "")  
             sudo mkdir -p "$INSTALL_DIR"
             break
             ;;
@@ -315,7 +315,7 @@ echo "${GREEN}${BOLD}Installing to: $INSTALL_DIR $RESET"
 
 
 read -rp "Enable ${BOLD}Global Commands${RESET} for ${RESET}${BOLD}${CYAN}PowerControl${RESET}, ${GREEN}${BOLD}BatteryControl${RESET}, ${YELLOW}${BOLD}FanControl${RESET}, ${MAGENTA}GPUControl${RESET}, ${BLUE}SleepControl${RESET}? (y/n):$RESET " link_cmd
-if [[ "$link_cmd" =~ ^[Yy]$ ]]; then
+if [[ -z "$link_cmd" || "$link_cmd" =~ ^[Yy]$ ]]; then
     sudo ln -sf "$INSTALL_DIR/powercontrol" /usr/local/bin/powercontrol
     sudo ln -sf "$INSTALL_DIR/batterycontrol" /usr/local/bin/batterycontrol
     sudo ln -sf "$INSTALL_DIR/fancontrol" /usr/local/bin/fancontrol
@@ -350,7 +350,7 @@ enable_component_on_boot() {
     esac
     
     read -rp "${COLOR}Do you want $component enabled on boot? (y/n):${RESET} " move_config
-    if [[ "$move_config" =~ ^[Yy]$ ]]; then
+    if [[ -z "$move_config" || "$move_config" =~ ^[Yy]$ ]]; then
         sudo cp "$config_file" "$target_file"
         echo "$component will start on boot."
         echo "$var_name=1" | sudo tee -a "$CONFIG_FILE" > /dev/null
@@ -403,7 +403,7 @@ start_component_now() {
     esac
    
     read -rp "${COLOR}Do you want to start $component now? (y/n): ${RESET} " start_now
-    if [[ "$start_now" =~ ^[Yy]$ ]]; then
+    if [[ -z "$start_now" || "$start_now" =~ ^[Yy]$ ]]; then
         sudo "$command" start
         echo ""
         if [[ "$component" == "BatteryControl" ]]; then
@@ -522,8 +522,8 @@ echo "${BOLD}Installation Complete!${RESET}"
 echo ""
 if [[ "$SHOW_POWERCONTROL_NOTICE" -eq 1 ]]; then
 echo ""
-echo "${CYAN}${BOLD}Intel Inside!:${RESET}"
-echo "${CYAN}${BOLD}Disable${RESET}${GREEN}.${RESET}"
+echo "${BLUE}${BOLD}Intel Inside!${RESET}"
+echo "${CYAN}To further enhance battery life and lower temps, toggling Intel Turbo boost is available using PowerControl. ${RESET}"
 echo ""
 fi
 if [[ "$SHOW_BATTERYCONTROL_NOTICE" -eq 1 ]]; then
