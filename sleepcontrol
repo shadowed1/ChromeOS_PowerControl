@@ -94,7 +94,7 @@ monitor_idle_activity() {
     local active=1
     local backlight_off=0
     local kb_brightness_restored=1
-    local saved_kb_brightness=$(ectool pwmgetkblight)
+    local saved_kb_brightness=$(ectool pwmgetkblight | awk '{print $NF}')
     local power_backlight_ts=$(date +%s)
     local battery_backlight_ts=$(date +%s)
 
