@@ -306,20 +306,6 @@ for category in "${ordered_categories[@]}"; do
   echo >> "$CONFIG_FILE"
 done
 echo "${GREEN}${BOLD}Installing to: $INSTALL_DIR $RESET"
-
-if [ "$IS_INTEL" -eq 1 ]; then
-    read -rp "${BOLD}${BLUE}Do you want Intel Turbo Boost ${RESET}${BOLD}${CYAN}disabled on boot${RESET}${BOLD}${BLUE}? (y/n):$RESET " move_no_turbo
-    if [[ "$move_no_turbo" =~ ^[Yy]$ ]]; then
-        sudo cp "$INSTALL_DIR/no_turbo.conf" /etc/init/
-        echo "Turbo Boost will be disabled on restart."
-        echo "${CYAN}sudo powercontrol startup${RESET}     # To re-enable Turbo Boost on boot."
-        echo ""
-    else
-        sudo rm -f /etc/init/no_turbo.conf
-        echo "Turbo Boost will remain enabled."
-        echo "${CYAN}sudo powercontrol startup${RESET}     # To disable Intel Turbo Boost on boot."
-        echo ""
-    fi
     
     read -rp "${BOLD}${BLUE}Do you want to ${RESET}${BOLD}${CYAN}disable${RESET}${BLUE}${BOLD} Intel Turbo Boost ${RESET}${BOLD}${CYAN}now?${RESET}${BOLD}${BLUE} (y/n):$RESET " run_no_turbo
     if [[ "$run_no_turbo" =~ ^[Yy]$ ]]; then
@@ -544,12 +530,6 @@ echo "sudo bash "$INSTALL_DIR/Uninstall_ChromeOS_PowerControl.sh"    # Alternate
 echo ""
 echo "${BOLD}Installation Complete!${RESET}"
 echo ""
-if [[ "$SHOW_POWERCONTROL_NOTICE" -eq 1 ]]; then
-echo ""
-echo "${CYAN}${BOLD}Intel Inside!:${RESET}"
-echo "${CYAN}${BOLD}Disable${RESET}${GREEN}.${RESET}"
-echo ""
-fi
 if [[ "$SHOW_BATTERYCONTROL_NOTICE" -eq 1 ]]; then
 echo ""
 echo "${GREEN}${BOLD}BatteryControl:${RESET}"
