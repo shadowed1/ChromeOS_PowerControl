@@ -73,10 +73,9 @@ save_config() {
 load_config
 
 save_sim_time() {
-    date +%s%3N >> "$SIM_FILE"
+    date +%s >> "$SIM_FILE"
     tail -n 10 "$SIM_FILE" > "$SIM_FILE.tmp" && mv "$SIM_FILE.tmp" "$SIM_FILE"
 }
-
 
 send_fake_activity() {
     dbus-send --system --type=method_call \
@@ -88,7 +87,7 @@ send_fake_activity() {
 }
 
 monitor_idle_activity() {
-    echo "$BASHPID" > "$PID_FILE"
+    echo $$ > "$PID_FILE"
     touch "$RUN_FLAG"
     echo "$(date '+%Y-%m-%d %H:%M:%S') - SleepControl started (PID $$)." > "$LOG_FILE"
     local active=1
@@ -99,8 +98,8 @@ monitor_idle_activity() {
     local battery_backlight_ts=$(date +%s)
 
     tail -Fn0 /var/log/power_manager/powerd.LATEST | while read -r line; do
-        now_ms=$(date +%s%3N)
-        if (( now_ms % 60 == 0 )); then
+        now=$(date +%s)
+        if (( now % 60 == 0 )); then
             load_config
         fi
         case "$line" in
@@ -113,24 +112,22 @@ monitor_idle_activity() {
             *"User activity reported"*|*"User activity ongoing"*|*"Audio activity"*|*"Enabling wakeup for"*|*"Chrome is using normal display mode"*)
                 timestamp=$(echo "$line" | grep -oE '[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]+Z')
                 if [[ -n "$timestamp" ]]; then
-                    reported_epoch_ms=$(date -d "${timestamp}" +%s%3N)
+                    reported_epoch=$(date -d "${timestamp%.*}Z" +%s)
                 else
-                    reported_epoch_ms=$(date +%s%3N)
-                fi
-
+                    reported_epoch=$now
+                fi w
                 
-                               matched_recent_sim=0
+                matched_recent_sim=0
                 if [ -f "$SIM_FILE" ]; then
                     while read -r sim_ts; do
                         [[ "$sim_ts" =~ ^[0-9]+$ ]] || continue
-                        diff=$(( reported_epoch_ms - sim_ts ))
-                        if (( diff >= 0 && diff <= 500 )); then  # match if within 0.5 seconds
+                        if (( reported_epoch - sim_ts <= 1 )); then
                             matched_recent_sim=1
                             break
                         fi
                     done < "$SIM_FILE"
                 fi
-                
+
                 if [ "$matched_recent_sim" -eq 0 ]; then
                     if [ "$active" -eq 0 ]; then
                         active=1
@@ -150,9 +147,9 @@ monitor_idle_activity() {
                         echo "$(date '+%Y-%m-%d %H:%M:%S') - Restored keyboard brightness to $saved_kb_brightness%" >> "$LOG_FILE"
                     fi
                     if [ "$status" = "Discharging" ]; then
-                        battery_backlight_ts=$now_ms
+                        battery_backlight_ts=$now
                     else
-                        power_backlight_ts=$now_ms
+                        power_backlight_ts=$now
                     fi
                 fi
                 ;;
@@ -169,13 +166,11 @@ monitor_idle_activity() {
             last_ts=$power_backlight_ts
             suspend_delay=$((POWER_DELAY * 60))
         fi
+        
+        
+echo "$(date '+%Y-%m-%d %H:%M:%S') - Idle detected, checking backlight timers. now=$now last_ts=$last_ts backlight_delay=$backlight_delay" >> "$LOG_FILE"
 
-        
-        
-        
-echo "$(date '+%Y-%m-%d %H:%M:%S') - Idle detected, checking backlight timers. now_ms=$now_ms last_ts=$last_ts backlight_delay=$backlight_delay" >> "$LOG_FILE"
-
-        if (( now_ms - last_ts >= backlight_delay )); then
+        if (( now - last_ts >= backlight_delay )); then
             if [ "$backlight_off" -eq 0 ]; then
                 sudo ectool backlight 0
                 backlight_off=1
@@ -183,13 +178,7 @@ echo "$(date '+%Y-%m-%d %H:%M:%S') - Idle detected, checking backlight timers. n
             fi
         fi
 
-            kb_current=$(sudo ectool pwmgetkblight | awk '{print $NF}')
-        if (( kb_current > 0 )); then
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - Skipped suspend: keyboard backlight still active ($kb_current%)." >> "$LOG_FILE"
-            continue
-        fi
-
-        if (( now_ms - last_ts >= suspend_delay )); then
+        if (( now - last_ts >= suspend_delay )); then
     echo "$(date '+%Y-%m-%d %H:%M:%S') - Suspending system due to inactivity." >> "$LOG_FILE"
     dbus-send --system --type=method_call \
         --dest=org.chromium.PowerManager \
@@ -200,8 +189,8 @@ echo "$(date '+%Y-%m-%d %H:%M:%S') - Idle detected, checking backlight timers. n
     sleep 60
 
     # Reset timers to avoid immediately retriggering suspend
-    power_backlight_ts=$now_ms
-    battery_backlight_ts=$now_ms
+    power_backlight_ts=$now
+    battery_backlight_ts=$now
     backlight_off=0
     saved_kb_brightness=$(sudo ectool pwmgetkblight | awk '{print $NF}')
     kb_brightness_restored=1
@@ -212,7 +201,7 @@ echo "$(date '+%Y-%m-%d %H:%M:%S') - Idle detected, checking backlight timers. n
 fi
 
 
-        if (( now_ms % 60 == 0 )); then
+        if (( now % 60 == 0 )); then
             send_fake_activity
         fi
     done
@@ -243,7 +232,7 @@ case "$1" in
         if [ -f "$LOG_FILE" ] && [ "$(stat -c%s "$LOG_FILE")" -gt 32768 ]; then
             echo "$(date '+%Y-%m-%d %H:%M:%S') - Truncated log file (exceeded 32KB)" | tee -a "$LOG_FILE"
         fi
-        setsid "$0" __monitor__ >> "$LOG_FILE" 2>&1 &
+        nohup "$0" __monitor__ >> "$LOG_FILE" 2>&1 &
         echo "${GREEN}$(date '+%Y-%m-%d %H:%M:%S') - SleepControl started in background. Output is logged to $LOG_FILE${RESET}" | tee -a "$LOG_FILE"
         ;;
     stop)
