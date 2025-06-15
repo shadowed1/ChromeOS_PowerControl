@@ -110,17 +110,24 @@ monitor_idle_activity() {
                 ;;
 
             *"User activity reported"*|*"User activity ongoing"*|*"Audio activity"*)
-                reported_epoch=$(echo "$line" | grep -oE '[0-9]{10}')
+                timestamp=$(echo "$line" | grep -oE '[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]+Z')
+                if [[ -n "$timestamp" ]]; then
+                    reported_epoch=$(date -d "${timestamp%.*}Z" +%s)
+                else
+                    reported_epoch=$now
+                fi
+                
                 matched_recent_sim=0
                 if [ -f "$SIM_FILE" ]; then
                     while read -r sim_ts; do
                         [[ "$sim_ts" =~ ^[0-9]+$ ]] || continue
-                        if (( sim_ts == reported_epoch )); then
+                        if (( reported_epoch - sim_ts <= 2 )); then
                             matched_recent_sim=1
                             break
                         fi
                     done < "$SIM_FILE"
                 fi
+
                 if [ "$matched_recent_sim" -eq 0 ]; then
                     if [ "$active" -eq 0 ]; then
                         active=1
