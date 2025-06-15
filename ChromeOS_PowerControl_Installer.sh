@@ -113,12 +113,27 @@ echo ""
 echo "${RED}VT-2 (or enabling sudo in crosh) is ${RESET}${BOLD}${RED}required${RESET}${RED} to run this installer.$RESET"
 echo "${YELLOW}Must be installed in a location without the ${RESET}${MAGENTA}${BOLD}noexec mount.$RESET"
 echo ""
-read -rp "${GREEN}Enter desired Install Path - ${RESET}${GREEN}${BOLD}leave blank for default: /usr/local/bin/ChromeOS_PowerControl:$RESET " INSTALL_DIR
-INSTALL_DIR="${INSTALL_DIR:-/usr/local/bin/ChromeOS_PowerControl}"
-INSTALL_DIR="${INSTALL_DIR%/}"
+while true; do
+    read -rp "${GREEN}Enter desired Install Path - ${RESET}${GREEN}${BOLD}leave blank for default: /usr/local/bin/ChromeOS_PowerControl:$RESET " INSTALL_DIR
+    INSTALL_DIR="${INSTALL_DIR:-/usr/local/bin/ChromeOS_PowerControl}"
+    INSTALL_DIR="${INSTALL_DIR%/}"
 
-echo ""
-sudo mkdir -p "$INSTALL_DIR"
+    echo -e "\n${CYAN}You entered: ${BOLD}$INSTALL_DIR${RESET}"
+    read -rp "${YELLOW}Confirm this install path? (y/n): ${RESET}" confirm
+    case "$confirm" in
+        [Yy]*) 
+            sudo mkdir -p "$INSTALL_DIR"
+            break
+            ;;
+        [Nn]*) 
+            echo -e "${BLUE}Let's try again...${RESET}\n"
+            ;;
+        *) 
+            echo -e "${RED}Please answer y or n.${RESET}"
+            ;;
+    esac
+done
+
 
 declare -a files=(
   "powercontrol" "batterycontrol" "fancontrol" "gpucontrol"
