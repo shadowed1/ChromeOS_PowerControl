@@ -153,16 +153,20 @@ monitor_idle_activity() {
                 ;;
         esac
 
-            if [[ "$status" == "Discharging" ]]; then
-                backlight_delay=$((BATTERY_BACKLIGHT * 60))
-                last_ts=$battery_backlight_ts
-                suspend_delay=$((BATTERY_DELAY * 60))
-            else
-                backlight_delay=$((POWER_BACKLIGHT * 60))
-                last_ts=$power_backlight_ts
-                suspend_delay=$((POWER_DELAY * 60))
-            fi
+            status=$(cat "$BATTERY_STATUS_PATH" 2>/dev/null)
 
+        if [[ "$status" == "Discharging" ]]; then
+            backlight_delay=$((BATTERY_BACKLIGHT * 60))
+            last_ts=$battery_backlight_ts
+            suspend_delay=$((BATTERY_DELAY * 60))
+        else
+            backlight_delay=$((POWER_BACKLIGHT * 60))
+            last_ts=$power_backlight_ts
+            suspend_delay=$((POWER_DELAY * 60))
+        fi
+        
+        
+echo "$(date '+%Y-%m-%d %H:%M:%S') - Idle detected, checking backlight timers. now=$now last_ts=$last_ts backlight_delay=$backlight_delay" >> "$LOG_FILE"
 
         if (( now - last_ts >= backlight_delay )); then
             if [ "$backlight_off" -eq 0 ]; then
@@ -171,12 +175,6 @@ monitor_idle_activity() {
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Turned off backlight due to inactivity." >> "$LOG_FILE"
             fi
         fi
-
-            if [[ "$status" == "Discharging" ]]; then
-                suspend_delay=$((BATTERY_DELAY * 60))
-            else
-                suspend_delay=$((POWER_DELAY * 60))
-            fi
 
         if (( now - last_ts >= suspend_delay )); then
     echo "$(date '+%Y-%m-%d %H:%M:%S') - Suspending system due to inactivity." >> "$LOG_FILE"
