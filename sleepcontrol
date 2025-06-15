@@ -24,7 +24,6 @@ BATTERY_STATUS_PATH="/sys/class/power_supply/BAT0/status"
 SIM_FILE="/tmp/sleepcontrol.sim"
 SIM_FILE_TMP="/tmp/sleepcontrol.sim.tmp"
 
-
 DEFAULT_BATTERY_DELAY=14
 DEFAULT_POWER_DELAY=30
 DEFAULT_BATTERY_BACKLIGHT=4
@@ -41,7 +40,7 @@ POWER_DELAY=$DEFAULT_POWER_DELAY
 BATTERY_BACKLIGHT=$DEFAULT_BATTERY_BACKLIGHT
 POWER_BACKLIGHT=$DEFAULT_POWER_BACKLIGHT
 
-   load_config() {
+load_config() {
     if [ -f "$CONFIG_FILE" ]; then
         source "$CONFIG_FILE"
     fi
@@ -52,15 +51,12 @@ validate_config() {
     if [[ -z "$BATTERY_DELAY" || ! "$BATTERY_DELAY" =~ ^[0-9]+$ ]]; then
         BATTERY_DELAY=$DEFAULT_BATTERY_DELAY
     fi
-
     if [[ -z "$POWER_DELAY" || ! "$POWER_DELAY" =~ ^[0-9]+$ ]]; then
         POWER_DELAY=$DEFAULT_POWER_DELAY
     fi
-
     if [[ -z "$BATTERY_BACKLIGHT" || ! "$BATTERY_BACKLIGHT" =~ ^[0-9]+$ ]]; then
         BATTERY_BACKLIGHT=$DEFAULT_BATTERY_BACKLIGHT
     fi
-
     if [[ -z "$POWER_BACKLIGHT" || ! "$POWER_BACKLIGHT" =~ ^[0-9]+$ ]]; then
         POWER_BACKLIGHT=$DEFAULT_POWER_BACKLIGHT
     fi
@@ -68,7 +64,6 @@ validate_config() {
 
 save_config() {
     validate_config
-
     sed -i "s/^BATTERY_DELAY=.*/BATTERY_DELAY=$BATTERY_DELAY/" "$CONFIG_FILE" || echo "BATTERY_DELAY=$BATTERY_DELAY" >> "$CONFIG_FILE"
     sed -i "s/^POWER_DELAY=.*/POWER_DELAY=$POWER_DELAY/" "$CONFIG_FILE" || echo "POWER_DELAY=$POWER_DELAY" >> "$CONFIG_FILE"
     sed -i "s/^BATTERY_BACKLIGHT=.*/BATTERY_BACKLIGHT=$BATTERY_BACKLIGHT/" "$CONFIG_FILE" || echo "BATTERY_BACKLIGHT=$BATTERY_BACKLIGHT" >> "$CONFIG_FILE"
@@ -105,7 +100,6 @@ monitor_idle_activity() {
 
     tail -Fn0 /var/log/power_manager/powerd.LATEST | while read -r line; do
         now=$(date +%s)
-        now_epoch=$now
         status=$(cat /sys/class/power_supply/BAT0/status 2>/dev/null)
 
         case "$line" in
@@ -118,7 +112,6 @@ monitor_idle_activity() {
             *"User activity reported"*|*"User activity ongoing"*|*"Audio activity"*)
                 reported_epoch=$(echo "$line" | grep -oE '[0-9]{10}')
                 matched_recent_sim=0
-                
                 if [ -f "$SIM_FILE" ]; then
                     while read -r sim_ts; do
                         [[ "$sim_ts" =~ ^[0-9]+$ ]] || continue
@@ -128,7 +121,6 @@ monitor_idle_activity() {
                         fi
                     done < "$SIM_FILE"
                 fi
-
                 if [ "$matched_recent_sim" -eq 0 ]; then
                     if [ "$active" -eq 0 ]; then
                         active=1
@@ -153,29 +145,26 @@ monitor_idle_activity() {
         esac
 
         backlight_delay=$(( status == "Discharging" ? BATTERY_BACKLIGHT * 60 : POWER_BACKLIGHT * 60 ))
-last_ts=$(( status == "Discharging" ? battery_backlight_ts : power_backlight_ts ))
-if (( now - last_ts >= backlight_delay )); then
-    if [ "$backlight_off" -eq 0 ]; then
-        sudo ectool backlight 0
-        backlight_off=1
-        echo "$(date '+%Y-%m-%d %H:%M:%S') - Turned off backlight due to inactivity." >> "$LOG_FILE"
-    fi
-fi
-
-suspend_delay=$(( status == "Discharging" ? BATTERY_DELAY * 60 : POWER_DELAY * 60 ))
-if (( now - last_ts >= suspend_delay )); then
-    echo "$(date '+%Y-%m-%d %H:%M:%S') - Suspending system due to inactivity." >> "$LOG_FILE"
-    dbus-send --system --type=method_call \
-        --dest=org.chromium.PowerManager \
-        /org/chromium/PowerManager \
-        org.chromium.PowerManager.RequestSuspend
-fi
-
-
-            # Send fake user input every 2 minutes
-            if (( now % 120 == 0 )); then
-                send_fake_activity
+        last_ts=$(( status == "Discharging" ? battery_backlight_ts : power_backlight_ts ))
+        if (( now - last_ts >= backlight_delay )); then
+            if [ "$backlight_off" -eq 0 ]; then
+                sudo ectool backlight 0
+                backlight_off=1
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Turned off backlight due to inactivity." >> "$LOG_FILE"
             fi
+        fi
+
+        suspend_delay=$(( status == "Discharging" ? BATTERY_DELAY * 60 : POWER_DELAY * 60 ))
+        if (( now - last_ts >= suspend_delay )); then
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - Suspending system due to inactivity." >> "$LOG_FILE"
+            dbus-send --system --type=method_call \
+                --dest=org.chromium.PowerManager \
+                /org/chromium/PowerManager \
+                org.chromium.PowerManager.RequestSuspend
+        fi
+
+        if (( now % 120 == 0 )); then
+            send_fake_activity
         fi
     done
 }
@@ -206,17 +195,18 @@ case "$1" in
         sudo ectool backlight 1 >/dev/null 2>&1
         stop_monitoring
         ;;
-        battery)
+    battery)
         if [ -n "$2" ]; then
             if [[ "$2" =~ ^[0-9]+$ ]]; then
                 user_input=$2
                 actual_delay=$((user_input - 6))
                 if (( actual_delay < 7 )); then
                     echo "${RED}Please enter a larger value, this is lower than ChromeOS' sleep.${RESET}"
+                else
+                    BATTERY_DELAY=$actual_delay
+                    save_config
+                    echo "${GREEN}When ${RESET}${GREEN}${BOLD}idling on battery${RESET}${GREEN}, ChromeOS will sleep in $user_input minutes.${GREEN}"
                 fi
-                BATTERY_DELAY=$actual_delay
-                save_config
-                echo "${GREEN}When ${RESET}${GREEN}${BOLD}idling on battery${RESET}${GREEN}, ChromeOS will sleep in $user_input minutes.${GREEN}"
             else
                 echo "Invalid delay value. Please enter a positive integer."
             fi
@@ -225,25 +215,26 @@ case "$1" in
             echo "Battery delay: $((BATTERY_DELAY)) minutes."
         fi
         ;;
-        power)
-    if [ -n "$2" ]; then
-        if [[ "$2" =~ ^[0-9]+$ ]]; then
-            user_input=$2
-            actual_delay=$((user_input - 8))
-            if (( actual_delay < 9 )); then
-                echo "${RED}Please enter a larger value, this is lower than ChromeOS' sleep."
+    power)
+        if [ -n "$2" ]; then
+            if [[ "$2" =~ ^[0-9]+$ ]]; then
+                user_input=$2
+                actual_delay=$((user_input - 8))
+                if (( actual_delay < 9 )); then
+                    echo "${RED}Please enter a larger value, this is lower than ChromeOS' sleep.${RESET}"
+                else
+                    POWER_DELAY=$actual_delay
+                    save_config
+                    echo "${GREEN}When ${RESET}${GREEN}${BOLD}idling plugged${RESET}${GREEN} in ChromeOS will sleep in $user_input minutes.${RESET}"
+                fi
+            else
+                echo "${RED}Invalid delay value. Please enter a positive integer.${RESET}"
             fi
-            POWER_DELAY=$actual_delay
-            save_config
-            echo "${GREEN}When ${RESET}${GREEN}${BOLD}idling plugged${RESET}${GREEN} in ChromeOS will sleep in $user_input minutes.${RESET}"
         else
-            echo "${RED}Invalid delay value. Please enter a positive integer.${RESET}"
+            load_config
+            echo "Power delay: $((POWER_DELAY)) minutes."
         fi
-    else
-        load_config
-        echo "Power delay: $((POWER_DELAY)) minutes."
-    fi
-    ;;
+        ;;
     battery_backlight)
         if [ -n "$2" ]; then
             if [[ "$2" =~ ^[0-9]+$ ]]; then
@@ -272,10 +263,9 @@ case "$1" in
             echo "Power backlight timeout: $POWER_BACKLIGHT minutes"
         fi
         ;;
-        startup)
+    startup)
         CONF_SOURCE="$INSTALL_DIR/sleepcontrol.conf"
         CONF_TARGET="/etc/init/sleepcontrol.conf"
-
         read -p "Do you want SleepControl to startup automatically? (y/n): " choice
         if [[ "$choice" =~ ^[Yy]$ ]]; then
             if [ -f "$CONF_SOURCE" ]; then
@@ -294,21 +284,18 @@ case "$1" in
         load_config
         if [ -f "$PID_FILE" ] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
             echo "${GREEN}SleepControl is running.${RESET}"
-            echo ""
-            echo "Sleep set for: ${GREEN}On Battery = $((BATTERY_DELAY + 6)) minutes${RESET}, ${BLUE}On Power = $((POWER_DELAY + 8)) minutes${RESET}"
-            echo "Display timeout set for: ${GREEN}On Battery = $BATTERY_BACKLIGHT minutes${RESET}, ${BLUE}On Power = $POWER_BACKLIGHT minutes${RESET}"
         else
             echo "${RED}SleepControl is not running.${RESET}"
-            echo ""
-            echo "Sleep set for: ${GREEN}On Battery = $((BATTERY_DELAY + 6)) minutes${RESET}, ${BLUE}On Power = $((POWER_DELAY + 8)) minutes${RESET}"
-            echo "Display timeout set for: ${GREEN}On Battery = $BATTERY_BACKLIGHT minutes${RESET}, ${BLUE}On Power = $POWER_BACKLIGHT minutes${RESET}"
         fi
+        echo ""
+        echo "Sleep set for: ${GREEN}On Battery = $((BATTERY_DELAY + 6)) minutes${RESET}, ${BLUE}On Power = $((POWER_DELAY + 8)) minutes${RESET}"
+        echo "Display timeout set for: ${GREEN}On Battery = $BATTERY_BACKLIGHT minutes${RESET}, ${BLUE}On Power = $POWER_BACKLIGHT minutes${RESET}"
         ;;
     __monitor__)
         monitor_idle_activity
         ;;
-        help)
-            "$0" status
+    help)
+        "$0" status
         ;;
     *)
         echo "${BLUE}# SleepControl Commands with examples"
@@ -318,9 +305,9 @@ case "$1" in
         echo "sudo sleepcontrol stop                   # Stop SleepControl"
         echo "sudo sleepcontrol battery 15             # Sleep after 15 minutes when on battery "
         echo "sudo sleepcontrol power 60               # Sleep after 60 minutes when plugged in."
-        echo "sudo sleepcontrol battery_backlight 10   # Turn off display after 15 mins when idling on battery."
-        echo "sudo sleepcontrol power_backlight 30     # Turn off display after 60 mins when idling plugged-in."
-        echo "sudo sleepcontrol startup                # Copy or Remove fancontrol.conf at: /etc/init/"
+        echo "sudo sleepcontrol battery_backlight 10   # Turn off display after 10 mins on battery."
+        echo "sudo sleepcontrol power_backlight 30     # Turn off display after 30 mins on power."
+        echo "sudo sleepcontrol startup                # Set or remove autostart"
         echo "sudo sleepcontrol help                   # Help menu${RESET}"
         exit 1
         ;;
