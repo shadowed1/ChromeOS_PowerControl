@@ -294,23 +294,21 @@ case "$1" in
             sudo rm -f /etc/init/sleepcontrol.conf
         fi
         ;;
-    status|"")
+        status|"")
         load_config
-       if [ -f "$RUN_FLAG" ]; then
+        if [ -f "$RUN_FLAG" ]; then
             PID=$(cat "$PID_FILE")
             if ps -p "$PID" > /dev/null 2>&1; then
                 echo "${GREEN}SleepControl Status: ENABLED (PID $PID)${RESET}"
+                echo "${GREEN}SleepControl is running.${RESET}"
             else
                 echo "${YELLOW}SleepControl Status: RUN FLAG PRESENT, but process not running${RESET}"
             fi
-        else
-            echo "${RED}SleepControl Status: DISABLED${RESET}"
-        fi
-            echo "${GREEN}SleepControl is running.${RESET}"
             echo ""
             echo "Sleep set for: ${GREEN}On Battery = $((BATTERY_DELAY)) minutes${RESET}, ${BLUE}On Power = $((POWER_DELAY)) minutes${RESET}"
             echo "Display timeout set for: ${GREEN}On Battery = $BATTERY_BACKLIGHT minutes${RESET}, ${BLUE}On Power = $POWER_BACKLIGHT minutes${RESET}"
         else
+            echo "${RED}SleepControl Status: DISABLED${RESET}"
             echo "${RED}SleepControl is not running.${RESET}"
         fi
         ;;
