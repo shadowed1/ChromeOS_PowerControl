@@ -68,6 +68,19 @@ save_config() {
     sed -i "s/^POWER_BACKLIGHT=.*/POWER_BACKLIGHT=$POWER_BACKLIGHT/" "$CONFIG_FILE" || echo "POWER_BACKLIGHT=$POWER_BACKLIGHT" >> "$CONFIG_FILE"
 }
 
+show_help() {
+        echo "${BLUE}# SleepControl Commands with examples"
+        echo ""
+        echo "sudo sleepcontrol                     # Show current GPU info and frequency"
+        echo "sudo sleepcontrol start               # Start SleepControl"
+        echo "sudo sleepcontrol stop                # Stop SleepControl"
+        echo "sudo sleepcontrol battery 5 10        # Turns off display in 10m and ChromeOS sleeps in 15m when on battery"
+        echo "sudo sleepcontrol power 15 30         # Turns off display in 15m and ChromeOS sleeps in 30m when on power" 
+        echo "sudo sleepcontrol startup             # Copy or Remove sleepcontrol.conf at: /etc/init/"
+        echo "sudo sleepcontrol help                # Help menu${RESET}"
+        exit 0
+            }
+
 load_config
 
 send_fake_activity() {
@@ -344,18 +357,9 @@ flock -n 200 || {
         monitor_idle_activity
         ;;
         help)
-            "$0" status
+            show_help
         ;;
     *)
-        echo "${BLUE}# SleepControl Commands with examples"
-        echo ""
-        echo "sudo sleepcontrol                     # Show current GPU info and frequency"
-        echo "sudo sleepcontrol start               # Start SleepControl"
-        echo "sudo sleepcontrol stop                # Stop SleepControl"
-        echo "sudo sleepcontrol battery 5 10        # Turns off display in 10m and ChromeOS sleeps in 15m when on battery"
-        echo "sudo sleepcontrol power 15 30         # Turns off display in 15m and ChromeOS sleeps in 30m when on power" 
-        echo "sudo sleepcontrol startup             # Copy or Remove sleepcontrol.conf at: /etc/init/"
-        echo "sudo sleepcontrol help                # Help menu${RESET}"
-        exit 0
+        show_help
         ;;
 esac
