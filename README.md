@@ -108,15 +108,13 @@ __Commands with examples:__
 *SleepControl:*
 
 
-`sudo sleepcontrol                        # Show current SleepControl settings`<br>
-`sudo sleepcontrol start                  # Start SleepControl`<br>
-`sudo sleepcontrol stop                   # Stop SleepControl`<br>
-`sudo sleepcontrol battery 15             # Delays sleep by 15 minutes when on battery.`<br>
-`sudo sleepcontrol power 60               # Delays sleep by 60 minutes when plugged in.`<br>
-`sudo sleepcontrol battery_backlight 10   # Turn off display after 15 mins when idling on battery.`<br>
-`sudo sleepcontrol power_backlight 30     # Turn off display after 60 mins when idling plugged-in.`<br>
-`sudo sleepcontrol startup                # Copy or Remove fanontrol.conf at: /etc/init`<br>
-`sudo sleepcontrol help                   # Help menu`<br>
+`sudo sleepcontrol                     # Show current GPU info and frequency`
+`sudo sleepcontrol start               # Start SleepControl`
+`sudo sleepcontrol stop                # Stop SleepControl`
+`sudo sleepcontrol battery 5 10        # Turns off display in 10m and ChromeOS sleeps in 15m when on battery`
+`sudo sleepcontrol power 15 30         # Turns off display in 15m and ChromeOS sleeps in 30m when on power`
+`sudo sleepcontrol startup             # Copy or Remove sleepcontrol.conf at: /etc/init/`
+`sudo sleepcontrol help                # Help menu`
 
 
 ----------------------------------------------------------------------------------------------
