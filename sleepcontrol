@@ -72,6 +72,11 @@ save_config() {
 
 load_config
 
+cleanup() {
+    stop_monitoring
+    exit 0
+}
+
 save_sim_time() {
     date +%s >> "$SIM_FILE"
     tail -n 10 "$SIM_FILE" > "$SIM_FILE.tmp" && mv "$SIM_FILE.tmp" "$SIM_FILE"
@@ -225,20 +230,35 @@ monitor_idle_activity() {
 
 
 stop_monitoring() {
-    if [ -f "$PID_FILE" ]; then
-        PID=$(cat "$PID_FILE")
-        if ps -p "$PID" > /dev/null 2>&1; then
-            # Kill the entire process group
-            echo "Stopping SleepControl (PGID: $PID)..."
-            kill -- -"$PID" 2>/dev/null  # note the minus sign before PID for PGID
-            sleep 1
-            # Also kill the main PID explicitly
-            kill "$PID" 2>/dev/null
-            echo "Stopped SleepControl (PID $PID)."
-        fi
+    if [ -n "$POWERCONTROL_STOPPING" ]; then
+        return
     fi
-    rm -f "$RUN_FLAG"
-    rm -f "$PID_FILE"
+    POWERCONTROL_STOPPING=1
+
+    if [ ! -f "$PID_FILE" ]; then
+        return
+    fi
+
+    PID=$(cat "$PID_FILE")
+    if ps -p "$PID" > /dev/null 2>&1; then
+        echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') - Stopping SleepControl (PID $PID)...${RESET}"  | tee -a "$LOG_FILE"
+        rm -f "$RUN_FLAG"
+        kill "$PID"
+
+        for i in {1..10}; do
+            if ! ps -p "$PID" > /dev/null 2>&1; then
+                echo "SleepControl stopped."
+                rm -f "$PID_FILE"
+                return
+            fi
+            sleep 1
+        done
+        kill -9 "$PID"
+        rm -f "$PID_FILE"
+    else
+        rm -f "$PID_FILE"
+        rm -f "$RUN_FLAG"
+    fi
 }
 
 
@@ -255,13 +275,12 @@ case "$1" in
         if [ -f "$LOG_FILE" ] && [ "$(stat -c%s "$LOG_FILE")" -gt 32768 ]; then
             echo "$(date '+%Y-%m-%d %H:%M:%S') - Truncated log file (exceeded 32KB)" | tee -a "$LOG_FILE"
         fi
-        setsid "$0" __monitor__ >> "$LOG_FILE" 2>&1 &
+        nohup "$0" __monitor__ >> "$LOG_FILE" 2>&1 &
         echo "${GREEN}$(date '+%Y-%m-%d %H:%M:%S') - SleepControl started in background. Output is logged to $LOG_FILE${RESET}" | tee -a "$LOG_FILE"
         ;;
     stop)
         sudo ectool backlight 1 >/dev/null 2>&1
         stop_monitoring
-        echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') - SleepControl stopped.${RESET}." | tee -a "$LOG_FILE"
         ;;
     battery|power)
         MODE=$1
@@ -345,8 +364,6 @@ case "$1" in
         ;;
     __monitor__)
         monitor_idle_activity
-        echo "$BASHPID" > "$PID_FILE"
-        trap 'rm -f "$RUN_FLAG" "$PID_FILE"; exit' EXIT
         ;;
         help)
             "$0" status
