@@ -195,74 +195,49 @@ case "$1" in
         sudo ectool backlight 1 >/dev/null 2>&1
         stop_monitoring
         ;;
-    battery)
-        if [ -n "$2" ]; then
-            if [[ "$2" =~ ^[0-9]+$ ]]; then
-                user_input=$2
-                actual_delay=$((user_input - 6))
-                if (( actual_delay < 7 )); then
-                    echo "${RED}Please enter a larger value, this is lower than ChromeOS' sleep.${RESET}"
-                else
-                    BATTERY_DELAY=$actual_delay
-                    save_config
-                    echo "${GREEN}When ${RESET}${GREEN}${BOLD}idling on battery${RESET}${GREEN}, ChromeOS will sleep in $user_input minutes.${GREEN}"
+    battery|power)
+        MODE=$1
+        BACKLIGHT_VAL=$2
+        DELAY_VAL=$3
+
+        if [ -n "$BACKLIGHT_VAL" ] && [ -n "$DELAY_VAL" ]; then
+            if [[ "$BACKLIGHT_VAL" =~ ^[0-9]+$ ]] && [[ "$DELAY_VAL" =~ ^[0-9]+$ ]]; then
+                if (( BACKLIGHT_VAL > DELAY_VAL )); then
+                    echo "${RED}Backlight timeout cannot be greater than sleep delay.${RESET}"
+                    exit 1
                 fi
-            else
-                echo "Invalid delay value. Please enter a positive integer."
-            fi
-        else
-            load_config
-            echo "Battery delay: $((BATTERY_DELAY)) minutes."
-        fi
-        ;;
-    power)
-        if [ -n "$2" ]; then
-            if [[ "$2" =~ ^[0-9]+$ ]]; then
-                user_input=$2
-                actual_delay=$((user_input - 8))
-                if (( actual_delay < 9 )); then
-                    echo "${RED}Please enter a larger value, this is lower than ChromeOS' sleep.${RESET}"
+                if [ "$MODE" = "battery" ]; then
+                    BATTERY_BACKLIGHT=$BACKLIGHT_VAL
+                    BATTERY_DELAY=$DELAY_VAL
                 else
-                    POWER_DELAY=$actual_delay
-                    save_config
-                    echo "${GREEN}When ${RESET}${GREEN}${BOLD}idling plugged${RESET}${GREEN} in ChromeOS will sleep in $user_input minutes.${RESET}"
+                    POWER_BACKLIGHT=$BACKLIGHT_VAL
+                    POWER_DELAY=$DELAY_VAL
                 fi
-            else
-                echo "${RED}Invalid delay value. Please enter a positive integer.${RESET}"
-            fi
-        else
-            load_config
-            echo "Power delay: $((POWER_DELAY)) minutes."
-        fi
-        ;;
-    battery_backlight)
-        if [ -n "$2" ]; then
-            if [[ "$2" =~ ^[0-9]+$ ]]; then
-                BATTERY_BACKLIGHT=$2
                 save_config
-                echo "${GREEN}Battery backlight timeout set to ${BOLD}$BATTERY_BACKLIGHT${RESET}${GREEN} minutes.${RESET}"
+                echo "${GREEN}${BOLD}${MODE^}${RESET}${GREEN} backlight timeout set to ${BOLD}${BACKLIGHT_VAL} min${RESET}${GREEN}, sleep delay set to ${BOLD}${DELAY_VAL} min.${RESET}"
             else
-                echo "${RED}Invalid value. Enter a number in minutes.${RESET}"
+                echo "${RED}Invalid values. Usage: sleepcontrol $MODE <backlight> <delay> (numbers only).${RESET}"
             fi
-        else
-            load_config
-            echo "Battery backlight timeout: $BATTERY_BACKLIGHT minutes"
-        fi
-        ;;
-    power_backlight)
-        if [ -n "$2" ]; then
-            if [[ "$2" =~ ^[0-9]+$ ]]; then
-                POWER_BACKLIGHT=$2
+        elif [ -n "$BACKLIGHT_VAL" ]; then
+            if [[ "$BACKLIGHT_VAL" =~ ^[0-9]+$ ]]; then
+                if [ "$MODE" = "battery" ]; then
+                    BATTERY_DELAY=$BACKLIGHT_VAL
+                else
+                    POWER_DELAY=$BACKLIGHT_VAL
+                fi
                 save_config
-                echo "${GREEN}Power backlight timeout set to ${BOLD}$POWER_BACKLIGHT${RESET}${GREEN} minutes.${RESET}"
+                echo "${GREEN}${BOLD}${MODE^}${RESET}${GREEN} sleep delay set to ${BOLD}${BACKLIGHT_VAL} minutes.${RESET}"
             else
-                echo "${RED}Invalid value. Enter a number in minutes.${RESET}"
+                echo "${RED}Invalid value. Please enter a number.${RESET}"
             fi
         else
             load_config
-            echo "Power backlight timeout: $POWER_BACKLIGHT minutes"
+            if [ "$MODE" = "battery" ]; then
+                echo "Battery: Backlight = $BATTERY_BACKLIGHT min, Delay = $BATTERY_DELAY min"
+            else
+                echo "Power: Backlight = $POWER_BACKLIGHT min, Delay = $POWER_DELAY min"
+            fi
         fi
-        ;;
     startup)
         CONF_SOURCE="$INSTALL_DIR/sleepcontrol.conf"
         CONF_TARGET="/etc/init/sleepcontrol.conf"
