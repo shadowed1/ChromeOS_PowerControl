@@ -238,6 +238,7 @@ case "$1" in
                 echo "Power: Backlight = $POWER_BACKLIGHT min, Delay = $POWER_DELAY min"
             fi
         fi
+        ;;
     startup)
         CONF_SOURCE="$INSTALL_DIR/sleepcontrol.conf"
         CONF_TARGET="/etc/init/sleepcontrol.conf"
