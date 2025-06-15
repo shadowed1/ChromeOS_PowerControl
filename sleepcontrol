@@ -184,7 +184,7 @@ monitor_idle_activity() {
         org.chromium.PowerManager.RequestSuspend
 
     # Add cooldown after suspend to prevent repeat suspend attempts
-    sleep 120
+    sleep 60
 
     # Reset timers to avoid immediately retriggering suspend
     power_backlight_ts=$now
@@ -198,7 +198,7 @@ monitor_idle_activity() {
 fi
 
 
-        if (( now % 120 == 0 )); then
+        if (( now % 60 == 0 )); then
             send_fake_activity
         fi
     done
