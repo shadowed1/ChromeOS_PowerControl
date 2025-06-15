@@ -92,6 +92,7 @@ monitor_idle_activity() {
     echo "$(date '+%Y-%m-%d %H:%M:%S') - SleepControl started (PID $$)." > "$LOG_FILE"
     load_config
     local active=1
+    local monitor_idle=0    # <--- Add this flag, initially NOT monitoring idle
     local backlight_off=0
     local kb_brightness_restored=1
     local saved_kb_brightness=$(sudo ectool pwmgetkblight | awk '{print $NF}')
@@ -100,139 +101,110 @@ monitor_idle_activity() {
     local fake_activity_pid=0
 
     start_fake_activity() {
-    if (( fake_activity_pid == 0 )); then
-        (
-            while true; do
-                sleep 120
-                send_fake_activity
-            done
-        ) &
-        fake_activity_pid=$!
-        echo "$(date '+%Y-%m-%d %H:%M:%S') - Started fake activity loop (PID $fake_activity_pid)." >> "$LOG_FILE"
-    fi
-}
+        if (( fake_activity_pid == 0 )); then
+            (
+                while true; do
+                    sleep 120
+                    send_fake_activity
+                done
+            ) &
+            fake_activity_pid=$!
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - Started fake activity loop (PID $fake_activity_pid)." >> "$LOG_FILE"
+        fi
+    }
 
-stop_fake_activity() {
-    if (( fake_activity_pid != 0 )); then
-        kill "$fake_activity_pid" 2>/dev/null
-        wait "$fake_activity_pid" 2>/dev/null
-        echo "$(date '+%Y-%m-%d %H:%M:%S') - Stopped fake activity loop (PID $fake_activity_pid)." >> "$LOG_FILE"
-        fake_activity_pid=0
-    fi
-}
-
+    stop_fake_activity() {
+        if (( fake_activity_pid != 0 )); then
+            kill "$fake_activity_pid" 2>/dev/null
+            wait "$fake_activity_pid" 2>/dev/null
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - Stopped fake activity loop (PID $fake_activity_pid)." >> "$LOG_FILE"
+            fake_activity_pid=0
+        fi
+    }
 
     tail -Fn0 /var/log/power_manager/powerd.LATEST | while read -r line; do
         now=$(date +%s)
+
         case "$line" in
             *"User activity stopped"*)
+                # Start monitoring idle only after User activity stopped
+                monitor_idle=1
                 active=0
                 kb_brightness_restored=0
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - User went idle." >> "$LOG_FILE"
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - User went idle. Monitoring enabled." >> "$LOG_FILE"
                 ;;
 
-    
             *"User activity reported"*|*"User activity ongoing"*|*"Audio activity"*|*"Enabling wakeup for"*|*"Chrome is using normal display mode"*)
-                timestamp=$(echo "$line" | grep -oE '[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]+Z')
-                if [[ -n "$timestamp" ]]; then
-                sudo ectool backlight 1
+                # On any user activity, disable idle monitoring
+                if (( monitor_idle == 1 )); then
+                    echo "$(date '+%Y-%m-%d %H:%M:%S') - User activity detected. Monitoring paused." >> "$LOG_FILE"
+                fi
+                monitor_idle=0
                 active=1
-                matched_recent_sim=0
-                    reported_epoch=$(date -d "${timestamp%.*}Z" +%s)
-                else
-                    reported_epoch=$now
-                fi
-                
-                matched_recent_sim=0
-                if [ -f "$SIM_FILE" ]; then
-                    while read -r sim_ts; do
-                        [[ "$sim_ts" =~ ^[0-9]+$ ]] || continue
-                       if (( reported_epoch >= sim_ts - 1 && reported_epoch <= sim_ts + 1 )); then
-                            matched_recent_sim=1
-                            break
-                        fi
-                    done < "$SIM_FILE"
-                fi
+                kb_brightness_restored=1
+                stop_fake_activity
+                sudo ectool backlight 1
 
-                if [ "$matched_recent_sim" -eq 0 ]; then
-                    if [ "$active" -eq 0 ]; then
-                        active=1
-                        echo "$(date '+%Y-%m-%d %H:%M:%S') - Real user activity resumed." >> "$LOG_FILE"
-                    fi
+                # Update timers to now because user is active
+                power_backlight_ts=$now
+                battery_backlight_ts=$now
+                ;;
 
-                    stop_fake_activity
-
-                    if [ "$backlight_off" -eq 1 ]; then
-                        sudo ectool backlight 1
-                        backlight_off=0
-                        saved_kb_brightness=$(sudo ectool pwmgetkblight | awk '{print $NF}')
-                    fi
-
-                    if [ "$kb_brightness_restored" -eq 0 ] && [ "$saved_kb_brightness" -ge 0 ]; then
-                        sudo ectool pwmsetkblight "$saved_kb_brightness"
-                        kb_brightness_restored=1
-                        sudo ectool backlight 1
-                        active=1
-                        echo "$(date '+%Y-%m-%d %H:%M:%S') - Restored keyboard brightness to $saved_kb_brightness%" >> "$LOG_FILE"
-                    fi
-                    if [ "$status" = "Discharging" ]; then
-                        battery_backlight_ts=$now
-                    else
-                        power_backlight_ts=$now
-                    fi
-                fi
+            *)
+                # Ignore other lines
                 ;;
         esac
 
+        # Only do idle checks if monitoring is enabled
+        if (( monitor_idle == 1 )); then
+            # Your existing logic for backlight off and suspend
             status=$(cat "$BATTERY_STATUS_PATH" 2>/dev/null)
 
-        if [[ "$status" == "Discharging" ]]; then
-            backlight_delay=$((BATTERY_BACKLIGHT * 60))
-            last_ts=$battery_backlight_ts
-            suspend_delay=$((BATTERY_DELAY * 60))
-        else
-            backlight_delay=$((POWER_BACKLIGHT * 60))
-            last_ts=$power_backlight_ts
-            suspend_delay=$((POWER_DELAY * 60))
-        fi
-        
-        
-echo "$(date '+%Y-%m-%d %H:%M:%S') - Idle detected, checking backlight timers. now=$now last_ts=$last_ts backlight_delay=$backlight_delay" >> "$LOG_FILE"
+            if [[ "$status" == "Discharging" ]]; then
+                backlight_delay=$((BATTERY_BACKLIGHT * 60))
+                last_ts=$battery_backlight_ts
+                suspend_delay=$((BATTERY_DELAY * 60))
+            else
+                backlight_delay=$((POWER_BACKLIGHT * 60))
+                last_ts=$power_backlight_ts
+                suspend_delay=$((POWER_DELAY * 60))
+            fi
 
-        if (( now - last_ts >= backlight_delay )); then
-            if [ "$backlight_off" -eq 0 ]; then
-                sudo ectool backlight 0
-                backlight_off=1
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Turned off backlight due to inactivity." >> "$LOG_FILE"
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - Idle detected, checking backlight timers. now=$now last_ts=$last_ts backlight_delay=$backlight_delay" >> "$LOG_FILE"
+
+            if (( now - last_ts >= backlight_delay )); then
+                if [ "$backlight_off" -eq 0 ]; then
+                    sudo ectool backlight 0
+                    backlight_off=1
+                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Turned off backlight due to inactivity." >> "$LOG_FILE"
+                fi
+            fi
+
+            if (( now - last_ts >= suspend_delay )); then
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Suspending system due to inactivity." >> "$LOG_FILE"
+                dbus-send --system --type=method_call \
+                    --dest=org.chromium.PowerManager \
+                    /org/chromium/PowerManager \
+                    org.chromium.PowerManager.RequestSuspend
+
+                # Add cooldown after suspend to prevent repeat suspend attempts
+                sleep 60
+
+                # Reset timers
+                power_backlight_ts=$now
+                battery_backlight_ts=$now
+                backlight_off=0
+                saved_kb_brightness=$(sudo ectool pwmgetkblight | awk '{print $NF}')
+                kb_brightness_restored=1
+                active=1
+                sudo ectool backlight 1
+
+                continue
             fi
         fi
-
-        if (( now - last_ts >= suspend_delay )); then
-    echo "$(date '+%Y-%m-%d %H:%M:%S') - Suspending system due to inactivity." >> "$LOG_FILE"
-    dbus-send --system --type=method_call \
-        --dest=org.chromium.PowerManager \
-        /org/chromium/PowerManager \
-        org.chromium.PowerManager.RequestSuspend
-
-    # Add cooldown after suspend to prevent repeat suspend attempts
-    sleep 60
-
-    # Reset timers to avoid immediately retriggering suspend
-    power_backlight_ts=$now
-    battery_backlight_ts=$now
-    backlight_off=0
-    saved_kb_brightness=$(sudo ectool pwmgetkblight | awk '{print $NF}')
-    kb_brightness_restored=1
-    active=1
-    sudo ectool backlight 1
-
-    continue  # Skip rest of loop this cycle
-fi
-
-
-        
     done
 }
+
 
 stop_monitoring() {
     if [ -f "$PID_FILE" ]; then
