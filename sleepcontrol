@@ -115,7 +115,7 @@ monitor_idle_activity() {
                     reported_epoch=$(date -d "${timestamp%.*}Z" +%s)
                 else
                     reported_epoch=$now
-                fi
+                fi w
                 
                 matched_recent_sim=0
                 if [ -f "$SIM_FILE" ]; then
@@ -195,6 +195,7 @@ echo "$(date '+%Y-%m-%d %H:%M:%S') - Idle detected, checking backlight timers. n
     saved_kb_brightness=$(sudo ectool pwmgetkblight | awk '{print $NF}')
     kb_brightness_restored=1
     active=1
+    sudo ectool backlight 1
 
     continue  # Skip rest of loop this cycle
 fi
