@@ -90,11 +90,11 @@ monitor_idle_activity() {
     echo $$ > "$PID_FILE"
     touch "$RUN_FLAG"
     echo "$(date '+%Y-%m-%d %H:%M:%S') - SleepControl started (PID $$)." > "$LOG_FILE"
-
+    load_config
     local active=1
     local backlight_off=0
     local kb_brightness_restored=1
-    local saved_kb_brightness=$(ectool pwmgetkblight | awk '{print $NF}')
+    local saved_kb_brightness=$(sudo ectool pwmgetkblight | awk '{print $NF}')
     local power_backlight_ts=$(date +%s)
     local battery_backlight_ts=$(date +%s)
 
@@ -177,12 +177,26 @@ monitor_idle_activity() {
             fi
 
         if (( now - last_ts >= suspend_delay )); then
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - Suspending system due to inactivity." >> "$LOG_FILE"
-            dbus-send --system --type=method_call \
-                --dest=org.chromium.PowerManager \
-                /org/chromium/PowerManager \
-                org.chromium.PowerManager.RequestSuspend
-        fi
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - Suspending system due to inactivity." >> "$LOG_FILE"
+    dbus-send --system --type=method_call \
+        --dest=org.chromium.PowerManager \
+        /org/chromium/PowerManager \
+        org.chromium.PowerManager.RequestSuspend
+
+    # Add cooldown after suspend to prevent repeat suspend attempts
+    sleep 120
+
+    # Reset timers to avoid immediately retriggering suspend
+    power_backlight_ts=$now
+    battery_backlight_ts=$now
+    backlight_off=0
+    saved_kb_brightness=$(sudo ectool pwmgetkblight | awk '{print $NF}')
+    kb_brightness_restored=1
+    active=1
+
+    continue  # Skip rest of loop this cycle
+fi
+
 
         if (( now % 120 == 0 )); then
             send_fake_activity
