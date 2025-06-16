@@ -2,7 +2,7 @@
 
 
 <p align="center">
-  <img src="https://i.imgur.com/W11c0fK.png" alt="logo" />
+  <img src="https://i.imgur.com/RbK8dR6.png" alt="logo" />
 </p>  
 <br> <br>
 ChromeOS_PowerControl is a suite of lightweight shell scripts.
