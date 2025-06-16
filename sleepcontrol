@@ -71,7 +71,7 @@ save_config() {
 show_help() {
         echo "${BLUE}# SleepControl Commands with examples"
         echo ""
-        echo "sudo sleepcontrol                     # Show current GPU info and frequency"
+        echo "sudo sleepcontrol                     # Show status."
         echo "sudo sleepcontrol start               # Start SleepControl"
         echo "sudo sleepcontrol stop                # Stop SleepControl"
         echo "sudo sleepcontrol battery 5 10        # When idle, display timeout in 10m and ChromeOS sleeps in 15m when on battery"
