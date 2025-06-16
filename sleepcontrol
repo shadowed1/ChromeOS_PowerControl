@@ -74,7 +74,7 @@ show_help() {
         echo "sudo sleepcontrol                     # Show status."
         echo "sudo sleepcontrol start               # Start SleepControl"
         echo "sudo sleepcontrol stop                # Stop SleepControl"
-        echo "sudo sleepcontrol battery 5 10        # When idle, display timeout in 10m and ChromeOS sleeps in 15m when on battery"
+        echo "sudo sleepcontrol battery 5 10        # When idle, display timeout in 5m and ChromeOS sleeps in 10m when on battery"
         echo "sudo sleepcontrol power 15 30         # When idle, display timeout in 15m and ChromeOS sleeps in 30m when on plugged-in"
         echo "sudo sleepcontrol startup             # Copy or Remove sleepcontrol.conf at: /etc/init/"
         echo "sudo sleepcontrol help                # Help menu${RESET}"
