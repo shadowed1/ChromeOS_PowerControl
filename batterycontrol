@@ -113,7 +113,7 @@ battery_status() {
         if [ -f "$PID_FILE" ]; then
             PID=$(cat "$PID_FILE")
             if ps -p "$PID" > /dev/null 2>&1; then
-                echo "${GREEN}BatteryControl is: ENABLED (running, PID $PID)${RESET}"
+                echo "${GREEN}BatteryControl is: ENABLED (PID $PID)${RESET}"
             else
                 echo "${YELLOW}BatteryControl is: ENABLED (but process is NOT running)${RESET}"
                 rm -f "$PID_FILE"
