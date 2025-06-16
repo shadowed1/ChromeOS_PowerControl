@@ -215,7 +215,7 @@ Added ramp_up and ramp_down commands for PowerControl CPU scaling speed.
 Added stop processes commands and better cleanup when running startup, reinstalling and uninstalling.
 Reformatted status for better readability. Added post-install notes for BatteryControl and GPUControl.`<br><br>
 - 0.19: `Added SleepControl - control how long ChromeOS can remain idle before sleeping; irrespective of system sleep settings.
-Removed Intel Turbo Boost questions from installer but keeping the options to toggle them in PowerControl.`
+Removed Intel Turbo Boost questions from installer but keeping the options to toggle in PowerControl.`
 
 <br>
 
