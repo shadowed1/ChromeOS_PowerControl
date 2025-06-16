@@ -113,16 +113,16 @@ battery_status() {
         if [ -f "$PID_FILE" ]; then
             PID=$(cat "$PID_FILE")
             if ps -p "$PID" > /dev/null 2>&1; then
-                echo "BatteryControl is:${GREEN} ENABLED (running, PID $PID)${RESET}"
+                echo "${GREEN}BatteryControl is: ENABLED (running, PID $PID)${RESET}"
             else
-                echo "BatteryControl is:${YELLOW} ENABLED (but process is NOT running)${RESET}"
+                echo "${YELLOW}BatteryControl is: ENABLED (but process is NOT running)${RESET}"
                 rm -f "$PID_FILE"
             fi
         else
-            echo "BatteryControl is:${YELLOW} ENABLED (PID not found)${RESET}"
+            echo "${YELLOW}BatteryControl is: ENABLED (PID not found)${RESET}"
         fi
     else
-        echo "BatteryControl is:${RED} DISABLED${RESET}"
+        echo "${RED}BatteryControl is: DISABLED${RESET}"
     fi
     echo ""
     echo "  CHARGE_MAX: $CHARGE_MAX"
@@ -248,7 +248,7 @@ case "$1" in
             fi
         else
             echo "BatteryControl will not startup automatically."
-            sudo rm -f /etc/init/batterycontrol.conf
+            sudo rm -r /etc/init/batterycontrol.conf
         fi
         ;;
     help | --help | -h)
