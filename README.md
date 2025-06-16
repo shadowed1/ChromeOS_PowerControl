@@ -7,9 +7,6 @@
 <br> <br>
 ChromeOS_PowerControl is a suite of lightweight shell scripts.
   <br> <br>
-  
-__Features:__ 
-
 
 - *PowerControl:* Control CPU clockspeed in relation to temperature; enabling lower temperatures and longer battery life under load.<br>
 - *BatteryControl:* Control battery charging limit instead of relying on Adaptive Charging to maximize battery longevity.<br>
