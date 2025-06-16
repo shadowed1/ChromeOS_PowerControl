@@ -286,7 +286,7 @@ flock -n 200 || {
                 POWER_DELAY=$DELAY_VAL
             fi
             save_config
-            echo "${GREEN}${BOLD}${MODE^}${RESET}${GREEN} backlight timeout set to ${BOLD}${BACKLIGHT_VAL} min${RESET}${GREEN}, sleep delay set to ${BOLD}${DELAY_VAL} min.${RESET}"
+            echo "${GREEN}${BOLD}${MODE^}${RESET}${GREEN} Display timeout set to ${BOLD}${BACKLIGHT_VAL} min${RESET}${GREEN}, Sleep set to ${BOLD}${DELAY_VAL} min.${RESET}"
         else
             echo "${RED}Invalid values. Usage: sleepcontrol $MODE 10 20).${RESET}"
         fi
