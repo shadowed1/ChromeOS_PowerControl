@@ -7,8 +7,11 @@ MAGENTA=$(tput setaf 5)
 CYAN=$(tput setaf 6)
 BOLD=$(tput bold)
 RESET=$(tput sgr0)
+SHOW_POWERCONTROL_NOTICE=0
 SHOW_BATTERYCONTROL_NOTICE=0
+SHOW_SLEEPCONTROL_NOTICE=0
 SHOW_GPUCONTROL_NOTICE=0
+
 detect_cpu_type() {
     CPU_VENDOR=$(grep -m1 'vendor_id' /proc/cpuinfo | awk '{print $3}' || echo "unknown")
     IS_INTEL=0
@@ -106,23 +109,36 @@ fi
     GPU_MAX_FREQ=""
     GPU_TYPE="unknown"
 }
-
 echo ""
 echo "${RED}VT-2 (or enabling sudo in crosh) is ${RESET}${BOLD}${RED}required${RESET}${RED} to run this installer.$RESET"
 echo "${YELLOW}Must be installed in a location without the ${RESET}${MAGENTA}${BOLD}noexec mount.$RESET"
 echo ""
-read -rp "${GREEN}Enter desired Install Path - ${RESET}${GREEN}${BOLD}leave blank for default: /usr/local/bin/ChromeOS_PowerControl:$RESET " INSTALL_DIR
-INSTALL_DIR="${INSTALL_DIR:-/usr/local/bin/ChromeOS_PowerControl}"
-INSTALL_DIR="${INSTALL_DIR%/}"
+while true; do
+    read -rp "${GREEN}Enter desired Install Path - ${RESET}${GREEN}${BOLD}leave blank for default: /usr/local/bin/ChromeOS_PowerControl:$RESET " INSTALL_DIR
+    INSTALL_DIR="${INSTALL_DIR:-/usr/local/bin/ChromeOS_PowerControl}"
+    INSTALL_DIR="${INSTALL_DIR%/}"
 
-echo ""
-sudo mkdir -p "$INSTALL_DIR"
+    echo -e "\n${CYAN}You entered: ${BOLD}$INSTALL_DIR${RESET}"
+    read -rp "${YELLOW}Confirm this install path? (y/n): ${RESET}" confirm
+    case "$confirm" in
+        [Yy]* | "")  
+            sudo mkdir -p "$INSTALL_DIR"
+            break
+            ;;
+        [Nn]*) 
+            echo -e "${BLUE}Cancelled.${RESET}\n"
+            ;;
+        *) 
+            echo -e "${RED}Please answer y or n.${RESET}"
+            ;;
+    esac
+done
+
 
 declare -a files=(
-  "powercontrol" "batterycontrol" "fancontrol" "gpucontrol"
-  "Uninstall_ChromeOS_PowerControl.sh" "LICENSE" "README.md"
-  "no_turbo.conf" "batterycontrol.conf" "powercontrol.conf"
-  "fancontrol.conf" "gpucontrol.conf" "config.sh"
+  "powercontrol" "batterycontrol" "fancontrol" "gpucontrol" "Uninstall_ChromeOS_PowerControl.sh" "LICENSE" 
+  "README.md" "no_turbo.conf" "batterycontrol.conf" "powercontrol.conf" "fancontrol.conf" "gpucontrol.conf" 
+  "sleepcontrol" "sleepcontrol.conf" "config.sh" "version"
 )
 
 for file in "${files[@]}"; do
@@ -136,7 +152,7 @@ for file in "${files[@]}"; do
     echo ""
 done
 
-declare -a files=(".powercontrol_conf.sh" ".batterycontrol_conf.sh" ".fancontrol_conf.sh" ".gpucontrol_conf.sh")
+declare -a files=(".powercontrol_conf.sh" ".batterycontrol_conf.sh" ".fancontrol_conf.sh" ".gpucontrol_conf.sh" ".sleepcontrol_conf.sh")
 for file in "${files[@]}"; do
     curl -L "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/$file" -o /usr/local/bin/$file
     echo "/usr/local/bin/$file downloaded."
@@ -144,14 +160,19 @@ for file in "${files[@]}"; do
 done
 
 detect_cpu_type
+
+if [ "$IS_INTEL" -eq 1 ]; then
+    SHOW_POWERCONTROL_NOTICE=1
+fi
+
 echo "${CYAN}Detected CPU Vendor: $CPU_VENDOR"
 echo "PERF_PATH: $PERF_PATH"
 echo "TURBO_PATH: $TURBO_PATH"
 echo "$INSTALL_DIR" | sudo tee /usr/local/bin/.ChromeOS_PowerControl.install_dir > /dev/null
 echo "$RESET"
-sudo chmod +x "$INSTALL_DIR/powercontrol" "$INSTALL_DIR/batterycontrol" "$INSTALL_DIR/fancontrol" "$INSTALL_DIR/gpucontrol" "$INSTALL_DIR/Uninstall_ChromeOS_PowerControl.sh" "$INSTALL_DIR/config.sh"
+sudo chmod +x "$INSTALL_DIR/powercontrol" "$INSTALL_DIR/batterycontrol" "$INSTALL_DIR/fancontrol" "$INSTALL_DIR/gpucontrol" "$INSTALL_DIR/sleepcontrol" "$INSTALL_DIR/Uninstall_ChromeOS_PowerControl.sh" "$INSTALL_DIR/config.sh"
 sudo touch "$INSTALL_DIR/.batterycontrol_enabled" "$INSTALL_DIR/.powercontrol_enabled" "$INSTALL_DIR/.fancontrol_enabled"
-sudo touch "$INSTALL_DIR/.fancontrol_pid" "$INSTALL_DIR/.fancontrol_tail_fan_monitor.pid" "$INSTALL_DIR/.batterycontrol_pid" "$INSTALL_DIR/.powercontrol_tail_fan_monitor.pid" "$INSTALL_DIR/.powercontrol_pid"
+sudo touch "$INSTALL_DIR/.fancontrol_pid" "$INSTALL_DIR/.fancontrol_tail_fan_monitor.pid" "$INSTALL_DIR/.batterycontrol_pid" "$INSTALL_DIR/.powercontrol_tail_fan_monitor.pid" "$INSTALL_DIR/.powercontrol_pid" "$INSTALL_DIR/.sleepcontrol_monitor.pid"
 
 detect_gpu_freq
 echo "${MAGENTA}Detected GPU Type: $GPU_TYPE"
@@ -161,12 +182,13 @@ echo "${RESET}"
 
 LOG_DIR="/var/log"
 CONFIG_FILE="$INSTALL_DIR/config.sh"
-sudo touch "$LOG_DIR/powercontrol.log" "$LOG_DIR/batterycontrol.log" "$LOG_DIR/fancontrol.log" "$LOG_DIR/gpucontrol.log"
-sudo chmod 644 "$LOG_DIR/powercontrol.log" "$LOG_DIR/batterycontrol.log" "$LOG_DIR/fancontrol.log" "$LOG_DIR/gpucontrol.log"
+sudo touch "$LOG_DIR/powercontrol.log" "$LOG_DIR/batterycontrol.log" "$LOG_DIR/fancontrol.log" "$LOG_DIR/gpucontrol.log" "$LOG_DIR/sleepcontrol.log"
+sudo chmod 644 "$LOG_DIR/powercontrol.log" "$LOG_DIR/batterycontrol.log" "$LOG_DIR/fancontrol.log" "$LOG_DIR/gpucontrol.log" "$LOG_DIR/sleepcontrol.log"
 sudo chmod +x /usr/local/bin/.powercontrol_conf.sh
 sudo chmod +x /usr/local/bin/.fancontrol_conf.sh
 sudo chmod +x /usr/local/bin/.batterycontrol_conf.sh
 sudo chmod +x /usr/local/bin/.gpucontrol_conf.sh
+sudo chmod +x /usr/local/bin/.sleepcontrol_conf.sh
 echo "${YELLOW}Log files for PowerControl, BatteryControl, and FanControl are stored in /var/log/$RESET"
 echo ""
 
@@ -192,6 +214,10 @@ declare -a ordered_keys=(
   "GPU_TYPE"
   "GPU_FREQ_PATH"
   "GPU_MAX_FREQ"
+  "BATTERY_DELAY"
+  "POWER_DELAY"
+  "BATTERY_BACKLIGHT"
+  "POWER_BACKLIGHT"
   "PERF_PATH"
   "TURBO_PATH"
   "ORIGINAL_GPU_MAX_FREQ"
@@ -202,12 +228,13 @@ declare -a ordered_keys=(
   "IS_ARM"
 )
 
-declare -a ordered_categories=("PowerControl" "BatteryControl" "FanControl" "GPUControl" "Platform Configuration")
+declare -a ordered_categories=("PowerControl" "BatteryControl" "FanControl" "GPUControl" "SleepControl" "Platform Configuration")
 declare -A categories=(
   ["PowerControl"]="MAX_TEMP MIN_TEMP MAX_PERF_PCT MIN_PERF_PCT RAMP_UP RAMP_DOWN"
   ["BatteryControl"]="CHARGE_MAX CHARGE_MIN"
   ["FanControl"]="MIN_FAN MAX_FAN FAN_MIN_TEMP FAN_MAX_TEMP STEP_UP STEP_DOWN SLEEP_INTERVAL"
   ["GPUControl"]="GPU_MAX_FREQ"
+  ["SleepControl"]="BATTERY_DELAY POWER_DELAY BATTERY_BACKLIGHT POWER_BACKLIGHT"
   ["Platform Configuration"]="IS_AMD IS_INTEL IS_ARM PERF_PATH TURBO_PATH GPU_TYPE GPU_FREQ_PATH ORIGINAL_GPU_MAX_FREQ PP_OD_FILE AMD_SELECTED_SCLK_INDEX"
 )
 
@@ -227,6 +254,10 @@ if [[ -z "${FAN_MAX_TEMP}" ]]; then FAN_MAX_TEMP=80; fi
 if [[ -z "${STEP_UP}" ]]; then STEP_UP=20; fi
 if [[ -z "${STEP_DOWN}" ]]; then STEP_DOWN=1; fi
 if [[ -z "${SLEEP_INTERVAL}" ]]; then SLEEP_INTERVAL=3; fi
+if [[ -z "${BATTERY_DELAY}" ]]; then BATTERY_DELAY=10; fi
+if [[ -z "${POWER_DELAY}" ]]; then POWER_DELAY=30; fi
+if [[ -z "${BATTERY_BACKLIGHT}" ]]; then BATTERY_BACKLIGHT=5; fi
+if [[ -z "${POWER_BACKLIGHT}" ]]; then POWER_BACKLIGHT=15; fi
 
 declare -A defaults=(
   [MAX_TEMP]=$MAX_TEMP
@@ -246,6 +277,10 @@ declare -A defaults=(
   [SLEEP_INTERVAL]=$SLEEP_INTERVAL
   [GPU_MAX_FREQ]=$GPU_MAX_FREQ
   [GPU_TYPE]=$GPU_TYPE
+  [BATTERY_DELAY]=$BATTERY_DELAY
+  [POWER_DELAY]=$POWER_DELAY
+  [BATTERY_BACKLIGHT]=$BATTERY_BACKLIGHT
+  [POWER_BACKLIGHT]=$POWER_BACKLIGHT
   [PERF_PATH]=$PERF_PATH
   [TURBO_PATH]=$TURBO_PATH
   [GPU_FREQ_PATH]=$GPU_FREQ_PATH
@@ -275,64 +310,46 @@ for category in "${ordered_categories[@]}"; do
   done
   echo >> "$CONFIG_FILE"
 done
-
 echo "${GREEN}${BOLD}Installing to: $INSTALL_DIR $RESET"
 
-if [ "$IS_INTEL" -eq 1 ]; then
-    read -rp "${BOLD}${BLUE}Do you want Intel Turbo Boost ${RESET}${BOLD}${CYAN}disabled on boot${RESET}${BOLD}${BLUE}? (y/n):$RESET " move_no_turbo
-    if [[ "$move_no_turbo" =~ ^[Yy]$ ]]; then
-        sudo cp "$INSTALL_DIR/no_turbo.conf" /etc/init/
-        echo "Turbo Boost will be disabled on restart."
-        echo "${CYAN}sudo powercontrol startup${RESET}     # To re-enable Turbo Boost on boot."
-        echo ""
-    else
-        sudo rm -f /etc/init/no_turbo.conf
-        echo "Turbo Boost will remain enabled."
-        echo "${CYAN}sudo powercontrol startup${RESET}     # To disable Intel Turbo Boost on boot."
-        echo ""
-    fi
-    
-    read -rp "${BOLD}${BLUE}Do you want to ${RESET}${BOLD}${CYAN}disable${RESET}${BLUE}${BOLD} Intel Turbo Boost ${RESET}${BOLD}${CYAN}now?${RESET}${BOLD}${BLUE} (y/n):$RESET " run_no_turbo
-    if [[ "$run_no_turbo" =~ ^[Yy]$ ]]; then
-        echo 1 | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo > /dev/null
-        echo "Turbo Boost disabled immediately."
-        echo "${CYAN}sudo powercontrol no_turbo 0${RESET}     # To re-enable Intel Turbo Boost"
-        echo ""
-    else
-        echo 0 | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo > /dev/null
-        echo "Turbo Boost remains enabled."
-        echo "${CYAN}sudo powercontrol no_turbo 1${RESET}    # To disable Intel Turbo Boost"
-        echo ""
-    fi
-else
-    echo "This is not an Intel CPU, skipping Turbo Boost options."
-    echo ""
-fi
 
-read -rp "${BOLD}${BLUE}Enable ${RESET}${BOLD}${BLUE}Global Commands${RESET}${BOLD}${BLUE} for ${RESET}${BOLD}${CYAN}PowerControl${RESET}${BOLD}${BLUE}, ${GREEN}${BOLD}BatteryControl${RESET}${BOLD}${BLUE}, ${YELLOW}${BOLD}FanControl${RESET}${BOLD}${BLUE}, and ${RESET}${BOLD}${MAGENTA}GPUControl${RESET}${BOLD}${BLUE}? (y/n):$RESET " link_cmd
-if [[ "$link_cmd" =~ ^[Yy]$ ]]; then
+read -rp "Enable ${BOLD}Global Commands${RESET} for ${RESET}${BOLD}${CYAN}PowerControl${RESET}, ${GREEN}${BOLD}BatteryControl${RESET}, ${YELLOW}${BOLD}FanControl${RESET}, ${MAGENTA}GPUControl${RESET}, ${BLUE}SleepControl${RESET}? (y/n):$RESET " link_cmd
+if [[ -z "$link_cmd" || "$link_cmd" =~ ^[Yy]$ ]]; then
     sudo ln -sf "$INSTALL_DIR/powercontrol" /usr/local/bin/powercontrol
     sudo ln -sf "$INSTALL_DIR/batterycontrol" /usr/local/bin/batterycontrol
     sudo ln -sf "$INSTALL_DIR/fancontrol" /usr/local/bin/fancontrol
     sudo ln -sf "$INSTALL_DIR/gpucontrol" /usr/local/bin/gpucontrol
-    echo "Global commands created for 'powercontrol', 'batterycontrol', 'gpucontrol', and 'fancontrol'."
+    sudo ln -sf "$INSTALL_DIR/sleepcontrol" /usr/local/bin/sleepcontrol
+    echo "Global commands created for 'powercontrol', 'batterycontrol', 'fancontrol', 'gpucontrol', 'sleepcontrol'."
     echo ""
 else
     echo "Skipped creating global commands."
-    sudo rm -f /usr/local/bin/powercontrol
-    sudo rm -f /usr/local/bin/batterycontrol
-    sudo rm -f /usr/local/bin/fancontrol
-    sudo rm -f /usr/local/bin/gpucontrol
+    sudo rm -r /usr/local/bin/powercontrol
+    sudo rm -r /usr/local/bin/batterycontrol
+    sudo rm -r /usr/local/bin/fancontrol
+    sudo rm -r /usr/local/bin/gpucontrol
+    sudo rm -r /usr/local/bin/sleepcontrol
     echo ""
 fi
 enable_component_on_boot() {
+    
+    local COLOR
     local component="$1"
     local config_file="$2"
     local var_name="STARTUP_$(echo "$component" | tr '[:lower:]' '[:upper:]')"
     local target_file="/etc/init/$(basename "$config_file")"
 
-    read -rp "${BOLD}${MAGENTA}Do you want $component enabled on boot? (y/n):$RESET " move_config
-    if [[ "$move_config" =~ ^[Yy]$ ]]; then
+     case "$component" in
+        "PowerControl")   COLOR=${CYAN}${BOLD} ;;
+        "GPUControl")     COLOR=${MAGENTA}${BOLD} ;;
+        "FanControl")     COLOR=${YELLOW}${BOLD} ;;
+        "BatteryControl") COLOR=${GREEN}${BOLD} ;;
+        "SleepControl")   COLOR=${BLUE}${BOLD} ;;
+        *)                COLOR=${RESET} ;;
+    esac
+    
+    read -rp "${COLOR}Do you want $component enabled on boot? (y/n):${RESET} " move_config
+    if [[ -z "$move_config" || "$move_config" =~ ^[Yy]$ ]]; then
         sudo cp "$config_file" "$target_file"
         echo "$component will start on boot."
         echo "$var_name=1" | sudo tee -a "$CONFIG_FILE" > /dev/null
@@ -352,6 +369,7 @@ enable_component_on_boot "BatteryControl" "$INSTALL_DIR/batterycontrol.conf"
 enable_component_on_boot "PowerControl" "$INSTALL_DIR/powercontrol.conf"
 enable_component_on_boot "FanControl" "$INSTALL_DIR/fancontrol.conf"
 enable_component_on_boot "GPUControl" "$INSTALL_DIR/gpucontrol.conf"
+enable_component_on_boot "SleepControl" "$INSTALL_DIR/sleepcontrol.conf"
 
 if grep -q '^STARTUP_GPUCONTROL=1' "$CONFIG_FILE"; then
     SHOW_GPUCONTROL_NOTICE=1
@@ -361,18 +379,40 @@ if grep -q '^STARTUP_BATTERYCONTROL=1' "$CONFIG_FILE"; then
     SHOW_BATTERYCONTROL_NOTICE=1
 fi
 
+if grep -q '^STARTUP_SLEEPCONTROL=1' "$CONFIG_FILE"; then
+    SHOW_SLEEPCONTROL_NOTICE=1
+fi
+if grep -q '^STARTUP_POWERCONTROL=1' "$CONFIG_FILE"; then
+    SHOW_BATTERYCONTROL_NOTICE=1
+fi
+
 start_component_now() {
+   
     local component="$1"
     local command="$2"
-    read -rp "${BOLD}${GREEN}Do you want to start $component now in the background? (y/n): $RESET " start_now
-    if [[ "$start_now" =~ ^[Yy]$ ]]; then
+    local COLOR
+    
+    case "$component" in
+        "PowerControl")   COLOR=${CYAN}${BOLD} ;;
+        "GPUControl")     COLOR=${MAGENTA}${BOLD} ;;
+        "FanControl")     COLOR=${YELLOW}${BOLD} ;;
+        "BatteryControl") COLOR=${GREEN}${BOLD} ;;
+        "SleepControl")   COLOR=${BLUE}${BOLD} ;;
+        *)                COLOR=${RESET} ;;
+    esac
+   
+    read -rp "${COLOR}Do you want to start $component now? (y/n): ${RESET} " start_now
+    if [[ -z "$start_now" || "$start_now" =~ ^[Yy]$ ]]; then
         sudo "$command" start
         echo ""
         if [[ "$component" == "BatteryControl" ]]; then
             SHOW_BATTERYCONTROL_NOTICE=1
         fi
-         if [[ "$component" == "GPUControl" ]]; then
+        if [[ "$component" == "GPUControl" ]]; then
             SHOW_GPUCONTROL_NOTICE=1
+        fi
+        if [[ "$component" == "SleepControl" ]]; then
+            SHOW_SLEEPCONTROL_NOTICE=1
         fi
     else
         echo "You can run it later with: sudo $command start"
@@ -380,8 +420,10 @@ start_component_now() {
     fi
 }
 
-echo "${BLUE}Stopping any running instances of components (if any)...${RESET}"
-sudo bash "$INSTALL_DIR/gpucontrol" restore
+
+echo "${BLUE}Stopping any running components of PowerControl${RESET}"
+sudo bash "$INSTALL_DIR/gpucontrol" restore >/dev/null 2>&1
+sudo ectool backlight 1 >/dev/null 2>&1
 for component in batterycontrol powercontrol fancontrol; do
     if command -v "$INSTALL_DIR/$component" >/dev/null 2>&1; then
         sudo bash "$INSTALL_DIR/$component" stop >/dev/null 2>&1
@@ -393,10 +435,10 @@ for service in no_turbo batterycontrol powercontrol fancontrol gpu_control; do
 done
 
 echo ""
-
 start_component_now "BatteryControl" "$INSTALL_DIR/batterycontrol"
 start_component_now "PowerControl" "$INSTALL_DIR/powercontrol"
 start_component_now "FanControl" "$INSTALL_DIR/fancontrol"
+start_component_now "SleepControl" "$INSTALL_DIR/sleepcontrol"
 
 echo ""
 echo "           ${RED}████████████${RESET}           "
@@ -427,6 +469,7 @@ echo "sudo powercontrol max_temp 86         # Max temperature threshold - Limit 
 echo "sudo powercontrol min_temp 60         # Min temperature threshold"
 echo "sudo powercontrol monitor             # Toggle on/off live monitoring in terminal"
 echo "sudo powercontrol startup             # Copy or Remove no_turbo.conf & powercontrol.conf at: /etc/init/"
+echo "sudo powercontrol version             # Check PowerControl version"
 echo "sudo powercontrol help                # Help menu"
 echo "${RESET}${GREEN}"
 echo "# BatteryControl:"
@@ -461,22 +504,43 @@ echo "sudo gpucontrol mali 600000           # Set Mali GPU max frequency to 6000
 echo "sudo gpucontrol startup               # Copy or Remove gpucontrol.conf at: /etc/init/"
 echo "sudo gpucontrol help                  # Help menu"
 echo "${RESET}${BLUE}"
-echo "# ChromeOS_PowerControl:"
+echo "# SleepControl"
+echo "sudo sleepcontrol                     # Show current GPU info and frequency"
+echo "sudo sleepcontrol start               # Start SleepControl"
+echo "sudo sleepcontrol stop                # Stop SleepControl"
+echo "sudo sleepcontrol battery 5 10        # When idle, display timeout in 10m and ChromeOS sleeps in 15m when on battery"
+echo "sudo sleepcontrol power 15 30         # When idle, display timeout in 15m and ChromeOS sleeps in 30m when on plugged-in" 
+echo "sudo sleepcontrol startup             # Copy or Remove sleepcontrol.conf at: /etc/init/"
+echo "sudo sleepcontrol help                # Help menu"
+echo "${RESET}${BOLD}"
+echo "${CYAN}#${RESET} ${BOLD}${GREEN}Chrome${RESET}${BOLD}${RED}OS${RESET}${BOLD}${YELLOW}_${RESET}${BOLD}${BLUE}PowerControl${RESET}:${CYAN}"
 echo "sudo powercontrol reinstall           # Download and reinstall ChromeOS_PowerControl from Github."
 echo "sudo powercontrol uninstall           # Run uninstaller."
 echo "sudo bash "$INSTALL_DIR/Uninstall_ChromeOS_PowerControl.sh"    # Alternate uninstall method$RESET"
 echo ""
 echo "${BOLD}Installation Complete!${RESET}"
 echo ""
+if [[ "$SHOW_POWERCONTROL_NOTICE" -eq 1 ]]; then
+echo ""
+echo "${BLUE}${BOLD}Intel Inside!${RESET}"
+echo "${CYAN}To further enhance battery life and lower temps, toggling Intel Turbo boost is available using PowerControl.${RESET}"
+echo ""
+fi
 if [[ "$SHOW_BATTERYCONTROL_NOTICE" -eq 1 ]]; then
 echo ""
 echo "${GREEN}${BOLD}BatteryControl:${RESET}"
-echo "${GREEN}Please disable Adaptive Charging in Settings → System Preferences → Power to avoid notification spam.${RESET}"
+echo "${GREEN}Disable Adaptive Charging in Settings → System Preferences → Power to avoid notification spam.${RESET}"
+echo ""
+fi
+if [[ "$SHOW_SLEEPCONTROL_NOTICE" -eq 1 ]]; then
+echo ""
+echo ""
+echo "${BLUE}${BOLD}SleepControl${RESET}${BLUE}overrides 'While inactive' preferences in System Preferences -> Power. Customize using commands above.${RESET}"
 echo ""
 fi
 if [[ "$SHOW_GPUCONTROL_NOTICE" -eq 1 ]]; then
 echo ""
 echo "${MAGENTA}${BOLD}GPUControl:${RESET}"
-echo "${MAGENTA}As a precaution GPUControl has a 2 minute delay before applying custom clockspeed on boot.${RESET}"
+echo "${MAGENTA}As a precaution GPUControl has a ${RESET}${BOLD}${MAGENTA}2 minute delay${RESET}${MAGENTA} before applying custom clockspeed on boot.${RESET}"
 echo ""
 fi
