@@ -55,8 +55,8 @@ __Commands with examples:__
 `sudo powercontrol min_perf_pct 50     # Set minimum performance at max temp`<br>
 `sudo powercontrol max_temp 86         # Max temperature threshold - Limit is 90 C`<br>
 `sudo powercontrol min_temp 60         # Min temperature threshold`<br>
-`sudo powercontrol ramp_up             # % in steps CPU will increase in clockspeed per second` <br>
-`sudo powercontrol ramp_down           # % in steps CPU will decrease in clockspeed per second` <br>
+`sudo powercontrol ramp_up 15          # % in steps CPU will increase in clockspeed per second` <br>
+`sudo powercontrol ramp_down 20        # % in steps CPU will decrease in clockspeed per second` <br>
 `sudo powercontrol monitor             # Toggle live temperature monitoring`<br>
 `sudo powercontrol startup             # Copy/Remove no_turbo.conf & powercontrol.conf at: /etc/init/`<br>
 `sudo powercontrol version             # Check PowerControl version`<br>
