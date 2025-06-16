@@ -5,18 +5,26 @@
   <img src="https://i.imgur.com/RbK8dR6.png" alt="logo" />
 </p>  
 <br> <br>
-
-__Requires Developer Mode - Supports AMD, ARM, and Intel.__
+ChromeOS_PowerControl is a suite of lightweight shell scripts.
   <br> <br>
-- Control battery charging limit instead of relying on Adaptive Charging to maximize battery longevity.
-- Control CPU clockspeed in relation to temperature; enabling lower temperatures under load and longer battery life.
-- Control fan curve in relation to temperature with built-in hysteresis and 0% RPM mode.
-- Clamp GPU clockspeed below its default maximum; enabling lower temperatures and longer battery life when rendering 3D content. 
+  
+__Features:__ 
+
+
+- *PowerControl:* Control CPU clockspeed in relation to temperature; enabling lower temperatures and longer battery life under load.<br>
+- *BatteryControl:* Control battery charging limit instead of relying on Adaptive Charging to maximize battery longevity.<br>
+- *FanControl:* Control fan curve in relation to temperature with built-in hysteresis and 0% RPM mode.<br>
+- *GPUControl:* Control GPU clockspeed below its default maximum; enabling longer battery life under load.<br>
+- *SleepControl:* Control how long ChromeOS can remain idle before sleep; irrespective of system sleep settings.<br>
   <br> <br>
 - Features global commands for ease of use, a unified config file, and the ability to change settings in real-time. 
 - Has a feature-rich installer, an uninstaller that cleans up after itself, and logs stored in /var/log/ for statistics.
-- Optionally have BatteryControl, PowerControl, FanControl, an GPUControl start on boot; as well as disabling Turbo Boost on boot if user has rootfs verification disabled.
+- Optionally have BatteryControl, PowerControl, FanControl, GPUControl, and SleepControl start on boot; as well as disabling Intel Turbo Boost automatically if user has rootfs verification disabled.
 <br> <br> <br>
+
+
+__Requires Developer Mode - Supports AMD, ARM, and Intel.__
+<br><br>
 
 __How to Install:__
 
@@ -52,6 +60,7 @@ __Commands with examples:__
 `sudo powercontrol min_temp 60         # Min temperature threshold`<br>
 `sudo powercontrol monitor             # Toggle live temperature monitoring`<br>
 `sudo powercontrol startup             # Copy/Remove no_turbo.conf & powercontrol.conf at: /etc/init/`<br>
+`sudo powercontrol version             # Check PowerControl version`<br>
 `sudo powercontrol help                # Help menu`<br>
   
 ----------------------------------------------------------------------------------------------
@@ -93,7 +102,21 @@ __Commands with examples:__
 `sudo gpucontrol adreno 500000          # Clamp Adreno GPU max frequency to 500000 kHz (or 500 MHz)`<br>
 `sudo gpucontrol mali 600000            # Clamp Mali GPU max frequency to 600000 kHz (or 600 MHz)`<br>
 `sudo gpucontrol startup                # Copy/Remove gpucontrol.conf at: /etc/init/`<br>
-`sudo gpucontrol help                   # Help menu"`<br>
+`sudo gpucontrol help                   # Help menu`<br>
+
+----------------------------------------------------------------------------------------------
+
+*SleepControl:*
+
+
+`sudo sleepcontrol                     # Show current GPU info and frequency`<br>
+`sudo sleepcontrol start               # Start SleepControl`<br>
+`sudo sleepcontrol stop                # Stop SleepControl`<br>
+`sudo sleepcontrol battery 5 10        # When idle, display timeout in 10m and ChromeOS sleeps in 15m when on battery`<br>
+`sudo sleepcontrol power 15 30         # When idle, display timeout in 15m and ChromeOS sleeps in 30m when on plugged-in`<br>
+`sudo sleepcontrol startup             # Copy or Remove sleepcontrol.conf at: /etc/init/`<br>
+`sudo sleepcontrol help                # Help menu`<br>
+
 
 ----------------------------------------------------------------------------------------------
 *Reinstall:*
@@ -151,12 +174,21 @@ __How It Works:__
 
 - Identifies the GPU (AMD, Adreno, Mali, and Intel) based on the name of the device's path in /sys/class/
 - Limits control to only below the maximum clock speed for safety and with Chromebooks in mind.
-- Restarting ChromeOS will restore the GPU's max clockspeed back to default.
+- Applies a 120s delay on boot if the user is applying a custom clock speed as a precaution.
 - Intel GPU's maximum clock speed changed from: /sys/class/drm/card0/gt_max_freq_mhz
 - AMD GPU's maximum clockspeed changed from: /sys/class/drm/card0/pp_od_clk_voltage
 - Adreno GPU's maximum clockspeed changed from /sys/class/kgsl/kgsl-3d0/max_gpuclk
 - Mali GPU's maximum clockspeed changed from: /sys/class/devfreq/mali0/max_freq
 
+<br>
+
+
+*SleepControl:*
+
+- By reading powerd.LATEST log, SleepControl monitors when the powerd daemon reports 'User activity stopped'.
+- Parsing strings like 'User activity started' or 'Audio activity' tells SleepControl to pause until 'User activity stopped' is reported.
+- When idle, SleepControl uses dbus to send an empty input every 120s until interrupted/sleeping with the configurable timer.  
+- By using epoch timestamps, SleepControl is able to check when its simulated inputs are to be ignored.
 <br>
 
 __Bonus:__
@@ -181,7 +213,9 @@ AMD GPU support tweaked to allow idle clocks when overriding clockspeed. Added r
 Uninstaller no longer requiring user to reboot to restore GPU clockspeed. Fixed duplicate log entry and other bugs.
 Added ramp_up and ramp_down commands for PowerControl CPU scaling speed.
 Added stop processes commands and better cleanup when running startup, reinstalling and uninstalling.
-Reformatted status for better readability. Added post-install notes for BatteryControl and GPUControl.`
+Reformatted status for better readability. Added post-install notes for BatteryControl and GPUControl.`<br><br>
+- 0.19: `Added SleepControl - control how long ChromeOS can remain idle before sleeping; irrespective of system sleep settings.
+Removed Intel Turbo Boost questions from installer but keeping the options to toggle them in PowerControl.
 
 <br>
 
