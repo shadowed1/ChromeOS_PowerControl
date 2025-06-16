@@ -44,6 +44,7 @@ __How to Install:__
 <br> <br> <br>
 
 __Commands with examples:__
+<br>
 
 *PowerControl:*
 
