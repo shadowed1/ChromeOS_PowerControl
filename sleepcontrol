@@ -1,0 +1,360 @@
+#!/bin/bash
+RED=$(tput setaf 1)
+GREEN=$(tput setaf 2)
+YELLOW=$(tput setaf 3)
+BLUE=$(tput setaf 4)
+MAGENTA=$(tput setaf 5)
+CYAN=$(tput setaf 6)
+BOLD=$(tput bold)
+RESET=$(tput sgr0)
+
+INSTALL_DIR_FILE="/usr/local/bin/.ChromeOS_PowerControl.install_dir"
+if [ -f "$INSTALL_DIR_FILE" ]; then
+    INSTALL_DIR=$(cat "$INSTALL_DIR_FILE")
+else
+    INSTALL_DIR="/usr/local/bin/ChromeOS_PowerControl"
+fi
+INSTALL_DIR="${INSTALL_DIR%/}"
+
+CONFIG_FILE="$INSTALL_DIR/config.sh"
+PID_FILE="$INSTALL_DIR/.sleepcontrol_pid"
+RUN_FLAG="$INSTALL_DIR/.sleepcontrol_enabled"
+LOG_FILE="/var/log/sleepcontrol.log"
+BATTERY_STATUS_PATH="/sys/class/power_supply/BAT0/status"
+
+DEFAULT_BATTERY_DELAY=14
+DEFAULT_POWER_DELAY=30
+DEFAULT_BATTERY_BACKLIGHT=4
+DEFAULT_POWER_BACKLIGHT=10
+
+BATTERY_DELAY=
+POWER_DELAY=
+BATTERY_BACKLIGHT=
+POWER_BACKLIGHT=
+audio_active=0
+
+BATTERY_DELAY=$DEFAULT_BATTERY_DELAY
+POWER_DELAY=$DEFAULT_POWER_DELAY
+BATTERY_BACKLIGHT=$DEFAULT_BATTERY_BACKLIGHT
+POWER_BACKLIGHT=$DEFAULT_POWER_BACKLIGHT
+
+load_config() {
+    if [ -f "$CONFIG_FILE" ]; then
+        source "$CONFIG_FILE"
+    fi
+    validate_config
+}
+
+validate_config() {
+    if [[ -z "$BATTERY_DELAY" || ! "$BATTERY_DELAY" =~ ^[0-9]+$ ]]; then
+        BATTERY_DELAY=$DEFAULT_BATTERY_DELAY
+    fi
+    if [[ -z "$POWER_DELAY" || ! "$POWER_DELAY" =~ ^[0-9]+$ ]]; then
+        POWER_DELAY=$DEFAULT_POWER_DELAY
+    fi
+    if [[ -z "$BATTERY_BACKLIGHT" || ! "$BATTERY_BACKLIGHT" =~ ^[0-9]+$ ]]; then
+        BATTERY_BACKLIGHT=$DEFAULT_BATTERY_BACKLIGHT
+    fi
+    if [[ -z "$POWER_BACKLIGHT" || ! "$POWER_BACKLIGHT" =~ ^[0-9]+$ ]]; then
+        POWER_BACKLIGHT=$DEFAULT_POWER_BACKLIGHT
+    fi
+}
+
+save_config() {
+    validate_config
+    sed -i "s/^BATTERY_DELAY=.*/BATTERY_DELAY=$BATTERY_DELAY/" "$CONFIG_FILE" || echo "BATTERY_DELAY=$BATTERY_DELAY" >> "$CONFIG_FILE"
+    sed -i "s/^POWER_DELAY=.*/POWER_DELAY=$POWER_DELAY/" "$CONFIG_FILE" || echo "POWER_DELAY=$POWER_DELAY" >> "$CONFIG_FILE"
+    sed -i "s/^BATTERY_BACKLIGHT=.*/BATTERY_BACKLIGHT=$BATTERY_BACKLIGHT/" "$CONFIG_FILE" || echo "BATTERY_BACKLIGHT=$BATTERY_BACKLIGHT" >> "$CONFIG_FILE"
+    sed -i "s/^POWER_BACKLIGHT=.*/POWER_BACKLIGHT=$POWER_BACKLIGHT/" "$CONFIG_FILE" || echo "POWER_BACKLIGHT=$POWER_BACKLIGHT" >> "$CONFIG_FILE"
+}
+
+show_help() {
+        echo "${BLUE}# SleepControl Commands with examples"
+        echo ""
+        echo "sudo sleepcontrol                     # Show current GPU info and frequency"
+        echo "sudo sleepcontrol start               # Start SleepControl"
+        echo "sudo sleepcontrol stop                # Stop SleepControl"
+        echo "sudo sleepcontrol battery 5 10        # When idle, display timeout in 10m and ChromeOS sleeps in 15m when on battery"
+        echo "sudo sleepcontrol power 15 30         # When idle, display timeout in 15m and ChromeOS sleeps in 30m when on plugged-in"
+        echo "sudo sleepcontrol startup             # Copy or Remove sleepcontrol.conf at: /etc/init/"
+        echo "sudo sleepcontrol help                # Help menu${RESET}"
+        exit 0
+            }
+
+load_config
+
+send_fake_activity() {
+    dbus-send --system --type=method_call \
+        --dest=org.chromium.PowerManager \
+        /org/chromium/PowerManager \
+        org.chromium.PowerManager.HandleUserActivity int32:0 int32:0
+    save_sim_time
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - Simulated user activity." >> "$LOG_FILE"
+}
+
+monitor_idle_activity() {
+    
+exec 200>"$PID_FILE.lock"
+flock -n 200 || {
+    echo "Another instance is running"
+    exit 1
+                } 
+    
+    echo "$BASHPID" > "$PID_FILE"
+    touch "$RUN_FLAG"
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - SleepControl started (PID $$)." > "$LOG_FILE"
+    local active=1
+    local monitor_idle=0
+    local backlight_off=0
+    local kb_brightness_restored=1
+    local power_backlight_ts=$(date +%s)
+    local battery_backlight_ts=$(date +%s)
+    local fake_activity_pid=0
+    local last_reload_time=0
+    local saved_kb_brightness=$(sudo ectool pwmgetkblight | awk '{print $NF}')
+
+
+   
+
+    start_fake_activity() {
+        if (( fake_activity_pid == 0 )); then
+            (
+                while true; do
+                    sleep 120
+                    send_fake_activity
+                done
+            ) &
+            fake_activity_pid=$!
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - Started fake activity loop (PID $fake_activity_pid)." >> "$LOG_FILE"
+        fi
+    }
+
+    stop_fake_activity() {
+        if (( fake_activity_pid != 0 )); then
+            kill "$fake_activity_pid" 2>/dev/null
+            wait "$fake_activity_pid" 2>/dev/null
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - Stopped fake activity loop (PID $fake_activity_pid)." >> "$LOG_FILE"
+            fake_activity_pid=0
+        fi
+    }
+
+    tail -Fn0 /var/log/power_manager/powerd.LATEST | while read -r line; do
+        now=$(date +%s)
+
+     now=$(date +%s)
+        if (( now - last_reload_time >= 30 )); then
+            load_config
+            last_reload_time=$now
+        fi
+
+        case "$line" in
+            *"User activity stopped"*)
+                monitor_idle=1
+                active=0
+                kb_brightness_restored=0
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Starting dbus-send simulation..." >> "$LOG_FILE"
+                ;;
+
+            *"User activity reported"*|*"User activity ongoing"*|*"Audio activity"*|*"Enabling wakeup for"*|*"User triggered wake"*|*"powerd_suspend returned 0"*|*"Chrome is using normal display mode"*)
+                if (( monitor_idle == 1 )); then
+                        echo "$(date '+%Y-%m-%d %H:%M:%S') - Pausing dbus-send simulation..." >> "$LOG_FILE"
+                    fi
+                    monitor_idle=0
+                    active=1
+                    stop_fake_activity
+                    sudo ectool backlight 1 2>/dev/null
+                    sudo ectool pwmsetkblight "$saved_kb_brightness" 2>/dev/null
+                    backlight_off=0
+                    kb_brightness_restored=1
+                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Restored keyboard and display backlight due to triggered wake." >> "$LOG_FILE"
+                    power_backlight_ts=$now
+                    battery_backlight_ts=$now
+                ;;
+
+            *)
+                ;;
+        esac
+
+        if (( monitor_idle == 1 )); then
+            status=$(cat "$BATTERY_STATUS_PATH" 2>/dev/null)
+
+            if [[ "$status" == "Discharging" ]]; then
+                backlight_delay=$((BATTERY_BACKLIGHT * 60))
+                last_ts=$battery_backlight_ts
+                suspend_delay=$((BATTERY_DELAY * 60))
+            else
+                backlight_delay=$((POWER_BACKLIGHT * 60))
+                last_ts=$power_backlight_ts
+                suspend_delay=$((POWER_DELAY * 60))
+            fi
+
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - dbus-send simulation active: $now $last_ts" >> "$LOG_FILE"
+
+            if (( now - last_ts >= backlight_delay )); then
+                if [ "$backlight_off" -eq 0 ]; then
+                    sudo ectool backlight 0 2>/dev/null
+                    backlight_off=1
+                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Turned off backlight due to inactivity." >> "$LOG_FILE"
+                fi
+            fi
+
+            if (( now - last_ts >= suspend_delay )); then
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Suspending system due to inactivity." >> "$LOG_FILE"
+                dbus-send --system --type=method_call \
+                    --dest=org.chromium.PowerManager \
+                    /org/chromium/PowerManager \
+                    org.chromium.PowerManager.RequestSuspend
+
+                sleep 2
+
+                power_backlight_ts=$now
+                battery_backlight_ts=$now
+                backlight_off=0
+                if (( saved_kb_brightness > 0 )); then
+                    sudo ectool pwmsetkblight "$saved_kb_brightness" 2>/dev/null
+                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Restored keyboard brightness to $saved_kb_brightness after suspend." >> "$LOG_FILE"
+                else
+                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Skipped restoring brightness, saved value is zero." >> "$LOG_FILE"
+                fi
+                kb_brightness_restored=1
+                sleep 1
+                active=1
+                sudo ectool backlight 1 2>/dev/null
+
+                continue
+            fi
+        fi
+    done
+}
+
+
+stop_monitoring() {
+    if [ -f "$PID_FILE" ]; then
+        PID=$(cat "$PID_FILE")
+        if ps -p "$PID" > /dev/null 2>&1; then
+            echo "Stopping SleepControl (PGID: $PID)..."
+            kill -- -"$PID" 2>/dev/null
+            sleep 1
+            kill "$PID" 2>/dev/null
+            echo "${RED}Stopped SleepControl (PID $PID)${RESET}."
+        fi
+    fi
+    rm -f "$RUN_FLAG"
+    rm -f "$PID_FILE"
+}
+
+
+case "$1" in
+    start)
+        exec 200>"$PID_FILE.lock"
+flock -n 200 || {
+    echo "Another instance is running"
+    exit 1
+                }
+        sudo ectool backlight 1 >/dev/null 2>&1
+        stop_monitoring >/dev/null 2>&1
+        if [ -f "$LOG_FILE" ] && [ "$(stat -c%s "$LOG_FILE")" -gt 32768 ]; then
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - Truncated log file (exceeded 32KB)" | tee -a "$LOG_FILE"
+        fi
+        setsid "$0" __monitor__ >> "$LOG_FILE" 2>&1 &
+        echo "${GREEN}$(date '+%Y-%m-%d %H:%M:%S') - SleepControl started in background. Output is logged to $LOG_FILE${RESET}" | tee -a "$LOG_FILE"
+        ;;
+    stop)
+        sudo ectool backlight 1 >/dev/null 2>&1
+        stop_monitoring >/dev/null 2>&1
+        ;;
+    battery|power)
+    MODE=$1
+    BACKLIGHT_VAL=$2
+    DELAY_VAL=$3
+
+    if [ -n "$BACKLIGHT_VAL" ] && [ -n "$DELAY_VAL" ]; then
+        if [[ "$BACKLIGHT_VAL" =~ ^[0-9]+$ ]] && [[ "$DELAY_VAL" =~ ^[0-9]+$ ]]; then
+            if (( BACKLIGHT_VAL < 1 || BACKLIGHT_VAL > 9999 || DELAY_VAL < 1 || DELAY_VAL > 9999 )); then
+                echo "${RED}Values must be between 1 and 9999 minutes.${RESET}"
+                exit 1
+            fi
+            if (( BACKLIGHT_VAL > DELAY_VAL )); then
+                echo "${RED}Backlight timeout cannot be greater than sleep.${RESET}"
+                exit 1
+            fi
+            if [ "$MODE" = "battery" ]; then
+                BATTERY_BACKLIGHT=$BACKLIGHT_VAL
+                BATTERY_DELAY=$DELAY_VAL
+            else
+                POWER_BACKLIGHT=$BACKLIGHT_VAL
+                POWER_DELAY=$DELAY_VAL
+            fi
+            save_config
+            echo "${GREEN}${BOLD}${MODE^}${RESET}${GREEN} backlight timeout set to ${BOLD}${BACKLIGHT_VAL} min${RESET}${GREEN}, sleep delay set to ${BOLD}${DELAY_VAL} min.${RESET}"
+        else
+            echo "${RED}Invalid values. Usage: sleepcontrol $MODE 10 20).${RESET}"
+        fi
+
+    elif [ -n "$BACKLIGHT_VAL" ]; then
+        if [[ "$BACKLIGHT_VAL" =~ ^[0-9]+$ ]] && (( BACKLIGHT_VAL >= 1 && BACKLIGHT_VAL <= 9999 )); then
+            if [ "$MODE" = "battery" ]; then
+                BATTERY_DELAY=$BACKLIGHT_VAL
+            else
+                POWER_DELAY=$BACKLIGHT_VAL
+            fi
+            save_config
+            echo "${GREEN}${BOLD}${MODE^}${RESET}${GREEN} sleep delay set to ${BOLD}${BACKLIGHT_VAL} minutes.${RESET}"
+        else
+            echo "${RED}Invalid value. Must be a number between 1 and 9999.${RESET}"
+        fi
+
+    else
+        load_config
+        if [ "$MODE" = "battery" ]; then
+            echo "Battery: Display timeout = $BATTERY_BACKLIGHT min, Sleep = $BATTERY_DELAY min"
+        else
+            echo "Power: Display timeout = $POWER_BACKLIGHT min, Sleep = $POWER_DELAY min"
+        fi
+    fi
+        ;;
+        startup)
+        CONF_SOURCE="$INSTALL_DIR/sleepcontrol.conf"
+        CONF_TARGET="/etc/init/sleepcontrol.conf"
+
+        read -p "Do you want SleepControl to startup automatically? (y/n): " choice
+        if [[ "$choice" =~ ^[Yy]$ ]]; then
+            if [ -f "$CONF_SOURCE" ]; then
+                echo "Copying sleepcontrol.conf to /etc/init/..."
+                sudo cp "$CONF_SOURCE" "$CONF_TARGET"
+                echo "${GREEN}sleepcontrol.conf copied.${RESET}"
+            else
+                echo "${RED}sleepcontrol.conf not found at $CONF_SOURCE${RESET}"
+            fi
+        else
+            echo "SleepControl will not startup automatically."
+            sudo rm -f /etc/init/sleepcontrol.conf
+        fi
+        ;;
+        status|"")
+        load_config
+        if [ -f "$RUN_FLAG" ]; then
+            PID=$(cat "$PID_FILE")
+            if ps -p "$PID" > /dev/null 2>&1; then
+                echo "${GREEN}SleepControl Status: ENABLED (PID $PID)${RESET}"
+            else
+                echo "${YELLOW}SleepControl Status: RUN FLAG PRESENT, but process not running${RESET}"
+            fi
+            echo ""
+            echo "Battery = Display Timeout: $((BATTERY_BACKLIGHT)) min -> Sleep: $((BATTERY_DELAY)) min"
+            echo "Power = Display Timeout: $((POWER_BACKLIGHT)) min -> Sleep: $((POWER_DELAY)) min"
+            echo ""
+        else
+            echo "${RED}SleepControl Status: STOPPED${RESET}"
+        fi
+        ;;
+    __monitor__)
+        monitor_idle_activity
+        ;;
+        help)
+            show_help
+        ;;
+    *)
+        show_help
+        ;;
+esac
