@@ -19,6 +19,7 @@ CONFIG_FILE="$INSTALL_DIR/config.sh"
 LOG_FILE="/var/log/powercontrol.log"
 RUN_FLAG="$INSTALL_DIR/.powercontrol_enabled"
 PID_FILE="$INSTALL_DIR/.powercontrol_pid"
+VERSION_FILE="$INSTALL_DIR/version"
 CPU_VENDOR=$(grep -m1 'vendor_id' /proc/cpuinfo | awk '{print $3}' || echo "unknown")
 MONITOR_PID_FILE="$INSTALL_DIR/.powercontrol_tail_fan_monitor.pid"
 PERF_PATH=""
@@ -362,7 +363,7 @@ show_status() {
     if [ -f "$PID_FILE" ]; then
         PID=$(cat "$PID_FILE")
         if ps -p "$PID" > /dev/null 2>&1; then
-            echo "${GREEN}PowerControl Status: RUNNING (PID $PID)${RESET}"
+            echo "${GREEN}PowerControl Status: ENABLED (PID $PID)${RESET}"
             echo ""
         else
             rm -f "$PID_FILE"
@@ -482,8 +483,9 @@ echo "sudo powercontrol max_temp 86         # Max temperature threshold - Limit 
 echo "sudo powercontrol min_temp 60         # Min temperature threshold"
 echo "sudo powercontrol monitor             # Toggle live temperature monitoring"
 echo "sudo powercontrol startup             # Copy or Remove no_turbo.conf & powercontrol.conf at: /etc/init/"
-echo "sudo powercontrol reinstall           # Redownload and reinstall ChromeOS_PowerControl from Github."
-echo "sudo powercontrol uninstall           # Uninstall ChromeOS_PowerControl."
+echo "sudo powercontrol reinstall           # Redownload and reinstall ChromeOS_PowerControl from Github"
+echo "sudo powercontrol uninstall           # Uninstall ChromeOS_PowerControl"
+echo "sudo powercontrol version             # Check PowerControl version"
 echo "sudo powercontrol help                # Help menu${RESET}"
 echo ""
 }
@@ -603,7 +605,7 @@ case "$1" in
             fi
         else
             echo "Intel Turbo Boost enabled on startup."
-            sudo rm -f /etc/init/no_turbo.conf
+            sudo rm -r /etc/init/no_turbo.conf
         fi
     fi
 
@@ -647,9 +649,17 @@ case "$1" in
         exit 1
     fi
     ;;
+     version)
+    if [[ -f "$VERSION_FILE" ]]; then
+        echo "$(cat "$VERSION_FILE")"
+    else
+        echo "Version file not found."
+        exit 1
+    fi
+    ;;
     reinstall)
     echo "Downloading to:${CYAN} /home/chronos/ChromeOS_PowerControl_Installer.sh $RESET"
-    curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/ChromeOS_PowerControl_Installer.sh -o /home/chronos/ChromeOS_PowerControl_Installer.sh
+    curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/beta/ChromeOS_PowerControl_Installer.sh -o /home/chronos/ChromeOS_PowerControl_Installer.sh
     echo "Running commands:"
     echo ""
     sudo mkdir -p /usr/local/bin
