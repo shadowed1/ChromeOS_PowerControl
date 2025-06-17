@@ -8,6 +8,8 @@ else
     INSTALL_DIR="/usr/local/bin/ChromeOS_PowerControl"
 fi
 
+sleep 15
+
 INSTALL_DIR="${INSTALL_DIR%/}"
 
 exec "$INSTALL_DIR/powercontrol" __monitor__ >> /var/log/powercontrol.log 2>&1
