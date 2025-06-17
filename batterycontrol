@@ -225,7 +225,7 @@ case "$1" in
         fi
 
         nohup "$0" __monitor__ >> "$LOG_FILE" 2>&1 &
-        echo "${GREEN}$(date '+%Y-%m-%d %H:%M:%S') - BatteryControl monitoring started in background. Output is logged to $LOG_FILE${RESET}" | tee -a "$LOG_FILE"
+        echo "${GREEN}$(date '+%Y-%m-%d %H:%M:%S') - Starting BatteryControl:  Output is logged to $LOG_FILE${RESET}" | tee -a "$LOG_FILE"
         ;;
     stop)
         stop_monitoring
