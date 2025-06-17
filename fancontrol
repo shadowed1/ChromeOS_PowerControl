@@ -109,9 +109,8 @@ cleanup() {
 }
 
 run_loop() {
-    sudo ectool autofanctrl
     echo "${GREEN} $(date '+%Y-%m-%d %H:%M:%S') - FanControl started.${RESET}" | tee -a "$LOG_FILE"
-
+    prev_temp=$TEMP_C
     local last_duty=-1
     local last_reload_time=0
 
@@ -129,6 +128,8 @@ run_loop() {
 
         RAW_TEMP=$(cat "$ZONE_PATH")
         TEMP_C=$((RAW_TEMP / 1000))
+        TEMP_C=$(((TEMP_C + prev_temp) / 2))
+        prev_temp=$TEMP_C
 
         if (( TEMP_C <= FAN_MIN_TEMP )); then
             DUTY=$MIN_FAN
@@ -141,16 +142,26 @@ run_loop() {
         fi
 
         # Apply hysteresis / gradual ramping with asymmetric steps
-        if (( last_duty < 0 )); then
-            target_duty=$DUTY
-        else
-            target_duty=$DUTY
-            if (( target_duty > last_duty + STEP_UP )); then
-                target_duty=$((last_duty + STEP_UP))
-            elif (( target_duty < last_duty - STEP_DOWN )); then
-                target_duty=$((last_duty - STEP_DOWN))
+        HYSTERESIS=2  # percent
+            if (( last_duty < 0 )); then
+                target_duty=$DUTY
+            elif (( DUTY > last_duty + HYSTERESIS )); then
+                diff=$((DUTY - last_duty))
+                if (( diff > STEP_UP )); then
+                    target_duty=$((last_duty + STEP_UP))
+                else
+                    target_duty=$DUTY
+                fi
+            elif (( DUTY < last_duty - HYSTERESIS )); then
+                diff=$((last_duty - DUTY))
+                if (( diff > STEP_DOWN )); then
+                    target_duty=$((last_duty - STEP_DOWN))
+                else
+                    target_duty=$DUTY
+                fi
+            else
+                target_duty=$last_duty  # No change if within hysteresis
             fi
-        fi
 
         KICKSTART_DUTY=50
 
@@ -163,6 +174,17 @@ run_loop() {
             sudo ectool fanduty 0 | grep -v "Fan duty cycle set for all fans." >> "$LOG_FILE"
         else
             sudo ectool fanduty "$target_duty" | grep -v "Fan duty cycle set for all fans." >> "$LOG_FILE"
+        fi
+
+        if [[ -n "$prev_temp" ]]; then
+            TEMP_C=$(((TEMP_C + prev_temp) / 2))
+        fi
+        prev_temp=$TEMP_C
+
+        if (( DUTY < MIN_FAN )); then
+            DUTY=$MIN_FAN
+        elif (( DUTY > MAX_FAN )); then
+            DUTY=$MAX_FAN
         fi
 
         last_duty=$target_duty
@@ -297,7 +319,7 @@ set_stepup() {
         save_config
         echo "$(date '+%Y-%m-%d %H:%M:%S') - Step-up size set to $STEP_UP%" | tee -a "$LOG_FILE"
     else
-        echo "Usage: $0 stepup <step_size_percent (1-100)>"
+        echo "Usage: $0 step_up <step_size_percent (1-100)>"
     fi
 }
 
@@ -308,7 +330,7 @@ set_stepdown() {
         save_config
         echo "$(date '+%Y-%m-%d %H:%M:%S') - Step-down size set to $STEP_DOWN%" | tee -a "$LOG_FILE"
     else
-        echo "Usage: $0 stepdown <step_size_percent (1-100)>"
+        echo "Usage: $0 step_down <step_size_percent (1-100)>"
     fi
 }
 show_help() {
@@ -322,8 +344,8 @@ echo "sudo fancontrol fan_min_temp 48       # Min temp threshold"
 echo "sudo fancontrol fan_max_temp 81       # Max temp threshold - Limit is 90 C"
 echo "sudo fancontrol min_fan 0             # Min fan speed %"
 echo "sudo fancontrol max_fan 100           # Max fan speed %"
-echo "sudo fancontrol stepup 20             # Fan step-up %"
-echo "sudo fancontrol stepdown 1            # Fan step-down %"
+echo "sudo fancontrol step_up 20            # Fan step-up %"
+echo "sudo fancontrol step_down 1           # Fan step-down %"
 echo "sudo fancontrol monitor               # Toggle on/off live monitoring in terminal"
 echo "sudo fancontrol startup               # Copy or Remove fancontrol.conf at: /etc/init/"
 echo "sudo fancontrol help                  # Help menu${RESET}"
@@ -339,8 +361,8 @@ case "$1" in
     min_fan)  min_fan "$@" ;;
     max_fan)  max_fan "$@" ;;
     update)   set_sleep_interval "$@" ;;
-    stepup)   set_stepup "$@" ;;
-    stepdown) set_stepdown "$@" ;;
+    step_up)   set_stepup "$@" ;;
+    step_down) set_stepdown "$@" ;;
     startup)
         CONF_SOURCE="$INSTALL_DIR/fancontrol.conf"
         CONF_TARGET="/etc/init/fancontrol.conf"
