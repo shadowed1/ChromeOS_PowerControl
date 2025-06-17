@@ -101,6 +101,7 @@ save_config() {
 }
 
 show_help() {
+        echo ""
         echo "${BLUE}# SleepControl Commands with examples"
         echo ""
         echo "sudo sleepcontrol                     # Show SleepControl status"
