@@ -109,6 +109,51 @@ fi
     GPU_MAX_FREQ=""
     GPU_TYPE="unknown"
 }
+
+detect_backlight_path() {
+    BACKLIGHT_BASE="/sys/class/backlight"
+    BRIGHTNESS_PATH=""
+    MAX_BRIGHTNESS_PATH=""
+    BACKLIGHT_NAME=""
+
+    if [ ! -d "$BACKLIGHT_BASE" ]; then
+        echo "No backlight sysfs found at $BACKLIGHT_BASE"
+        return 1
+    fi
+    
+    for candidate in intel_backlight amdgpu_bl0 radeon_bl0 panel0-backlight pwm-backlight acpi_video0 backlight; do
+        if [ -d "$BACKLIGHT_BASE/$candidate" ]; then
+            BACKLIGHT_NAME="$candidate"
+            BRIGHTNESS_PATH="$BACKLIGHT_BASE/$candidate/brightness"
+            MAX_BRIGHTNESS_PATH="$BACKLIGHT_BASE/$candidate/max_brightness"
+            # Make sure the files exist and are readable
+            if [ -r "$BRIGHTNESS_PATH" ] && [ -r "$MAX_BRIGHTNESS_PATH" ]; then
+                break
+            else
+                BRIGHTNESS_PATH=""
+                MAX_BRIGHTNESS_PATH=""
+                BACKLIGHT_NAME=""
+            fi
+        fi
+    done
+
+    if [ -z "$BRIGHTNESS_PATH" ] || [ -z "$MAX_BRIGHTNESS_PATH" ]; then
+        for dir in "$BACKLIGHT_BASE"/*; do
+            if [ -d "$dir" ] && [ -r "$dir/brightness" ] && [ -r "$dir/max_brightness" ]; then
+                BACKLIGHT_NAME=$(basename "$dir")
+                BRIGHTNESS_PATH="$dir/brightness"
+                MAX_BRIGHTNESS_PATH="$dir/max_brightness"
+                break
+            fi
+        done
+    fi
+
+    if [ -z "$BRIGHTNESS_PATH" ] || [ -z "$MAX_BRIGHTNESS_PATH" ]; then
+        echo "No valid backlight interface found."
+        return 1
+    fi
+}
+
 echo ""
 echo "${RED}VT-2 (or enabling sudo in crosh) is ${RESET}${BOLD}${RED}required${RESET}${RED} to run this installer.$RESET"
 echo "${YELLOW}Must be installed in a location without the ${RESET}${MAGENTA}${BOLD}noexec mount.$RESET"
@@ -159,11 +204,17 @@ for file in "${files[@]}"; do
     echo ""
 done
 
+detect_backlight_path
 detect_cpu_type
 
 if [ "$IS_INTEL" -eq 1 ]; then
     SHOW_POWERCONTROL_NOTICE=1
 fi
+echo ""
+echo "${GREEN}$BACKLIGHT_NAME"
+echo "$BRIGHTNESS_PATH"
+echo "$MAX_BRIGHTNESS_PATH${RESET}"
+echo ""
 
 echo "${CYAN}Detected CPU Vendor: $CPU_VENDOR"
 echo "PERF_PATH: $PERF_PATH"
@@ -173,7 +224,6 @@ echo "$RESET"
 sudo chmod +x "$INSTALL_DIR/powercontrol" "$INSTALL_DIR/batterycontrol" "$INSTALL_DIR/fancontrol" "$INSTALL_DIR/gpucontrol" "$INSTALL_DIR/sleepcontrol" "$INSTALL_DIR/Uninstall_ChromeOS_PowerControl.sh" "$INSTALL_DIR/config.sh"
 sudo touch "$INSTALL_DIR/.batterycontrol_enabled" "$INSTALL_DIR/.powercontrol_enabled" "$INSTALL_DIR/.fancontrol_enabled"
 sudo touch "$INSTALL_DIR/.fancontrol_pid" "$INSTALL_DIR/.fancontrol_tail_fan_monitor.pid" "$INSTALL_DIR/.batterycontrol_pid" "$INSTALL_DIR/.powercontrol_tail_fan_monitor.pid" "$INSTALL_DIR/.powercontrol_pid" "$INSTALL_DIR/.sleepcontrol_monitor.pid"
-
 detect_gpu_freq
 echo "${MAGENTA}Detected GPU Type: $GPU_TYPE"
 echo "GPU_FREQ_PATH: $GPU_FREQ_PATH"
@@ -215,9 +265,11 @@ declare -a ordered_keys=(
   "GPU_FREQ_PATH"
   "GPU_MAX_FREQ"
   "BATTERY_DELAY"
-  "POWER_DELAY"
   "BATTERY_BACKLIGHT"
+  "BATTERY_DIM_DELAY"
+  "POWER_DELAY"
   "POWER_BACKLIGHT"
+  "POWER_DIM_DELAY"
   "PERF_PATH"
   "TURBO_PATH"
   "ORIGINAL_GPU_MAX_FREQ"
@@ -226,6 +278,9 @@ declare -a ordered_keys=(
   "IS_AMD"
   "IS_INTEL"
   "IS_ARM"
+  "BACKLIGHT_NAME"
+  "BRIGHTNESS_PATH"
+  "MAX_BRIGHTNESS_PATH"
 )
 
 declare -a ordered_categories=("PowerControl" "BatteryControl" "FanControl" "GPUControl" "SleepControl" "Platform Configuration")
@@ -234,8 +289,8 @@ declare -A categories=(
   ["BatteryControl"]="CHARGE_MAX CHARGE_MIN"
   ["FanControl"]="MIN_FAN MAX_FAN FAN_MIN_TEMP FAN_MAX_TEMP STEP_UP STEP_DOWN SLEEP_INTERVAL"
   ["GPUControl"]="GPU_MAX_FREQ"
-  ["SleepControl"]="BATTERY_DELAY POWER_DELAY BATTERY_BACKLIGHT POWER_BACKLIGHT"
-  ["Platform Configuration"]="IS_AMD IS_INTEL IS_ARM PERF_PATH TURBO_PATH GPU_TYPE GPU_FREQ_PATH ORIGINAL_GPU_MAX_FREQ PP_OD_FILE AMD_SELECTED_SCLK_INDEX"
+  ["SleepControl"]="BATTERY_DELAY BATTERY_BACKLIGHT BATTERY_DIM_DELAY POWER_DELAY POWER_BACKLIGHT POWER_DIM_DELAY"
+  ["Platform Configuration"]="IS_AMD IS_INTEL IS_ARM PERF_PATH TURBO_PATH GPU_TYPE GPU_FREQ_PATH ORIGINAL_GPU_MAX_FREQ PP_OD_FILE AMD_SELECTED_SCLK_INDEX BACKLIGHT_NAME BRIGHTNESS_PATH MAX_BRIGHTNESS_PATH"
 )
 
 if [[ -z "${ORIGINAL_GPU_MAX_FREQ}" ]]; then ORIGINAL_GPU_MAX_FREQ=$GPU_MAX_FREQ; fi
@@ -254,10 +309,12 @@ if [[ -z "${FAN_MAX_TEMP}" ]]; then FAN_MAX_TEMP=80; fi
 if [[ -z "${STEP_UP}" ]]; then STEP_UP=20; fi
 if [[ -z "${STEP_DOWN}" ]]; then STEP_DOWN=1; fi
 if [[ -z "${SLEEP_INTERVAL}" ]]; then SLEEP_INTERVAL=3; fi
-if [[ -z "${BATTERY_DELAY}" ]]; then BATTERY_DELAY=10; fi
+if [[ -z "${BATTERY_DELAY}" ]]; then BATTERY_DELAY=12; fi
+if [[ -z "${BATTERY_BACKLIGHT}" ]]; then BATTERY_BACKLIGHT=7; fi
+if [[ -z "${BATTERY_DIM_DELAY}" ]]; then BATTERY_DIM_DELAY=3; fi
 if [[ -z "${POWER_DELAY}" ]]; then POWER_DELAY=30; fi
-if [[ -z "${BATTERY_BACKLIGHT}" ]]; then BATTERY_BACKLIGHT=5; fi
 if [[ -z "${POWER_BACKLIGHT}" ]]; then POWER_BACKLIGHT=15; fi
+if [[ -z "${POWER_DIM_DELAY}" ]]; then POWER_DIM_DELAY=5; fi
 
 declare -A defaults=(
   [MAX_TEMP]=$MAX_TEMP
@@ -290,6 +347,9 @@ declare -A defaults=(
   [IS_AMD]=$IS_AMD
   [IS_INTEL]=$IS_INTEL
   [IS_ARM]=$IS_ARM
+  [BACKLIGHT_NAME]=$BACKLIGHT_NAME
+  [BRIGHTNESS_PATH]=$BRIGHTNESS_PATH
+  [MAX_BRIGHTNESS_PATH]=$MAX_BRIGHTNESS_PATH
 )
 
 if [ -f "$CONFIG_FILE" ]; then
@@ -424,7 +484,7 @@ start_component_now() {
 echo "${BLUE}Stopping any running components of PowerControl${RESET}"
 sudo bash "$INSTALL_DIR/gpucontrol" restore >/dev/null 2>&1
 sudo ectool backlight 1 >/dev/null 2>&1
-for component in batterycontrol powercontrol fancontrol; do
+for component in batterycontrol powercontrol fancontrol sleepcontrol; do
     if command -v "$INSTALL_DIR/$component" >/dev/null 2>&1; then
         sudo bash "$INSTALL_DIR/$component" stop >/dev/null 2>&1
     fi
@@ -507,11 +567,11 @@ echo "sudo gpucontrol startup               # Copy or Remove gpucontrol.conf at:
 echo "sudo gpucontrol help                  # Help menu"
 echo "${RESET}${BLUE}"
 echo "# SleepControl"
-echo "sudo sleepcontrol                     # Show current GPU info and frequency"
+echo "sudo sleepcontrol                     # Show SleepControl status"
 echo "sudo sleepcontrol start               # Start SleepControl"
 echo "sudo sleepcontrol stop                # Stop SleepControl"
-echo "sudo sleepcontrol battery 5 10        # When idle, display timeout in 10m and ChromeOS sleeps in 15m when on battery"
-echo "sudo sleepcontrol power 15 30         # When idle, display timeout in 15m and ChromeOS sleeps in 30m when on plugged-in" 
+echo "sudo sleepcontrol battery 3 7 12      # When idle, display dims in 3m, timeout in 7m, and ChromeOS sleeps in 12m when on battery"
+echo "sudo sleepcontrol power 5 15 30       # When idle, display dims in 5m, timeout in 15m and ChromeOS sleeps in 30m when plugged-in" 
 echo "sudo sleepcontrol startup             # Copy or Remove sleepcontrol.conf at: /etc/init/"
 echo "sudo sleepcontrol help                # Help menu"
 echo "${RESET}${BOLD}"
@@ -536,8 +596,8 @@ echo ""
 fi
 if [[ "$SHOW_SLEEPCONTROL_NOTICE" -eq 1 ]]; then
 echo ""
-echo ""
-echo "${BLUE}${BOLD}SleepControl${RESET}${BLUE}overrides 'While inactive' preferences in System Preferences -> Power. Customize using commands above.${RESET}"
+echo "${BLUE}${BOLD}SleepControl:${RESET}"
+echo "${BLUE}Overrides 'While inactive' preferences in System Preferences -> Power. Customize using commands above.${RESET}"
 echo ""
 fi
 if [[ "$SHOW_GPUCONTROL_NOTICE" -eq 1 ]]; then
