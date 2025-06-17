@@ -112,6 +112,7 @@ show_help() {
         echo "sudo sleepcontrol power audio 1       # Enable audio detection on power; delaying sleep until audio is stopped"
         echo "sudo sleepcontrol startup             # Copy or Remove sleepcontrol.conf at: /etc/init/"
         echo "sudo sleepcontrol help                # Help menu${RESET}"
+        echo ""
         exit 0
             }
 
@@ -180,12 +181,15 @@ flock -n 200 || {
     local battery_backlight_ts=$(date +%s)
     local fake_activity_pid=0
     local last_reload_time=0
+    local last_power_check_time=0
     local saved_kb_brightness=$(sudo ectool pwmgetkblight | awk '{print $NF}')
 
     saved_display_brightness=0
     if [[ -n "$BRIGHTNESS_PATH" ]]; then
     saved_display_brightness=$(cat "$BRIGHTNESS_PATH" 2>/dev/null || echo 0)
     fi
+
+    
 
 
     start_fake_activity() {
@@ -212,6 +216,19 @@ flock -n 200 || {
 
     tail -Fn0 /var/log/power_manager/powerd.LATEST | while read -r line; do
         now=$(date +%s)
+
+    if (( now - last_power_check_time >= 30 )); then
+        if [[ -f "$BATTERY_STATUS_PATH" ]]; then
+            battery_status=$(cat "$BATTERY_STATUS_PATH")
+            if [[ "$battery_status" == "Discharging" ]]; then
+                status="Discharging"
+            else
+                status="Charging"
+            fi
+        fi
+        last_power_check_time=$now
+    fi
+
 
     if [[ "$status" == "Discharging" ]]; then
         AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_BATTERY
@@ -542,7 +559,7 @@ flock -n 200 || {
         if [ -f "$RUN_FLAG" ]; then
             PID=$(cat "$PID_FILE")
             if ps -p "$PID" > /dev/null 2>&1; then
-                echo "${GREEN}SleepControl Status: ENABLED (PID $PID)${RESET}"
+                echo "${GREEN}SleepControl Status: RUNNING (PID $PID)${RESET}"
             else
                 echo "${YELLOW}SleepControl Status: RUN FLAG PRESENT, but process not running${RESET}"
             fi
