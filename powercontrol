@@ -51,7 +51,7 @@ detect_cpu_type() {
             ;;
     esac
 }
-
+    DEFAULT_HOTZONE=78
     DEFAULT_MIN_TEMP=60
     DEFAULT_MAX_TEMP=85
     DEFAULT_MIN_PERF_PCT=40
@@ -60,6 +60,7 @@ detect_cpu_type() {
     DEFAULT_RAMP_DOWN=20
     MAX_TEMP_LIMIT=90
 
+    HOTZONE=""
     MAX_TEMP=""
     MAX_PERF_PCT=""
     MIN_TEMP=""
@@ -76,6 +77,7 @@ load_config() {
         MAX_TEMP=${MAX_TEMP:-$DEFAULT_MAX_TEMP}
         MIN_PERF_PCT=${MIN_PERF_PCT:-$DEFAULT_MIN_PERF_PCT}
         MAX_PERF_PCT=${MAX_PERF_PCT:-$DEFAULT_MAX_PERF_PCT}
+        HOTZONE=${HOTZONE:-$DEFAULT_HOTZONE}
         RAMP_UP=${RAMP_UP:-$DEFAULT_RAMP_UP}
         RAMP_DOWN=${RAMP_DOWN:-$DEFAULT_RAMP_DOWN}
         validate_config
@@ -88,6 +90,7 @@ validate_config() {
     if [[ -z "$MIN_TEMP" ]]; then MIN_TEMP=$DEFAULT_MIN_TEMP; fi
     if [[ -z "$MAX_PERF_PCT" ]]; then MAX_PERF_PCT=$DEFAULT_MAX_PERF_PCT; fi
     if [[ -z "$MIN_PERF_PCT" ]]; then MIN_PERF_PCT=$DEFAULT_MIN_PERF_PCT; fi
+    if [[ -z "$HOTZONE" ]]; then HOTZONE=$DEFAULT_HOTZONE; fi
     if [[ -z "$RAMP_UP" ]]; then RAMP_UP=$DEFAULT_RAMP_UP; fi
     if [[ -z "$RAMP_DOWN" ]]; then RAMP_DOWN=$DEFAULT_RAMP_DOWN; fi
 
@@ -100,6 +103,19 @@ validate_config() {
     if (( MIN_TEMP >= MAX_TEMP )); then
         echo "Warning: MIN_TEMP >= MAX_TEMP, adjusting."
         MIN_TEMP=$(( MAX_TEMP - 10 ))
+    fi
+
+    if (( HOTZONE >= MAX_TEMP )); then
+        echo "Warning: HOTZONE >= MAX_TEMP, adjusting."
+        MIN_TEMP=$(( MAX_TEMP - 10 ))
+    fi
+
+    if (( HOTZONE < 60 )); then
+        echo "Warning: HOTZONE below 60, resetting."
+        HOTZONE=60
+    elif (( HOTZONE > 90 )); then
+        echo "Warning: MIN_PERF_PCT above 90, resetting."
+        HOTZONE=90
     fi
 
     # Clamp perf pct to [10..100]
@@ -136,7 +152,9 @@ save_config() {
     sed -i "s/^MIN_TEMP=.*/MIN_TEMP=$MIN_TEMP/" "$CONFIG_FILE" || echo "MIN_TEMP=$MIN_TEMP" >> "$CONFIG_FILE"
     sed -i "s/^MAX_PERF_PCT=.*/MAX_PERF_PCT=$MAX_PERF_PCT/" "$CONFIG_FILE" || echo "MAX_PERF_PCT=$MAX_PERF_PCT" >> "$CONFIG_FILE"
     sed -i "s/^MIN_PERF_PCT=.*/MIN_PERF_PCT=$MIN_PERF_PCT/" "$CONFIG_FILE" || echo "MIN_PERF_PCT=$MIN_PERF_PCT" >> "$CONFIG_FILE"
-
+    sed -i "s/^RAMP_UP=.*/RAMP_UP=$RAMP_UP/" "$CONFIG_FILE" || echo "RAMP_UP=$RAMP_UP" >> "$CONFIG_FILE"
+    sed -i "s/^RAMP_DOWN=.*/RAMP_DOWN=$RAMP_DOWN/" "$CONFIG_FILE" || echo "RAMP_DOWN=$RAMP_DOWN" >> "$CONFIG_FILE"
+    sed -i "s/^HOTZONE=.*/HOTZONE=$HOTZONE/" "$CONFIG_FILE" || echo "HOTZONE=$HOTZONE" >> "$CONFIG_FILE"
     source "$INSTALL_DIR/config.sh"
 }
 
@@ -284,7 +302,7 @@ start_monitoring_loop() {
 
         current_pct=$(cat "$PERF_PATH" 2>/dev/null || echo "0")
 
-        if (( temp_c >= high_temp_c )); then
+                if (( temp_c >= high_temp_c )); then
             # Begin cooldown mode with gradual ramp down
             if [ "$cooldown_mode" = false ]; then
                 cooldown_mode=true
@@ -308,16 +326,32 @@ start_monitoring_loop() {
             fi
             last_pct=$pct
 
-        else
-            # In normal range, scale linearly
-            cooldown_mode=false
-            delta_c=$(( high_temp_c - min_temp_c ))
+        elif (( temp_c < HOTZONE )); then
+            # Below HOTZONE = Half Sensitivity)
+            delta_c=$((HOTZONE - min_temp_c))
             temp_offset=$(( temp_c - min_temp_c ))
-            reduction=$(( (max_perf_pct - min_perf_pct) * temp_offset / delta_c ))
-            pct=$(( max_perf_pct - reduction ))
+            if (( delta_c > 0 && temp_offset > 0 )); then
+                reduction=$(( (max_perf_pct - min_perf_pct) * temp_offset / (2 * delta_c) ))  # Half as sensitive
+                pct=$(( max_perf_pct - reduction ))
+                if (( pct < min_perf_pct )); then pct=$min_perf_pct; fi
+            else
+                pct=$max_perf_pct
+            fi
+            last_pct=$pct
+
+        else
+            # Aggressive thermal control above $HOTZONE
+            delta_c=$(( high_temp_c - HOTZONE ))
+            temp_offset=$(( temp_c - HOTZONE ))
+            if (( delta_c > 0 && temp_offset > 0 )); then
+                reduction=$(( (max_perf_pct - min_perf_pct) * temp_offset / delta_c ))
+                pct=$(( max_perf_pct - reduction ))
+                if (( pct < min_perf_pct )); then pct=$min_perf_pct; fi
+            else
+                pct=$max_perf_pct
+            fi
             last_pct=$pct
         fi
-
         if [[ "$current_pct" != "$pct" ]]; then
             echo "$(date '+%Y-%m-%d %H:%M:%S') - CPU ${temp_c}°C -> Clockspeed ${pct}%" >> "$LOG_FILE"
             set_max_perf_pct "$pct"
@@ -358,8 +392,6 @@ show_status() {
             ;;
     esac
 
-    #PowerControl Status
-
     if [ -f "$PID_FILE" ]; then
         PID=$(cat "$PID_FILE")
         if ps -p "$PID" > /dev/null 2>&1; then
@@ -379,6 +411,7 @@ show_status() {
     echo "Configured min_temp: $MIN_TEMP°C"
     echo "Configured max_perf_pct: $MAX_PERF_PCT%"
     echo "Configured min_perf_pct: $MIN_PERF_PCT%"
+    echo "Configured hotzone: $HOTZONE°C"
     echo "Configured ramp_up pct: $RAMP_UP%"
     echo "Configured ramp_down pct: $RAMP_DOWN%"
 
@@ -481,6 +514,7 @@ echo "sudo powercontrol max_perf_pct 75     # Set max performance percentage"
 echo "sudo powercontrol min_perf_pct 50     # Set minimum performance at max temp"
 echo "sudo powercontrol max_temp 86         # Max temperature threshold - Limit is 90 C"
 echo "sudo powercontrol min_temp 60         # Min temperature threshold"
+echo "sudo powercontrol hotzone 78          # Temperature threshold for aggressive thermal management"
 echo "sudo powercontrol ramp_up 15          # % in steps CPU will increase in clockspeed per second"
 echo "sudo powercontrol ramp_down 20        # % in steps CPU will decrease in clockspeed per second"
 echo "sudo powercontrol monitor             # Toggle live temperature monitoring"
@@ -648,6 +682,19 @@ case "$1" in
         echo "RAMP_DOWN set to $2%"
     else
         echo "Error: ramp_down must be between 1 and 100"
+        exit 1
+    fi
+    ;;
+    hotzone)
+    if [[ "$2" =~ ^[0-9]+$ ]]; then
+        if (( $2 < 60 || $2 > 90 )); then
+            echo "Error: hotzone must be between 60 and 90 C"
+            exit 1
+        fi
+        sed -i "s/^HOTZONE=.*/HOTZONE=$2/" "$CONFIG_FILE"
+        echo "hotzone set to $2%"
+    else
+        echo "Error: hotzone must be between 60 and 90 C"
         exit 1
     fi
     ;;
