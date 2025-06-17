@@ -56,6 +56,7 @@ __Commands with examples:__
 `sudo powercontrol min_perf_pct 50     # Set minimum performance at max temp`<br>
 `sudo powercontrol max_temp 86         # Max temperature threshold - Limit is 90 C`<br>
 `sudo powercontrol min_temp 60         # Min temperature threshold`<br>
+`sudo powercontrol hotzone 78          # Temperature threshold for aggressive thermal management`<br>
 `sudo powercontrol ramp_up 15          # % in steps CPU will increase in clockspeed per second` <br>
 `sudo powercontrol ramp_down 20        # % in steps CPU will decrease in clockspeed per second` <br>
 `sudo powercontrol monitor             # Toggle live temperature monitoring`<br>
@@ -70,7 +71,7 @@ __Commands with examples:__
 `sudo batterycontrol                   # Check BatteryControl status`<br>
 `sudo batterycontrol start             # Start BatteryControl`<br>
 `sudo batterycontrol stop              # Stop BatteryControl`<br>
-`sudo batterycontrol set 77 74         # Set max/min battery charge thresholds`<br>
+`sudo batterycontrol 77                # Charge limit set to  77%`<br>
 `sudo batterycontrol startup           # Copy/Remove batterycontrol.conf at: /etc/init/`<br>
 `sudo batterycontrol help              # Help menu`<br>
 
@@ -85,8 +86,8 @@ __Commands with examples:__
 `sudo fancontrol fan_max_temp 81       # Max temp threshold - Limit is 90 C`<br>
 `sudo fancontrol min_fan 0             # Min fan speed %`<br>
 `sudo fancontrol max_fan 100           # Max fan speed %`<br>
-`sudo fancontrol stepup 20             # Fan step-up %`<br>
-`sudo fancontrol stepdown 1            # Fan step-down %`<br>
+`sudo fancontrol step_up 20            # Fan step-up %`<br>
+`sudo fancontrol step_down 1           # Fan step-down %`<br>
 `sudo fancontrol monitor               # Toggle on/off live monitoring in terminal`<br>
 `sudo fancontrol startup               # Copy/Remove fancontrol.conf at: /etc/init/`<br>
 `sudo fancontrol help                  # Help menu`<br>
@@ -219,10 +220,13 @@ Added ramp_up and ramp_down commands for PowerControl CPU scaling speed.
 Added stop processes commands and better cleanup when running startup, reinstalling and uninstalling.
 Reformatted status for better readability. Added post-install notes for BatteryControl and GPUControl.`<br><br>
 - 0.19: `Added SleepControl - control how long ChromeOS can remain idle before sleeping; irrespective of system sleep settings.
-Removed Intel Turbo Boost questions from installer but keeping the options to toggle in PowerControl.`
+Removed Intel Turbo Boost questions from installer but keeping the options to toggle in PowerControl.`<br><br>
 - 0.20: `Added dimming feature for SleepControl. Fixed SleepControl not switching between power and battery modes. Fixed some minor typos.
-Added delay on startup for SleepControl. Improved audio detection for sleep prevention.`<br>
-- 0.21: `Added commands to toggle audio detection on on off for battery and power for sleep.`
+Added delay on startup for SleepControl. Improved audio detection for sleep prevention.`<br><br>
+- 0.21: `Added commands for SleepControl to toggle audio detection for battery and power.`<br><br>
+- 0.22: `PowerControl gets HOTZONE variable - Allowing non-linear performance scaling until hotzone threshold is reached.
+FanControl hysteresis formula improved by adding gradual ramping with asymmetric steps.
+BatteryControl simplified; no more need to manage $CHARGE_MIN and removed requirement for 'set' argument.`
 
 <br>
 
