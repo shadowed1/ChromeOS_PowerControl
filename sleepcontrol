@@ -31,6 +31,9 @@ DEFAULT_BATTERY_DIM_DELAY=3
 DEFAULT_POWER_DELAY=30
 DEFAULT_POWER_BACKLIGHT=15
 DEFAULT_POWER_DIM_DELAY=8
+
+AUDIO_DETECTION_BATTERY=
+AUDIO_DETECTION_POWER=
 BATTERY_DELAY=
 BATTERY_BACKLIGHT=
 BATTERY_DIM_DELAY=
@@ -74,6 +77,14 @@ validate_config() {
     if [[ -z "$POWER_DIM_DELAY" || ! "$POWER_DIM_DELAY" =~ ^[0-9]+$ ]]; then
         POWER_DIM_DELAY=$DEFAULT_POWER_DIM_DELAY
     fi
+    
+    if [[ -z "$AUDIO_DETECTION_BATTERY" || ! "$AUDIO_DETECTION_BATTERY" =~ ^[01]$ ]]; then
+        AUDIO_DETECTION_BATTERY=1
+    fi
+    
+    if [[ -z "$AUDIO_DETECTION_POWER" || ! "$AUDIO_DETECTION_POWER" =~ ^[01]$ ]]; then
+        AUDIO_DETECTION_POWER=1
+    fi
 }
 
 save_config() {
@@ -84,6 +95,9 @@ save_config() {
     sed -i "s/^POWER_BACKLIGHT=.*/POWER_BACKLIGHT=$POWER_BACKLIGHT/" "$CONFIG_FILE" || echo "POWER_BACKLIGHT=$POWER_BACKLIGHT" >> "$CONFIG_FILE"
     sed -i "s/^BATTERY_DIM_DELAY=.*/BATTERY_DIM_DELAY=$BATTERY_DIM_DELAY/" "$CONFIG_FILE" || echo "BATTERY_DIM_DELAY=$BATTERY_DIM_DELAY" >> "$CONFIG_FILE"
     sed -i "s/^POWER_DIM_DELAY=.*/POWER_DIM_DELAY=$POWER_DIM_DELAY/" "$CONFIG_FILE" || echo "POWER_DIM_DELAY=$POWER_DIM_DELAY" >> "$CONFIG_FILE"
+    sed -i "s/^AUDIO_DETECTION_BATTERY=.*/AUDIO_DETECTION_BATTERY=$AUDIO_DETECTION_BATTERY/" "$CONFIG_FILE" || echo "AUDIO_DETECTION_BATTERY=$AUDIO_DETECTION_BATTERY" >> "$CONFIG_FILE"
+    sed -i "s/^AUDIO_DETECTION_POWER=.*/AUDIO_DETECTION_POWER=$AUDIO_DETECTION_POWER/" "$CONFIG_FILE" || echo "AUDIO_DETECTION_POWER=$AUDIO_DETECTION_POWER" >> "$CONFIG_FILE"
+
 }
 
 show_help() {
@@ -93,7 +107,9 @@ show_help() {
         echo "sudo sleepcontrol start               # Start SleepControl"
         echo "sudo sleepcontrol stop                # Stop SleepControl"
         echo "sudo sleepcontrol battery 3 7 12      # When idle, display dims in 3m, timeout in 7m, and ChromeOS sleeps in 12m when on battery"
-        echo "sudo sleepcontrol power 5 15 30       # When idle, display dims in 5m, timeout in 15m and ChromeOS sleeps in 30m when plugged-in" 
+        echo "sudo sleepcontrol power 5 15 30       # When idle, display dims in 5m, timeout in 15m and ChromeOS sleeps in 30m when plugged-in"
+        echo "sudo sleepcontrol battery audio 0     # Disable audio detection on battery; sleep can occur during media playback"
+        echo "sudo sleepcontrol power audio 1       # Enable audio detection on power; delaying sleep until audio is stopped"
         echo "sudo sleepcontrol startup             # Copy or Remove sleepcontrol.conf at: /etc/init/"
         echo "sudo sleepcontrol help                # Help menu${RESET}"
         exit 0
@@ -119,6 +135,22 @@ save_current_brightness() {
     }
 
 
+   set_audio_detection() {
+    local mode=$1
+    local value=$2
+    load_config
+    if [[ "$value" =~ ^[01]$ ]]; then
+        if [[ "$mode" == "battery" ]]; then
+            AUDIO_DETECTION_BATTERY=$value
+        else
+            AUDIO_DETECTION_POWER=$value
+        fi
+        save_config
+        echo "${GREEN}Audio detection for $mode set to $value${RESET}"
+    else
+        echo "Usage: $0 $mode audio <0|1>"
+    fi
+}
 
 send_fake_activity() {
     dbus-send --system --type=method_call \
@@ -149,7 +181,6 @@ flock -n 200 || {
     local fake_activity_pid=0
     local last_reload_time=0
     local saved_kb_brightness=$(sudo ectool pwmgetkblight | awk '{print $NF}')
-
 
     saved_display_brightness=0
     if [[ -n "$BRIGHTNESS_PATH" ]]; then
@@ -182,6 +213,16 @@ flock -n 200 || {
     tail -Fn0 /var/log/power_manager/powerd.LATEST | while read -r line; do
         now=$(date +%s)
 
+    if [[ "$status" == "Discharging" ]]; then
+        AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_BATTERY
+    else
+        AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_POWER
+    fi
+
+    if (( AUDIO_DETECTION_ENABLED == 0 )); then
+    audio_active=0
+    fi
+
      now=$(date +%s)
         if (( now - last_reload_time >= 30 )); then
             load_config
@@ -189,12 +230,16 @@ flock -n 200 || {
         fi
 
         case "$line" in
-                *"Audio activity started"*)
-                audio_active=1
-                ;;
-            *"Audio activity stopped"*)
-                audio_active=0
-                ;;
+               *"Audio activity started"*|*"Audio activity ongoing"*)
+                    if (( AUDIO_DETECTION_ENABLED == 1 )); then
+                        audio_active=1
+                    fi
+                    ;;
+                *"Audio activity stopped"*)
+                    if (( AUDIO_DETECTION_ENABLED == 1 )); then
+                        audio_active=0
+                    fi
+                    ;;
             *"User activity stopped"*)
                 if (( audio_active == 0 )); then
                     monitor_idle=1
@@ -207,7 +252,6 @@ flock -n 200 || {
                 if [[ "$status" != "Discharging" ]]; then
                     status="Discharging"
                     echo "$(date '+%Y-%m-%d %H:%M:%S') - On Battery - changing power plan." >> "$LOG_FILE"
-                    # Additional actions when switching to discharging mode
                     dim_delay=$((BATTERY_DIM_DELAY * 60))
                     backlight_delay=$((BATTERY_BACKLIGHT * 60))
                     suspend_delay=$((BATTERY_DELAY * 60))
@@ -222,7 +266,7 @@ flock -n 200 || {
                     suspend_delay=$((POWER_DELAY * 60))
                 fi
             ;;
-            *"User activity reported"*|*"User activity ongoing"*|*"Audio activity started"*|*"Enabling wakeup for"*|*"User triggered wake"*|*"powerd_suspend returned 0"*|*"Chrome is using normal display mode"*)
+            *"User activity reported"*|*"User activity ongoing"*|*"Enabling wakeup for"*|*"User triggered wake"*|*"powerd_suspend returned 0"*|*"Chrome is using normal display mode"*|*"Configuring devices for mode"*)
                 if (( monitor_idle == 1 )); then
                         echo "$(date '+%Y-%m-%d %H:%M:%S') - pausing dbus-send simulation..." >> "$LOG_FILE"
                     fi
@@ -243,7 +287,7 @@ flock -n 200 || {
                     sudo ectool pwmsetkblight "$saved_kb_brightness" 2>/dev/null
                     backlight_off=0
                     kb_brightness_restored=1
-                    echo "$(date '+%Y-%m-%d %H:%M:%S') - keyword triggered wake." >> "$LOG_FILE"
+                    echo "$(date '+%Y-%m-%d %H:%M:%S') - powerd keyword triggered wake." >> "$LOG_FILE"
                     power_backlight_ts=$now
                     battery_backlight_ts=$now
                 ;;
@@ -273,11 +317,14 @@ flock -n 200 || {
             backlight_delay=$((BATTERY_BACKLIGHT * 60))
             last_ts=$battery_backlight_ts
             suspend_delay=$((BATTERY_DELAY * 60))
+            AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_BATTERY
         else
             dim_delay=$((POWER_DIM_DELAY * 60))
             backlight_delay=$((POWER_BACKLIGHT * 60))
             last_ts=$power_backlight_ts
             suspend_delay=$((POWER_DELAY * 60))
+            AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_POWER
+
         fi
 
             echo "$(date '+%Y-%m-%d %H:%M:%S') - dbus-send simulation active: $now $last_ts" >> "$LOG_FILE"
@@ -296,7 +343,7 @@ flock -n 200 || {
                 if [ "$backlight_off" -eq 0 ]; then
                     sudo ectool backlight 0 2>/dev/null
                     backlight_off=1
-                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Turned off backlight due to inactivity." >> "$LOG_FILE"
+                    echo "$(date '+%Y-%m-%d %H:%M:%S') - keyboard backlight off." >> "$LOG_FILE"
                 fi
             fi
 
@@ -368,6 +415,11 @@ flock -n 200 || {
         ;;
     battery|power)
     MODE=$1
+
+     if [[ "$2" == "audio" ]]; then
+        set_audio_detection "$MODE" "$3"
+        exit 0
+        fi
 
     if [[ $# -eq 4 ]]; then
         # 3 values: dim_delay, backlight_off_delay, sleep_delay
@@ -455,15 +507,14 @@ flock -n 200 || {
 
         save_config
         echo "${GREEN}${BOLD}${MODE^}${RESET}${GREEN} = Sleep: $((POWER_DELAY)) min${RESET}"
-        
 
     else
         # No parameters - show current config
         load_config
         if [[ "$MODE" == "battery" ]]; then
-            echo "Battery = Dim: $((BATTERY_DIM_DELAY)) min -> Timeout: $((BATTERY_BACKLIGHT)) min -> Sleep: $((BATTERY_DELAY)) min"
+            echo "Battery = Dim: $((BATTERY_DIM_DELAY)) min -> Timeout: $((BATTERY_BACKLIGHT)) min -> Sleep: $((BATTERY_DELAY)) min | Audio Detection: $AUDIO_DETECTION_BATTERY"
         else
-            echo "Power = Dim: $((POWER_DIM_DELAY)) min -> Timeout: $((POWER_BACKLIGHT)) min -> Sleep: $((POWER_DELAY)) min"
+            echo "Power = Dim: $((POWER_DIM_DELAY)) min -> Timeout: $((POWER_BACKLIGHT)) min -> Sleep: $((POWER_DELAY)) min | Audio Detection: $AUDIO_DETECTION_POWER"
         fi
     fi
     ;;
@@ -496,8 +547,8 @@ flock -n 200 || {
                 echo "${YELLOW}SleepControl Status: RUN FLAG PRESENT, but process not running${RESET}"
             fi
             echo ""
-            echo "Battery = Dim: $((BATTERY_DIM_DELAY)) min -> Timeout: $((BATTERY_BACKLIGHT)) min -> Sleep: $((BATTERY_DELAY)) min"
-            echo "Power   = Dim: $((POWER_DIM_DELAY)) min -> Timeout: $((POWER_BACKLIGHT)) min -> Sleep: $((POWER_DELAY)) min"
+            echo "Battery = Dim: $((BATTERY_DIM_DELAY)) min -> Timeout: $((BATTERY_BACKLIGHT)) min -> Sleep: $((BATTERY_DELAY)) min | Audio Detection: $AUDIO_DETECTION_BATTERY"
+            echo "Power   = Dim: $((POWER_DIM_DELAY)) min -> Timeout: $((POWER_BACKLIGHT)) min -> Sleep: $((POWER_DELAY)) min | Audio Detection: $AUDIO_DETECTION_POWER"
             echo ""
         else
             echo "${YELLOW}SleepControl Status: STOPPED${RESET}"
