@@ -116,7 +116,11 @@ case "$choice" in
         sudo rm -f "$INSTALL_DIR/.sleepcontrol_lock"
         sudo rm -f "$INSTALL_DIR/.sleepcontrol_monitor.pid"
         sudo rm -f "$INSTALL_DIR/.sleepcontrol_pid.lock"
-
+        sudo pkill -f "/usr/local/bin/.gpucontrol_conf.sh"
+        sudo pkill -f "/usr/local/bin/.fancontrol_conf.sh"
+        sudo pkill -f "/usr/local/bin/.sleepcontrol_conf.sh"
+        sudo pkill -f "/usr/local/bin/.batterycontrol_conf.sh"
+        sudo pkill -f "/usr/local/bin/.powercontrol_conf.sh"
         remove_file_with_message "$INSTALL_DIR/powercontrol"
         remove_file_with_message "$INSTALL_DIR/fancontrol"
         remove_file_with_message "$INSTALL_DIR/batterycontrol"
