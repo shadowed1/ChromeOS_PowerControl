@@ -113,28 +113,28 @@ battery_status() {
         if [ -f "$PID_FILE" ]; then
             PID=$(cat "$PID_FILE")
             if ps -p "$PID" > /dev/null 2>&1; then
-                echo "${GREEN}BatteryControl is: ENABLED (PID $PID)${RESET}"
+                echo "${GREEN}BatteryControl is: RUNNING (PID $PID)${RESET}"
             else
-                echo "${YELLOW}BatteryControl is: ENABLED (but process is NOT running)${RESET}"
+                echo "${YELLOW}BatteryControl is: RUNNING (but process is NOT)${RESET}"
                 rm -f "$PID_FILE"
             fi
         else
-            echo "${YELLOW}BatteryControl is: ENABLED (PID not found)${RESET}"
+            echo "${YELLOW}BatteryControl is: RUNNING (PID not found)${RESET}"
         fi
     else
-        echo "${RED}BatteryControl is: DISABLED${RESET}"
+        echo "${YELLOW}BatteryControl is: STOPPED${RESET}"
     fi
     echo ""
-    echo "  CHARGE_MAX: $CHARGE_MAX"
-    echo "  CHARGE_MIN: $CHARGE_MIN"
+    echo "  Maximum Charge: $CHARGE_MAX"
+    echo "  Minimum Charge: $CHARGE_MIN"
     echo ""
 
     local active_port
     active_port=$(detect_active_usbpd_port)
     if [ "$active_port" != "-1" ]; then
-        echo "  Active USB-PD Charger Port: $active_port (CROS_USBPD_CHARGER$active_port)"
+        echo "Active USB-PD Charger Port: $active_port (CROS_USBPD_CHARGER$active_port)"
     else
-        echo "  Active USB-PD Charger Port: None detected"
+        echo "Active USB-PD Charger Port: None detected"
     fi
 }
 
@@ -148,7 +148,7 @@ start_monitoring_loop() {
 
     while true; do
         if [ ! -f "$RUN_FLAG" ]; then
-            echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') - BatteryControl stopped, exiting monitoring loop${RESET}." | tee -a "$LOG_FILE"
+            echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') - Stopping BatteryControl${RESET}." | tee -a "$LOG_FILE"
             rm -f "$PID_FILE"
             exit 0
         fi
@@ -203,13 +203,12 @@ stop_monitoring() {
         PID=$(cat "$PID_FILE")
         if ps -p "$PID" > /dev/null 2>&1; then
             kill "$PID"
-            echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') - Stopping BatteryControl (PID $PID).${RESET}" | tee -a "$LOG_FILE"
+            echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') - Stopping BatteryControl (PID $PID)${RESET}" | tee -a "$LOG_FILE"
         fi
         rm -f "$PID_FILE"
     fi
 
     rm -f "$RUN_FLAG"
-    echo "BatteryControl disabled." 
 }
 
 case "$1" in
@@ -225,7 +224,7 @@ case "$1" in
         fi
 
         nohup "$0" __monitor__ >> "$LOG_FILE" 2>&1 &
-        echo "${GREEN}$(date '+%Y-%m-%d %H:%M:%S') - Starting BatteryControl:  Output is logged to $LOG_FILE${RESET}" | tee -a "$LOG_FILE"
+        echo "${GREEN}$(date '+%Y-%m-%d %H:%M:%S') - Starting BatteryControl - Output is logged to $LOG_FILE${RESET}" | tee -a "$LOG_FILE"
         ;;
     stop)
         stop_monitoring
