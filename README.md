@@ -71,7 +71,7 @@ __Commands with examples:__
 `sudo batterycontrol                   # Check BatteryControl status`<br>
 `sudo batterycontrol start             # Start BatteryControl`<br>
 `sudo batterycontrol stop              # Stop BatteryControl`<br>
-`sudo batterycontrol 77                # Charge limit set to 77% - Minimum of 14% allowed.`<br>
+`sudo batterycontrol 77                # Charge limit set to 77% - minimum of 14% allowed.`<br>
 `sudo batterycontrol startup           # Copy/Remove batterycontrol.conf at: /etc/init/`<br>
 `sudo batterycontrol help              # Help menu`<br>
 
