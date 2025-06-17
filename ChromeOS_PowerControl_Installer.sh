@@ -164,7 +164,7 @@ while true; do
     INSTALL_DIR="${INSTALL_DIR%/}"
 
     echo -e "\n${CYAN}You entered: ${BOLD}$INSTALL_DIR${RESET}"
-    read -rp "${YELLOW}Confirm this install path? (y/n): ${RESET}" confirm
+    read -rp "${YELLOW}${BOLD}Confirm this install path? Enter key counts as yes! (y/n): ${RESET}" confirm
     case "$confirm" in
         [Yy]* | "")  
             sudo mkdir -p "$INSTALL_DIR"
@@ -250,10 +250,10 @@ declare -a ordered_keys=(
   "MAX_PERF_PCT"
   "MIN_TEMP"
   "MIN_PERF_PCT"
+  "HOTZONE"
   "RAMP_UP"
   "RAMP_DOWN"
   "CHARGE_MAX"
-  "CHARGE_MIN"
   "FAN_MIN_TEMP"
   "FAN_MAX_TEMP"
   "MIN_FAN"
@@ -287,8 +287,8 @@ declare -a ordered_keys=(
 
 declare -a ordered_categories=("PowerControl" "BatteryControl" "FanControl" "GPUControl" "SleepControl" "Platform Configuration")
 declare -A categories=(
-  ["PowerControl"]="MAX_TEMP MIN_TEMP MAX_PERF_PCT MIN_PERF_PCT RAMP_UP RAMP_DOWN"
-  ["BatteryControl"]="CHARGE_MAX CHARGE_MIN"
+  ["PowerControl"]="MAX_TEMP MIN_TEMP MAX_PERF_PCT MIN_PERF_PCT HOTZONE RAMP_UP RAMP_DOWN"
+  ["BatteryControl"]="CHARGE_MAX"
   ["FanControl"]="MIN_FAN MAX_FAN FAN_MIN_TEMP FAN_MAX_TEMP STEP_UP STEP_DOWN SLEEP_INTERVAL"
   ["GPUControl"]="GPU_MAX_FREQ"
   ["SleepControl"]="BATTERY_DELAY BATTERY_BACKLIGHT BATTERY_DIM_DELAY POWER_DELAY POWER_BACKLIGHT POWER_DIM_DELAY AUDIO_DETECTION_BATTERY AUDIO_DETECTION_POWER"
@@ -300,10 +300,10 @@ if [[ -z "${MAX_TEMP}" ]]; then MAX_TEMP=85; fi
 if [[ -z "${MIN_TEMP}" ]]; then MIN_TEMP=60; fi
 if [[ -z "${MAX_PERF_PCT}" ]]; then MAX_PERF_PCT=100; fi
 if [[ -z "${MIN_PERF_PCT}" ]]; then MIN_PERF_PCT=40; fi
+if [[ -z "${HOTZONE}" ]]; then HOTZONE=78; fi
 if [[ -z "${RAMP_UP}" ]]; then RAMP_UP=15; fi
 if [[ -z "${RAMP_DOWN}" ]]; then RAMP_DOWN=20; fi
 if [[ -z "${CHARGE_MAX}" ]]; then CHARGE_MAX=77; fi
-if [[ -z "${CHARGE_MIN}" ]]; then CHARGE_MIN=74; fi
 if [[ -z "${MIN_FAN}" ]]; then MIN_FAN=0; fi
 if [[ -z "${MAX_FAN}" ]]; then MAX_FAN=100; fi
 if [[ -z "${FAN_MIN_TEMP}" ]]; then FAN_MIN_TEMP=46; fi
@@ -326,10 +326,10 @@ declare -A defaults=(
   [MIN_TEMP]=$MIN_TEMP
   [MAX_PERF_PCT]=$MAX_PERF_PCT
   [MIN_PERF_PCT]=$MIN_PERF_PCT
+  [HOTZONE]=$HOTZONE
   [RAMP_UP]=$RAMP_UP
   [RAMP_DOWN]=$RAMP_DOWN
   [CHARGE_MAX]=$CHARGE_MAX
-  [CHARGE_MIN]=$CHARGE_MIN
   [MIN_FAN]=$MIN_FAN
   [MAX_FAN]=$MAX_FAN
   [FAN_MIN_TEMP]=$FAN_MIN_TEMP
@@ -534,6 +534,7 @@ echo "sudo powercontrol max_perf_pct 75     # Set max performance percentage"
 echo "sudo powercontrol min_perf_pct 50     # Set minimum performance at max temp"
 echo "sudo powercontrol max_temp 86         # Max temperature threshold - Limit is 90 C"
 echo "sudo powercontrol min_temp 60         # Min temperature threshold"
+echo "sudo powercontrol hotzone 78          # Temperature threshold for aggressive thermal management"
 echo "sudo powercontrol ramp_up 15          # % in steps CPU will increase in clockspeed per second"
 echo "sudo powercontrol ramp_down 20        # % in steps CPU will decrease in clockspeed per second"
 echo "sudo powercontrol monitor             # Toggle on/off live monitoring in terminal"
@@ -557,8 +558,8 @@ echo "sudo fancontrol fan_min_temp 48       # Min temp threshold"
 echo "sudo fancontrol fan_max_temp 81       # Max temp threshold - Limit is 90 C"
 echo "sudo fancontrol min_fan 0             # Min fan speed %"
 echo "sudo fancontrol max_fan 100           # Max fan speed %"
-echo "sudo fancontrol stepup 20             # Fan step-up %"
-echo "sudo fancontrol stepdown 1            # Fan step-down %"
+echo "sudo fancontrol step_up 20            # Fan step-up %"
+echo "sudo fancontrol step_down 1           # Fan step-down %"
 echo "sudo fancontrol monitor               # Toggle on/off live monitoring in terminal"
 echo "sudo fancontrol startup               # Copy or Remove fancontrol.conf at: /etc/init/"
 echo "sudo fancontrol help                  # Help menu"
