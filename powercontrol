@@ -236,7 +236,7 @@ set_no_turbo() {
         if [ "$value" -eq 1 ]; then
             echo "Intel Turbo Boost ${CYAN}Disabled${RESET}" | tee -a "$LOG_FILE"
         else
-            echo "Intel Turbo Boost ${MAGENTA}Enabled${RESET}" | tee -a "$LOG_FILE"
+            echo "Intel Turbo Boost ${CYAN}Enabled${RESET}" | tee -a "$LOG_FILE"
         fi
     elif [ "$IS_AMD" -eq 1 ]; then
         echo "Turbo disable is not directly supported on AMD via no_turbo."
@@ -363,15 +363,15 @@ show_status() {
     if [ -f "$PID_FILE" ]; then
         PID=$(cat "$PID_FILE")
         if ps -p "$PID" > /dev/null 2>&1; then
-            echo "${GREEN}PowerControl Status: ENABLED (PID $PID)${RESET}"
+            echo "${GREEN}PowerControl Status: RUNNING (PID $PID)${RESET}"
             echo ""
         else
             rm -f "$PID_FILE"
             rm -f "$RUN_FLAG"
-            echo "${RED}PowerControl Status: STOPPED ${RESET}"
+            echo "${YELLOW}PowerControl Status: STOPPED ${RESET}"
         fi
     else
-        echo "${RED}Powercontrol Status: STOPPED ${RESET}"
+        echo "${YELLOW}PowerControl Status: STOPPED ${RESET}"
     fi
     temp_c=$(get_temp)
     echo "Current CPU temp: $temp_c°C"
@@ -540,7 +540,7 @@ case "$1" in
         tail -n 20 -f "$LOG_FILE"
     else
         nohup "$0" __monitor__ >> "$LOG_FILE" 2>&1 &
-        echo "${GREEN}$(date '+%Y-%m-%d %H:%M:%S') - PowerControl monitoring started in background. Output is logged to $LOG_FILE${RESET}" | tee -a "$LOG_FILE"
+        echo "${GREEN}$(date '+%Y-%m-%d %H:%M:%S') - Starting PowerControl - Output is logged to $LOG_FILE${RESET}" | tee -a "$LOG_FILE"
     fi
     ;;
 
