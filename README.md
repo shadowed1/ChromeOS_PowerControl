@@ -5,7 +5,7 @@
   <img src="https://i.imgur.com/RbK8dR6.png" alt="logo" />
 </p>  
 <br> <br>
-ChromeOS_PowerControl is a suite of lightweight shell scripts.
+ChromeOS_PowerControl is a suite of lightweight shell scripts providing hardware control in ChromeOS.
   <br> <br>
 
 - *PowerControl:* Control CPU clockspeed in relation to temperature; enabling lower temperatures and longer battery life under load.<br>
@@ -16,7 +16,7 @@ ChromeOS_PowerControl is a suite of lightweight shell scripts.
   <br> <br>
 - Features global commands for ease of use, a unified config file, and the ability to change settings in real-time. 
 - Has a feature-rich installer, an uninstaller that cleans up after itself, and logs stored in /var/log/ for statistics.
-- Optionally have BatteryControl, PowerControl, FanControl, GPUControl, and SleepControl start on boot; as well as disabling Intel Turbo Boost automatically if user has rootfs verification disabled.
+- Optionally have BatteryControl, PowerControl, FanControl, GPUControl, and SleepControl start on boot if user has rootfs verification disabled.
 <br> <br> <br>
 
 
@@ -108,12 +108,13 @@ __Commands with examples:__
 
 *SleepControl:*
 
-
 `sudo sleepcontrol                     # Show SleepControl status`<br>
 `sudo sleepcontrol start               # Start SleepControl`<br>
 `sudo sleepcontrol stop                # Stop SleepControl`<br>
-`sudo sleepcontrol battery 3 7 12      # When idle, display dims in 3m, timeout in 7m, and sleeps in 12m when on battery`<br>
-`sudo sleepcontrol power 5 15 30       # When idle, display dims in 5m, timeout in 15m and sleeps in 30m when plugged-in`<br>
+`sudo sleepcontrol battery 3 7 12      # Dims in 3m, timeout in 7m, and sleeps in 12m on battery`<br>
+`sudo sleepcontrol power 5 15 30       # Dims in 5m, timeout in 15m and sleeps in 30m when plugged-in`<br>
+`sudo sleepcontrol battery audio 0     # Disable audio detection on battery; sleep can occur during media playback`<br>
+`sudo sleepcontrol power audio 1       # Enable audio detection on power; delaying sleep until audio is stopped`<br>
 `sudo sleepcontrol startup             # Copy or Remove sleepcontrol.conf at: /etc/init/`<br>
 `sudo sleepcontrol help                # Help menu`<br>
 
@@ -156,7 +157,7 @@ __How It Works:__
 - Recommend turning off adatpive charging in ChromeOS to avoid notification spam.
 - Check's BAT0/capacity to measure when to toggle ectool's chargecontrol.
 - ChromeOS reports slightly higher values than what BatteryControl sets the charge limit to.
-- Charge limit is preserved during sleep. 
+- Charge limit is preserved during sleep unless in deep sleep before reaching limit.
 
 <br>
 
@@ -186,7 +187,10 @@ __How It Works:__
 *SleepControl:*
 
 - By reading powerd.LATEST log, SleepControl monitors when the powerd daemon reports 'User activity stopped'.
-- Parsing strings like 'User activity started' or 'Audio activity' tells SleepControl to pause until 'User activity stopped' is reported.
+- Parsing strings like 'User activity started' or 'Audio activity started' tells SleepControl the user is active. to pause until  is reported.
+- If 'User activity stopped' and 'Audio activity stopped' is parsed, SleepControl assumes the user is away and custom sleep timers can begin.
+- Can turn on or off audio detection to customize sleep during multimedia playback.
+- ChromeOS will report 'User activity stopped' after around 20 seconds of inactivity, so the timers won't be exact.
 - When idle, SleepControl uses dbus to send an empty input every 120s until interrupted/sleeping with the configurable timer.  
 - By using epoch timestamps, SleepControl is able to check when its simulated inputs are to be ignored.
 <br>
