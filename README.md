@@ -222,6 +222,7 @@ Reformatted status for better readability. Added post-install notes for BatteryC
 Removed Intel Turbo Boost questions from installer but keeping the options to toggle in PowerControl.`
 - 0.20: `Added dimming feature for SleepControl. Fixed SleepControl not switching between power and battery modes. Fixed some minor typos.
 Added delay on startup for SleepControl. Improved audio detection for sleep prevention.`
+0.21: `Added option to toggle audio detection on and off when on battery or power for sleep.`
 
 <br>
 
