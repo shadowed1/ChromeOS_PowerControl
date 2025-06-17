@@ -185,11 +185,11 @@ start() {
     fi
 
     if pgrep -f "[f]ancontrol __monitor__" >/dev/null; then
-        echo "${YELLOW} $(date '+%Y-%m-%d %H:%M:%S') - FanControl monitor already running. Showing live output...${RESET}" | tee -a "$LOG_FILE"
+        echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') - FanControl already running. Showing live output...${RESET}" | tee -a "$LOG_FILE"
         tail -n 10 -f "$LOG_FILE"
     else
         nohup "$0" __monitor__ >> "$LOG_FILE" 2>&1 &
-        echo "${GREEN} $(date '+%Y-%m-%d %H:%M:%S') - FanControl started in background. Output is logged to $LOG_FILE${RESET}" | tee -a "$LOG_FILE"
+        echo "${GREEN}$(date '+%Y-%m-%d %H:%M:%S') - Starting FanControl - Output is logged to $LOG_FILE${RESET}" | tee -a "$LOG_FILE"
     fi
 }
 
@@ -197,7 +197,7 @@ start() {
 stop() {
     if [ -f "$PID_FILE" ]; then
         PID=$(cat "$PID_FILE")
-        echo "${YELLOW} $(date '+%Y-%m-%d %H:%M:%S') - Stopping FanControl (PID $PID)...${RESET}" | tee -a "$LOG_FILE"
+        echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') - Stopping FanControl (PID $PID)...${RESET}" | tee -a "$LOG_FILE"
         rm -f "$RUN_FLAG"
         kill "$PID" 2>/dev/null
         sleep 1
@@ -374,7 +374,7 @@ case "$1" in
                 echo "${YELLOW}FanControl Status: RUN FLAG PRESENT, but process not running${RESET}"
             fi
         else
-            echo "${RED}FanControl Status: DISABLED${RESET}"
+            echo "${YELLOW}FanControl Status: STOPPED${RESET}"
         fi
         echo
         sudo ectool pwmgetnumfans
