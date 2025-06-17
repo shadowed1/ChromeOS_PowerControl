@@ -23,10 +23,8 @@ PID_FILE="$INSTALL_DIR/.batterycontrol_pid"
 LOG_FILE="/var/log/batterycontrol.log"
 
 DEFAULT_CHARGE_MAX=77
-DEFAULT_CHARGE_MIN=74
 
 CHARGE_MAX=
-CHARGE_MIN=
 
 load_config() {
     if [ -f "$CONFIG_FILE" ]; then
@@ -39,45 +37,36 @@ validate_config() {
     if [[ -z "$CHARGE_MAX" || ! "$CHARGE_MAX" =~ ^[0-9]+$ ]]; then
         CHARGE_MAX=$DEFAULT_CHARGE_MAX
     fi
-    if [[ -z "$CHARGE_MIN" || ! "$CHARGE_MIN" =~ ^[0-9]+$ ]]; then
-        CHARGE_MIN=$DEFAULT_CHARGE_MIN
-    fi
-    if (( CHARGE_MIN >= CHARGE_MAX )); then
-        CHARGE_MIN=$DEFAULT_CHARGE_MIN
-        CHARGE_MAX=$DEFAULT_CHARGE_MAX
+    if (( CHARGE_MAX > 100 )); then
+        CHARGE_MAX=100
+    elif (( CHARGE_MAX < 14 )); then
+        CHARGE_MAX=14
     fi
 }
 
 save_config() {
     validate_config
-
     sed -i "s/^CHARGE_MAX=.*/CHARGE_MAX=$CHARGE_MAX/" "$CONFIG_FILE" || echo "CHARGE_MAX=$CHARGE_MAX" >> "$CONFIG_FILE"
-    sed -i "s/^CHARGE_MIN=.*/CHARGE_MIN=$CHARGE_MIN/" "$CONFIG_FILE" || echo "CHARGE_MIN=$CHARGE_MIN" >> "$CONFIG_FILE"
 }
 
 load_config
 
-set_thresholds() {
-    if ! [[ "$1" =~ ^[0-9]+$ && "$2" =~ ^[0-9]+$ ]]; then
-        echo "Error: Both thresholds must be integers."
+set_threshold() {
+    if ! [[ "$1" =~ ^[0-9]+$ ]]; then
+        echo "Error: Threshold must be an integer."
         exit 1
     fi
-    if [ "$1" -gt 100 ] || [ "$2" -lt 10 ]; then
-        echo "Error: CHARGE_MAX cannot be more than 100, and CHARGE_MIN cannot be less than 10."
+    if (( $1 > 100 || $1 < 14 )); then
+        echo "Error: CHARGE_MAX must be between 14 and 100."
         exit 1
     fi
-    if [ "$2" -ge "$1" ]; then
-        echo "Error: CHARGE_MIN must be less than CHARGE_MAX."
-        exit 1
-    fi
+
+    CHARGE_MAX=$1
+    save_config
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - Charge Limit: $CHARGE_MAX" | tee -a "$LOG_FILE"
+}
 
     load_config
-
-    echo "$(date '+%Y-%m-%d %H:%M:%S') - Battery Charge Status: MAX=$1, MIN=$2" | tee -a "$LOG_FILE"
-    CHARGE_MAX=$1
-    CHARGE_MIN=$2
-    save_config
-}
 
 show_help() {
     echo "${GREEN}"
@@ -86,7 +75,7 @@ show_help() {
 echo "sudo batterycontrol                   # Check BatteryControl status"
 echo "sudo batterycontrol start             # Start BatteryControl"
 echo "sudo batterycontrol stop              # Stop BatteryControl"
-echo "sudo batterycontrol set 77 74         # Set max/min battery charge thresholds"
+echo "sudo batterycontrol 77                # Charge limit set to 77%"
 echo "sudo batterycontrol startup           # Copy or Remove batterycontrol.conf at: /etc/init/"
 echo "sudo batterycontrol help              # Help menu${RESET}"
 echo ""
@@ -125,9 +114,7 @@ battery_status() {
         echo "${YELLOW}BatteryControl is: STOPPED${RESET}"
     fi
     echo ""
-    echo "  Maximum Charge: $CHARGE_MAX"
-    echo "  Minimum Charge: $CHARGE_MIN"
-    echo ""
+    echo "Charge Limit: $CHARGE_MAX"
 
     local active_port
     active_port=$(detect_active_usbpd_port)
@@ -184,7 +171,9 @@ start_monitoring_loop() {
             AC_ON=0
         fi
 
-        if [ "$AC_ON" -eq 1 ]; then
+        CHARGE_MIN=$((CHARGE_MAX-4))
+
+         if [ "$AC_ON" -eq 1 ]; then
             if [ "$CHARGE" -ge "$CHARGE_MAX" ]; then
                 sudo ectool chargecontrol idle >/dev/null 2>&1
             elif [ "$CHARGE" -le "$CHARGE_MIN" ]; then
@@ -213,7 +202,7 @@ stop_monitoring() {
 
 case "$1" in
     set)
-        set_thresholds "$2" "$3"
+        set_threshold "$2"
         ;;
     start)
         stop_monitoring >/dev/null 2>&1
@@ -229,8 +218,13 @@ case "$1" in
     stop)
         stop_monitoring
         ;;
-    status)
+    ""|status)
         battery_status
+        echo
+        sudo ectool usbpdpower 2>/dev/null || echo "Failed to run ectool usbpdpower (is ectool installed and available?)"
+        echo
+        sudo ectool battery 2>/dev/null || echo "Failed to run ectool battery (is ectool installed and available?)"
+        echo
         ;;
     startup)
         CONF_SOURCE="$INSTALL_DIR/batterycontrol.conf"
@@ -256,17 +250,18 @@ case "$1" in
     __monitor__)
         start_monitoring_loop
         ;;
-    "")
-        battery_status
-        echo
-        sudo ectool usbpdpower 2>/dev/null || echo "Failed to run ectool usbpdpower (is ectool installed and available?)"
-        echo
-        sudo ectool battery 2>/dev/null || echo "Failed to run ectool battery (is ectool installed and available?)"
-        echo
-        ;;
-    *)
+    ''|*[!0-9]*)
         echo "Unknown command: $1"
         echo "Use '$0 help' to see available commands."
         exit 1
+        ;;
+    *)
+        if [[ "$1" =~ ^[0-9]+$ ]] && (( $1 >= 14 && $1 <= 100 )); then
+            set_threshold "$1"
+        else
+            echo "Unknown command: $1"
+            echo "Use '$0 help' to see available commands."
+            exit 1
+        fi
         ;;
 esac
