@@ -75,7 +75,7 @@ show_help() {
 echo "sudo batterycontrol                   # Check BatteryControl status"
 echo "sudo batterycontrol start             # Start BatteryControl"
 echo "sudo batterycontrol stop              # Stop BatteryControl"
-echo "sudo batterycontrol 77                # Charge limit set to 77%"
+echo "sudo batterycontrol 77                # Charge limit set to 77% - Minimum setting allowed is 14%"
 echo "sudo batterycontrol startup           # Copy or Remove batterycontrol.conf at: /etc/init/"
 echo "sudo batterycontrol help              # Help menu${RESET}"
 echo ""
@@ -251,7 +251,7 @@ case "$1" in
         start_monitoring_loop
         ;;
     ''|*[!0-9]*)
-        echo "Unknown command: $1"
+        echo "Unknown command or value is too low: $1"
         echo "Use '$0 help' to see available commands."
         exit 1
         ;;
@@ -259,7 +259,7 @@ case "$1" in
         if [[ "$1" =~ ^[0-9]+$ ]] && (( $1 >= 14 && $1 <= 100 )); then
             set_threshold "$1"
         else
-            echo "Unknown command: $1"
+            echo "Unknown command or value is too low: $1"
             echo "Use '$0 help' to see available commands."
             exit 1
         fi
