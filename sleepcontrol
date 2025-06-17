@@ -113,7 +113,6 @@ show_help() {
         echo "sudo sleepcontrol startup             # Copy or Remove sleepcontrol.conf at: /etc/init/"
         echo "sudo sleepcontrol help                # Help menu${RESET}"
         echo ""
-        exit 0
             }
 
 load_config
