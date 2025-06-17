@@ -270,6 +270,8 @@ declare -a ordered_keys=(
   "POWER_DELAY"
   "POWER_BACKLIGHT"
   "POWER_DIM_DELAY"
+  "AUDIO_DETECTION_BATTERY"
+  "AUDIO_DETECTION_POWER"
   "PERF_PATH"
   "TURBO_PATH"
   "ORIGINAL_GPU_MAX_FREQ"
@@ -289,7 +291,7 @@ declare -A categories=(
   ["BatteryControl"]="CHARGE_MAX CHARGE_MIN"
   ["FanControl"]="MIN_FAN MAX_FAN FAN_MIN_TEMP FAN_MAX_TEMP STEP_UP STEP_DOWN SLEEP_INTERVAL"
   ["GPUControl"]="GPU_MAX_FREQ"
-  ["SleepControl"]="BATTERY_DELAY BATTERY_BACKLIGHT BATTERY_DIM_DELAY POWER_DELAY POWER_BACKLIGHT POWER_DIM_DELAY"
+  ["SleepControl"]="BATTERY_DELAY BATTERY_BACKLIGHT BATTERY_DIM_DELAY POWER_DELAY POWER_BACKLIGHT POWER_DIM_DELAY AUDIO_DETECTION_BATTERY AUDIO_DETECTION_POWER"
   ["Platform Configuration"]="IS_AMD IS_INTEL IS_ARM PERF_PATH TURBO_PATH GPU_TYPE GPU_FREQ_PATH ORIGINAL_GPU_MAX_FREQ PP_OD_FILE AMD_SELECTED_SCLK_INDEX BACKLIGHT_NAME BRIGHTNESS_PATH MAX_BRIGHTNESS_PATH"
 )
 
@@ -315,6 +317,9 @@ if [[ -z "${BATTERY_DIM_DELAY}" ]]; then BATTERY_DIM_DELAY=3; fi
 if [[ -z "${POWER_DELAY}" ]]; then POWER_DELAY=30; fi
 if [[ -z "${POWER_BACKLIGHT}" ]]; then POWER_BACKLIGHT=15; fi
 if [[ -z "${POWER_DIM_DELAY}" ]]; then POWER_DIM_DELAY=5; fi
+if [[ -z "${AUDIO_DETECTION_BATTERY}" ]]; then AUDIO_DETECTION_BATTERY=0; fi
+if [[ -z "${AUDIO_DETECTION_POWER}" ]]; then AUDIO_DETECTION_POWER=1; fi
+
 
 declare -A defaults=(
   [MAX_TEMP]=$MAX_TEMP
@@ -338,6 +343,8 @@ declare -A defaults=(
   [POWER_DELAY]=$POWER_DELAY
   [BATTERY_BACKLIGHT]=$BATTERY_BACKLIGHT
   [POWER_BACKLIGHT]=$POWER_BACKLIGHT
+  [AUDIO_DETECTION_BATTERY]=$AUDIO_DETECTION_BATTERY
+  [AUDIO_DETECTION_POWER]=$AUDIO_DETECTION_POWER
   [PERF_PATH]=$PERF_PATH
   [TURBO_PATH]=$TURBO_PATH
   [GPU_FREQ_PATH]=$GPU_FREQ_PATH
@@ -384,11 +391,11 @@ if [[ -z "$link_cmd" || "$link_cmd" =~ ^[Yy]$ ]]; then
     echo ""
 else
     echo "Skipped creating global commands."
-    sudo rm -r /usr/local/bin/powercontrol
-    sudo rm -r /usr/local/bin/batterycontrol
-    sudo rm -r /usr/local/bin/fancontrol
-    sudo rm -r /usr/local/bin/gpucontrol
-    sudo rm -r /usr/local/bin/sleepcontrol
+    sudo rm -r /usr/local/bin/powercontrol > /dev/null 2>&1
+    sudo rm -r /usr/local/bin/batterycontrol > /dev/null 2>&1
+    sudo rm -r /usr/local/bin/fancontrol > /dev/null 2>&1
+    sudo rm -r /usr/local/bin/gpucontrol > /dev/null 2>&1
+    sudo rm -r /usr/local/bin/sleepcontrol > /dev/null 2>&1
     echo ""
 fi
 enable_component_on_boot() {
@@ -571,7 +578,9 @@ echo "sudo sleepcontrol                     # Show SleepControl status"
 echo "sudo sleepcontrol start               # Start SleepControl"
 echo "sudo sleepcontrol stop                # Stop SleepControl"
 echo "sudo sleepcontrol battery 3 7 12      # When idle, display dims in 3m, timeout in 7m, and ChromeOS sleeps in 12m when on battery"
-echo "sudo sleepcontrol power 5 15 30       # When idle, display dims in 5m, timeout in 15m and ChromeOS sleeps in 30m when plugged-in" 
+echo "sudo sleepcontrol power 5 15 30       # When idle, display dims in 5m, timeout in 15m and ChromeOS sleeps in 30m when plugged-in"
+echo "sudo sleepcontrol battery audio 0     # Disable audio detection on battery; sleep can occur during media playback"
+echo "sudo sleepcontrol power audio 1       # Enable audio detection on power; delaying sleep until audio is stopped"
 echo "sudo sleepcontrol startup             # Copy or Remove sleepcontrol.conf at: /etc/init/"
 echo "sudo sleepcontrol help                # Help menu"
 echo "${RESET}${BOLD}"
