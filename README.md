@@ -12,7 +12,7 @@ ChromeOS_PowerControl is a suite of lightweight shell scripts.
 - *BatteryControl:* Control battery charging limit instead of relying on Adaptive Charging to maximize battery longevity.<br>
 - *FanControl:* Control fan curve in relation to temperature with built-in hysteresis and 0% RPM mode.<br>
 - *GPUControl:* Control GPU clockspeed below its default maximum; enabling longer battery life under load.<br>
-- *SleepControl:* Control how long ChromeOS can remain idle before sleep; irrespective of system sleep settings.<br>
+- *SleepControl:* Control how long ChromeOS can remain idle before sleep; with display dimming support.<br>
   <br> <br>
 - Features global commands for ease of use, a unified config file, and the ability to change settings in real-time. 
 - Has a feature-rich installer, an uninstaller that cleans up after itself, and logs stored in /var/log/ for statistics.
@@ -109,11 +109,11 @@ __Commands with examples:__
 *SleepControl:*
 
 
-`sudo sleepcontrol                     # Show current GPU info and frequency`<br>
+`sudo sleepcontrol                     # Show SleepControl status`<br>
 `sudo sleepcontrol start               # Start SleepControl`<br>
 `sudo sleepcontrol stop                # Stop SleepControl`<br>
-`sudo sleepcontrol battery 5 10        # When idle, display timeout in 10m and ChromeOS sleeps in 15m when on battery`<br>
-`sudo sleepcontrol power 15 30         # When idle, display timeout in 15m and ChromeOS sleeps in 30m when on plugged-in`<br>
+`sudo sleepcontrol battery 3 7 12      # When idle, display dims in 3m, timeout in 7m, and sleeps in 12m when on battery`<br>
+`sudo sleepcontrol power 5 15 30       # When idle, display dims in 5m, timeout in 15m and sleeps in 30m when plugged-in`<br>
 `sudo sleepcontrol startup             # Copy or Remove sleepcontrol.conf at: /etc/init/`<br>
 `sudo sleepcontrol help                # Help menu`<br>
 
@@ -194,7 +194,7 @@ __How It Works:__
 __Bonus:__
 - To disable rootfs verification for /etc/init startup options, open VT-2, login as root, and reboot after running:
  `/usr/libexec/debugd/helpers/dev_features_rootfs_verification` 
-- Enable sudo for crosh: `https://gist.github.com/velzie/a5088c9ade6ec4d35435b9826b45d7a3`
+- Enable sudo for crosh: https://gist.github.com/velzie/a5088c9ade6ec4d35435b9826b45d7a3
 
 <br>
 
@@ -216,6 +216,8 @@ Added stop processes commands and better cleanup when running startup, reinstall
 Reformatted status for better readability. Added post-install notes for BatteryControl and GPUControl.`<br><br>
 - 0.19: `Added SleepControl - control how long ChromeOS can remain idle before sleeping; irrespective of system sleep settings.
 Removed Intel Turbo Boost questions from installer but keeping the options to toggle in PowerControl.`
+- 0.20: `Added dimming feature for SleepControl. Fixed SleepControl not switching between power and battery modes. Fixed some minor typos.
+Added delay on startup for SleepControl. Improved audio detection for sleep prevention.`
 
 <br>
 
@@ -224,5 +226,5 @@ __Credits:__
 - Thanks to WesBosch for helping me learn to make an installer:
   https://github.com/WesBosch
   
-- Thanks to DennyL on ChromeOS discord for showing me how to enable sudo on crosh, test out PowerControl, and provide many great suggestions. 
+- Thanks to DennyL on ChromeOS discord for showing me how to enable sudo on crosh, testing out PowerControl, finding bugs, and providing       many great suggestions. 
 
