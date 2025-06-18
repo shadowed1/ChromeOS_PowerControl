@@ -51,7 +51,7 @@ detect_cpu_type() {
             ;;
     esac
 }
-    DEFAULT_HOTZONE=78
+    DEFAULT_HOTZONE=76
     DEFAULT_MIN_TEMP=60
     DEFAULT_MAX_TEMP=85
     DEFAULT_MIN_PERF_PCT=40
@@ -512,7 +512,7 @@ echo "sudo powercontrol stop                # Restore default CPU settings"
 echo "sudo powercontrol no_turbo 1          # 0 = Enable, 1 = Disable Turbo Boost"
 echo "sudo powercontrol max_perf_pct 75     # Set max performance percentage"
 echo "sudo powercontrol min_perf_pct 50     # Set minimum performance at max temp"
-echo "sudo powercontrol max_temp 86         # Max temperature threshold - Limit is 90 C"
+echo "sudo powercontrol max_temp 86         # Max temperature threshold - Limit is 90°C"
 echo "sudo powercontrol min_temp 60         # Min temperature threshold"
 echo "sudo powercontrol hotzone 78          # Temperature threshold for aggressive thermal management"
 echo "sudo powercontrol ramp_up 15          # % in steps CPU will increase in clockspeed per second"
@@ -679,7 +679,7 @@ case "$1" in
             exit 1
         fi
         sed -i "s/^RAMP_DOWN=.*/RAMP_DOWN=$2/" "$CONFIG_FILE"
-        echo "RAMP_DOWN set to $2%"
+        echo "RAMP_DOWN set to $2°C"
     else
         echo "Error: ramp_down must be between 1 and 100"
         exit 1
@@ -688,13 +688,13 @@ case "$1" in
     hotzone)
     if [[ "$2" =~ ^[0-9]+$ ]]; then
         if (( $2 < 60 || $2 > 90 )); then
-            echo "Error: hotzone must be between 60 and 90 C"
+            echo "Error: hotzone must be between 60 and 90°C"
             exit 1
         fi
         sed -i "s/^HOTZONE=.*/HOTZONE=$2/" "$CONFIG_FILE"
         echo "hotzone set to $2%"
     else
-        echo "Error: hotzone must be between 60 and 90 C"
+        echo "Error: hotzone must be between 60 and 90°C"
         exit 1
     fi
     ;;
