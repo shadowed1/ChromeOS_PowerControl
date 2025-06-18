@@ -241,7 +241,7 @@ flock -n 200 || {
     fi
 
      now=$(date +%s)
-        if (( now - last_reload_time >= 30 )); then
+        if (( now - last_reload_time >= 20 )); then
             load_config
             last_reload_time=$now
         fi
