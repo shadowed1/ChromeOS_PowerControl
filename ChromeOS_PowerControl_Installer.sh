@@ -296,7 +296,7 @@ declare -A categories=(
 )
 
 if [[ -z "${ORIGINAL_GPU_MAX_FREQ}" ]]; then ORIGINAL_GPU_MAX_FREQ=$GPU_MAX_FREQ; fi
-if [[ -z "${MAX_TEMP}" ]]; then MAX_TEMP=86; fi
+if [[ -z "${MAX_TEMP}" ]]; then MAX_TEMP=87; fi
 if [[ -z "${MIN_TEMP}" ]]; then MIN_TEMP=60; fi
 if [[ -z "${MAX_PERF_PCT}" ]]; then MAX_PERF_PCT=100; fi
 if [[ -z "${MIN_PERF_PCT}" ]]; then MIN_PERF_PCT=40; fi
