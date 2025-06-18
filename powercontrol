@@ -302,33 +302,33 @@ start_monitoring_loop() {
 
         current_pct=$(cat "$PERF_PATH" 2>/dev/null || echo "0")
 
-        if (( temp_c <= min_temp_c )); then
+                if (( temp_c <= min_temp_c )); then
             target_pct=$max_perf_pct
-        elif (( temp_c >= high_temp_c )); then
-            target_pct=$min_perf_pct
         elif (( temp_c < HOTZONE )); then
             delta_c=$((HOTZONE - min_temp_c))
             temp_offset=$(( temp_c - min_temp_c ))
             if (( delta_c > 0 && temp_offset > 0 )); then
                 reduction=$(( (max_perf_pct - min_perf_pct) * temp_offset / (2 * delta_c) ))
                 target_pct=$(( max_perf_pct - reduction ))
-                # Clamp so target_pct is never 100%
                 if (( target_pct >= max_perf_pct )); then target_pct=$((max_perf_pct - 1)); fi
                 if (( target_pct < min_perf_pct )); then target_pct=$min_perf_pct; fi
             else
                 target_pct=$((max_perf_pct - 1))
             fi
-        else
+        elif (( temp_c < high_temp_c )); then
             delta_c=$(( high_temp_c - HOTZONE ))
             temp_offset=$(( temp_c - HOTZONE ))
             if (( delta_c > 0 && temp_offset >= 0 )); then
-                reduction=$(( (max_perf_pct - min_perf_pct) * (temp_offset + 1) / delta_c ))
+                reduction_hotzone=$(( (max_perf_pct - min_perf_pct) / 2 ))
+                reduction=$(( reduction_hotzone + ((max_perf_pct - min_perf_pct) * temp_offset / (2 * delta_c)) ))
                 target_pct=$(( max_perf_pct - reduction ))
                 if (( target_pct >= max_perf_pct )); then target_pct=$((max_perf_pct - 1)); fi
                 if (( target_pct < min_perf_pct )); then target_pct=$min_perf_pct; fi
             else
                 target_pct=$min_perf_pct
             fi
+        else
+            target_pct=$min_perf_pct
         fi
 
         if (( last_pct < 1 )); then
@@ -344,6 +344,7 @@ start_monitoring_loop() {
         else
             pct=$last_pct
         fi
+
         last_pct=$pct
         if [[ "$current_pct" != "$pct" ]]; then
             echo "$(date '+%Y-%m-%d %H:%M:%S') - CPU ${temp_c}°C -> Clockspeed ${pct}%" >> "$LOG_FILE"
