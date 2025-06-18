@@ -40,7 +40,7 @@ __How to Install:__
  `sudo bash /usr/local/bin/ChromeOS_PowerControl_Installer.sh`
 
 - Installer has prompts to customize installation.
-- PowerControl, BatteryControl, and FanControl can run in the background and can be adjusted in real-time.
+- PowerControl, BatteryControl, FanControl, and SleepControl can run in the background and can be adjusted in real-time.
 <br> <br> <br>
 
 __Commands with examples:__
