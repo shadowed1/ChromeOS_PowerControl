@@ -227,6 +227,8 @@ Added delay on startup for SleepControl. Improved audio detection for sleep prev
 - 0.22: `PowerControl gets HOTZONE variable - Allowing non-linear performance scaling until hotzone threshold is reached.
 FanControl hysteresis formula improved by adding gradual ramping with asymmetric steps.
 BatteryControl simplified; no need to manage $CHARGE_MIN and removed requirement for 'set' argument.`
+- 0.23: `Improved Hotzone scaling math to be more thermally proactive.  
+Fixed FanControl from not fully disabling autofanctrl on boot for the first minute or so.`
 
 <br>
 
