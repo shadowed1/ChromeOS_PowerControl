@@ -54,7 +54,7 @@ __Commands with examples:__
 `sudo powercontrol no_turbo 1          # 0 = Enable, 1 = Disable Turbo Boost`<br>
 `sudo powercontrol max_perf_pct 75     # Set max performance percentage`<br>
 `sudo powercontrol min_perf_pct 50     # Set minimum performance at max temp`<br>
-`sudo powercontrol max_temp 86         # Max temperature threshold - Limit is 90 C`<br>
+`sudo powercontrol max_temp 86         # Max temperature threshold - Limit is 90°C`<br>
 `sudo powercontrol min_temp 60         # Min temperature threshold`<br>
 `sudo powercontrol hotzone 78          # Temperature threshold for aggressive thermal management`<br>
 `sudo powercontrol ramp_up 15          # % in steps CPU will increase in clockspeed per second` <br>
@@ -83,7 +83,7 @@ __Commands with examples:__
 `sudo fancontrol start                 # Start FanControl`<br>
 `sudo fancontrol stop                  # Stop FanControl`<br>
 `sudo fancontrol fan_min_temp 48       # Min temp threshold`<br>
-`sudo fancontrol fan_max_temp 81       # Max temp threshold - Limit is 90 C`<br>
+`sudo fancontrol fan_max_temp 81       # Max temp threshold - Limit is 90°C`<br>
 `sudo fancontrol min_fan 0             # Min fan speed %`<br>
 `sudo fancontrol max_fan 100           # Max fan speed %`<br>
 `sudo fancontrol step_up 20            # Fan step-up %`<br>
