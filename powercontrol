@@ -302,56 +302,46 @@ start_monitoring_loop() {
 
         current_pct=$(cat "$PERF_PATH" 2>/dev/null || echo "0")
 
-                if (( temp_c >= high_temp_c )); then
-            # Begin cooldown mode with gradual ramp down
-            if [ "$cooldown_mode" = false ]; then
-                cooldown_mode=true
-                last_pct=$current_pct
-            fi
-            pct=$(( last_pct - ramp_down ))
-            if (( pct < min_perf_pct )); then
-                pct=$min_perf_pct
-            fi
-            last_pct=$pct
-
+        if (( temp_c >= high_temp_c )); then
+            target_pct=$min_perf_pct
         elif (( temp_c <= min_temp_c )); then
-            # Ramp up slowly when temp is back to safe
-            if [ "$cooldown_mode" = true ]; then
-                cooldown_mode=false
-                last_pct=$min_perf_pct
-            fi
-            pct=$(( last_pct + ramp_up ))
-            if (( pct > max_perf_pct )); then
-                pct=$max_perf_pct
-            fi
-            last_pct=$pct
-
+            target_pct=$max_perf_pct
         elif (( temp_c < HOTZONE )); then
-            # Below HOTZONE = Half Sensitivity)
             delta_c=$((HOTZONE - min_temp_c))
             temp_offset=$(( temp_c - min_temp_c ))
             if (( delta_c > 0 && temp_offset > 0 )); then
-                reduction=$(( (max_perf_pct - min_perf_pct) * temp_offset / (2 * delta_c) ))  # Half as sensitive
-                pct=$(( max_perf_pct - reduction ))
-                if (( pct < min_perf_pct )); then pct=$min_perf_pct; fi
+                reduction=$(( (max_perf_pct - min_perf_pct) * temp_offset / (2 * delta_c) ))
+                target_pct=$(( max_perf_pct - reduction ))
+                if (( target_pct < min_perf_pct )); then target_pct=$min_perf_pct; fi
             else
-                pct=$max_perf_pct
+                target_pct=$max_perf_pct
             fi
-            last_pct=$pct
-
         else
-            # Aggressive thermal control above $HOTZONE
             delta_c=$(( high_temp_c - HOTZONE ))
             temp_offset=$(( temp_c - HOTZONE ))
             if (( delta_c > 0 && temp_offset > 0 )); then
                 reduction=$(( (max_perf_pct - min_perf_pct) * temp_offset / delta_c ))
-                pct=$(( max_perf_pct - reduction ))
-                if (( pct < min_perf_pct )); then pct=$min_perf_pct; fi
+                target_pct=$(( max_perf_pct - reduction ))
+                if (( target_pct < min_perf_pct )); then target_pct=$min_perf_pct; fi
             else
-                pct=$max_perf_pct
+                target_pct=$max_perf_pct
             fi
-            last_pct=$pct
         fi
+
+        if (( last_pct < 1 )); then
+            pct=$target_pct
+        elif (( target_pct > last_pct )); then
+            # Ramp up slowly
+            pct=$(( last_pct + ramp_up ))
+            if (( pct > target_pct )); then pct=$target_pct; fi
+        elif (( target_pct < last_pct )); then
+            # Ramp down quickly
+            pct=$(( last_pct - ramp_down ))
+            if (( pct < target_pct )); then pct=$target_pct; fi
+        else
+            pct=$last_pct
+        fi
+        last_pct=$pct
         if [[ "$current_pct" != "$pct" ]]; then
             echo "$(date '+%Y-%m-%d %H:%M:%S') - CPU ${temp_c}°C -> Clockspeed ${pct}%" >> "$LOG_FILE"
             set_max_perf_pct "$pct"
