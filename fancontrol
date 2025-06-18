@@ -109,6 +109,22 @@ cleanup() {
 }
 
 run_loop() {
+    RAW_TEMP=$(cat "$ZONE_PATH")
+    TEMP_C=$((RAW_TEMP / 1000))
+    prev_temp=$TEMP_C
+
+if (( TEMP_C <= FAN_MIN_TEMP )); then
+    initial_duty=$MIN_FAN
+elif (( TEMP_C >= FAN_MAX_TEMP )); then
+    initial_duty=$MAX_FAN
+else
+    RANGE=$((FAN_MAX_TEMP - FAN_MIN_TEMP))
+    OFFSET=$((TEMP_C - FAN_MIN_TEMP))
+    initial_duty=$((MIN_FAN + (OFFSET * (MAX_FAN - MIN_FAN) / RANGE)))
+fi
+
+sudo ectool fanduty "$initial_duty"
+
     echo "${GREEN} $(date '+%Y-%m-%d %H:%M:%S') - FanControl started.${RESET}" | tee -a "$LOG_FILE"
     prev_temp=$TEMP_C
     local last_duty=-1
