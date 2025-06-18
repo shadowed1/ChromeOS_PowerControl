@@ -8,7 +8,7 @@ else
     INSTALL_DIR="/usr/local/bin/ChromeOS_PowerControl"
 fi
 
-sleep 30
+sleep 15
 
 INSTALL_DIR="${INSTALL_DIR%/}"
 
