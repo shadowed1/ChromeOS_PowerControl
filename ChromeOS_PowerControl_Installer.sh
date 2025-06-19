@@ -11,6 +11,13 @@ SHOW_POWERCONTROL_NOTICE=0
 SHOW_BATTERYCONTROL_NOTICE=0
 SHOW_SLEEPCONTROL_NOTICE=0
 SHOW_GPUCONTROL_NOTICE=0
+INSTALL_DIR_FILE="/usr/local/bin/.ChromeOS_PowerControl.install_dir"
+if [ -f "$INSTALL_DIR_FILE" ]; then
+    INSTALL_DIR=$(cat "$INSTALL_DIR_FILE")
+else
+    INSTALL_DIR="/usr/local/bin/ChromeOS_PowerControl"
+fi
+INSTALL_DIR="${INSTALL_DIR%/}"
 
 detect_cpu_type() {
     CPU_VENDOR=$(grep -m1 'vendor_id' /proc/cpuinfo | awk '{print $3}' || echo "unknown")
@@ -159,8 +166,10 @@ echo "${RED}VT-2 (or enabling sudo in crosh) is ${RESET}${BOLD}${RED}required${R
 echo "${YELLOW}Must be installed in a location without the ${RESET}${MAGENTA}${BOLD}noexec mount.$RESET"
 echo ""
 while true; do
-    read -rp "${GREEN}Enter desired Install Path - ${RESET}${GREEN}${BOLD}leave blank for default: /usr/local/bin/ChromeOS_PowerControl:$RESET " INSTALL_DIR
-    INSTALL_DIR="${INSTALL_DIR:-/usr/local/bin/ChromeOS_PowerControl}"
+    read -rp "${GREEN}Enter desired Install Path - ${RESET}${GREEN}${BOLD}leave blank for default: $INSTALL_DIR:$RESET " choice
+    if [ -n "$choice" ]; then
+        INSTALL_DIR="${choice:-/usr/local/bin/ChromeOS_PowerControl}"
+    fi
     INSTALL_DIR="${INSTALL_DIR%/}"
 
     echo -e "\n${CYAN}You entered: ${BOLD}$INSTALL_DIR${RESET}"
