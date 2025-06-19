@@ -12,7 +12,7 @@ This is rewritten by shadowed1 to be a faster setup. Enabling sudo in crosh shel
 `sudo apt-get update` <br>
 `sudo apt install gcc` enter y to install. <br>
 
-3. In **Chrome(or browser of choice)**, download minioverride.c: <br>
+3. In **Chrome (or browser of choice)**, download minioverride.c: <br>
 https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/minioverride.c <br>
 ctrl-s to save it in Linux Files as `minioverride.c` This saves it to /home/(yourname)/  <br>
 
