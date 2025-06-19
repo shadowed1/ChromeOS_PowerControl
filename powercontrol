@@ -694,7 +694,23 @@ case "$1" in
     ;;
      version)
     if [[ -f "$VERSION_FILE" ]]; then
-        echo "$(cat "$VERSION_FILE")"
+        CURRENT_VER=`cat /usr/local/src/ChromeOS_PowerControl/version | \
+            sed -e 's/VERSION=//' -e 's/"//g'  -e 's/\.//'`
+        LATEST_VER=`curl -Ls \
+            https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/version | \
+            sed -e 's/VERSION=//' -e 's/"//g' -e 's/\.//'`
+        if [ $CURRENT_VER -lt $LATEST_VER ]; then 
+            echo "You're using version $CURRENT_VER which is NOT the latest version."
+            read -p "Would you like to 'reinstall' ? (y/n): " choice
+                if [[ "$choice" =~ ^[Yy]$ ]]; then
+                    echo "Okay, reinstalling."
+                    exec sudo powercontrol reinstall
+                else
+                    echo "Okay, skipping the reinstall."
+                fi
+        else     
+                echo "Your using version $CURRENT_VER which is up-to-date so you're good." 
+        fi
     else
         echo "Version file not found."
         exit 1
