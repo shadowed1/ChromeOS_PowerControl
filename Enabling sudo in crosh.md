@@ -6,35 +6,28 @@ Original Guide: https://gist.github.com/velzie/a5088c9ade6ec4d35435b9826b45d7a3 
 This is rewritten by shadowed1 to be a faster setup. Enabling sudo in crosh shell: <br>
 
 1. Disable rootfs verification: Open VT-2 (ctrl-alt-forward), login as root, and run: <br>
-`/usr/libexec/debugd/helpers/dev_features_rootfs_verification`. and Reboot. <br>
+`/usr/libexec/debugd/helpers/dev_features_rootfs_verification`. and **Reboot**. <br>
 
-2. Launch Crostini and run:
-`sudo apt-get update`
-`sudo apt install gcc` enter y to install.
+2. Launch **Crostini** and run: <br>
+`sudo apt-get update` <br>
+`sudo apt install gcc` enter y to install. <br>
 
-3. In Chrome, download minioverride.c:
-https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/minioverride.c
-place it in My Files/Linux Files.
+3. In **Chrome(or browser of choice)**, download minioverride.c: <br>
+https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/minioverride.c <br>
+ctrl-s to save it in Linux Files as `minioverride.c` This saves it to /home/(yourname)/  <br>
 
-4. Back in crostini, type: `cd
+4. Back in **Crostini**, type: `gcc ~/minioverride.c -o ~/minioverride.so -shared` <br>
 
-In the files app, move `minioverride.so` into your downloads folder.
+5. In the **Chrome Files** app, copy `minioverride.so` from My Files/Linux Files into My Files/ <br>
 
-Switch to vt2, and in the root terminal, *not crostini*, run these commands
+6. Open **crosh shell (ctrl-alt-t)** and copy paste: <br>
+`bash <(curl -s "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/sudocrosh_downloader.sh?$(date +%s)")`
 
-```bash
-mkdir -p /usr/local/bin
-mv /home/chronos/user/Downloads/minioverride.so /usr/local/bin/
-chmod +x /usr/local/bin/minioverride.so
-sed -i '1s/^/env LD_PRELOAD=\/usr\/local\/bin\/minioverride.so\n/' /etc/init/ui.conf 
-reboot
-```
+7. In **VT-2 (ctrl-alt-forward)** run:
+`sudo mkdir -p /usr/local/bin`
+`sudo mv /home/chronos/user/MyFiles/sc.sh /usr/local/bin`
+`sudo bash /usr/local/bin/sc.sh`
 
 After rebooting you should be able to use sudo inside crosh as you would normally before updating to 117. It will display the warning, but sudo should work regardless.
 
-
-**NOTE:**
-When you update chrome os versions, this will stop working. You don't need to redo the whole thing, just run `/usr/libexec/debugd/helpers/dev_features_rootfs_verification`, reboot and run `sed -i '1s/^/env LD_PRELOAD=\/usr\/local\/bin\/minioverride.so\n/' /etc/init/ui.conf` and reboot again.
-
-1/29 - added fix for landlock policy (fixes permission denied writing to disk)
-restart the entire process with the updated c code if you want to fix it
+*Each time ChromeOS updates these changes are overwritten. Do step 1 and step 6 again. Keep a copy of your minioverride.c and .so handy.* 
