@@ -1,10 +1,12 @@
-Created by velzie: https://gist.github.com/velzie
-Original Guide: https://gist.github.com/velzie/a5088c9ade6ec4d35435b9826b45d7a3
+# Enabling sudo in crosh shell
 
-This is rewritten by shadowed1 to be a faster setup. Enabling sudo in crosh shell:
+Created by velzie: https://gist.github.com/velzie <br>
+Original Guide: https://gist.github.com/velzie/a5088c9ade6ec4d35435b9826b45d7a3 <br>
 
-1. Disable rootfs verification: Open VT-2 (ctrl-alt-forward), login as root, and run:
-`/usr/libexec/debugd/helpers/dev_features_rootfs_verification`. and Reboot.
+This is rewritten by shadowed1 to be a faster setup. Enabling sudo in crosh shell: <br>
+
+1. Disable rootfs verification: Open VT-2 (ctrl-alt-forward), login as root, and run: <br>
+`/usr/libexec/debugd/helpers/dev_features_rootfs_verification`. and Reboot. <br>
 
 2. Launch Crostini and run:
 `sudo apt-get update`
