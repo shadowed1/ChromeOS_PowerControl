@@ -8,7 +8,7 @@ CYAN=$(tput setaf 6)
 BOLD=$(tput bold)
 RESET=$(tput sgr0)
 echo "${CYAN}${BOLD}Downloading to: /home/chronos/sudocrosh.sh $RESET"
-curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/sudocrosh.sh -o /home/chronos/sudocrosh.sh
+curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/sudocrosh.sh -o /home/chronos/sc.sh
 echo "${GREEN}${BOLD}Download complete. Open VT-2, login as root, and run the following commands to enable sudo in crosh shell:${RESET}"
 echo "${BOLD}sudo mkdir -p /usr/local/bin"
 echo ""
