@@ -237,5 +237,6 @@ __Credits:__
 - Thanks to WesBosch for helping me learn to make an installer:
   https://github.com/WesBosch
   
-- Thanks to DennyL on ChromeOS discord for showing me how to enable sudo on crosh, testing out PowerControl, finding bugs, and providing       many great suggestions. 
+- Thanks to DennisLfromGA for showing me how to enable sudo on crosh, testing out PowerControl, finding bugs, implementing fixes, and providing  many great suggestions:
+https://github.com/DennisLfromGA
 
