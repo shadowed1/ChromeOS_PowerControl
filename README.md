@@ -228,7 +228,10 @@ Added delay on startup for SleepControl. Improved audio detection for sleep prev
 FanControl hysteresis formula improved by adding gradual ramping with asymmetric steps.
 BatteryControl simplified; no need to manage $CHARGE_MIN and removed requirement for 'set' argument.` <br><br>
 - 0.23: `Improved Hotzone scaling math to be more thermally proactive.
-Fixed FanControl from not fully disabling autofanctrl on boot for the first minute or so.`
+Fixed FanControl from not fully disabling autofanctrl on boot for the first minute or so.`<br><br>
+- 0.24: `Changed variable for input to choice then checked if it's populated, else use existing value for INSTALL_DIR.
+Added checking versions for latest available and offering reinstall option if it's not up-to-date.
+Thanks to DennisLfromGA for implementing these changes.`
 
 <br>
 
