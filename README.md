@@ -153,7 +153,8 @@ Fixed FanControl from not fully disabling autofanctrl on boot for the first minu
 - 0.24: `Changed variable for input to choice then checked if it's populated, else use existing value for INSTALL_DIR.
 Added checking versions for latest available and offering reinstall option if it's not up-to-date.
 Thanks to DennisLfromGA for implementing these changes.` <br><br>
-- 0.25: `Simplified file structure thanks to DennyL's crouton upstart script from 2014. Currently cleaning up UI.`
+- 0.25: `Simplified file structure thanks to DennyL's crouton upstart script from 2014. 
+to do: Clean up UI. Rework FanControl zero RPM ramp to be gradual. Improve step-up and step-down algorithm.`
 
 <br>
 
