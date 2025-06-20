@@ -27,7 +27,9 @@ ChromeOS_PowerControl is a suite of lightweight shell scripts providing hardware
 
 <p align="center">
   <img src="https://i.imgur.com/g4eeyLh.pngg" alt="logo" />
-</p>  
+</p>
+
+
 
 <br> <br> <br>
 
@@ -50,100 +52,12 @@ __How to Install:__
 
 - Installer has prompts to customize installation.
 - PowerControl, BatteryControl, FanControl, and SleepControl can run in the background and can be adjusted in real-time.
-<br> <br> <br>
+<br> <br> <br><br><br>
 
-__Commands with examples:__
-<br>
+<p align="center">
+  <img src="https://i.imgur.com/QQ9KEyn.png" alt="commands" />
+</p>  
 
-*PowerControl:*
-
-`sudo powercontrol                     # Show status`<br>
-`sudo powercontrol start               # Throttle CPU based on temperature curve`<br>
-`sudo powercontrol stop                # Restore default CPU settings`<br>
-`sudo powercontrol no_turbo 1          # 0 = Enable, 1 = Disable Turbo Boost`<br>
-`sudo powercontrol max_perf_pct 75     # Set max performance percentage`<br>
-`sudo powercontrol min_perf_pct 50     # Set minimum performance at max temp`<br>
-`sudo powercontrol max_temp 86         # Max temperature threshold - Limit is 90°C`<br>
-`sudo powercontrol min_temp 60         # Min temperature threshold`<br>
-`sudo powercontrol hotzone 78          # Temperature threshold for aggressive thermal management`<br>
-`sudo powercontrol ramp_up 15          # % in steps CPU will increase in clockspeed per second` <br>
-`sudo powercontrol ramp_down 20        # % in steps CPU will decrease in clockspeed per second` <br>
-`sudo powercontrol monitor             # Toggle live temperature monitoring`<br>
-`sudo powercontrol startup             # Copy/Remove no_turbo.conf & powercontrol.conf at: /etc/init/`<br>
-`sudo powercontrol version             # Check PowerControl version`<br>
-`sudo powercontrol help                # Help menu`<br>
-  
-----------------------------------------------------------------------------------------------
-
-*BatteryControl:*
-
-`sudo batterycontrol                   # Check BatteryControl status`<br>
-`sudo batterycontrol start             # Start BatteryControl`<br>
-`sudo batterycontrol stop              # Stop BatteryControl`<br>
-`sudo batterycontrol 77                # Charge limit set to 77% - minimum of 14% allowed.`<br>
-`sudo batterycontrol startup           # Copy/Remove batterycontrol.conf at: /etc/init/`<br>
-`sudo batterycontrol help              # Help menu`<br>
-
-----------------------------------------------------------------------------------------------
-
-*FanControl:*
-
-`sudo fancontrol                       # Show FanControl status`<br>
-`sudo fancontrol start                 # Start FanControl`<br>
-`sudo fancontrol stop                  # Stop FanControl`<br>
-`sudo fancontrol fan_min_temp 48       # Min temp threshold`<br>
-`sudo fancontrol fan_max_temp 81       # Max temp threshold - Limit is 90°C`<br>
-`sudo fancontrol min_fan 0             # Min fan speed %`<br>
-`sudo fancontrol max_fan 100           # Max fan speed %`<br>
-`sudo fancontrol step_up 20            # Fan step-up %`<br>
-`sudo fancontrol step_down 1           # Fan step-down %`<br>
-`sudo fancontrol monitor               # Toggle on/off live monitoring in terminal`<br>
-`sudo fancontrol startup               # Copy/Remove fancontrol.conf at: /etc/init/`<br>
-`sudo fancontrol help                  # Help menu`<br>
-
-----------------------------------------------------------------------------------------------
-
-*GPUControl:*
-
-`sudo gpucontrol                        # Show current GPU info and frequency`<br>
-`sudo gpucontrol restore                # Restore GPU max frequency to original value`<br>
-`sudo gpucontrol intel 700              # Clamp Intel GPU max frequency to 700 MHz`<br>
-`sudo gpucontrol amd 800                # Clamp AMD GPU max frequency to 800 MHz (rounds down)`<br>
-`sudo gpucontrol adreno 500000          # Clamp Adreno GPU max frequency to 500000 kHz (or 500 MHz)`<br>
-`sudo gpucontrol mali 600000            # Clamp Mali GPU max frequency to 600000 kHz (or 600 MHz)`<br>
-`sudo gpucontrol startup                # Copy/Remove gpucontrol.conf at: /etc/init/`<br>
-`sudo gpucontrol help                   # Help menu`<br>
-
-----------------------------------------------------------------------------------------------
-
-*SleepControl:*
-
-`sudo sleepcontrol                     # Show SleepControl status`<br>
-`sudo sleepcontrol start               # Start SleepControl`<br>
-`sudo sleepcontrol stop                # Stop SleepControl`<br>
-`sudo sleepcontrol battery 3 7 12      # Dims in 3m, timeout in 7m, and sleeps in 12m on battery`<br>
-`sudo sleepcontrol power 5 15 30       # Dims in 5m, timeout in 15m and sleeps in 30m when plugged-in`<br>
-`sudo sleepcontrol battery audio 0     # Disable audio detection on battery; sleep can occur during media playback`<br>
-`sudo sleepcontrol power audio 1       # Enable audio detection on power; delaying sleep until audio is stopped`<br>
-`sudo sleepcontrol startup             # Copy or Remove sleepcontrol.conf at: /etc/init/`<br>
-`sudo sleepcontrol help                # Help menu`<br>
-
-
-----------------------------------------------------------------------------------------------
-*Reinstall:*
-
-`sudo powercontrol reinstall           # Download and reinstall ChromeOS_PowerControl from main branch on Github.`<br>
-
-*Uninstall:*
-
-`sudo powercontrol uninstall            # Global uninstaller that will clean up after itself.`
-
-*Alternative uninstall:* <br>
-
- `sudo /usr/local/bin/ChromeOS_PowerControl/Uninstall_ChromeOS_PowerControl.sh`
-
- ----------------------------------------------------------------------------------------------
- 
 <br> 
 
 __How It Works:__
