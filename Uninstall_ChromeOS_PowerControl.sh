@@ -79,11 +79,6 @@ case "$choice" in
         remove_file_with_message /etc/init/sleepcontrol.conf
 
         remove_file_with_message /usr/local/bin/ChromeOS_PowerControl_Installer.sh
-        remove_file_with_message /usr/local/bin/.powercontrol_conf.sh
-        remove_file_with_message /usr/local/bin/.fancontrol_conf.sh
-        remove_file_with_message /usr/local/bin/.batterycontrol_conf.sh
-        remove_file_with_message /usr/local/bin/.gpucontrol_conf.sh
-        remove_file_with_message /usr/local/bin/.sleepcontrol_conf.sh
 
         remove_file_with_message /usr/local/bin/powercontrol
         remove_file_with_message /usr/local/bin/batterycontrol
@@ -116,11 +111,11 @@ case "$choice" in
         sudo rm -f "$INSTALL_DIR/.sleepcontrol_lock"
         sudo rm -f "$INSTALL_DIR/.sleepcontrol_monitor.pid"
         sudo rm -f "$INSTALL_DIR/.sleepcontrol_pid.lock"
-        sudo pkill -f "/usr/local/bin/.gpucontrol_conf.sh"
-        sudo pkill -f "/usr/local/bin/.fancontrol_conf.sh"
-        sudo pkill -f "/usr/local/bin/.sleepcontrol_conf.sh"
-        sudo pkill -f "/usr/local/bin/.batterycontrol_conf.sh"
-        sudo pkill -f "/usr/local/bin/.powercontrol_conf.sh"
+        sudo pkill -f "/usr/local/bin/gpucontrol"
+        sudo pkill -f "/usr/local/bin/fancontrol"
+        sudo pkill -f "/usr/local/bin/sleepcontrol"
+        sudo pkill -f "/usr/local/bin/batterycontrol"
+        sudo pkill -f "/usr/local/bin/powercontrol"
         remove_file_with_message "$INSTALL_DIR/powercontrol"
         remove_file_with_message "$INSTALL_DIR/fancontrol"
         remove_file_with_message "$INSTALL_DIR/batterycontrol"
