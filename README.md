@@ -17,11 +17,18 @@ ChromeOS_PowerControl is a suite of lightweight shell scripts providing hardware
 - Features global commands for ease of use, a unified config file, and the ability to change settings in real-time. 
 - Has a feature-rich installer, an uninstaller that cleans up after itself, and logs stored in /var/log/ for statistics.
 - Optionally have BatteryControl, PowerControl, FanControl, GPUControl, and SleepControl start on boot if user has rootfs verification disabled.
+- Requires Developer Mode - Supports AMD, ARM, and Intel.
+
+
 <br> <br> <br>
 
 
-__Requires Developer Mode - Supports AMD, ARM, and Intel.__
-<br><br>
+<p align="center">
+  <img src="https://i.imgur.com/g4eeyLh.pngg" alt="logo" />
+</p>  
+
+<br> <br> <br>
+
 
 __How to Install:__
 
