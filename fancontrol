@@ -7,21 +7,13 @@ MAGENTA=$(tput setaf 5)
 CYAN=$(tput setaf 6)
 BOLD=$(tput bold)
 RESET=$(tput sgr0)
-INSTALL_DIR_FILE=/usr/local/bin/.ChromeOS_PowerControl.install_dir
-if [ -f "$INSTALL_DIR_FILE" ]; then
-    INSTALL_DIR=$(cat "$INSTALL_DIR_FILE")
-else
-    INSTALL_DIR="$INSTALL_DIR"
-fi
-
-INSTALL_DIR="${INSTALL_DIR%/}"
+INSTALL_DIR="@INSTALL_DIR@"
 CONFIG_FILE="$INSTALL_DIR/config.sh"
 ZONE_PATH="/sys/class/thermal/thermal_zone0/temp"
 RUN_FLAG="$INSTALL_DIR/.fancontrol_running"
 PID_FILE="$INSTALL_DIR/.fancontrol_pid"
 LOG_FILE="/var/log/fancontrol.log"
 MONITOR_PID_FILE="$INSTALL_DIR/.fancontrol_tail_fan_monitor.pid"
-
 DEFAULT_FAN_MIN_TEMP=46
 DEFAULT_FAN_MAX_TEMP=80
 DEFAULT_MIN_FAN=0
