@@ -210,6 +210,9 @@ for file in "${files[@]}"; do
     chmod +x "$INSTALL_DIR/$file"
 done
 
+rm -f /tmp/{powercontrol,batterycontrol,fancontrol,gpucontrol,Uninstall_ChromeOS_PowerControl.sh,LICENSE,README.md,no_turbo.conf,batterycontrol.conf,powercontrol.conf,fancontrol.conf,gpucontrol.conf,sleepcontrol,sleepcontrol.conf,config.sh,version}
+
+
 detect_backlight_path
 detect_cpu_type
 
