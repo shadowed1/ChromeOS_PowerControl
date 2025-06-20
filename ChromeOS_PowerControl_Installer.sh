@@ -431,12 +431,16 @@ enable_component_on_boot() {
         echo ""
     fi
 }
+if [[ -z "$link_cmd" || "$link_cmd" =~ ^[Yy]$ ]]; then
+    enable_component_on_boot "BatteryControl" "$INSTALL_DIR/batterycontrol.conf"
+    enable_component_on_boot "PowerControl" "$INSTALL_DIR/powercontrol.conf"
+    enable_component_on_boot "FanControl" "$INSTALL_DIR/fancontrol.conf"
+    enable_component_on_boot "GPUControl" "$INSTALL_DIR/gpucontrol.conf"
+    enable_component_on_boot "SleepControl" "$INSTALL_DIR/sleepcontrol.conf"
+else
+    echo "Skipping boot-time setup since global commands were declined."
+fi
 
-enable_component_on_boot "BatteryControl" "$INSTALL_DIR/batterycontrol.conf"
-enable_component_on_boot "PowerControl" "$INSTALL_DIR/powercontrol.conf"
-enable_component_on_boot "FanControl" "$INSTALL_DIR/fancontrol.conf"
-enable_component_on_boot "GPUControl" "$INSTALL_DIR/gpucontrol.conf"
-enable_component_on_boot "SleepControl" "$INSTALL_DIR/sleepcontrol.conf"
 
 if grep -q '^STARTUP_GPUCONTROL=1' "$CONFIG_FILE"; then
     SHOW_GPUCONTROL_NOTICE=1
