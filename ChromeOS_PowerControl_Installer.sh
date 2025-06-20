@@ -190,27 +190,26 @@ declare -a files=(
 )
 
 for file in "${files[@]}"; do
-    if [[ "$file" == "config.sh" && -f "$INSTALL_DIR/$file" ]]; then
-        echo "${GREEN}Skipping existing config: $INSTALL_DIR/$file ${RESET}"
+    dest="$INSTALL_DIR/$file"
+    if [[ "$file" == "config.sh" && -f "$dest" ]]; then
+        echo "${GREEN}Skipping existing config: $dest ${RESET}"
         echo ""
         continue
     fi
-
-    tmp_file="/tmp/$file"
-    curl -L "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/unstable/$file" -o "$tmp_file"
-    echo "$INSTALL_DIR/$file downloaded."
-    echo ""
-   
-    if grep -q "@INSTALL_DIR@" "$tmp_file"; then
-        sed "s|@INSTALL_DIR@|$INSTALL_DIR|g" "$tmp_file" > "$INSTALL_DIR/$file"
+        echo "Downloading $file to $dest..."
+    if curl -fsSL "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/unstable/$file" -o "$dest"; then
+        echo "Downloaded $file successfully."
+        if grep -q "@INSTALL_DIR@" "$dest"; then
+            sed -i "s|@INSTALL_DIR@|$INSTALL_DIR|g" "$dest"
+        fi
+        chmod +x "$dest"
     else
-        cp "$tmp_file" "$INSTALL_DIR/$file"
+        echo "${RED}Failed to download $file. Skipping.${RESET}"
     fi
-
-    chmod +x "$INSTALL_DIR/$file"
+    echo ""
 done
 
-rm -f /tmp/{powercontrol,batterycontrol,fancontrol,gpucontrol,Uninstall_ChromeOS_PowerControl.sh,LICENSE,README.md,no_turbo.conf,batterycontrol.conf,powercontrol.conf,fancontrol.conf,gpucontrol.conf,sleepcontrol,sleepcontrol.conf,config.sh,version}
+
 
 
 detect_backlight_path
@@ -231,7 +230,6 @@ echo "TURBO_PATH: $TURBO_PATH"
 echo "$RESET"
 sudo chmod +x "$INSTALL_DIR/powercontrol" "$INSTALL_DIR/batterycontrol" "$INSTALL_DIR/fancontrol" "$INSTALL_DIR/gpucontrol" "$INSTALL_DIR/sleepcontrol" "$INSTALL_DIR/Uninstall_ChromeOS_PowerControl.sh" "$INSTALL_DIR/config.sh"
 sudo touch "$INSTALL_DIR/.batterycontrol_enabled" "$INSTALL_DIR/.powercontrol_enabled" "$INSTALL_DIR/.fancontrol_enabled"
-sudo touch "$INSTALL_DIR/.fancontrol_pid" "$INSTALL_DIR/.fancontrol_tail_fan_monitor.pid" "$INSTALL_DIR/.batterycontrol_pid" "$INSTALL_DIR/.powercontrol_tail_fan_monitor.pid" "$INSTALL_DIR/.powercontrol_pid" "$INSTALL_DIR/.sleepcontrol_monitor.pid"
 detect_gpu_freq
 echo "${MAGENTA}Detected GPU Type: $GPU_TYPE"
 echo "GPU_FREQ_PATH: $GPU_FREQ_PATH"
