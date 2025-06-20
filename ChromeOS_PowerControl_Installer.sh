@@ -206,13 +206,6 @@ for file in "${files[@]}"; do
     echo ""
 done
 
-declare -a files=(".powercontrol_conf.sh" ".batterycontrol_conf.sh" ".fancontrol_conf.sh" ".gpucontrol_conf.sh" ".sleepcontrol_conf.sh")
-for file in "${files[@]}"; do
-    curl -L "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/$file" -o /usr/local/bin/$file
-    echo "/usr/local/bin/$file downloaded."
-    echo ""
-done
-
 detect_backlight_path
 detect_cpu_type
 
@@ -243,11 +236,6 @@ LOG_DIR="/var/log"
 CONFIG_FILE="$INSTALL_DIR/config.sh"
 sudo touch "$LOG_DIR/powercontrol.log" "$LOG_DIR/batterycontrol.log" "$LOG_DIR/fancontrol.log" "$LOG_DIR/gpucontrol.log" "$LOG_DIR/sleepcontrol.log"
 sudo chmod 644 "$LOG_DIR/powercontrol.log" "$LOG_DIR/batterycontrol.log" "$LOG_DIR/fancontrol.log" "$LOG_DIR/gpucontrol.log" "$LOG_DIR/sleepcontrol.log"
-sudo chmod +x /usr/local/bin/.powercontrol_conf.sh
-sudo chmod +x /usr/local/bin/.fancontrol_conf.sh
-sudo chmod +x /usr/local/bin/.batterycontrol_conf.sh
-sudo chmod +x /usr/local/bin/.gpucontrol_conf.sh
-sudo chmod +x /usr/local/bin/.sleepcontrol_conf.sh
 echo "${YELLOW}Log files for PowerControl, BatteryControl, and FanControl are stored in /var/log/$RESET"
 echo ""
 
