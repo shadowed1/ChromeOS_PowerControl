@@ -197,7 +197,7 @@ for file in "${files[@]}"; do
     fi
 
     tmp_file="/tmp/$file"
-    curl -L "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/$file" -o "$INSTALL_DIR/$file"
+    curl -L "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/unstable/$file" -o "$INSTALL_DIR/$file"
     echo "$INSTALL_DIR/$file downloaded."
     echo ""
    
