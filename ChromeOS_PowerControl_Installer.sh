@@ -11,8 +11,6 @@ SHOW_POWERCONTROL_NOTICE=0
 SHOW_BATTERYCONTROL_NOTICE=0
 SHOW_SLEEPCONTROL_NOTICE=0
 SHOW_GPUCONTROL_NOTICE=0
-INSTALL_DIR="${INSTALL_DIR%/}"
-
 detect_cpu_type() {
     CPU_VENDOR=$(grep -m1 'vendor_id' /proc/cpuinfo | awk '{print $3}' || echo "unknown")
     IS_INTEL=0
@@ -197,9 +195,19 @@ for file in "${files[@]}"; do
         echo ""
         continue
     fi
+
+    tmp_file="/tmp/$file"
     curl -L "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/$file" -o "$INSTALL_DIR/$file"
     echo "$INSTALL_DIR/$file downloaded."
     echo ""
+   
+    if grep -q "@INSTALL_DIR@" "$tmp_file"; then
+        sed "s|@INSTALL_DIR@|$INSTALL_DIR|g" "$tmp_file" > "$INSTALL_DIR/$file"
+    else
+        cp "$tmp_file" "$INSTALL_DIR/$file"
+    fi
+
+    chmod +x "$INSTALL_DIR/$file"
 done
 
 detect_backlight_path
@@ -217,7 +225,6 @@ echo ""
 echo "${CYAN}Detected CPU Vendor: $CPU_VENDOR"
 echo "PERF_PATH: $PERF_PATH"
 echo "TURBO_PATH: $TURBO_PATH"
-echo "$INSTALL_DIR" | sudo tee /usr/local/bin/.ChromeOS_PowerControl.install_dir > /dev/null
 echo "$RESET"
 sudo chmod +x "$INSTALL_DIR/powercontrol" "$INSTALL_DIR/batterycontrol" "$INSTALL_DIR/fancontrol" "$INSTALL_DIR/gpucontrol" "$INSTALL_DIR/sleepcontrol" "$INSTALL_DIR/Uninstall_ChromeOS_PowerControl.sh" "$INSTALL_DIR/config.sh"
 sudo touch "$INSTALL_DIR/.batterycontrol_enabled" "$INSTALL_DIR/.powercontrol_enabled" "$INSTALL_DIR/.fancontrol_enabled"
@@ -443,7 +450,7 @@ if grep -q '^STARTUP_SLEEPCONTROL=1' "$CONFIG_FILE"; then
     SHOW_SLEEPCONTROL_NOTICE=1
 fi
 if grep -q '^STARTUP_POWERCONTROL=1' "$CONFIG_FILE"; then
-    SHOW_BATTERYCONTROL_NOTICE=1
+    SHOW_POWERCONTROL_NOTICE=1
 fi
 
 start_component_now() {
