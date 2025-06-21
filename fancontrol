@@ -415,30 +415,27 @@ case "$1" in
             PID=$(cat "$PID_FILE")
             if ps -p "$PID" > /dev/null 2>&1; then
 echo "${YELLOW}"
-echo "╔════════════════════════════════════════════════════════╗"
-echo "          FanControl Status:${RESET}{GREEN} ENABLED (PID $PID)${RESET}{YELLOW}"
-echo "╚════════════════════════════════════════════════════════╝"
+echo "══════════════════════════════════════════════════════════"
+echo "          FanControl Status: ENABLED (PID $PID)"
             else
 echo "${RED}"
-echo "╔════════════════════════════════════════════════════════╗"
-echo "║  FanControl Status: RUN FLAG PRESENT, but not running  ║"
-echo "╚════════════════════════════════════════════════════════╝"
+echo "══════════════════════════════════════════════════════════"
+echo "  FanControl Status: RUN FLAG PRESENT, but not running   "
             fi
         else
             echo
 echo "${RED}"
-echo "╔════════════════════════════════════════════════════════╗"
-echo "║               FanControl Status: STOPPED               ║"
-echo "╚════════════════════════════════════════════════════════╝"
+echo "══════════════════════════════════════════════════════════"
+echo "                FanControl Status: STOPPED               "
         fi
-echo "╠════════════════════════════════════════════════════════╣"
-echo -n "║  ";sudo ectool pwmgetnumfans
-echo -n "║  ";sudo ectool pwmgetfanrpm all
-echo "║  Current CPU temp: $(get_temp)°C"
-echo "║  Fan Curve: $FAN_MIN_TEMP°C = ${MIN_FAN}%, $FAN_MAX_TEMP°C = ${MAX_FAN}%"
-echo "║  Sleep interval: $SLEEP_INTERVAL seconds"
-echo "║  Step-up: $STEP_UP%, Step-down: $STEP_DOWN%"
-echo "╚════════════════════════════════════════════════════════╝"
+echo ""
+echo -n "  sudo ectool pwmgetnumfans
+echo -n "  sudo ectool pwmgetfanrpm all
+echo "  Current CPU temp: $(get_temp)°C"
+echo "  Fan Curve: $FAN_MIN_TEMP°C = ${MIN_FAN}%, $FAN_MAX_TEMP°C = ${MAX_FAN}%"
+echo "  Sleep interval: $SLEEP_INTERVAL seconds"
+echo "  Step-up: $STEP_UP%, Step-down: $STEP_DOWN%"
+echo "══════════════════════════════════════════════════════════"
 echo "${RESET}"
         ;;
     help) show_help ;;
