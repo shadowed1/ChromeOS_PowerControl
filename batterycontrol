@@ -128,6 +128,12 @@ echo ""
 echo "Active USB-PD Charger Port: $active_port (CROS_USBPD_CHARGER$active_port) ${RESET}"
         else
 echo "Active USB-PD Charger Port: None detected ${RESET}"
+echo ""
+sudo ectool usbpdpower 2>/dev/null || echo "Failed to run ectool usbpdpower (is ectool installed and available?)"
+echo
+sudo ectool battery 2>/dev/null || echo "Failed to run ectool battery (is ectool installed and available?)"
+echo "═══════════════════════════════════════════════════════════════════════════"
+        echo "${RESET}"
     fi
 }
 
@@ -226,12 +232,6 @@ case "$1" in
         ;;
     ""|status)
         battery_status
-        echo "${GREEN}"
-        sudo ectool usbpdpower 2>/dev/null || echo "Failed to run ectool usbpdpower (is ectool installed and available?)"
-        echo
-        sudo ectool battery 2>/dev/null || echo "Failed to run ectool battery (is ectool installed and available?)"
-        echo "═══════════════════════════════════════════════════════════════════════════"
-        echo "${RESET}"
         ;;
     startup)
         CONF_SOURCE="$INSTALL_DIR/batterycontrol.conf"
