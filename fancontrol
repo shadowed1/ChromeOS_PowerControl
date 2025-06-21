@@ -416,7 +416,7 @@ case "$1" in
             if ps -p "$PID" > /dev/null 2>&1; then
 echo "${YELLOW}"
 echo "══════════════════════════════════════════════════════════"
-echo "          FanControl Status: ENABLED (PID $PID)"
+echo "         FanControl Status: ENABLED (PID $PID)"
             else
 echo "${RED}"
 echo "══════════════════════════════════════════════════════════"
