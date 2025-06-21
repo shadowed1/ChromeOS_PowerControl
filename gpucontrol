@@ -151,27 +151,29 @@ echo "${RESET}"
 if [[ $# -eq 0 ]]; then
     load_config
 echo "${MAGENTA}"
-echo "╔════════════════════════════════════════════════╗"
-echo -n "║  GPUControl Max Frequency:"
-get_current_freq "${GREEN} $GPU_TYPE ${RESET}${MAGENTA}"
-echo "║  ${RESET}"
-echo "║  GPU Type: $GPU_TYPE"
-echo "║  Default Max Frequency: $ORIGINAL_GPU_MAX_FREQ"
-echo "╚════════════════════════════════════════════════╝"
+echo "═══════════════════════════════════════════════════"
+echo -n "GPUControl Max Frequency:"
+get_current_freq "$GPU_TYPE"
+echo ""
+echo "GPU Type: $GPU_TYPE"
+echo "Default Max Frequency: $ORIGINAL_GPU_MAX_FREQ"
+echo "═══════════════════════════════════════════════════"
 echo "${RESET}"
 
    if [[ "$GPU_TYPE" == "amd" && -f "$PP_OD_FILE" ]]; then
-echo "╔════════════════════════════════════════════════╗"
-echo "║  ${CYAN}Available AMD SCLK States:${RESET}"
+echo "${MAGENTA}"
+echo "═══════════════════════════════════════════════════"
+echo "Available AMD SCLK States:"
     grep -i '^sclk' "$PP_OD_FILE" | nl -v0 | while read -r index line; do
-    freq=$(echo "║  $line" | sed -n 's/.*[[:space:]]\([0-9]\{2,\}\)[[:space:]]*[Mm][Hh][Zz].*/\1/p')
+    freq=$(echo "$line" | sed -n 's/.*[[:space:]]\([0-9]\{2,\}\)[[:space:]]*[Mm][Hh][Zz].*/\1/p')
 
         marker=""
         if [[ "$index" -eq "$AMD_SELECTED_SCLK_INDEX" ]]; then
             marker="${GREEN}<-- SELECTED${RESET}"
         fi
         printf "║ Index %2d: %s MHz %s\n" "$index" "$freq" "$marker"
-echo "╚════════════════════════════════════════════════╝"
+echo "═══════════════════════════════════════════════════"
+echo "${RESET}"
     done
 fi
 
