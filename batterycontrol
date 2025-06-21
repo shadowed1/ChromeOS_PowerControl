@@ -120,7 +120,7 @@ echo "                       BatteryControl is: STOPPED"
     fi
 echo ""
 echo "Charge Limit: $CHARGE_MAX"
-echo "
+echo ""
         local active_port
         active_port=$(detect_active_usbpd_port)
         if [ "$active_port" != "-1" ]; then
