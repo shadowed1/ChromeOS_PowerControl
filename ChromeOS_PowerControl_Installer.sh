@@ -546,18 +546,18 @@ else
 fi
 
 echo ""
-echo "           ${RED}████████████${RESET}           "
-echo "       ${RED}████${RESET}        ${RED}████${RESET}       "
-echo "     ${RED}██${RESET}              ${YELLOW}██${RESET}     "
-echo "   ${GREEN}██${RESET}     ${BLUE}██████${RESET}     ${YELLOW}██${RESET}   "
-echo "  ${GREEN}██${RESET}     ${BLUE}████████${RESET}     ${YELLOW}██${RESET}  "
-echo "  ${GREEN}██${RESET}     ${BLUE}████████${RESET}     ${YELLOW}██${RESET}  "
-echo "   ${GREEN}██${RESET}     ${BLUE}██████${RESET}     ${YELLOW}██${RESET}   "
-echo "     ${GREEN}██${RESET}              ${YELLOW}██${RESET}     "
-echo "       ${GREEN}████${RESET}        ${YELLOW}████${RESET}       "
-echo "           ${GREEN}████████████${RESET}           "
+echo "                                                           ${RED}████████████${RESET}           "
+echo "                                                       ${RED}████${RESET}        ${RED}████${RESET}       "
+echo "                                                     ${RED}██${RESET}              ${YELLOW}██${RESET}     "
+echo "                                                   ${GREEN}██${RESET}     ${BLUE}██████${RESET}     ${YELLOW}██${RESET}   "
+echo "                                                  ${GREEN}██${RESET}     ${BLUE}████████${RESET}     ${YELLOW}██${RESET}  "
+echo "                                                  ${GREEN}██${RESET}     ${BLUE}████████${RESET}     ${YELLOW}██${RESET}  "
+echo "                                                   ${GREEN}██${RESET}     ${BLUE}██████${RESET}     ${YELLOW}██${RESET}   "
+echo "                                                         ${GREEN}██${RESET}              ${YELLOW}██${RESET}     "
+echo "                                                       ${GREEN}████${RESET}        ${YELLOW}████${RESET}       "
+echo "                                                           ${GREEN}████████████${RESET}           "
 echo ""
-echo "     ${BOLD}${GREEN}Chrome${RESET}${BOLD}${RED}OS${RESET}${BOLD}${YELLOW}_${RESET}${BOLD}${BLUE}PowerControl${RESET}"
+echo "                                                     ${BOLD}${GREEN}Chrome${RESET}${BOLD}${RED}OS${RESET}${BOLD}${YELLOW}_${RESET}${BOLD}${BLUE}PowerControl${RESET}"
 echo ""
 echo ""
 echo ""
@@ -669,9 +669,11 @@ echo "║                                                                       
 echo "║  sudo powercontrol version                                    # Check PowerControl version                         ║"
 echo "║  sudo powercontrol reinstall                                  # Download and reinstall ChromeOS_PowerControl       ║"
 echo "║  sudo powercontrol uninstall                                  # Run uninstaller                                    ║"
-echo "║  sudo bash "$INSTALL_DIR/Uninstall_ChromeOS_PowerControl.sh"  # Alternate uninstall method                         ║"
 echo "║                                                                                                                    ║"
 echo "╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝"
+echo "   sudo bash "$INSTALL_DIR/Uninstall_ChromeOS_PowerControl.sh"  # Alternate uninstall method"
+echo " ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
 echo "${RESET}"
 
 if [[ "$SHOW_BATTERYCONTROL_NOTICE" -eq 1 ]]; then
