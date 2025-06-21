@@ -429,8 +429,8 @@ echo "════════════════════════�
 echo "                FanControl Status: STOPPED               "
         fi
 echo ""
-  sudo ectool pwmgetnumfans
-  sudo ectool pwmgetfanrpm all
+echo -n "  "; sudo ectool pwmgetnumfans
+echo -n "  "; sudo ectool pwmgetfanrpm all
 echo "  CPU temp: $(get_temp)°C"
 echo "  Fan Curve: $FAN_MIN_TEMP°C = ${MIN_FAN}% RPM -> $FAN_MAX_TEMP°C = ${MAX_FAN}% RPM"
 echo "  Sleep interval: $SLEEP_INTERVAL seconds"
