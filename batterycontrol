@@ -99,26 +99,41 @@ battery_status() {
         if [ -f "$PID_FILE" ]; then
             PID=$(cat "$PID_FILE")
             if ps -p "$PID" > /dev/null 2>&1; then
-                echo "${GREEN}BatteryControl is: RUNNING (PID $PID)${RESET}"
+echo "${GREEN}"
+echo "╔═════════════════════════════════════════════════════════════════════════════════════╗"
+echo "                        BatteryControl is: RUNNING (PID $PID)"
+echo "╚═════════════════════════════════════════════════════════════════════════════════════╝"
             else
-                echo "${YELLOW}BatteryControl is: RUNNING (but process is NOT)${RESET}"
+echo "${RED}"
+echo "╔═════════════════════════════════════════════════════════════════════════════════════╗"
+echo "║                  BatteryControl is: RUNNING (but process is NOT)                    ║"
+echo "╚═════════════════════════════════════════════════════════════════════════════════════╝"
+echo ""
                 rm -f "$PID_FILE"
             fi
         else
-            echo "${YELLOW}BatteryControl is: RUNNING (PID not found)${RESET}"
+echo "${RED}"
+echo "╔═════════════════════════════════════════════════════════════════════════════════════╗"
+echo "║                    BatteryControl is: RUNNING (PID not found)                       ║"
+echo "╚═════════════════════════════════════════════════════════════════════════════════════╝"
         fi
     else
-        echo "${YELLOW}BatteryControl is: STOPPED${RESET}"
+echo "${RED}"
+echo ""
+echo "║ BatteryControl is: STOPPED${RESET}"
+echo ""
     fi
-    echo ""
-    echo "Charge Limit: $CHARGE_MAX"
+echo "╠═════════════════════════════════════════════════════════════════════════════════════╣"
+echo "║ Charge Limit: $CHARGE_MAX"
+        local active_port
+        active_port=$(detect_active_usbpd_port)
+        if [ "$active_port" != "-1" ]; then
 
-    local active_port
-    active_port=$(detect_active_usbpd_port)
-    if [ "$active_port" != "-1" ]; then
-        echo "Active USB-PD Charger Port: $active_port (CROS_USBPD_CHARGER$active_port)"
-    else
-        echo "Active USB-PD Charger Port: None detected"
+echo "║ Active USB-PD Charger Port: $active_port (CROS_USBPD_CHARGER$active_port)"
+echo "╚═════════════════════════════════════════════════════════════════════════════════════╝"
+        else
+echo "║ Active USB-PD Charger Port: None detected"
+echo "╚═════════════════════════════════════════════════════════════════════════════════════╝"
     fi
 }
 
