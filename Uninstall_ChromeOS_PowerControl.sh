@@ -132,8 +132,14 @@ case "$choice" in
         else
             echo "Installation directory not found or still contains files: $INSTALL_DIR"
         fi
-
-        echo "${GREEN}Uninstall Complete.$RESET"
+echo "╔═══════════════════════════════╗"
+echo "║ ╔═══════════════════════════╗ ║"
+echo "║ ║ ╔═══════════════════════╗ ║ ║"
+echo "║ ║ ║  Uninstall Complete!  ║ ║ ║"
+echo "║ ║ ╚═══════════════════════╝ ║ ║"
+echo "║ ╚═══════════════════════════╝ ║"
+echo "╚═══════════════════════════════╝"
+echo ""
         ;;
     *)
         echo "${RED}Invalid option.$RESET"
