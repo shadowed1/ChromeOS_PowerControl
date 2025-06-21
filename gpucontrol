@@ -335,7 +335,7 @@ case "$GPU_ARG" in
        GPU_MAX_FREQ=$REQUESTED_FREQ
         save_config
         ;;
-        help)
+        h|help)
         ;;
         restore)
         ;;
@@ -344,6 +344,7 @@ case "$GPU_ARG" in
     *)
         echo "${RED}Error: Unsupported GPU type '$GPU_ARG'.${RESET}"
         usage
+        help
         exit 1
         ;;
 esac
