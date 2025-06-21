@@ -100,11 +100,11 @@ battery_status() {
             PID=$(cat "$PID_FILE")
             if ps -p "$PID" > /dev/null 2>&1; then
 echo "${GREEN}"
-echo "═══════════════════════════════════════════════════════════════════════════"
+echo "═════════════════════════════════════════════════════════════════════════════"
 echo "                BatteryControl is: RUNNING (PID $PID)"
             else
 echo "${RED}"
-echo "════════════════════════════════════════════════════════════════════════════"
+echo "═════════════════════════════════════════════════════════════════════════════"
 echo "              BatteryControl is: RUNNING (but process is NOT)         "
                 rm -f "$PID_FILE"
             fi
@@ -132,7 +132,7 @@ echo ""
 sudo ectool usbpdpower 2>/dev/null || echo "Failed to run ectool usbpdpower (is ectool installed and available?)"
 echo
 sudo ectool battery 2>/dev/null || echo "Failed to run ectool battery (is ectool installed and available?)"
-echo "═══════════════════════════════════════════════════════════════════════════"
+echo "═════════════════════════════════════════════════════════════════════════════"
         echo "${RESET}"
     fi
 }
