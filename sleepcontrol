@@ -555,16 +555,24 @@ flock -n 200 || {
         if [ -f "$RUN_FLAG" ]; then
             PID=$(cat "$PID_FILE")
             if ps -p "$PID" > /dev/null 2>&1; then
-                echo "${GREEN}SleepControl Status: RUNNING (PID $PID)${RESET}"
+echo "${BLUE}"
+echo "╔══════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
+echo "                                   SleepControl Status: RUNNING (PID $PID)"                                 
+echo "╚══════════════════════════════════════════════════════════════════════════════════════════════════════════╝"
             else
-                echo "${YELLOW}SleepControl Status: RUN FLAG PRESENT, but process not running${RESET}"
+echo "${RED}"
+echo "╔══════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
+echo "                      SleepControl Status: RUN FLAG PRESENT, but process not running"
+echo "╚══════════════════════════════════════════════════════════════════════════════════════════════════════════╝"
+
             fi
-            echo ""
-            echo "Battery = Dim: $((BATTERY_DIM_DELAY)) min -> Timeout: $((BATTERY_BACKLIGHT)) min -> Sleep: $((BATTERY_DELAY)) min | Audio Detection: $AUDIO_DETECTION_BATTERY"
-            echo "Power   = Dim: $((POWER_DIM_DELAY)) min -> Timeout: $((POWER_BACKLIGHT)) min -> Sleep: $((POWER_DELAY)) min | Audio Detection: $AUDIO_DETECTION_POWER"
-            echo ""
+echo "╠══════════════════════════════════════════════════════════════════════════════════════════════════════════╣"
+echo "║  Battery = Dim: $((BATTERY_DIM_DELAY)) min -> Timeout: $((BATTERY_BACKLIGHT)) min -> Sleep: $((BATTERY_DELAY)) min | Audio Detection: $AUDIO_DETECTION_BATTERY"
+echo "║  Power   = Dim: $((POWER_DIM_DELAY)) min -> Timeout: $((POWER_BACKLIGHT)) min -> Sleep: $((POWER_DELAY)) min | Audio Detection: $AUDIO_DETECTION_POWER"
+echo "╚══════════════════════════════════════════════════════════════════════════════════════════════════════════╝"
+echo ""
         else
-            echo "${YELLOW}SleepControl Status: STOPPED${RESET}"
+echo "${RED}SleepControl Status: STOPPED${RESET}"
         fi
         ;;
     __monitor__)
