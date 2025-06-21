@@ -410,7 +410,7 @@ echo "║  Configured min_perf_pct: $MIN_PERF_PCT%   "
 echo "║  Configured hotzone: $HOTZONE°C            "
 echo "║  Configured ramp_up pct: $RAMP_UP%         "
 echo "║  Configured ramp_down pct: $RAMP_DOWN%     "
-echo "╚════════════════════════════════════════════╝${RESET"
+echo "╚════════════════════════════════════════════╝${RESET}"
 
     if [ -f "$PERF_PATH" ]; then
         current_val=$(cat "$PERF_PATH")
