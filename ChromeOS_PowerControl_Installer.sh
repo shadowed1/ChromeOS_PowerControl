@@ -475,18 +475,23 @@ start_component_now() {
     if [[ -z "$start_now" || "$start_now" =~ ^[Yy]$ ]]; then
         sudo "$command" start
         echo ""
+        
         if [[ "$component" == "BatteryControl" ]]; then
-            SHOW_BATTERYCONTROL_NOTICE=1
+            declare -g SHOW_BATTERYCONTROL_NOTICE=1
         fi
+        
         if [[ "$component" == "GPUControl" ]]; then
-            SHOW_GPUCONTROL_NOTICE=1
+            declare -g SHOW_GPUCONTROL_NOTICE=1
         fi
+        
         if [[ "$component" == "SleepControl" ]]; then
-            SHOW_SLEEPCONTROL_NOTICE=1
+            declare -g SHOW_SLEEPCONTROL_NOTICE=1
         fi
+        
         if [[ "$component" == "PowerControl" ]]; then
-            SHOW_POWERCONTROL_NOTICE=1
+            declare -g SHOW_POWERCONTROL_NOTICE=1
         fi
+
     else
         echo "You can run it later with: sudo $command start"
         echo ""
@@ -546,18 +551,18 @@ else
 fi
 
 echo ""
-echo "                                                           ${RED}████████████${RESET}           "
-echo "                                                       ${RED}████${RESET}        ${RED}████${RESET}       "
-echo "                                                     ${RED}██${RESET}              ${YELLOW}██${RESET}     "
-echo "                                                   ${GREEN}██${RESET}     ${BLUE}██████${RESET}     ${YELLOW}██${RESET}   "
-echo "                                                  ${GREEN}██${RESET}     ${BLUE}████████${RESET}     ${YELLOW}██${RESET}  "
-echo "                                                  ${GREEN}██${RESET}     ${BLUE}████████${RESET}     ${YELLOW}██${RESET}  "
-echo "                                                   ${GREEN}██${RESET}     ${BLUE}██████${RESET}     ${YELLOW}██${RESET}   "
-echo "                                                         ${GREEN}██${RESET}              ${YELLOW}██${RESET}     "
-echo "                                                       ${GREEN}████${RESET}        ${YELLOW}████${RESET}       "
-echo "                                                           ${GREEN}████████████${RESET}           "
+echo "                                                    ${RED}████████████${RESET}           "
+echo "                                                ${RED}████${RESET}        ${RED}████${RESET}       "
+echo "                                              ${RED}██${RESET}              ${YELLOW}██${RESET}     "
+echo "                                            ${GREEN}██${RESET}     ${BLUE}██████${RESET}     ${YELLOW}██${RESET}   "
+echo "                                           ${GREEN}██${RESET}     ${BLUE}████████${RESET}     ${YELLOW}██${RESET}  "
+echo "                                           ${GREEN}██${RESET}     ${BLUE}████████${RESET}     ${YELLOW}██${RESET}  "
+echo "                                            ${GREEN}██${RESET}     ${BLUE}██████${RESET}     ${YELLOW}██${RESET}   "
+echo "                                              ${GREEN}██${RESET}              ${YELLOW}██${RESET}     "
+echo "                                                ${GREEN}████${RESET}        ${YELLOW}████${RESET}       "
+echo "                                                    ${GREEN}████████████${RESET}           "
 echo ""
-echo "                                                     ${BOLD}${GREEN}Chrome${RESET}${BOLD}${RED}OS${RESET}${BOLD}${YELLOW}_${RESET}${BOLD}${BLUE}PowerControl${RESET}"
+echo "                                              ${BOLD}${GREEN}Chrome${RESET}${BOLD}${RED}OS${RESET}${BOLD}${YELLOW}_${RESET}${BOLD}${BLUE}PowerControl${RESET}"
 echo ""
 echo ""
 echo ""
