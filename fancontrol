@@ -403,24 +403,32 @@ case "$1" in
         if [ -f "$RUN_FLAG" ]; then
             PID=$(cat "$PID_FILE")
             if ps -p "$PID" > /dev/null 2>&1; then
-                echo
-                echo "${GREEN}FanControl Status: ENABLED (PID $PID)${RESET}"
+echo "${YELLOW}"
+echo "╔════════════════════════════════════════════════════════╗"
+echo "          FanControl Status: ENABLED (PID $PID)"
+echo "╚════════════════════════════════════════════════════════╝"
             else
-                echo
-                echo "${YELLOW}FanControl Status: RUN FLAG PRESENT, but process not running${RESET}"
+echo "${RED}"
+echo "╔════════════════════════════════════════════════════════╗"
+echo "║  FanControl Status: RUN FLAG PRESENT, but not running  ║"
+echo "╚════════════════════════════════════════════════════════╝"
             fi
         else
             echo
-            echo "${YELLOW}FanControl Status: STOPPED${RESET}"
+echo "${RED}"
+echo "╠════════════════════════════════════════════════════════╣"
+echo "║               FanControl Status: STOPPED               ║"
+echo "╚════════════════════════════════════════════════════════╝"
         fi
-        echo
-        sudo ectool pwmgetnumfans
-        sudo ectool pwmgetfanrpm all
-        echo "Current CPU temp: $(get_temp)°C"
-        echo "Fan Curve: $FAN_MIN_TEMP°C = ${MIN_FAN}%, $FAN_MAX_TEMP°C = ${MAX_FAN}%"
-        echo "Sleep interval: $SLEEP_INTERVAL seconds"
-        echo "Step-up: $STEP_UP%, Step-down: $STEP_DOWN%"
-        echo
+echo
+echo -n "║  ";sudo ectool pwmgetnumfans
+echo -n "║  ";sudo ectool pwmgetfanrpm all
+echo "║  Current CPU temp: $(get_temp)°C"
+echo "║  Fan Curve: $FAN_MIN_TEMP°C = ${MIN_FAN}%, $FAN_MAX_TEMP°C = ${MAX_FAN}%"
+echo "║  Sleep interval: $SLEEP_INTERVAL seconds"
+echo "║  Step-up: $STEP_UP%, Step-down: $STEP_DOWN%"
+echo "╚════════════════════════════════════════════════════════╝"
+echo "${RESET}
         ;;
     help) show_help ;;
     *) echo "Unknown command: $1"; show_help ;;
