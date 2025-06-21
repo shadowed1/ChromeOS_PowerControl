@@ -162,7 +162,7 @@ monitor_idle_activity() {
     
 exec 200>"$PID_FILE.lock"
 flock -n 200 || {
-    echo "Another instance is running"
+    echo "Another instance is running - using flock"
     exit 1
                 } 
     
