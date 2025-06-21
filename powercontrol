@@ -402,14 +402,14 @@ echo "╚═══════════════════════�
     fi
     temp_c=$(get_temp)
 echo "╠════════════════════════════════════════════╣"
-echo "║  Current CPU temp: $temp_c°C               ║"
-echo "║  Configured max_temp: $MAX_TEMP°C          ║"
-echo "║  Configured min_temp: $MIN_TEMP°C          ║"
-echo "║  Configured max_perf_pct: $MAX_PERF_PCT%   ║" 
-echo "║  Configured min_perf_pct: $MIN_PERF_PCT%   ║"
-echo "║  Configured hotzone: $HOTZONE°C            ║"
-echo "║  Configured ramp_up pct: $RAMP_UP%         ║"
-echo "║  Configured ramp_down pct: $RAMP_DOWN%     ║"
+echo "║  Current CPU temp: $temp_c°C               "
+echo "║  Configured max_temp: $MAX_TEMP°C          "
+echo "║  Configured min_temp: $MIN_TEMP°C          "
+echo "║  Configured max_perf_pct: $MAX_PERF_PCT%   " 
+echo "║  Configured min_perf_pct: $MIN_PERF_PCT%   "
+echo "║  Configured hotzone: $HOTZONE°C            "
+echo "║  Configured ramp_up pct: $RAMP_UP%         "
+echo "║  Configured ramp_down pct: $RAMP_DOWN%     "
 echo "╚════════════════════════════════════════════╝${RESET"
 
     if [ -f "$PERF_PATH" ]; then
