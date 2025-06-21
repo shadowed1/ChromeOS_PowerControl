@@ -154,28 +154,21 @@ detect_backlight_path() {
 INSTALL_DIR="/usr/local/bin/ChromeOS_PowerControl"
 echo "${YELLOW}"
 echo "╔═══════════════════════════════════════════════════════════════════════════════════════════════╗"
+echo "║                                          NOTICE:                                              ║"
+echo "║                                                                                               ║"
 echo "║             VT-2 (or enabling sudo in crosh) is required to run this installer!               ║"
 echo "║               Must be installed in a location without the noexec mount.                       ║"
 echo "╚═══════════════════════════════════════════════════════════════════════════════════════════════╝"
 echo "${RESET}"
 while true; do
-echo "${GREEN}"
-echo "╔═══════════════════════════════════════════════════════════════════════════════════════════════╗"
-echo "║  Enter desired Install Path - leave blank for default: $INSTALL_DIR:                          ║" 
-echo "╚═══════════════════════════════════════════════════════════════════════════════════════════════╝"
-echo "${RESET}"
-    read -rp "> " choice
+    read -rp "${GREEN}Enter desired Install Path - ${RESET}${GREEN}${BOLD}leave blank for default: $INSTALL_DIR:$RESET " choice
     if [ -n "$choice" ]; then
         INSTALL_DIR="${choice:-/usr/local/bin/ChromeOS_PowerControl}"
     fi
     INSTALL_DIR="${INSTALL_DIR%/}"
-echo "${CYAN}"
-echo "════════════════════════════════════════════════════════════════════════════════════════════════"
-echo "You entered: $INSTALL_DIR"
-echo "Confirm this install path? Enter key counts as yes! (y/n):"
-echo "════════════════════════════════════════════════════════════════════════════════════════════════"
-echo "${RESET}"
-    read -rp "> " confirm
+
+    echo -e "\n${CYAN}You entered: ${BOLD}$INSTALL_DIR${RESET}"
+    read -rp "${YELLOW}${BOLD}Confirm this install path? Enter key counts as yes! (Y/n): ${RESET}" confirm
     case "$confirm" in
         [Yy]* | "")  
             sudo mkdir -p "$INSTALL_DIR"
@@ -185,10 +178,11 @@ echo "${RESET}"
             echo -e "${BLUE}Cancelled.${RESET}\n"
             ;;
         *) 
-            echo -e "${RED}Please answer y or n.${RESET}"
+            echo -e "${RED}Please answer Y/n.${RESET}"
             ;;
     esac
 done
+
 
 
 declare -a files=(
@@ -206,7 +200,6 @@ for file in "${files[@]}"; do
     fi
         echo "Downloading $file to $dest..."
     if curl -fsSL "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/unstable/$file" -o "$dest"; then
-        echo "Downloaded $file successfully."
         if grep -q "@INSTALL_DIR@" "$dest"; then
             sed -i "s|@INSTALL_DIR@|$INSTALL_DIR|g" "$dest"
         fi
@@ -389,7 +382,7 @@ done
 echo "${GREEN}${BOLD}Installing to: $INSTALL_DIR $RESET"
 
 
-read -rp "Enable ${BOLD}Global Commands${RESET} for ${RESET}${BOLD}${CYAN}PowerControl${RESET}, ${GREEN}${BOLD}BatteryControl${RESET}, ${YELLOW}${BOLD}FanControl${RESET}, ${MAGENTA}GPUControl${RESET}, ${BLUE}SleepControl${RESET}? (y/n):$RESET " link_cmd
+read -rp "Enable ${BOLD}Global Commands${RESET} for ${RESET}${BOLD}${CYAN}PowerControl${RESET}, ${GREEN}${BOLD}BatteryControl${RESET}, ${YELLOW}${BOLD}FanControl${RESET}, ${MAGENTA}GPUControl${RESET}, ${BLUE}SleepControl${RESET}? (Y/n):$RESET " link_cmd
 if [[ -z "$link_cmd" || "$link_cmd" =~ ^[Yy]$ ]]; then
     sudo ln -sf "$INSTALL_DIR/powercontrol" /usr/local/bin/powercontrol
     sudo ln -sf "$INSTALL_DIR/batterycontrol" /usr/local/bin/batterycontrol
@@ -424,7 +417,7 @@ enable_component_on_boot() {
         *)                COLOR=${RESET} ;;
     esac
     
-    read -rp "${COLOR}Do you want $component enabled on boot? (y/n):${RESET} " move_config
+    read -rp "${COLOR}Do you want $component enabled on boot? (Y/n):${RESET} " move_config
     if [[ -z "$move_config" || "$move_config" =~ ^[Yy]$ ]]; then
         sudo cp "$config_file" "$target_file"
         echo "$component will start on boot."
@@ -481,7 +474,7 @@ start_component_now() {
         *)                COLOR=${RESET} ;;
     esac
    
-    read -rp "${COLOR}Do you want to start $component now? (y/n): ${RESET} " start_now
+    read -rp "${COLOR}Do you want to start $component now? (Y/n): ${RESET} " start_now
     if [[ -z "$start_now" || "$start_now" =~ ^[Yy]$ ]]; then
         sudo "$command" start
         echo ""
@@ -530,7 +523,7 @@ start_component_now "SleepControl" "$INSTALL_DIR/sleepcontrol"
 
 
 if [[ "$SHOW_POWERCONTROL_NOTICE" -eq 1 ]]; then
- read -rp "${BOLD}${BLUE}Do you want Intel Turbo Boost ${RESET}${BOLD}${CYAN}disabled on boot${RESET}${BOLD}${BLUE}? (y/n):$RESET " move_no_turbo
+ read -rp "${BOLD}${BLUE}Do you want Intel Turbo Boost ${RESET}${BOLD}${CYAN}disabled on boot${RESET}${BOLD}${BLUE}? (Y/n):$RESET " move_no_turbo
     if [[ "$move_no_turbo" =~ ^[Yy]$ ]]; then
         sudo cp "$INSTALL_DIR/no_turbo.conf" /etc/init/
         echo "Turbo Boost will be disabled on restart."
@@ -543,7 +536,7 @@ if [[ "$SHOW_POWERCONTROL_NOTICE" -eq 1 ]]; then
         echo ""
     fi
     
-    read -rp "${BOLD}${BLUE}Do you want to ${RESET}${BOLD}${CYAN}disable${RESET}${BLUE}${BOLD} Intel Turbo Boost ${RESET}${BOLD}${CYAN}now?${RESET}${BOLD}${BLUE} (y/n):$RESET " run_no_turbo
+    read -rp "${BOLD}${BLUE}Do you want to ${RESET}${BOLD}${CYAN}disable${RESET}${BLUE}${BOLD} Intel Turbo Boost ${RESET}${BOLD}${CYAN}now?${RESET}${BOLD}${BLUE} (Y/n):$RESET " run_no_turbo
     if [[ "$run_no_turbo" =~ ^[Yy]$ ]]; then
         echo 1 | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo > /dev/null
         echo "Turbo Boost disabled immediately."
