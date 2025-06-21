@@ -556,27 +556,26 @@ flock -n 200 || {
             PID=$(cat "$PID_FILE")
             if ps -p "$PID" > /dev/null 2>&1; then
 echo "${BLUE}"
-echo "╔══════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
-echo "                                   SleepControl Status: RUNNING (PID $PID)                                  "                                 
-echo "╚══════════════════════════════════════════════════════════════════════════════════════════════════════════╝"
+echo "══════════════════════════════════════════════════════════════════════════════════════════"
+echo "                        SleepControl Status: RUNNING (PID $PID)                                  "                                 
+echo ""
             else
 echo "${RED}"
-echo "╔══════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
-echo "║                      SleepControl Status: RUN FLAG PRESENT, but process not running                      ║"
-echo "╚══════════════════════════════════════════════════════════════════════════════════════════════════════════╝"
+echo "══════════════════════════════════════════════════════════════════════════════════════════"
+echo "            SleepControl Status: RUN FLAG PRESENT, but process not running                       "
+echo ""
 
             fi
 
          else
 echo "${RED}"
-echo "╔══════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
-echo "║                                       SleepControl Status: STOPPED                                       ║"
-echo "╚══════════════════════════════════════════════════════════════════════════════════════════════════════════╝"
+echo "══════════════════════════════════════════════════════════════════════════════════════════"
+echo "                            SleepControl Status: STOPPED                                       "
         fi
-echo "╠══════════════════════════════════════════════════════════════════════════════════════════════════════════╣"
-echo "║  Battery = Dim: $((BATTERY_DIM_DELAY)) min -> Timeout: $((BATTERY_BACKLIGHT)) min -> Sleep: $((BATTERY_DELAY)) min | Audio Detection: $AUDIO_DETECTION_BATTERY"
-echo "║  Power   = Dim: $((POWER_DIM_DELAY)) min -> Timeout: $((POWER_BACKLIGHT)) min -> Sleep: $((POWER_DELAY)) min | Audio Detection: $AUDIO_DETECTION_POWER"
-echo "╚══════════════════════════════════════════════════════════════════════════════════════════════════════════╝"
+echo "══════════════════════════════════════════════════════════════════════════════════════════"
+echo "  Battery = Dim: $((BATTERY_DIM_DELAY)) min -> Timeout: $((BATTERY_BACKLIGHT)) min -> Sleep: $((BATTERY_DELAY)) min | Audio Detection: $AUDIO_DETECTION_BATTERY"
+echo "  Power   = Dim: $((POWER_DIM_DELAY)) min -> Timeout: $((POWER_BACKLIGHT)) min -> Sleep: $((POWER_DELAY)) min | Audio Detection: $AUDIO_DETECTION_POWER"
+echo "══════════════════════════════════════════════════════════════════════════════════════════"
 echo "${RESET}"
        
         ;;
