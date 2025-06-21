@@ -256,7 +256,7 @@ case "$1" in
             sudo rm -r /etc/init/batterycontrol.conf
         fi
         ;;
-    help | --help | -h)
+   h | help | --help | -h)
         show_help
         ;;
     __monitor__)
@@ -271,8 +271,8 @@ case "$1" in
         if [[ "$1" =~ ^[0-9]+$ ]] && (( $1 >= 14 && $1 <= 100 )); then
             set_threshold "$1"
         else
-            echo "Unknown command or value is too low: $1"
-            echo "Use '$0 help' to see available commands."
+            echo "${RED}Unknown command or value is too low: $1 ${RESET}"
+            show_help
             exit 1
         fi
         ;;
