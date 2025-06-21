@@ -384,7 +384,7 @@ show_status() {
         if ps -p "$PID" > /dev/null 2>&1; then
 echo "${CYAN}"
 echo "══════════════════════════════════════════════"
-echo "    PowerControl Status: RUNNING (PID $PID)    " 
+echo "  PowerControl Status: RUNNING (PID $PID)    " 
 
         else
             rm -f "$PID_FILE"
@@ -399,14 +399,14 @@ echo "════════════════════════�
 echo "        PowerControl Status: STOPPED       "
     fi
     temp_c=$(get_temp)
-echo "  CPU temp: $temp_c°C               "
-echo "  max_temp: $MAX_TEMP°C          "
-echo "  min_temp: $MIN_TEMP°C          "
-echo "  max_perf_pct: $MAX_PERF_PCT%   " 
-echo "  min_perf_pct: $MIN_PERF_PCT%   "
-echo "  hotzone: $HOTZONE°C            "
-echo "  ramp_up pct: $RAMP_UP%         "
-echo "  ramp_down pct: $RAMP_DOWN%     "
+echo "  Current CPU: $temp_c°C               "
+echo "  Max Temp: $MAX_TEMP°C          "
+echo "  Min Temp: $MIN_TEMP°C          "
+echo "  Max CPU %: $MAX_PERF_PCT%   " 
+echo "  Min CPU %: $MIN_PERF_PCT%   "
+echo "  Hotzone: $HOTZONE°C            "
+echo "  Ramp Up %: $RAMP_UP%         "
+echo "  Ramp Down %: $RAMP_DOWN%     "
 echo "═════════════════════════════════════════════${RESET}"
 
     if [ -f "$PERF_PATH" ]; then
