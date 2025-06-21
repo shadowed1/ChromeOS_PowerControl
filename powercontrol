@@ -382,20 +382,20 @@ show_status() {
     if [ -f "$PID_FILE" ]; then
         PID=$(cat "$PID_FILE")
         if ps -p "$PID" > /dev/null 2>&1; then
-echo "${GREEN}"
+echo "${CYAN}"
 echo "╔════════════════════════════════════════════╗"
 echo "║  PowerControl Status: RUNNING (PID $PID)   ║" 
 echo "╚════════════════════════════════════════════╝"
         else
             rm -f "$PID_FILE"
             rm -f "$RUN_FLAG"
-echo "${YELLOW}"
+echo "${RED}"
 echo "╔════════════════════════════════════════════╗"
 echo "║        PowerControl Status: STOPPED        ║"
 echo "╚════════════════════════════════════════════╝"
         fi
     else
-echo "${YELLOW}"
+echo "${RED}"
 echo "╔════════════════════════════════════════════╗"
 echo "║        PowerControl Status: STOPPED        ║"
 echo "╚════════════════════════════════════════════╝"
