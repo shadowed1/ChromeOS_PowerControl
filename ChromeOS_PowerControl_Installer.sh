@@ -56,14 +56,12 @@ if [ -f "/sys/class/drm/card0/device/pp_od_clk_voltage" ]; then
     mapfile -t SCLK_LINES < <(grep -i '^sclk' "$PP_OD_FILE")
 
     if [[ ${#SCLK_LINES[@]} -gt 0 ]]; then
-        # Extract MHz values using sed
         MAX_MHZ=$(printf '%s\n' "${SCLK_LINES[@]}" | sed -n 's/.*\([0-9]\{1,\}\)[Mm][Hh][Zz].*/\1/p' | sort -nr | head -n1)
         if [[ -n "$MAX_MHZ" ]]; then
             GPU_MAX_FREQ="$MAX_MHZ"
             AMD_SELECTED_SCLK_INDEX=$(printf '%s\n' "${SCLK_LINES[@]}" | grep -in "$MAX_MHZ" | head -n1 | cut -d':' -f1)
             AMD_SELECTED_SCLK_INDEX=$((AMD_SELECTED_SCLK_INDEX - 1))
         else
-            # fallback default if parsing failed
             GPU_MAX_FREQ=0
             AMD_SELECTED_SCLK_INDEX=0
         fi
@@ -125,7 +123,7 @@ detect_backlight_path() {
             BACKLIGHT_NAME="$candidate"
             BRIGHTNESS_PATH="$BACKLIGHT_BASE/$candidate/brightness"
             MAX_BRIGHTNESS_PATH="$BACKLIGHT_BASE/$candidate/max_brightness"
-            # Make sure the files exist and are readable
+            
             if [ -r "$BRIGHTNESS_PATH" ] && [ -r "$MAX_BRIGHTNESS_PATH" ]; then
                 break
             else
