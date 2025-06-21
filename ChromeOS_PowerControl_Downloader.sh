@@ -25,7 +25,7 @@ echo "                                               ${BOLD}${GREEN}Chrome${RESE
 echo ""
 echo ""
 echo ""
-echo "                                                            ${BOLD}Features:${RESET}"
+echo "                                                       ${BOLD}Features:${RESET}"
 echo "${CYAN}"
 echo "╔═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
 echo "║  PowerControl: Control CPU clockspeed in relation to temperature; enabling lower temperatures under and longer battery life.  ║"
