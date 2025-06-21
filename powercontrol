@@ -632,7 +632,7 @@ case "$1" in
     CONF_SOURCE_NO_TURBO="$INSTALL_DIR/no_turbo.conf"
     
     if [ "$IS_INTEL" -eq 1 ]; then
-        read -p "Do you want to disable Turbo Boost automatically on startup? (y/n): " choice
+        read -p "Do you want to disable Turbo Boost automatically on startup? (Y/n): " choice
         if [[ "$choice" =~ ^[Yy]$ ]]; then
             if [ -f "$CONF_SOURCE_NO_TURBO" ]; then
                 echo "Copying no_turbo.conf to /etc/init/..."
@@ -648,7 +648,7 @@ case "$1" in
         fi
     fi
 
-    read -p "Do you want PowerControl to startup automatically on boot? (y/n): " choice
+    read -p "Do you want PowerControl to startup automatically on boot? (Y/n): " choice
     if [[ "$choice" =~ ^[Yy]$ ]]; then
         if [ -f "$CONF_SOURCE" ]; then
             echo "Copying powercontrol.conf to /etc/init/..."
@@ -710,19 +710,19 @@ case "$1" in
             LATEST_VER_NO=$(echo "$LATEST_VER" | sed -e 's/VERSION=//' -e 's/"//g' -e 's/\.//g')
         
             if [[ "$CURRENT_VER_NO" -lt "$LATEST_VER_NO" ]]; then
-                echo "You're using $CURRENT_VER which is NOT the latest version."
-                read -rp "Would you like to 'reinstall' to get $LATEST_VER ? (y/n): " choice
+                echo "${CYAN}You're using $CURRENT_VER which is NOT the latest version.${RESET}"
+                read -rp "Would you like to 'reinstall' to get $LATEST_VER ? (Y/n): " choice
                 if [[ "$choice" =~ ^[Yy]$ ]]; then
-                    echo "Okay, reinstalling."
+                    echo "${CYAN}Reinstalling!${RESET}"
                     exec sudo powercontrol reinstall
                 else
-                    echo "Okay, skipping the reinstall."
+                    echo "${YELLOW}Skipping reinstall.${RESET}"
                 fi
             else
-                echo "You're using version $CURRENT_VER which is up-to-date, so you're good."
+                echo "${GREEN}You're using $CURRENT_VER which is up-to-date, so you're good.${RESET}"
             fi
         else
-            echo "Version file not found."
+            echo "${RED}Version file not found.${RESET}"
             exit 1
         fi
     ;;
