@@ -335,7 +335,8 @@ case "$GPU_ARG" in
        GPU_MAX_FREQ=$REQUESTED_FREQ
         save_config
         ;;
-        h|help)
+        h | help | --help | -h)
+        help
         ;;
         restore)
         ;;
