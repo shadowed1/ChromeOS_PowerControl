@@ -383,34 +383,31 @@ show_status() {
         PID=$(cat "$PID_FILE")
         if ps -p "$PID" > /dev/null 2>&1; then
 echo "${CYAN}"
-echo "╔════════════════════════════════════════════╗"
+echo "══════════════════════════════════════════════"
 echo "    PowerControl Status: RUNNING (PID $PID)    " 
-echo "╚════════════════════════════════════════════╝"
+
         else
             rm -f "$PID_FILE"
             rm -f "$RUN_FLAG"
 echo "${RED}"
-echo "╔════════════════════════════════════════════╗"
-echo "║        PowerControl Status: STOPPED        ║"
-echo "╚════════════════════════════════════════════╝"
+echo "══════════════════════════════════════════════"
+echo "        PowerControl Status: STOPPED        "
         fi
     else
 echo "${RED}"
-echo "╔════════════════════════════════════════════╗"
-echo "║        PowerControl Status: STOPPED        ║"
-echo "╚════════════════════════════════════════════╝"
+echo "══════════════════════════════════════════════"
+echo "        PowerControl Status: STOPPED       "
     fi
     temp_c=$(get_temp)
-echo "╠════════════════════════════════════════════╣"
-echo "║  Current CPU temp: $temp_c°C               "
-echo "║  Configured max_temp: $MAX_TEMP°C          "
-echo "║  Configured min_temp: $MIN_TEMP°C          "
-echo "║  Configured max_perf_pct: $MAX_PERF_PCT%   " 
-echo "║  Configured min_perf_pct: $MIN_PERF_PCT%   "
-echo "║  Configured hotzone: $HOTZONE°C            "
-echo "║  Configured ramp_up pct: $RAMP_UP%         "
-echo "║  Configured ramp_down pct: $RAMP_DOWN%     "
-echo "╚════════════════════════════════════════════╝${RESET}"
+echo "  CPU temp: $temp_c°C               "
+echo "  max_temp: $MAX_TEMP°C          "
+echo "  min_temp: $MIN_TEMP°C          "
+echo "  max_perf_pct: $MAX_PERF_PCT%   " 
+echo "  min_perf_pct: $MIN_PERF_PCT%   "
+echo "  hotzone: $HOTZONE°C            "
+echo "  ramp_up pct: $RAMP_UP%         "
+echo "  ramp_down pct: $RAMP_DOWN%     "
+echo "═════════════════════════════════════════════${RESET}"
 
     if [ -f "$PERF_PATH" ]; then
         current_val=$(cat "$PERF_PATH")
