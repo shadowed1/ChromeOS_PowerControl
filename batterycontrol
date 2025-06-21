@@ -125,9 +125,9 @@ echo "
         active_port=$(detect_active_usbpd_port)
         if [ "$active_port" != "-1" ]; then
 
-echo "Active USB-PD Charger Port: $active_port (CROS_USBPD_CHARGER$active_port)${RESET}"
+echo "Active USB-PD Charger Port: $active_port (CROS_USBPD_CHARGER$active_port) ${RESET}"
         else
-echo "Active USB-PD Charger Port: None detected${RESET}"
+echo "Active USB-PD Charger Port: None detected ${RESET}"
     fi
 }
 
