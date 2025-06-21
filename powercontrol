@@ -699,30 +699,31 @@ case "$1" in
         exit 1
     fi
     ;;
-     version)
+      version)
     if [[ -f "$VERSION_FILE" ]]; then
-    CURRENT_VER=$(cat "$INSTALL_DIR/version")
-    CURRENT_VER_NO=$(echo "$CURRENT_VER" | sed -e 's/VERSION=//' -e 's/"//g' -e 's/\.//g')
-
-    LATEST_VER=$(curl -Ls https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/version)
-    LATEST_VER_NO=$(echo "$LATEST_VER" | sed -e 's/VERSION=//' -e 's/"//g' -e 's/\.//g')
-
-    if [[ "$CURRENT_VER_NO" -lt "$LATEST_VER_NO" ]]; then
-        echo "You're using $CURRENT_VER which is NOT the latest version."
-        read -rp "Would you like to 'reinstall' to get $LATEST_VER ? (y/n): " choice
-        if [[ "$choice" =~ ^[Yy]$ ]]; then
-            echo "Okay, reinstalling."
-            exec sudo powercontrol reinstall
-        else
-            echo "Okay, skipping the reinstall."
+        CURRENT_VER=`cat $INSTALL_DIR/version`
+        CURRENT_VER_NO=`echo $CURRENT_VER | \
+            sed -e 's/VERSION=//' -e 's/"//g'  -e 's/\.//'`
+        LATEST_VER=`curl -Ls \
+            https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/version`
+        LATEST_VER_NO=`echo $LATEST_VER \
+            sed -e 's/VERSION=//' -e 's/"//g' -e 's/\.//'`
+        if [ $CURRENT_VER_NO -lt $LATEST_VER_NO ]; then 
+            echo "You're using $CURRENT_VER which is NOT the latest version."
+            read -p "Would you like to 'reinstall' to get $LATEST_VER ? (y/n): " choice
+                if [[ "$choice" =~ ^[Yy]$ ]]; then
+                    echo "Okay, reinstalling."
+                    exec sudo powercontrol reinstall
+                else
+                    echo "Okay, skipping the reinstall."
+                fi
+        else     
+                echo "Your using version $CURRENT_VER which is up-to-date so you're good." 
         fi
     else
-        echo "You're using version $CURRENT_VER which is up-to-date, so you're good."
+        echo "Version file not found."
+        exit 1
     fi
-else
-    echo "Version file not found."
-    exit 1
-fi
     ;;
     reinstall)
     echo "Downloading to:${CYAN} /home/chronos/ChromeOS_PowerControl_Installer.sh $RESET"
