@@ -102,38 +102,30 @@ battery_status() {
 echo "${GREEN}"
 echo "═══════════════════════════════════════════════════════════════════════════"
 echo "                BatteryControl is: RUNNING (PID $PID)"
-echo "═══════════════════════════════════════════════════════════════════════════${RESET}"
             else
 echo "${RED}"
 echo "════════════════════════════════════════════════════════════════════════════"
 echo "              BatteryControl is: RUNNING (but process is NOT)         "
-echo "════════════════════════════════════════════════════════════════════════════${RESET}"
                 rm -f "$PID_FILE"
             fi
         else
 echo "${RED}"
 echo "═════════════════════════════════════════════════════════════════════════════"
 echo "                   BatteryControl is: RUNNING (PID not found)                       "
-echo "════════════════════════════════════════════════════════════════════════════${RESET}"
         fi
 else
 echo "${RED}"
 echo "═════════════════════════════════════════════════════════════════════════════"
 echo "                       BatteryControl is: STOPPED"
-echo "════════════════════════════════════════════════════════════════════════════${RESET}"
     fi
-echo "${GREEN}"
-echo "═══════════════════════════════════════════════════════════════════════════"
 echo "  Charge Limit: $CHARGE_MAX"
         local active_port
         active_port=$(detect_active_usbpd_port)
         if [ "$active_port" != "-1" ]; then
 
-echo "  Active USB-PD Charger Port: $active_port (CROS_USBPD_CHARGER$active_port)"
-echo "═══════════════════════════════════════════════════════════════════════════${RESET}"
+echo "  Active USB-PD Charger Port: $active_port (CROS_USBPD_CHARGER$active_port)${RESET}"
         else
-echo "  Active USB-PD Charger Port: None detected"
-echo "═══════════════════════════════════════════════════════════════════════════${RESET}"
+echo "  Active USB-PD Charger Port: None detected${RESET}"
     fi
 }
 
@@ -237,7 +229,8 @@ case "$1" in
         echo
         sudo ectool battery 2>/dev/null || echo "Failed to run ectool battery (is ectool installed and available?)"
         echo
-        echo "═══════════════════════════════════════════════════════════════════════════${RESET}    "
+        echo "═══════════════════════════════════════════════════════════════════════════"
+        echo "${RESET}"
         ;;
     startup)
         CONF_SOURCE="$INSTALL_DIR/batterycontrol.conf"
