@@ -577,7 +577,7 @@ echo "╠═══════════════════════�
 echo "║  Battery = Dim: $((BATTERY_DIM_DELAY)) min -> Timeout: $((BATTERY_BACKLIGHT)) min -> Sleep: $((BATTERY_DELAY)) min | Audio Detection: $AUDIO_DETECTION_BATTERY"
 echo "║  Power   = Dim: $((POWER_DIM_DELAY)) min -> Timeout: $((POWER_BACKLIGHT)) min -> Sleep: $((POWER_DELAY)) min | Audio Detection: $AUDIO_DETECTION_POWER"
 echo "╚══════════════════════════════════════════════════════════════════════════════════════════════════════════╝"
-echo ""
+echo "${RESET}"
        
         ;;
     __monitor__)
