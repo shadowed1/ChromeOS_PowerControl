@@ -383,29 +383,34 @@ show_status() {
         PID=$(cat "$PID_FILE")
         if ps -p "$PID" > /dev/null 2>&1; then
 echo "${GREEN}"
-echo "PowerControl Status: RUNNING (PID $PID)"
-echo "${RESET}"
+echo "╔════════════════════════════════════════════╗"
+echo "║  PowerControl Status: RUNNING (PID $PID)   ║" 
+echo "╚════════════════════════════════════════════╝"
         else
             rm -f "$PID_FILE"
             rm -f "$RUN_FLAG"
 echo "${YELLOW}"
-echo "PowerControl Status: STOPPED"
-echo "${RESET}"
+echo "╔════════════════════════════════════════════╗"
+echo "║        PowerControl Status: STOPPED        ║"
+echo "╚════════════════════════════════════════════╝"
         fi
     else
 echo "${YELLOW}"
-echo "PowerControl Status: STOPPED"
-echo "${RESET}"
+echo "╔════════════════════════════════════════════╗"
+echo "║        PowerControl Status: STOPPED        ║"
+echo "╚════════════════════════════════════════════╝"
     fi
     temp_c=$(get_temp)
-    echo "Current CPU temp: $temp_c°C"
-    echo "Configured max_temp: $MAX_TEMP°C"
-    echo "Configured min_temp: $MIN_TEMP°C"
-    echo "Configured max_perf_pct: $MAX_PERF_PCT%"
-    echo "Configured min_perf_pct: $MIN_PERF_PCT%"
-    echo "Configured hotzone: $HOTZONE°C"
-    echo "Configured ramp_up pct: $RAMP_UP%"
-    echo "Configured ramp_down pct: $RAMP_DOWN%"
+echo "╠════════════════════════════════════════════╣"
+echo "║  Current CPU temp: $temp_c°C               ║"
+echo "║  Configured max_temp: $MAX_TEMP°C          ║"
+echo "║  Configured min_temp: $MIN_TEMP°C          ║"
+echo "║  Configured max_perf_pct: $MAX_PERF_PCT%   ║" 
+echo "║  Configured min_perf_pct: $MIN_PERF_PCT%   ║"
+echo "║  Configured hotzone: $HOTZONE°C            ║"
+echo "║  Configured ramp_up pct: $RAMP_UP%         ║"
+echo "║  Configured ramp_down pct: $RAMP_DOWN%     ║"
+echo "╚════════════════════════════════════════════╝${RESET"
 
     if [ -f "$PERF_PATH" ]; then
         current_val=$(cat "$PERF_PATH")
