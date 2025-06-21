@@ -695,8 +695,8 @@ case "$1" in
         CURRENT_VER_NO=`echo $CURRENT_VER | \
             sed -e 's/VERSION=//' -e 's/"//g'  -e 's/\.//'`
         LATEST_VER=`curl -Ls \
-            https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/unstable/version`
-        LATEST_VER_NO=echo $LATEST_VER | \`
+            https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/version`
+        LATEST_VER_NO=`echo $LATEST_VER \
             sed -e 's/VERSION=//' -e 's/"//g' -e 's/\.//'`
         if [ $CURRENT_VER_NO -lt $LATEST_VER_NO ]; then 
             echo "You're using $CURRENT_VER which is NOT the latest version."
