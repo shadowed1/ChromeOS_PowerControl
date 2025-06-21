@@ -382,15 +382,20 @@ show_status() {
     if [ -f "$PID_FILE" ]; then
         PID=$(cat "$PID_FILE")
         if ps -p "$PID" > /dev/null 2>&1; then
-            echo "${GREEN}PowerControl Status: RUNNING (PID $PID)${RESET}"
-            echo ""
+echo "${GREEN}"
+echo "PowerControl Status: RUNNING (PID $PID)"
+echo "${RESET}"
         else
             rm -f "$PID_FILE"
             rm -f "$RUN_FLAG"
-            echo "${YELLOW}PowerControl Status: STOPPED ${RESET}"
+echo "${YELLOW}"
+echo "PowerControl Status: STOPPED"
+echo "${RESET}"
         fi
     else
-        echo "${YELLOW}PowerControl Status: STOPPED ${RESET}"
+echo "${YELLOW}"
+echo "PowerControl Status: STOPPED"
+echo "${RESET}"
     fi
     temp_c=$(get_temp)
     echo "Current CPU temp: $temp_c°C"
