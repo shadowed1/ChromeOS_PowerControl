@@ -178,7 +178,6 @@ while true; do
         [Yy]* | "")  
             sudo mkdir -p "$INSTALL_DIR"
             break
-            echo ""
             ;;
         [Nn]*) 
             echo -e "${BLUE}Cancelled.${RESET}\n"
