@@ -149,8 +149,16 @@ sudo ectool fanduty "$initial_duty"
             DUTY=$((MIN_FAN + (OFFSET * (MAX_FAN - MIN_FAN) / RANGE)))
         fi
 
+
         # Apply hysteresis / gradual ramping with asymmetric steps
         HYSTERESIS=2  # percent
+             if (( last_duty < 50 )); then
+                effective_step_down=$((STEP_DOWN / 2))
+                (( effective_step_down < 1 )) && effective_step_down=1
+            else
+                effective_step_down=$STEP_DOWN
+            fi
+
             if (( last_duty < 0 )); then
                 target_duty=$DUTY
             elif (( DUTY > last_duty + HYSTERESIS )); then
@@ -162,8 +170,8 @@ sudo ectool fanduty "$initial_duty"
                 fi
             elif (( DUTY < last_duty - HYSTERESIS )); then
                 diff=$((last_duty - DUTY))
-                if (( diff > STEP_DOWN )); then
-                    target_duty=$((last_duty - STEP_DOWN))
+                if (( diff > effective_step_down )); then
+                    target_duty=$((last_duty - effective_step_down))
                 else
                     target_duty=$DUTY
                 fi
@@ -171,14 +179,17 @@ sudo ectool fanduty "$initial_duty"
                 target_duty=$last_duty  # No change if within hysteresis
             fi
 
-        KICKSTART_DUTY=50
+
 
         echo "$(date '+%Y-%m-%d %H:%M:%S') CPU: ${TEMP_C}°C -> Fan: ${target_duty}%" >> "$LOG_FILE"
 
-        if (( last_duty > 0 && target_duty == 0 )); then
-            echo "Applying kickstart at ${KICKSTART_DUTY}% before setting to 0%" >> "$LOG_FILE"
-            sudo ectool fanduty "$KICKSTART_DUTY" | grep -v "Fan duty cycle set for all fans." >> "$LOG_FILE"
-            sleep 1
+       if (( last_duty > 0 && target_duty == 0 )); then
+            echo "Applying kickstart ramp-up before setting to 0%" >> "$LOG_FILE"
+            for duty in 10 20 30 40; do
+                echo "  - Kickstart: ${duty}%" >> "$LOG_FILE"
+                sudo ectool fanduty "$duty" | grep -v "Fan duty cycle set for all fans." >> "$LOG_FILE"
+                sleep 0.3
+            done
             sudo ectool fanduty 0 | grep -v "Fan duty cycle set for all fans." >> "$LOG_FILE"
         else
             sudo ectool fanduty "$target_duty" | grep -v "Fan duty cycle set for all fans." >> "$LOG_FILE"
