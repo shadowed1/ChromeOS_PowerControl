@@ -150,15 +150,15 @@ echo "${RESET}"
 
 if [[ $# -eq 0 ]]; then
     load_config
-echo ""
+echo "${MAGENTA}"
 echo "╔════════════════════════════════════════════════╗"
-echo -n "║      ${GREEN}GPUControl Max Frequency: "
-get_current_freq "$GPU_TYPE"
+echo -n "║  GPUControl Max Frequency:"
+get_current_freq "${GREEN} $GPU_TYPE ${RESET}${MAGENTA}"
 echo "║  ${RESET}"
 echo "║  GPU Type: $GPU_TYPE"
 echo "║  Default Max Frequency: $ORIGINAL_GPU_MAX_FREQ"
 echo "╚════════════════════════════════════════════════╝"
-echo ""
+echo "${RESET}"
 
    if [[ "$GPU_TYPE" == "amd" && -f "$PP_OD_FILE" ]]; then
 echo "╔════════════════════════════════════════════════╗"
