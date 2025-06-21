@@ -153,20 +153,29 @@ detect_backlight_path() {
 
 INSTALL_DIR="/usr/local/bin/ChromeOS_PowerControl"
 echo "${YELLOW}"
-echo "╔═══════════════════════════════════════════════════════════════════════╗"
-echo "║  VT-2 (or enabling sudo in crosh) is required to run this installer!  ║"
-echo "║  Must be installed in a location without the noexec mount.            ║"
-echo "╚═══════════════════════════════════════════════════════════════════════╝"
+echo "╔═══════════════════════════════════════════════════════════════════════════════════════════════╗"
+echo "║             VT-2 (or enabling sudo in crosh) is required to run this installer!               ║"
+echo "║               Must be installed in a location without the noexec mount.                       ║"
+echo "╚═══════════════════════════════════════════════════════════════════════════════════════════════╝"
 echo "${RESET}"
 while true; do
-    read -rp "${GREEN}Enter desired Install Path - ${RESET}${GREEN}${BOLD}leave blank for default: $INSTALL_DIR:$RESET " choice
+echo "${GREEN}"
+echo "╔═══════════════════════════════════════════════════════════════════════════════════════════════╗"
+echo "║  Enter desired Install Path - leave blank for default: $INSTALL_DIR:                          ║" 
+echo "╚═══════════════════════════════════════════════════════════════════════════════════════════════╝"
+echo "${RESET}"
+    read -rp "> " choice
     if [ -n "$choice" ]; then
         INSTALL_DIR="${choice:-/usr/local/bin/ChromeOS_PowerControl}"
     fi
     INSTALL_DIR="${INSTALL_DIR%/}"
-
-    echo -e "\n${CYAN}You entered: ${BOLD}$INSTALL_DIR${RESET}"
-    read -rp "${YELLOW}${BOLD}Confirm this install path? Enter key counts as yes! (y/n): ${RESET}" confirm
+echo "${CYAN}"
+echo "════════════════════════════════════════════════════════════════════════════════════════════════"
+echo "You entered: $INSTALL_DIR"
+echo "Confirm this install path? Enter key counts as yes! (y/n):"
+echo "════════════════════════════════════════════════════════════════════════════════════════════════"
+echo "${RESET}"
+    read -rp "> " confirm
     case "$confirm" in
         [Yy]* | "")  
             sudo mkdir -p "$INSTALL_DIR"
