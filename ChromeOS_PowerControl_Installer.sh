@@ -172,6 +172,7 @@ while true; do
     case "$confirm" in
         [Yy]* | "")  
             sudo mkdir -p "$INSTALL_DIR"
+            ech0 ""
             break
             ;;
         [Nn]*) 
