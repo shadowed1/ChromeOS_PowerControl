@@ -56,7 +56,7 @@ if [ -f "/sys/class/drm/card0/device/pp_od_clk_voltage" ]; then
     mapfile -t SCLK_LINES < <(grep -i '^sclk' "$PP_OD_FILE")
 
     if [[ ${#SCLK_LINES[@]} -gt 0 ]]; then
-        # Extract MHz values using sed (case-insensitive)
+        # Extract MHz values using sed
         MAX_MHZ=$(printf '%s\n' "${SCLK_LINES[@]}" | sed -n 's/.*\([0-9]\{1,\}\)[Mm][Hh][Zz].*/\1/p' | sort -nr | head -n1)
         if [[ -n "$MAX_MHZ" ]]; then
             GPU_MAX_FREQ="$MAX_MHZ"
