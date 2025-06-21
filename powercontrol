@@ -399,7 +399,7 @@ echo "════════════════════════�
 echo "        PowerControl Status: STOPPED       "
     fi
     temp_c=$(get_temp)
-echo "  Current CPU: $temp_c°C               "
+echo "  CPU Temp: $temp_c°C               "
 echo "  Max Temp: $MAX_TEMP°C          "
 echo "  Min Temp: $MIN_TEMP°C          "
 echo "  Max CPU %: $MAX_PERF_PCT%   " 
