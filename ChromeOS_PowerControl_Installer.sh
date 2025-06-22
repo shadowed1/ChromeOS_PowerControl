@@ -11,14 +11,6 @@ SHOW_POWERCONTROL_NOTICE=0
 SHOW_BATTERYCONTROL_NOTICE=0
 SHOW_SLEEPCONTROL_NOTICE=0
 SHOW_GPUCONTROL_NOTICE=0
-INSTALL_DIR_FILE="/usr/local/bin/.ChromeOS_PowerControl.install_dir"
-if [ -f "$INSTALL_DIR_FILE" ]; then
-    INSTALL_DIR=$(cat "$INSTALL_DIR_FILE")
-else
-    INSTALL_DIR="/usr/local/bin/ChromeOS_PowerControl"
-fi
-INSTALL_DIR="${INSTALL_DIR%/}"
-
 detect_cpu_type() {
     CPU_VENDOR=$(grep -m1 'vendor_id' /proc/cpuinfo | awk '{print $3}' || echo "unknown")
     IS_INTEL=0
@@ -64,14 +56,12 @@ if [ -f "/sys/class/drm/card0/device/pp_od_clk_voltage" ]; then
     mapfile -t SCLK_LINES < <(grep -i '^sclk' "$PP_OD_FILE")
 
     if [[ ${#SCLK_LINES[@]} -gt 0 ]]; then
-        # Extract MHz values using sed (case-insensitive)
         MAX_MHZ=$(printf '%s\n' "${SCLK_LINES[@]}" | sed -n 's/.*\([0-9]\{1,\}\)[Mm][Hh][Zz].*/\1/p' | sort -nr | head -n1)
         if [[ -n "$MAX_MHZ" ]]; then
             GPU_MAX_FREQ="$MAX_MHZ"
             AMD_SELECTED_SCLK_INDEX=$(printf '%s\n' "${SCLK_LINES[@]}" | grep -in "$MAX_MHZ" | head -n1 | cut -d':' -f1)
             AMD_SELECTED_SCLK_INDEX=$((AMD_SELECTED_SCLK_INDEX - 1))
         else
-            # fallback default if parsing failed
             GPU_MAX_FREQ=0
             AMD_SELECTED_SCLK_INDEX=0
         fi
@@ -133,7 +123,7 @@ detect_backlight_path() {
             BACKLIGHT_NAME="$candidate"
             BRIGHTNESS_PATH="$BACKLIGHT_BASE/$candidate/brightness"
             MAX_BRIGHTNESS_PATH="$BACKLIGHT_BASE/$candidate/max_brightness"
-            # Make sure the files exist and are readable
+            
             if [ -r "$BRIGHTNESS_PATH" ] && [ -r "$MAX_BRIGHTNESS_PATH" ]; then
                 break
             else
@@ -161,10 +151,15 @@ detect_backlight_path() {
     fi
 }
 
-echo ""
-echo "${RED}VT-2 (or enabling sudo in crosh) is ${RESET}${BOLD}${RED}required${RESET}${RED} to run this installer.$RESET"
-echo "${YELLOW}Must be installed in a location without the ${RESET}${MAGENTA}${BOLD}noexec mount.$RESET"
-echo ""
+INSTALL_DIR="/usr/local/bin/ChromeOS_PowerControl"
+echo "${YELLOW}"
+echo "╔═══════════════════════════════════════════════════════════════════════════════════════════════╗"
+echo "║                                          NOTICE:                                              ║"
+echo "║                                                                                               ║"
+echo "║             VT-2 (or enabling sudo in crosh) is required to run this installer!               ║"
+echo "║               Must be installed in a location without the noexec mount.                       ║"
+echo "╚═══════════════════════════════════════════════════════════════════════════════════════════════╝"
+echo "${RESET}"
 while true; do
     read -rp "${GREEN}Enter desired Install Path - ${RESET}${GREEN}${BOLD}leave blank for default: $INSTALL_DIR:$RESET " choice
     if [ -n "$choice" ]; then
@@ -173,20 +168,22 @@ while true; do
     INSTALL_DIR="${INSTALL_DIR%/}"
 
     echo -e "\n${CYAN}You entered: ${BOLD}$INSTALL_DIR${RESET}"
-    read -rp "${YELLOW}${BOLD}Confirm this install path? Enter key counts as yes! (y/n): ${RESET}" confirm
+    read -rp "${YELLOW}${BOLD}Confirm this install path? Enter key counts as yes!${RESET}${BOLD} (Y/n): ${RESET}" confirm
     case "$confirm" in
         [Yy]* | "")  
             sudo mkdir -p "$INSTALL_DIR"
+            echo ""
             break
             ;;
         [Nn]*) 
             echo -e "${BLUE}Cancelled.${RESET}\n"
             ;;
         *) 
-            echo -e "${RED}Please answer y or n.${RESET}"
+            echo -e "${RED}Please answer Y/n.${RESET}"
             ;;
     esac
 done
+
 
 
 declare -a files=(
@@ -196,22 +193,26 @@ declare -a files=(
 )
 
 for file in "${files[@]}"; do
-    if [[ "$file" == "config.sh" && -f "$INSTALL_DIR/$file" ]]; then
-        echo "${GREEN}Skipping existing config: $INSTALL_DIR/$file ${RESET}"
+    dest="$INSTALL_DIR/$file"
+    if [[ "$file" == "config.sh" && -f "$dest" ]]; then
+        echo "${GREEN}Skipping existing config: $dest ${RESET}"
         echo ""
         continue
     fi
-    curl -L "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/$file" -o "$INSTALL_DIR/$file"
-    echo "$INSTALL_DIR/$file downloaded."
+        echo "Downloading $file to $dest..."
+    if curl -fsSL "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/$file" -o "$dest"; then
+        if grep -q "@INSTALL_DIR@" "$dest"; then
+            sed -i "s|@INSTALL_DIR@|$INSTALL_DIR|g" "$dest"
+        fi
+        chmod +x "$dest"
+    else
+        echo "${RED}Failed to download $file. Skipping.${RESET}"
+    fi
     echo ""
 done
 
-declare -a files=(".powercontrol_conf.sh" ".batterycontrol_conf.sh" ".fancontrol_conf.sh" ".gpucontrol_conf.sh" ".sleepcontrol_conf.sh")
-for file in "${files[@]}"; do
-    curl -L "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/$file" -o /usr/local/bin/$file
-    echo "/usr/local/bin/$file downloaded."
-    echo ""
-done
+
+
 
 detect_backlight_path
 detect_cpu_type
@@ -228,11 +229,9 @@ echo ""
 echo "${CYAN}Detected CPU Vendor: $CPU_VENDOR"
 echo "PERF_PATH: $PERF_PATH"
 echo "TURBO_PATH: $TURBO_PATH"
-echo "$INSTALL_DIR" | sudo tee /usr/local/bin/.ChromeOS_PowerControl.install_dir > /dev/null
 echo "$RESET"
 sudo chmod +x "$INSTALL_DIR/powercontrol" "$INSTALL_DIR/batterycontrol" "$INSTALL_DIR/fancontrol" "$INSTALL_DIR/gpucontrol" "$INSTALL_DIR/sleepcontrol" "$INSTALL_DIR/Uninstall_ChromeOS_PowerControl.sh" "$INSTALL_DIR/config.sh"
 sudo touch "$INSTALL_DIR/.batterycontrol_enabled" "$INSTALL_DIR/.powercontrol_enabled" "$INSTALL_DIR/.fancontrol_enabled"
-sudo touch "$INSTALL_DIR/.fancontrol_pid" "$INSTALL_DIR/.fancontrol_tail_fan_monitor.pid" "$INSTALL_DIR/.batterycontrol_pid" "$INSTALL_DIR/.powercontrol_tail_fan_monitor.pid" "$INSTALL_DIR/.powercontrol_pid" "$INSTALL_DIR/.sleepcontrol_monitor.pid"
 detect_gpu_freq
 echo "${MAGENTA}Detected GPU Type: $GPU_TYPE"
 echo "GPU_FREQ_PATH: $GPU_FREQ_PATH"
@@ -243,12 +242,7 @@ LOG_DIR="/var/log"
 CONFIG_FILE="$INSTALL_DIR/config.sh"
 sudo touch "$LOG_DIR/powercontrol.log" "$LOG_DIR/batterycontrol.log" "$LOG_DIR/fancontrol.log" "$LOG_DIR/gpucontrol.log" "$LOG_DIR/sleepcontrol.log"
 sudo chmod 644 "$LOG_DIR/powercontrol.log" "$LOG_DIR/batterycontrol.log" "$LOG_DIR/fancontrol.log" "$LOG_DIR/gpucontrol.log" "$LOG_DIR/sleepcontrol.log"
-sudo chmod +x /usr/local/bin/.powercontrol_conf.sh
-sudo chmod +x /usr/local/bin/.fancontrol_conf.sh
-sudo chmod +x /usr/local/bin/.batterycontrol_conf.sh
-sudo chmod +x /usr/local/bin/.gpucontrol_conf.sh
-sudo chmod +x /usr/local/bin/.sleepcontrol_conf.sh
-echo "${YELLOW}Log files for PowerControl, BatteryControl, and FanControl are stored in /var/log/$RESET"
+echo "${YELLOW}${BOLD}Log files for PowerControl, BatteryControl, FanControl, GPUControl, and SleepControl are stored in /var/log/$RESET"
 echo ""
 
 USER_HOME="/home/chronos"
@@ -260,6 +254,7 @@ declare -a ordered_keys=(
   "MIN_TEMP"
   "MIN_PERF_PCT"
   "HOTZONE"
+  "CPU_POLL"
   "RAMP_UP"
   "RAMP_DOWN"
   "CHARGE_MAX"
@@ -267,7 +262,7 @@ declare -a ordered_keys=(
   "FAN_MAX_TEMP"
   "MIN_FAN"
   "MAX_FAN"
-  "SLEEP_INTERVAL"
+  "FAN_POLL"
   "STEP_UP"
   "STEP_DOWN"
   "GPU_TYPE"
@@ -296,9 +291,9 @@ declare -a ordered_keys=(
 
 declare -a ordered_categories=("PowerControl" "BatteryControl" "FanControl" "GPUControl" "SleepControl" "Platform Configuration")
 declare -A categories=(
-  ["PowerControl"]="MAX_TEMP MIN_TEMP MAX_PERF_PCT MIN_PERF_PCT HOTZONE RAMP_UP RAMP_DOWN"
+  ["PowerControl"]="MAX_TEMP MIN_TEMP MAX_PERF_PCT MIN_PERF_PCT HOTZONE CPU_POLL RAMP_UP RAMP_DOWN"
   ["BatteryControl"]="CHARGE_MAX"
-  ["FanControl"]="MIN_FAN MAX_FAN FAN_MIN_TEMP FAN_MAX_TEMP STEP_UP STEP_DOWN SLEEP_INTERVAL"
+  ["FanControl"]="MIN_FAN MAX_FAN FAN_MIN_TEMP FAN_MAX_TEMP STEP_UP STEP_DOWN FAN_POLL"
   ["GPUControl"]="GPU_MAX_FREQ"
   ["SleepControl"]="BATTERY_DELAY BATTERY_BACKLIGHT BATTERY_DIM_DELAY POWER_DELAY POWER_BACKLIGHT POWER_DIM_DELAY AUDIO_DETECTION_BATTERY AUDIO_DETECTION_POWER"
   ["Platform Configuration"]="IS_AMD IS_INTEL IS_ARM PERF_PATH TURBO_PATH GPU_TYPE GPU_FREQ_PATH ORIGINAL_GPU_MAX_FREQ PP_OD_FILE AMD_SELECTED_SCLK_INDEX BACKLIGHT_NAME BRIGHTNESS_PATH MAX_BRIGHTNESS_PATH"
@@ -310,6 +305,7 @@ if [[ -z "${MIN_TEMP}" ]]; then MIN_TEMP=60; fi
 if [[ -z "${MAX_PERF_PCT}" ]]; then MAX_PERF_PCT=100; fi
 if [[ -z "${MIN_PERF_PCT}" ]]; then MIN_PERF_PCT=40; fi
 if [[ -z "${HOTZONE}" ]]; then HOTZONE=80; fi
+if [[ -z "${CPU_POLL}" ]]; then CPU_POLL=1; fi
 if [[ -z "${RAMP_UP}" ]]; then RAMP_UP=15; fi
 if [[ -z "${RAMP_DOWN}" ]]; then RAMP_DOWN=20; fi
 if [[ -z "${CHARGE_MAX}" ]]; then CHARGE_MAX=77; fi
@@ -319,7 +315,7 @@ if [[ -z "${FAN_MIN_TEMP}" ]]; then FAN_MIN_TEMP=46; fi
 if [[ -z "${FAN_MAX_TEMP}" ]]; then FAN_MAX_TEMP=80; fi
 if [[ -z "${STEP_UP}" ]]; then STEP_UP=20; fi
 if [[ -z "${STEP_DOWN}" ]]; then STEP_DOWN=1; fi
-if [[ -z "${SLEEP_INTERVAL}" ]]; then SLEEP_INTERVAL=3; fi
+if [[ -z "${FAN_POLL}" ]]; then FAN_POLL=3; fi
 if [[ -z "${BATTERY_DELAY}" ]]; then BATTERY_DELAY=12; fi
 if [[ -z "${BATTERY_BACKLIGHT}" ]]; then BATTERY_BACKLIGHT=7; fi
 if [[ -z "${BATTERY_DIM_DELAY}" ]]; then BATTERY_DIM_DELAY=3; fi
@@ -336,6 +332,7 @@ declare -A defaults=(
   [MAX_PERF_PCT]=$MAX_PERF_PCT
   [MIN_PERF_PCT]=$MIN_PERF_PCT
   [HOTZONE]=$HOTZONE
+  [CPU_POLL]=$CPU_POLL
   [RAMP_UP]=$RAMP_UP
   [RAMP_DOWN]=$RAMP_DOWN
   [CHARGE_MAX]=$CHARGE_MAX
@@ -345,7 +342,7 @@ declare -A defaults=(
   [FAN_MAX_TEMP]=$FAN_MAX_TEMP
   [STEP_UP]=$STEP_UP
   [STEP_DOWN]=$STEP_DOWN
-  [SLEEP_INTERVAL]=$SLEEP_INTERVAL
+  [FAN_POLL]=$FAN_POLL
   [GPU_MAX_FREQ]=$GPU_MAX_FREQ
   [GPU_TYPE]=$GPU_TYPE
   [BATTERY_DELAY]=$BATTERY_DELAY
@@ -387,16 +384,18 @@ for category in "${ordered_categories[@]}"; do
   echo >> "$CONFIG_FILE"
 done
 echo "${GREEN}${BOLD}Installing to: $INSTALL_DIR $RESET"
+echo ""
+echo ""
 
 
-read -rp "Enable ${BOLD}Global Commands${RESET} for ${RESET}${BOLD}${CYAN}PowerControl${RESET}, ${GREEN}${BOLD}BatteryControl${RESET}, ${YELLOW}${BOLD}FanControl${RESET}, ${MAGENTA}GPUControl${RESET}, ${BLUE}SleepControl${RESET}? (y/n):$RESET " link_cmd
+read -rp "Enable ${BOLD}Global Commands${RESET} for ${RESET}${BOLD}${CYAN}PowerControl${RESET}, ${GREEN}${BOLD}BatteryControl${RESET}, ${YELLOW}${BOLD}FanControl${RESET}, ${BOLD}${MAGENTA}GPUControl${RESET}, ${BOLD}${BLUE}SleepControl${RESET}?${RESET}${BOLD} (Y/n):$RESET " link_cmd
 if [[ -z "$link_cmd" || "$link_cmd" =~ ^[Yy]$ ]]; then
     sudo ln -sf "$INSTALL_DIR/powercontrol" /usr/local/bin/powercontrol
     sudo ln -sf "$INSTALL_DIR/batterycontrol" /usr/local/bin/batterycontrol
     sudo ln -sf "$INSTALL_DIR/fancontrol" /usr/local/bin/fancontrol
     sudo ln -sf "$INSTALL_DIR/gpucontrol" /usr/local/bin/gpucontrol
     sudo ln -sf "$INSTALL_DIR/sleepcontrol" /usr/local/bin/sleepcontrol
-    echo "Global commands created for 'powercontrol', 'batterycontrol', 'fancontrol', 'gpucontrol', 'sleepcontrol'."
+    echo "Symbolic links created!"
     echo ""
 else
     echo "Skipped creating global commands."
@@ -424,7 +423,7 @@ enable_component_on_boot() {
         *)                COLOR=${RESET} ;;
     esac
     
-    read -rp "${COLOR}Do you want $component enabled on boot? (y/n):${RESET} " move_config
+    read -rp "${COLOR}Do you want $component enabled on boot?${RESET}${BOLD} (Y/n):${RESET} " move_config
     if [[ -z "$move_config" || "$move_config" =~ ^[Yy]$ ]]; then
         sudo cp "$config_file" "$target_file"
         echo "$component will start on boot."
@@ -440,12 +439,16 @@ enable_component_on_boot() {
         echo ""
     fi
 }
+if [[ -z "$link_cmd" || "$link_cmd" =~ ^[Yy]$ ]]; then
+    enable_component_on_boot "BatteryControl" "$INSTALL_DIR/batterycontrol.conf"
+    enable_component_on_boot "PowerControl" "$INSTALL_DIR/powercontrol.conf"
+    enable_component_on_boot "FanControl" "$INSTALL_DIR/fancontrol.conf"
+    enable_component_on_boot "GPUControl" "$INSTALL_DIR/gpucontrol.conf"
+    enable_component_on_boot "SleepControl" "$INSTALL_DIR/sleepcontrol.conf"
+else
+    echo "Skipping boot-time setup since global commands were declined."
+fi
 
-enable_component_on_boot "BatteryControl" "$INSTALL_DIR/batterycontrol.conf"
-enable_component_on_boot "PowerControl" "$INSTALL_DIR/powercontrol.conf"
-enable_component_on_boot "FanControl" "$INSTALL_DIR/fancontrol.conf"
-enable_component_on_boot "GPUControl" "$INSTALL_DIR/gpucontrol.conf"
-enable_component_on_boot "SleepControl" "$INSTALL_DIR/sleepcontrol.conf"
 
 if grep -q '^STARTUP_GPUCONTROL=1' "$CONFIG_FILE"; then
     SHOW_GPUCONTROL_NOTICE=1
@@ -461,13 +464,11 @@ fi
 if grep -q '^STARTUP_POWERCONTROL=1' "$CONFIG_FILE"; then
     SHOW_POWERCONTROL_NOTICE=1
 fi
-
 start_component_now() {
-   
     local component="$1"
     local command="$2"
     local COLOR
-    
+
     case "$component" in
         "PowerControl")   COLOR=${CYAN}${BOLD} ;;
         "GPUControl")     COLOR=${MAGENTA}${BOLD} ;;
@@ -476,25 +477,65 @@ start_component_now() {
         "SleepControl")   COLOR=${BLUE}${BOLD} ;;
         *)                COLOR=${RESET} ;;
     esac
-   
-    read -rp "${COLOR}Do you want to start $component now? (y/n): ${RESET} " start_now
+
+    read -rp "${COLOR}Do you want to start $component now?${RESET}${BOLD} (Y/n): ${RESET} " start_now
     if [[ -z "$start_now" || "$start_now" =~ ^[Yy]$ ]]; then
         sudo "$command" start
         echo ""
+
         if [[ "$component" == "BatteryControl" ]]; then
-            SHOW_BATTERYCONTROL_NOTICE=1
+            declare -g SHOW_BATTERYCONTROL_NOTICE=1
         fi
+
         if [[ "$component" == "GPUControl" ]]; then
-            SHOW_GPUCONTROL_NOTICE=1
+            declare -g SHOW_GPUCONTROL_NOTICE=1
         fi
+
         if [[ "$component" == "SleepControl" ]]; then
-            SHOW_SLEEPCONTROL_NOTICE=1
+            declare -g SHOW_SLEEPCONTROL_NOTICE=1
         fi
+
+        if [[ "$component" == "PowerControl" ]]; then
+            declare -g SHOW_POWERCONTROL_NOTICE=1
+
+            if [[ -e /sys/devices/system/cpu/intel_pstate/no_turbo ]]; then
+                read -rp "${BOLD}${CYAN}Do you want Intel Turbo Boost ${RESET}${BOLD}${BLUE}disabled on boot${RESET}${BOLD}${CYAN}?${RESET}${BOLD} (Y/n):$RESET " move_no_turbo
+                if [[ -z "$move_no_turbo" || "$move_no_turbo" =~ ^[Yy]$ ]]; then
+                    sudo cp "$INSTALL_DIR/no_turbo.conf" /etc/init/
+                    echo "Turbo Boost will be disabled on restart."
+                    echo "${CYAN}sudo powercontrol startup${RESET}     # To re-enable Turbo Boost on boot."
+                    echo ""
+                else
+                    sudo rm -f /etc/init/no_turbo.conf
+                    echo "Turbo Boost will remain enabled."
+                    echo "${CYAN}sudo powercontrol startup${RESET}     # To disable Intel Turbo Boost on boot."
+                    echo ""
+                fi
+
+                read -rp "${BOLD}${CYAN}Do you want to ${RESET}${BOLD}${BLUE}disable${RESET}${CYAN}${BOLD} Intel Turbo Boost ${RESET}${BOLD}${BLUE}now${RESET}${BOLD}${CYAN}?${RESET}${BOLD} (Y/n):$RESET " run_no_turbo
+                if [[ -z "$run_no_turbo" || "$run_no_turbo" =~ ^[Yy]$ ]]; then
+                    echo 1 | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo > /dev/null
+                    echo "Turbo Boost disabled immediately."
+                    echo "${CYAN}sudo powercontrol no_turbo 0${RESET}     # To re-enable Intel Turbo Boost"
+                    echo ""
+                else
+                    echo 0 | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo > /dev/null
+                    echo "Turbo Boost remains enabled."
+                    echo "${CYAN}sudo powercontrol no_turbo 1${RESET}    # To disable Intel Turbo Boost"
+                    echo ""
+                fi
+            else
+                echo "This is not an Intel CPU, skipping Turbo Boost options."
+                echo ""
+            fi
+        fi
+
     else
         echo "You can run it later with: sudo $command start"
         echo ""
     fi
 }
+
 
 
 echo "${BLUE}Stopping any running components of PowerControl${RESET}"
@@ -517,111 +558,153 @@ start_component_now "FanControl" "$INSTALL_DIR/fancontrol"
 start_component_now "SleepControl" "$INSTALL_DIR/sleepcontrol"
 
 echo ""
-echo "           ${RED}████████████${RESET}           "
-echo "       ${RED}████${RESET}        ${RED}████${RESET}       "
-echo "     ${RED}██${RESET}              ${YELLOW}██${RESET}     "
-echo "   ${GREEN}██${RESET}     ${BLUE}██████${RESET}     ${YELLOW}██${RESET}   "
-echo "  ${GREEN}██${RESET}     ${BLUE}████████${RESET}     ${YELLOW}██${RESET}  "
-echo "  ${GREEN}██${RESET}     ${BLUE}████████${RESET}     ${YELLOW}██${RESET}  "
-echo "   ${GREEN}██${RESET}     ${BLUE}██████${RESET}     ${YELLOW}██${RESET}   "
-echo "     ${GREEN}██${RESET}              ${YELLOW}██${RESET}     "
-echo "       ${GREEN}████${RESET}        ${YELLOW}████${RESET}       "
-echo "           ${GREEN}████████████${RESET}           "
+echo "                                                      ${RED}████████████${RESET}           "
+echo "                                                  ${RED}████${RESET}        ${RED}████${RESET}       "
+echo "                                                ${RED}██${RESET}              ${YELLOW}██${RESET}     "
+echo "                                              ${GREEN}██${RESET}     ${BLUE}██████${RESET}     ${YELLOW}██${RESET}   "
+echo "                                             ${GREEN}██${RESET}     ${BLUE}████████${RESET}     ${YELLOW}██${RESET}  "
+echo "                                             ${GREEN}██${RESET}     ${BLUE}████████${RESET}     ${YELLOW}██${RESET}  "
+echo "                                              ${GREEN}██${RESET}     ${BLUE}██████${RESET}     ${YELLOW}██${RESET}   "
+echo "                                                ${GREEN}██${RESET}              ${YELLOW}██${RESET}     "
+echo "                                                  ${GREEN}████${RESET}        ${YELLOW}████${RESET}       "
+echo "                                                      ${GREEN}████████████${RESET}           "
 echo ""
-echo "     ${BOLD}${GREEN}Chrome${RESET}${BOLD}${RED}OS${RESET}${BOLD}${YELLOW}_${RESET}${BOLD}${BLUE}PowerControl${RESET}"
+echo "                                         ${RED}╔═══════════════════════════════╗${RESET}"
+echo "                                         ${YELLOW}║ ╔═══════════════════════════╗ ║${RESET}"
+echo "                                         ${GREEN}║ ║ ╔═══════════════════════╗ ║ ║${RESET}"
+echo "                                         ${RESET}║ ║ ║ ChromeOS_PowerControl ║ ║ ║${RESET}"
+echo "                                         ${CYAN}║ ║ ╚═══════════════════════╝ ║ ║${RESET}"
+echo "                                         ${BLUE}║ ╚═══════════════════════════╝ ║${RESET}"
+echo "                                         ${MAGENTA}╚═══════════════════════════════╝${RESET}"
 echo ""
 echo ""
-echo ""
-echo "${BOLD}Commands with examples: ${RESET}"
+echo "                                              Commands with examples:"
 echo "${CYAN}"
-echo "# PowerControl:"
-echo "sudo powercontrol                     # Show status"
-echo "sudo powercontrol start               # Throttle CPU based on temperature curve"
-echo "sudo powercontrol stop                # Restore default CPU settings"
-echo "sudo powercontrol no_turbo 1          # 0 = Enable, 1 = Disable Turbo Boost"
-echo "sudo powercontrol max_perf_pct 75     # Set max performance percentage"
-echo "sudo powercontrol min_perf_pct 50     # Set minimum performance at max temp"
-echo "sudo powercontrol max_temp 86         # Max temperature threshold - Limit is 90°C"
-echo "sudo powercontrol min_temp 60         # Min temperature threshold"
-echo "sudo powercontrol hotzone 78          # Temperature threshold for aggressive thermal management"
-echo "sudo powercontrol ramp_up 15          # % in steps CPU will increase in clockspeed per second"
-echo "sudo powercontrol ramp_down 20        # % in steps CPU will decrease in clockspeed per second"
-echo "sudo powercontrol monitor             # Toggle on/off live monitoring in terminal"
-echo "sudo powercontrol startup             # Copy or Remove no_turbo.conf & powercontrol.conf at: /etc/init/"
-echo "sudo powercontrol version             # Check PowerControl version"
-echo "sudo powercontrol help                # Help menu"
-echo "${RESET}${GREEN}"
-echo "# BatteryControl:"
-echo "sudo batterycontrol                   # Check BatteryControl status"
-echo "sudo batterycontrol start             # Start BatteryControl"
-echo "sudo batterycontrol stop              # Stop BatteryControl"
-echo "sudo batterycontrol 77                # Charge limit set to 77% - minimum of 14% allowed"
-echo "sudo batterycontrol startup           # Copy or Remove batterycontrol.conf at: /etc/init/"
-echo "sudo batterycontrol help              # Help menu"
-echo "${RESET}${YELLOW}"
-echo "# FanControl:"
-echo "sudo fancontrol                       # Show FanControl status"
-echo "sudo fancontrol start                 # Start FanControl"
-echo "sudo fancontrol stop                  # Stop FanControl"
-echo "sudo fancontrol fan_min_temp 48       # Min temp threshold"
-echo "sudo fancontrol fan_max_temp 81       # Max temp threshold - Limit is 90°C"
-echo "sudo fancontrol min_fan 0             # Min fan speed %"
-echo "sudo fancontrol max_fan 100           # Max fan speed %"
-echo "sudo fancontrol step_up 20            # Fan step-up %"
-echo "sudo fancontrol step_down 1           # Fan step-down %"
-echo "sudo fancontrol monitor               # Toggle on/off live monitoring in terminal"
-echo "sudo fancontrol startup               # Copy or Remove fancontrol.conf at: /etc/init/"
-echo "sudo fancontrol help                  # Help menu"
-echo "${RESET}${MAGENTA}"
-echo "# GPUControl:"
-echo "sudo gpucontrol                       # Show current GPU info and frequency"
-echo "sudo gpucontrol restore               # Restore GPU max frequency to original value"
-echo "sudo gpucontrol intel 700             # Set Intel GPU max frequency to 700 MHz"
-echo "sudo gpucontrol amd 800               # Set AMD GPU max frequency to 800 MHz - rounds down to nearest pp_od_clk_voltage index"
-echo "sudo gpucontrol adreno 500000         # Set Adreno GPU max frequency to 500000 kHz (or 500 MHz)"
-echo "sudo gpucontrol mali 600000           # Set Mali GPU max frequency to 600000 kHz (or 600 MHz)"
-echo "sudo gpucontrol startup               # Copy or Remove gpucontrol.conf at: /etc/init/"
-echo "sudo gpucontrol help                  # Help menu"
-echo "${RESET}${BLUE}"
-echo "# SleepControl"
-echo "sudo sleepcontrol                     # Show SleepControl status"
-echo "sudo sleepcontrol start               # Start SleepControl"
-echo "sudo sleepcontrol stop                # Stop SleepControl"
-echo "sudo sleepcontrol battery 3 7 12      # When idle, display dims in 3m, timeout in 7m, and ChromeOS sleeps in 12m when on battery"
-echo "sudo sleepcontrol power 5 15 30       # When idle, display dims in 5m, timeout in 15m and ChromeOS sleeps in 30m when plugged-in"
-echo "sudo sleepcontrol battery audio 0     # Disable audio detection on battery; sleep can occur during media playback"
-echo "sudo sleepcontrol power audio 1       # Enable audio detection on power; delaying sleep until audio is stopped"
-echo "sudo sleepcontrol startup             # Copy or Remove sleepcontrol.conf at: /etc/init/"
-echo "sudo sleepcontrol help                # Help menu"
-echo "${RESET}${BOLD}"
-echo "${CYAN}#${RESET} ${BOLD}${GREEN}Chrome${RESET}${BOLD}${RED}OS${RESET}${BOLD}${YELLOW}_${RESET}${BOLD}${BLUE}PowerControl${RESET}:${CYAN}"
-echo "sudo powercontrol reinstall           # Download and reinstall ChromeOS_PowerControl from Github."
-echo "sudo powercontrol uninstall           # Run uninstaller."
-echo "sudo bash "$INSTALL_DIR/Uninstall_ChromeOS_PowerControl.sh"    # Alternate uninstall method$RESET"
-echo ""
-echo "${BOLD}Installation Complete!${RESET}"
-echo ""
-if [[ "$SHOW_POWERCONTROL_NOTICE" -eq 1 ]]; then
-echo ""
-echo "${BLUE}${BOLD}Intel Inside!${RESET}"
-echo "${CYAN}To further enhance battery life and lower temps, toggling Intel Turbo boost is available using PowerControl.${RESET}"
-echo ""
-fi
+echo "╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
+echo "║                                                  PowerControl:                                                     ║"
+echo "╠════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣"
+echo "║                                                                                                                    ║"
+echo "║  sudo powercontrol                  # Show status                                                                  ║"
+echo "║  sudo powercontrol start            # Throttle CPU based on temperature curve                                      ║"
+echo "║  sudo powercontrol stop             # Restore default CPU settings                                                 ║"
+echo "║  sudo powercontrol no_turbo 1       # 0 = Enable, 1 = Disable Turbo Boost                                          ║"
+echo "║  sudo powercontrol max_perf_pct 75  # Set max performance percentage                                               ║"
+echo "║  sudo powercontrol min_perf_pct 50  # Set minimum performance at max temp                                          ║"
+echo "║  sudo powercontrol max_temp 86      # Max temperature threshold - Limit is 90°C                                    ║"
+echo "║  sudo powercontrol min_temp 60      # Min temperature threshold                                                    ║"
+echo "║  sudo powercontrol hotzone 78       # Temperature threshold for aggressive thermal management                      ║"
+echo "║  sudo powercontrol cpu_poll 1       # Interval in seconds PowerControl operates at (0.1s to 5s)                    ║"
+echo "║  sudo powercontrol ramp_up 15       # % in steps CPU will increase in clockspeed per second                        ║"
+echo "║  sudo powercontrol ramp_down 20     # % in steps CPU will decrease in clockspeed per second                        ║"
+echo "║  sudo powercontrol monitor          # Toggle on/off live monitoring in terminal                                    ║"
+echo "║  sudo powercontrol startup          # Copy or Remove no_turbo.conf & powercontrol.conf at: /etc/init/              ║"
+echo "║  sudo powercontrol help             # Help menu                                                                    ║"
+echo "║                                                                                                                    ║"
+echo "╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝"
+echo "${RESET}${GREEN}╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
+echo "║                                                 BatteryControl:                                                    ║"
+echo "╠════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣"
+echo "║                                                                                                                    ║"
+echo "║  sudo batterycontrol          # Check BatteryControl status                                                        ║"
+echo "║  sudo batterycontrol start    # Start BatteryControl                                                               ║"
+echo "║  sudo batterycontrol stop     # Stop BatteryControl                                                                ║"
+echo "║  sudo batterycontrol 77       # Charge limit set to 77% - minimum of 14% allowed                                   ║"
+echo "║  sudo batterycontrol startup  # Copy or Remove batterycontrol.conf at: /etc/init/                                  ║"
+echo "║  sudo batterycontrol help     # Help menu                                                                          ║"
+echo "║                                                                                                                    ║"
+echo "╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝"
+echo "${RESET}${YELLOW}╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
+echo "║                                                  FanControl:                                                       ║"
+echo "╠════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣"
+echo "║                                                                                                                    ║"
+echo "║  sudo fancontrol                  # Show FanControl status                                                         ║"
+echo "║  sudo fancontrol start            # Start FanControl                                                               ║"
+echo "║  sudo fancontrol stop             # Stop FanControl                                                                ║"
+echo "║  sudo fancontrol fan_min_temp 48  # Min temp threshold                                                             ║"
+echo "║  sudo fancontrol fan_max_temp 81  # Max temp threshold - Limit is 90°C                                             ║"
+echo "║  sudo fancontrol min_fan 0        # Min fan speed %                                                                ║"
+echo "║  sudo fancontrol max_fan 100      # Max fan speed %                                                                ║"
+echo "║  sudo fancontrol step_up 20       # Fan step-up %                                                                  ║"
+echo "║  sudo fancontrol step_down 1      # Fan step-down %                                                                ║"
+echo "║  sudo fancontrol poll 2           # FanControl polling rate in seconds (1 to 10s)                                  ║"
+echo "║  sudo fancontrol monitor          # Toggle on/off live monitoring in terminal                                      ║"
+echo "║  sudo fancontrol startup          # Copy or Remove fancontrol.conf at: /etc/init/                                  ║"
+echo "║  sudo fancontrol help             # Help menu                                                                      ║"
+echo "║                                                                                                                    ║"
+echo "╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝"
+echo "${RESET}${MAGENTA}╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
+echo "║                                                   GPUControl:                                                      ║"
+echo "╠════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣"
+echo "║                                                                                                                    ║"
+echo "║  sudo gpucontrol                # Show current GPU info and frequency                                              ║"
+echo "║  sudo gpucontrol restore        # Restore GPU max frequency to original value                                      ║"
+echo "║  sudo gpucontrol intel 700      # Set Intel GPU max frequency to 700 MHz                                           ║"
+echo "║  sudo gpucontrol amd 800        # Set AMD GPU max frequency to 800 MHz - rounds down to pp_od_clk_voltage index    ║"
+echo "║  sudo gpucontrol adreno 500000  # Set Adreno GPU max frequency to 500000 kHz (or 500 MHz)                          ║"
+echo "║  sudo gpucontrol mali 600000    # Set Mali GPU max frequency to 600000 kHz (or 600 MHz)                            ║"
+echo "║  sudo gpucontrol startup        # Copy or Remove gpucontrol.conf at: /etc/init/                                    ║"
+echo "║  sudo gpucontrol help           # Help menu                                                                        ║"
+echo "║                                                                                                                    ║"
+echo "╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝"
+echo "${RESET}${BLUE}╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
+echo "║                                                  SleepControl                                                      ║"
+echo "╠════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣"
+echo "║                                                                                                                    ║"
+echo "║  sudo sleepcontrol                  # Show SleepControl status                                                     ║"
+echo "║  sudo sleepcontrol start            # Start SleepControl                                                           ║"
+echo "║  sudo sleepcontrol stop             # Stop SleepControl                                                            ║"
+echo "║  sudo sleepcontrol battery 3 7 12   # When idle, display dims in 3m -> timeout in 7m -> sleeps in 12m on battery   ║"
+echo "║  sudo sleepcontrol power 5 15 30    # When idle, display dims in 5m -> timeout -> 15m -> sleeps in 30m plugged-in  ║"
+echo "║  sudo sleepcontrol battery audio 0  # Disable audio detection on battery; sleep can occur during media playback    ║"
+echo "║  sudo sleepcontrol power audio 1    # Enable audio detection on power; delaying sleep until audio is stopped       ║"
+echo "║  sudo sleepcontrol startup          # Copy or Remove sleepcontrol.conf at: /etc/init/                              ║"
+echo "║  sudo sleepcontrol help             # Help menu                                                                    ║"
+echo "║                                                                                                                    ║"
+echo "╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝"
+echo "${RESET}${CYAN}${BOLD}╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
+echo "║                                              ChromeOS_PowerControl                                                 ║"
+echo "╠════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣"
+echo "║                                                                                                                    ║"
+echo "║  sudo powercontrol version    # Check PowerControl version                                                         ║"
+echo "║  sudo powercontrol reinstall  # Download and reinstall ChromeOS_PowerControl                                       ║"
+echo "║  sudo powercontrol uninstall  # Run uninstaller                                                                    ║"
+echo "║                                                                                                                    ║"
+echo "╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝"
+echo "   sudo bash "$INSTALL_DIR/Uninstall_ChromeOS_PowerControl.sh"  # Alternate uninstall method"
+echo " ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════"
+echo "${RESET}"
+
 if [[ "$SHOW_BATTERYCONTROL_NOTICE" -eq 1 ]]; then
-echo ""
-echo "${GREEN}${BOLD}BatteryControl:${RESET}"
-echo "${GREEN}Disable Adaptive Charging in Settings → System Preferences → Power to avoid notification spam.${RESET}"
-echo ""
+echo "${GREEN}"
+echo "╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
+echo "║   ${RESET}${GREEN}${BOLD}BatteryControl Notice:${RESET}${GREEN}                                                                                           ║"
+echo "║   Disable Adaptive Charging in Settings → System Preferences → Power to avoid notification spam.                   ║"
+echo "╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝"
+echo "${RESET}"
 fi
-if [[ "$SHOW_SLEEPCONTROL_NOTICE" -eq 1 ]]; then
-echo ""
-echo "${BLUE}${BOLD}SleepControl:${RESET}"
-echo "${BLUE}Overrides 'While inactive' preferences in System Preferences -> Power. Customize using commands above.${RESET}"
-echo ""
-fi
+
 if [[ "$SHOW_GPUCONTROL_NOTICE" -eq 1 ]]; then
-echo ""
-echo "${MAGENTA}${BOLD}GPUControl:${RESET}"
-echo "${MAGENTA}As a precaution GPUControl has a ${RESET}${BOLD}${MAGENTA}2 minute delay${RESET}${MAGENTA} before applying custom clockspeed on boot.${RESET}"
-echo ""
+echo "${MAGENTA}"
+echo "╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
+echo "║  ${RESET}${MAGENTA}${BOLD}GPUControl Notice:${RESET}${MAGENTA}                                                                                                ║"
+echo "║  As a precaution GPUControl has a 2 minute delay before applying custom clockspeed on boot.                        ║"
+echo "╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝"
+echo "${RESET}"
 fi
+
+if [[ "$SHOW_SLEEPCONTROL_NOTICE" -eq 1 ]]; then
+echo "${BLUE}"
+echo "╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
+echo "║  ${RESET}${BLUE}${BOLD}SleepControl Notice:${RESET}${BLUE}                                                                                              ║"
+echo "║  Overrides 'While inactive' preferences in System Preferences -> Power. Customize using commands above.            ║"
+echo "╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝"
+echo "${RESET}"
+fi
+echo "                                      ${RED}╔═══════════════════════════════╗${RESET}"
+echo "                                      ${YELLOW}║ ╔═══════════════════════════╗ ║${RESET}"
+echo "                                      ${GREEN}║ ║ ╔═══════════════════════╗ ║ ║${RESET}"
+echo "                                      ${RESET}║ ║ ║ Installation Complete ║ ║ ║${RESET}"
+echo "                                      ${CYAN}║ ║ ╚═══════════════════════╝ ║ ║${RESET}"
+echo "                                      ${BLUE}║ ╚═══════════════════════════╝ ║${RESET}"
+echo "                                      ${MAGENTA}╚═══════════════════════════════╝${RESET}"
+echo ""
