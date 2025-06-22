@@ -485,7 +485,11 @@ uninstall_script() {
     if [ -d "$INSTALL_DIR" ]; then
         if [ -x "$script" ]; then
             echo "Uninstalling ChromeOS PowerControl..."
-            sudo bash "$script"
+            nohup sudo bash "$script" > /tmp/powercontrol_uninstall.log 2>&1 &
+            disown
+            echo "Uninstaller started in background."
+            echo "Check progress in: /tmp/powercontrol_uninstall.log"
+            exit 0
         else
             echo "${RED}Uninstall script not found or not executable at: $script${RESET}"
             exit 1
@@ -495,6 +499,7 @@ uninstall_script() {
         exit 1
     fi
 }
+
 
 show_help() {
     echo "${CYAN}"
