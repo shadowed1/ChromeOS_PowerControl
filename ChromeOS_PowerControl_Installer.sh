@@ -462,13 +462,11 @@ fi
 if grep -q '^STARTUP_POWERCONTROL=1' "$CONFIG_FILE"; then
     SHOW_POWERCONTROL_NOTICE=1
 fi
-
 start_component_now() {
-   
     local component="$1"
     local command="$2"
     local COLOR
-    
+
     case "$component" in
         "PowerControl")   COLOR=${CYAN}${BOLD} ;;
         "GPUControl")     COLOR=${MAGENTA}${BOLD} ;;
@@ -477,35 +475,27 @@ start_component_now() {
         "SleepControl")   COLOR=${BLUE}${BOLD} ;;
         *)                COLOR=${RESET} ;;
     esac
-   
+
     read -rp "${COLOR}Do you want to start $component now? (Y/n): ${RESET} " start_now
     if [[ -z "$start_now" || "$start_now" =~ ^[Yy]$ ]]; then
         sudo "$command" start
         echo ""
 
-        
         if [[ "$component" == "BatteryControl" ]]; then
             declare -g SHOW_BATTERYCONTROL_NOTICE=1
         fi
-        
+
         if [[ "$component" == "GPUControl" ]]; then
             declare -g SHOW_GPUCONTROL_NOTICE=1
         fi
-        
+
         if [[ "$component" == "SleepControl" ]]; then
             declare -g SHOW_SLEEPCONTROL_NOTICE=1
         fi
-        
+
         if [[ "$component" == "PowerControl" ]]; then
             declare -g SHOW_POWERCONTROL_NOTICE=1
-        fi
 
-    else
-        echo "You can run it later with: sudo $command start"
-        echo ""
-    fi
-
-         if [[ "$component" == "PowerControl" && "$started_now" -eq 1 ]]; then
             if [[ -e /sys/devices/system/cpu/intel_pstate/no_turbo ]]; then
                 read -rp "${BOLD}${CYAN}Do you want Intel Turbo Boost ${RESET}${BOLD}${BLUE}disabled on boot${RESET}${BOLD}${CYAN}? (Y/n):$RESET " move_no_turbo
                 if [[ -z "$move_no_turbo" || "$move_no_turbo" =~ ^[Yy]$ ]]; then
@@ -519,7 +509,7 @@ start_component_now() {
                     echo "${CYAN}sudo powercontrol startup${RESET}     # To disable Intel Turbo Boost on boot."
                     echo ""
                 fi
-        
+
                 read -rp "${BOLD}${CYAN}Do you want to ${RESET}${BOLD}${BLUE}disable${RESET}${CYAN}${BOLD} Intel Turbo Boost ${RESET}${BOLD}${BLUE}now?${RESET}${BOLD}${CYAN} (Y/n):$RESET " run_no_turbo
                 if [[ -z "$run_no_turbo" || "$run_no_turbo" =~ ^[Yy]$ ]]; then
                     echo 1 | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo > /dev/null
@@ -538,7 +528,12 @@ start_component_now() {
             fi
         fi
 
+    else
+        echo "You can run it later with: sudo $command start"
+        echo ""
+    fi
 }
+
 
 
 echo "${BLUE}Stopping any running components of PowerControl${RESET}"
