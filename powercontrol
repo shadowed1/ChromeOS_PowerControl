@@ -7,21 +7,13 @@ MAGENTA=$(tput setaf 5)
 CYAN=$(tput setaf 6)
 BOLD=$(tput bold)
 RESET=$(tput sgr0)
-INSTALL_DIR_FILE="/usr/local/bin/.ChromeOS_PowerControl.install_dir"
-if [ -f "$INSTALL_DIR_FILE" ]; then
-    INSTALL_DIR=$(cat "$INSTALL_DIR_FILE")
-else
-    INSTALL_DIR="/usr/local/bin/ChromeOS_PowerControl"
-fi
-INSTALL_DIR="${INSTALL_DIR%/}"
-
+INSTALL_DIR="@INSTALL_DIR@"
 CONFIG_FILE="$INSTALL_DIR/config.sh"
 LOG_FILE="/var/log/powercontrol.log"
 RUN_FLAG="$INSTALL_DIR/.powercontrol_enabled"
 PID_FILE="$INSTALL_DIR/.powercontrol_pid"
 VERSION_FILE="$INSTALL_DIR/version"
 CPU_VENDOR=$(grep -m1 'vendor_id' /proc/cpuinfo | awk '{print $3}' || echo "unknown")
-MONITOR_PID_FILE="$INSTALL_DIR/.powercontrol_tail_fan_monitor.pid"
 PERF_PATH=""
 TURBO_PATH=""
 IS_AMD=0
@@ -59,6 +51,7 @@ detect_cpu_type() {
     DEFAULT_RAMP_UP=15
     DEFAULT_RAMP_DOWN=20
     MAX_TEMP_LIMIT=90
+    DEFAULT_CPU_POLL=1
 
     HOTZONE=""
     MAX_TEMP=""
@@ -67,6 +60,8 @@ detect_cpu_type() {
     MIN_PERF_PCT=""
     RAMP_UP=""
     RAMP_DOWN=""
+    CPU_POLL=""
+
 
 load_config() {
     if [ -f "$CONFIG_FILE" ]; then
@@ -80,6 +75,7 @@ load_config() {
         HOTZONE=${HOTZONE:-$DEFAULT_HOTZONE}
         RAMP_UP=${RAMP_UP:-$DEFAULT_RAMP_UP}
         RAMP_DOWN=${RAMP_DOWN:-$DEFAULT_RAMP_DOWN}
+        CPU_POLL=${CPU_POLL:-$DEFAULT_CPU_POLL}
         validate_config
     fi
 }
@@ -93,6 +89,7 @@ validate_config() {
     if [[ -z "$HOTZONE" ]]; then HOTZONE=$DEFAULT_HOTZONE; fi
     if [[ -z "$RAMP_UP" ]]; then RAMP_UP=$DEFAULT_RAMP_UP; fi
     if [[ -z "$RAMP_DOWN" ]]; then RAMP_DOWN=$DEFAULT_RAMP_DOWN; fi
+    if [[ -z "$CPU_POLL" ]]; then CPU_POLL=$DEFAULT_INTERVAL; fi
 
     # Clamp temps to limits
     if (( MAX_TEMP > MAX_TEMP_LIMIT )); then
@@ -143,6 +140,9 @@ validate_config() {
             MAX_PERF_PCT=100
         fi
     fi
+
+    
+
 }
 
 save_config() {
@@ -155,6 +155,7 @@ save_config() {
     sed -i "s/^RAMP_UP=.*/RAMP_UP=$RAMP_UP/" "$CONFIG_FILE" || echo "RAMP_UP=$RAMP_UP" >> "$CONFIG_FILE"
     sed -i "s/^RAMP_DOWN=.*/RAMP_DOWN=$RAMP_DOWN/" "$CONFIG_FILE" || echo "RAMP_DOWN=$RAMP_DOWN" >> "$CONFIG_FILE"
     sed -i "s/^HOTZONE=.*/HOTZONE=$HOTZONE/" "$CONFIG_FILE" || echo "HOTZONE=$HOTZONE" >> "$CONFIG_FILE"
+    sed -i "s/^CPU_POLL=.*/CPU_POLL=$CPU_POLL/" "$CONFIG_FILE" || echo "CPU_POLL=$CPU_POLL" >> "$CONFIG_FILE"
     source "$INSTALL_DIR/config.sh"
 }
 
@@ -351,7 +352,8 @@ start_monitoring_loop() {
             set_max_perf_pct "$pct"
         fi
 
-        sleep 1
+        sleep "$CPU_POLL"
+
     done
 
     echo "${YELLOW}PowerControl stopped.${RESET}" | tee -a "$LOG_FILE"
@@ -389,48 +391,61 @@ show_status() {
     if [ -f "$PID_FILE" ]; then
         PID=$(cat "$PID_FILE")
         if ps -p "$PID" > /dev/null 2>&1; then
-            echo "${GREEN}PowerControl Status: RUNNING (PID $PID)${RESET}"
-            echo ""
+echo "${CYAN}"
+echo "══════════════════════════════════════════════"
+echo "  PowerControl Status: RUNNING (PID $PID)    " 
+
         else
             rm -f "$PID_FILE"
             rm -f "$RUN_FLAG"
-            echo "${YELLOW}PowerControl Status: STOPPED ${RESET}"
+echo "${RED}"
+echo "══════════════════════════════════════════════"
+echo "        PowerControl Status: STOPPED        "
         fi
     else
-        echo "${YELLOW}PowerControl Status: STOPPED ${RESET}"
+echo "${RED}"
+echo "══════════════════════════════════════════════"
+echo "        PowerControl Status: STOPPED       "
     fi
     temp_c=$(get_temp)
-    echo "Current CPU temp: $temp_c°C"
-    echo "Configured max_temp: $MAX_TEMP°C"
-    echo "Configured min_temp: $MIN_TEMP°C"
-    echo "Configured max_perf_pct: $MAX_PERF_PCT%"
-    echo "Configured min_perf_pct: $MIN_PERF_PCT%"
-    echo "Configured hotzone: $HOTZONE°C"
-    echo "Configured ramp_up pct: $RAMP_UP%"
-    echo "Configured ramp_down pct: $RAMP_DOWN%"
+echo ""
+echo "  CPU Temp: $temp_c°C          "
+echo "  Max Temp: $MAX_TEMP°C        "
+echo "  Min Temp: $MIN_TEMP°C        "
+echo "  Max CPU %: $MAX_PERF_PCT%    " 
+echo "  Min CPU %: $MIN_PERF_PCT%    "
+echo "  Hotzone: $HOTZONE°C          "
+echo "  Polling rate: ${CPU_POLL}s     "
+echo "  Ramp Up %: $RAMP_UP%         "
+echo "  Ramp Down %: $RAMP_DOWN%     "
+
 
     if [ -f "$PERF_PATH" ]; then
         current_val=$(cat "$PERF_PATH")
         if [[ "$PERF_PATH" == *max_perf_pct ]]; then
-            echo "Current max_perf_pct: $current_val%"
+echo "  Current max_perf_pct: $current_val%"
         else
-            echo "Current max frequency: $((current_val / 1000)) MHz"
+            echo "  Current max frequency: $((current_val / 1000)) MHz"
         fi
     else
-        echo "${RED}max_perf_pct/frequency path not found.${RESET}"
+        echo "  ${RED}max_perf_pct/frequency path not found.${RESET}"
     fi
 
     if [ "$IS_INTEL" -eq 1 ] && [ -f "$TURBO_PATH" ]; then
         turbo_val=$(cat "$TURBO_PATH")
         if [[ "$turbo_val" -eq 1 ]]; then
-            echo "Turbo Boost: Disabled"
+            echo "  Turbo Boost: Disabled"
+echo "═════════════════════════════════════════════${RESET}"
         else
-            echo "Turbo Boost: Enabled"
+            echo "  Turbo Boost: Enabled"
+echo "═════════════════════════════════════════════${RESET}"
         fi
     elif [ "$IS_AMD" -eq 1 ]; then
-        echo "Turbo Boost: Control unavailable via no_turbo path on AMD."
+        echo "  Turbo Boost: Control unavailable via no_turbo path on AMD."
+echo "═════════════════════════════════════════════${RESET}"
     else
-        echo "Turbo Boost: Not supported on this platform."
+        echo "  Turbo Boost: Not supported on this platform."
+echo "═════════════════════════════════════════════${RESET}"
     fi
 
     echo
@@ -485,11 +500,7 @@ uninstall_script() {
     if [ -d "$INSTALL_DIR" ]; then
         if [ -x "$script" ]; then
             echo "Uninstalling ChromeOS PowerControl..."
-            nohup sudo bash "$script" > /tmp/powercontrol_uninstall.log 2>&1 &
-            disown
-            echo "Uninstaller started in background."
-            echo "Check progress in: /tmp/powercontrol_uninstall.log"
-            exit 0
+            sudo bash "$script"
         else
             echo "${RED}Uninstall script not found or not executable at: $script${RESET}"
             exit 1
@@ -500,29 +511,34 @@ uninstall_script() {
     fi
 }
 
-
 show_help() {
-    echo "${CYAN}"
-    echo "PowerControl commands with examples:"
-    echo ""
-echo "sudo powercontrol                     # Show status"
-echo "sudo powercontrol start               # Throttle CPU based on temperature curve"
-echo "sudo powercontrol stop                # Restore default CPU settings"
-echo "sudo powercontrol no_turbo 1          # 0 = Enable, 1 = Disable Turbo Boost"
-echo "sudo powercontrol max_perf_pct 75     # Set max performance percentage"
-echo "sudo powercontrol min_perf_pct 50     # Set minimum performance at max temp"
-echo "sudo powercontrol max_temp 86         # Max temperature threshold - Limit is 90°C"
-echo "sudo powercontrol min_temp 60         # Min temperature threshold"
-echo "sudo powercontrol hotzone 78          # Temperature threshold for aggressive thermal management"
-echo "sudo powercontrol ramp_up 15          # % in steps CPU will increase in clockspeed per second"
-echo "sudo powercontrol ramp_down 20        # % in steps CPU will decrease in clockspeed per second"
-echo "sudo powercontrol monitor             # Toggle live temperature monitoring"
-echo "sudo powercontrol startup             # Copy or Remove no_turbo.conf & powercontrol.conf at: /etc/init/"
-echo "sudo powercontrol reinstall           # Redownload and reinstall ChromeOS_PowerControl from Github"
-echo "sudo powercontrol uninstall           # Uninstall ChromeOS_PowerControl"
-echo "sudo powercontrol version             # Check PowerControl version"
-echo "sudo powercontrol help                # Help menu${RESET}"
-echo ""
+echo "${CYAN}"
+echo "╔═══════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
+echo "║                                                                                                           ║"
+echo "║                                    PowerControl commands with examples:                                   ║"
+echo "║                                                                                                           ║"
+echo "║  sudo powercontrol                     # Show status                                                      ║"
+echo "║  sudo powercontrol start               # Throttle CPU based on temperature curve                          ║"
+echo "║  sudo powercontrol stop                # Restore default CPU settings                                     ║"
+echo "║  sudo powercontrol no_turbo 1          # 0 = Enable, 1 = Disable Turbo Boost                              ║"
+echo "║  sudo powercontrol max_perf_pct 75     # Set max performance percentage                                   ║"
+echo "║  sudo powercontrol min_perf_pct 50     # Set minimum performance at max temp                              ║"
+echo "║  sudo powercontrol max_temp 86         # Max temperature threshold - Limit is 90°C                        ║"
+echo "║  sudo powercontrol min_temp 60         # Min temperature threshold                                        ║"
+echo "║  sudo powercontrol hotzone 78          # Temperature threshold for aggressive thermal management          ║"
+echo "║  sudo powercontrol ramp_up 15          # % in steps CPU will increase in clockspeed per second            ║"
+echo "║  sudo powercontrol ramp_down 20        # % in steps CPU will decrease in clockspeed per second            ║"
+echo "║  sudo powercontrol hotzone 78          # Temperature threshold for aggressive thermal management          ║"
+echo "║  sudo powercontrol poll 1              # PowerControl polling rate in seconds (0.1s - 5s)                 ║"
+echo "║  sudo powercontrol monitor             # Toggle live temperature monitoring                               ║"
+echo "║  sudo powercontrol startup             # Copy or Remove no_turbo.conf & powercontrol.conf at: /etc/init/  ║"
+echo "║  sudo powercontrol reinstall           # Redownload and reinstall ChromeOS_PowerControl from Github       ║"
+echo "║  sudo powercontrol uninstall           # Uninstall ChromeOS_PowerControl                                  ║"
+echo "║  sudo powercontrol version             # Check PowerControl version                                       ║"
+echo "║  sudo powercontrol help                # Help menu                                                        ║"
+echo "║                                                                                                           ║"
+echo "╚═══════════════════════════════════════════════════════════════════════════════════════════════════════════╝"
+echo "${RESET}"
 }
 
 max_perf_pct() {
@@ -599,12 +615,12 @@ case "$1" in
     uninstall)
         uninstall_script
         ;;
-    help)
+    --h|-h|h|--help|-help|help)
         show_help
         ;;
   monitor)
     LOG_FILE="/var/log/powercontrol.log"
-    MONITOR_PID_FILE="$INSTALL_DIR/.powercontrol_tail_monitor.pid"
+    MONITOR_PID_FILE="$INSTALL_DIR/.powercontrol_monitor.pid"
 
     if [ -f "$MONITOR_PID_FILE" ]; then
         MONITOR_PID=$(cat "$MONITOR_PID_FILE")
@@ -628,7 +644,7 @@ case "$1" in
     CONF_SOURCE_NO_TURBO="$INSTALL_DIR/no_turbo.conf"
     
     if [ "$IS_INTEL" -eq 1 ]; then
-        read -p "Do you want to disable Turbo Boost automatically on startup? (y/n): " choice
+        read -p "Do you want to disable Turbo Boost automatically on startup? (Y/n): " choice
         if [[ "$choice" =~ ^[Yy]$ ]]; then
             if [ -f "$CONF_SOURCE_NO_TURBO" ]; then
                 echo "Copying no_turbo.conf to /etc/init/..."
@@ -644,7 +660,7 @@ case "$1" in
         fi
     fi
 
-    read -p "Do you want PowerControl to startup automatically on boot? (y/n): " choice
+    read -p "Do you want PowerControl to startup automatically on boot? (Y/n): " choice
     if [[ "$choice" =~ ^[Yy]$ ]]; then
         if [ -f "$CONF_SOURCE" ]; then
             echo "Copying powercontrol.conf to /etc/init/..."
@@ -697,31 +713,47 @@ case "$1" in
         exit 1
     fi
     ;;
-     version)
-    if [[ -f "$VERSION_FILE" ]]; then
-        CURRENT_VER=`cat $INSTALL_DIR/version`
-        CURRENT_VER_NO=`echo $CURRENT_VER | \
-            sed -e 's/VERSION=//' -e 's/"//g'  -e 's/\.//'`
-        LATEST_VER=`curl -Ls \
-            https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/version`
-        LATEST_VER_NO=`echo $LATEST_VER \
-            sed -e 's/VERSION=//' -e 's/"//g' -e 's/\.//'`
-        if [ $CURRENT_VER_NO -lt $LATEST_VER_NO ]; then 
-            echo "You're using $CURRENT_VER which is NOT the latest version."
-            read -p "Would you like to 'reinstall' to get $LATEST_VER ? (y/n): " choice
-                if [[ "$choice" =~ ^[Yy]$ ]]; then
-                    echo "Okay, reinstalling."
-                    exec sudo powercontrol reinstall
-                else
-                    echo "Okay, skipping the reinstall."
-                fi
-        else     
-                echo "Your using version $CURRENT_VER which is up-to-date so you're good." 
+   poll | cpu_poll)
+    if [[ "$2" =~ ^[0-9]+([.][0-9]+)?$ ]]; then
+        CPU_POLL=$(printf "%.2f" "$2")
+        if (( $(awk "BEGIN {print ($CPU_POLL < 0.1)}") )); then
+            echo "${RED}Warning: CPU_POLL below 0.1s, resetting to 0.1s${RESET}"
+            CPU_POLL=0.1
+        elif (( $(awk "BEGIN {print ($CPU_POLL > 5)}") )); then
+            echo "${RED}Warning: CPU_POLL above 5s, resetting to 5s${RESET}"
+            CPU_POLL=5
         fi
+        sed -i "s/^CPU_POLL=.*/CPU_POLL=$CPU_POLL/" "$CONFIG_FILE"
+        echo "${CYAN}PowerControl polling rate set to $CPU_POLL seconds${RESET}"
     else
-        echo "Version file not found."
+        echo "Error: cpu_poll must be a number between 0.1 and 5 (e.g., 0.5, 1, 2.5)"
         exit 1
     fi
+    ;;
+       version)
+            if [[ -f "$VERSION_FILE" ]]; then
+            CURRENT_VER=$(cat "$INSTALL_DIR/version")
+            CURRENT_VER_NO=$(echo "$CURRENT_VER" | sed -e 's/VERSION=//' -e 's/"//g' -e 's/\.//g')
+        
+            LATEST_VER=$(curl -Ls https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/version)
+            LATEST_VER_NO=$(echo "$LATEST_VER" | sed -e 's/VERSION=//' -e 's/"//g' -e 's/\.//g')
+        
+            if [[ "$CURRENT_VER_NO" -lt "$LATEST_VER_NO" ]]; then
+                echo "${CYAN}You're using $CURRENT_VER which is NOT the latest version.${RESET}"
+                read -rp "Would you like to 'reinstall' to get $LATEST_VER ? (Y/n): " choice
+                if [[ "$choice" =~ ^[Yy]$ ]]; then
+                    echo "${CYAN}Reinstalling!${RESET}"
+                    exec sudo powercontrol reinstall
+                else
+                    echo "${YELLOW}Skipping reinstall.${RESET}"
+                fi
+            else
+                echo "${GREEN}You're using $CURRENT_VER which is up-to-date, so you're good.${RESET}"
+            fi
+        else
+            echo "${RED}Version file not found.${RESET}"
+            exit 1
+        fi
     ;;
     reinstall)
     echo "Downloading to:${CYAN} /home/chronos/ChromeOS_PowerControl_Installer.sh $RESET"
@@ -742,4 +774,5 @@ case "$1" in
     *)
         show_status
         ;;
+    *) echo "Unknown command: $1"; show_help ;;
 esac
