@@ -47,7 +47,8 @@ __How to Install:__
 
 - Installer has prompts to customize installation.
 - PowerControl, BatteryControl, FanControl, and SleepControl can run in the background and can be adjusted in real-time.
-<br><br><br><br><br>
+<br><br><br><br><br><br><br><br><br><br>
+
 
 <p align="center">
   <img src="https://i.imgur.com/h6OrmAQ.png" alt="logo" />
