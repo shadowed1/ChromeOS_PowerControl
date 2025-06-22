@@ -7,17 +7,8 @@ MAGENTA=$(tput setaf 5)
 CYAN=$(tput setaf 6)
 BOLD=$(tput bold)
 RESET=$(tput sgr0)
+INSTALL_DIR="@INSTALL_DIR@"
 trap 'echo "Uninstall interrupted."; exit 1' SIGINT SIGTERM
-
-INSTALL_DIR_FILE="/usr/local/bin/.ChromeOS_PowerControl.install_dir"
-if [ -f "$INSTALL_DIR_FILE" ]; then
-    INSTALL_DIR=$(cat "$INSTALL_DIR_FILE")
-else
-    INSTALL_DIR="/usr/local/bin/ChromeOS_PowerControl"
-fi
-INSTALL_DIR="${INSTALL_DIR%/}"
-CONFIG_FILE="$INSTALL_DIR/config.sh"
-
 
 
 remove_file_with_message() {
