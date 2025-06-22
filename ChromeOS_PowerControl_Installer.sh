@@ -168,7 +168,7 @@ while true; do
     INSTALL_DIR="${INSTALL_DIR%/}"
 
     echo -e "\n${CYAN}You entered: ${BOLD}$INSTALL_DIR${RESET}"
-    read -rp "${YELLOW}${BOLD}Confirm this install path? Enter key counts as yes! (Y/n): ${RESET}" confirm
+    read -rp "${YELLOW}${BOLD}Confirm this install path? Enter key counts as yes!${RESET}${BOLD} (Y/n): ${RESET}" confirm
     case "$confirm" in
         [Yy]* | "")  
             sudo mkdir -p "$INSTALL_DIR"
@@ -386,7 +386,7 @@ done
 echo "${GREEN}${BOLD}Installing to: $INSTALL_DIR $RESET"
 
 
-read -rp "Enable ${BOLD}Global Commands${RESET} for ${RESET}${BOLD}${CYAN}PowerControl${RESET}, ${GREEN}${BOLD}BatteryControl${RESET}, ${YELLOW}${BOLD}FanControl${RESET}, ${BOLD}${MAGENTA}GPUControl${RESET}, ${BOLD}${BLUE}SleepControl${RESET}? (Y/n):$RESET " link_cmd
+read -rp "Enable ${BOLD}Global Commands${RESET} for ${RESET}${BOLD}${CYAN}PowerControl${RESET}, ${GREEN}${BOLD}BatteryControl${RESET}, ${YELLOW}${BOLD}FanControl${RESET}, ${BOLD}${MAGENTA}GPUControl${RESET}, ${BOLD}${BLUE}SleepControl${RESET}?${RESET}${BOLD} (Y/n):$RESET " link_cmd
 if [[ -z "$link_cmd" || "$link_cmd" =~ ^[Yy]$ ]]; then
     sudo ln -sf "$INSTALL_DIR/powercontrol" /usr/local/bin/powercontrol
     sudo ln -sf "$INSTALL_DIR/batterycontrol" /usr/local/bin/batterycontrol
@@ -421,7 +421,7 @@ enable_component_on_boot() {
         *)                COLOR=${RESET} ;;
     esac
     
-    read -rp "${COLOR}Do you want $component enabled on boot? (Y/n):${RESET} " move_config
+    read -rp "${COLOR}Do you want $component enabled on boot?${RESET}${BOLD} (Y/n):${RESET} " move_config
     if [[ -z "$move_config" || "$move_config" =~ ^[Yy]$ ]]; then
         sudo cp "$config_file" "$target_file"
         echo "$component will start on boot."
@@ -476,7 +476,7 @@ start_component_now() {
         *)                COLOR=${RESET} ;;
     esac
 
-    read -rp "${COLOR}Do you want to start $component now? (Y/n): ${RESET} " start_now
+    read -rp "${COLOR}Do you want to start $component now?${RESET}${BOLD} (Y/n): ${RESET} " start_now
     if [[ -z "$start_now" || "$start_now" =~ ^[Yy]$ ]]; then
         sudo "$command" start
         echo ""
@@ -497,7 +497,7 @@ start_component_now() {
             declare -g SHOW_POWERCONTROL_NOTICE=1
 
             if [[ -e /sys/devices/system/cpu/intel_pstate/no_turbo ]]; then
-                read -rp "${BOLD}${CYAN}Do you want Intel Turbo Boost ${RESET}${BOLD}${BLUE}disabled on boot${RESET}${BOLD}${CYAN}? (Y/n):$RESET " move_no_turbo
+                read -rp "${BOLD}${CYAN}Do you want Intel Turbo Boost ${RESET}${BOLD}${BLUE}disabled on boot${RESET}${BOLD}${CYAN}?${RESET}${BOLD} (Y/n):$RESET " move_no_turbo
                 if [[ -z "$move_no_turbo" || "$move_no_turbo" =~ ^[Yy]$ ]]; then
                     sudo cp "$INSTALL_DIR/no_turbo.conf" /etc/init/
                     echo "Turbo Boost will be disabled on restart."
@@ -510,7 +510,7 @@ start_component_now() {
                     echo ""
                 fi
 
-                read -rp "${BOLD}${CYAN}Do you want to ${RESET}${BOLD}${BLUE}disable${RESET}${CYAN}${BOLD} Intel Turbo Boost ${RESET}${BOLD}${BLUE}now?${RESET}${BOLD}${CYAN} (Y/n):$RESET " run_no_turbo
+                read -rp "${BOLD}${CYAN}Do you want to ${RESET}${BOLD}${BLUE}disable${RESET}${CYAN}${BOLD} Intel Turbo Boost ${RESET}${BOLD}${BLUE}now?${RESET}${BOLD} (Y/n):$RESET " run_no_turbo
                 if [[ -z "$run_no_turbo" || "$run_no_turbo" =~ ^[Yy]$ ]]; then
                     echo 1 | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo > /dev/null
                     echo "Turbo Boost disabled immediately."
