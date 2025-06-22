@@ -54,9 +54,18 @@ __How to Install:__
 <br> <br> <br><br><br>
 
 <p align="center">
-  <img src="https://i.imgur.com/QQ9KEyn.png" alt="commands" />
-</p>  
+  <img src="https://i.imgur.com/8vPjgEf.png" alt="commands" />
+</p>
+<br>
+<p align="center">
+  <img src="https://i.imgur.com/S4Zvolz.png" alt="commands" />
+</p>
+<br>
 
+<p align="center">
+  <img src="https://i.imgur.com/ApAqPI2.png" alt="commands" /> 
+ </p>
+    
 <br> 
 
 __How It Works:__
