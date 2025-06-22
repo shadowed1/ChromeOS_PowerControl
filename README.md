@@ -47,47 +47,36 @@ __How to Install:__
 
 - Installer has prompts to customize installation.
 - PowerControl, BatteryControl, FanControl, and SleepControl can run in the background and can be adjusted in real-time.
-<br><br><br><br><br><br><br><br><br><br>
+<br> <br>
 
 
 <p align="center">
-  <img src="https://i.imgur.com/h6OrmAQ.png" alt="logo" />
+  <img src="https://i.imgur.com/JK3K8og.png" alt="logo" />
 </p>
 
 <p align="center">
-  <img src="https://i.imgur.com/TpGugzK.png" alt="logo" />
+  <img src="https://i.imgur.com/ghKV55q.png" alt="logo" />
 </p>
 
 <p align="center">
-  <img src="https://i.imgur.com/T0W65xh.png" alt="logo" />
+  <img src="https://i.imgur.com/UGKgbqw.png" alt="logo" />
 </p>
 
 <p align="center">
-  <img src="https://i.imgur.com/JaMNkWL.png" alt="logo" />
+  <img src="https://i.imgur.com/Z8aRKd9.png" alt="logo" />
 </p>
 
 <p align="center">
-  <img src="https://i.imgur.com/gwhF9Sb.png" alt="logo" />
+  <img src="https://i.imgur.com/Rq5D4BV.png" alt="logo" />
 </p>
 
 
 
-<br><br><br><br><br>
 
-<p align="center">
-  <img src="https://i.imgur.com/8vPjgEf.png" alt="commands" />
-</p>
-<br>
-<p align="center">
-  <img src="https://i.imgur.com/S4Zvolz.png" alt="commands" />
-</p>
-<br>
 
-<p align="center">
-  <img src="https://i.imgur.com/ApAqPI2.png" alt="commands" /> 
- </p>
+
     
-<br> 
+<br> <br>
 
 __How It Works:__
 
