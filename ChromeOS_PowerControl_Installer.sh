@@ -683,8 +683,7 @@ echo "╚═══════════════════════�
 fi
 
 if [[ "$SHOW_GPUCONTROL_NOTICE" -eq 1 ]]; then
-echo "${MAGENTA}"
-echo "╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
+echo "${MAGENTA}╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
 echo "║  ${RESET}${MAGENTA}${BOLD}GPUControl Notice:${RESET}${MAGENTA}                                                                                                ║"
 echo "║  As a precaution GPUControl has a 2 minute delay before applying custom clockspeed on boot.                        ║"
 echo "╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝${RESET}"
