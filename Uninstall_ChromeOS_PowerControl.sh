@@ -108,9 +108,17 @@ case "$choice" in
         sudo rm -f "$INSTALL_DIR/.batterycontrol_pid"
         sudo rm -f "$INSTALL_DIR/.fancontrol_tail_fan_monitor.pid"
         sudo rm -f "$INSTALL_DIR/.powercontrol_tail_fan_monitor.pid"
+        sudo rm -f "$INSTALL_DIR/.fancontrol_monitor.pid"
+        sudo rm -f "$INSTALL_DIR/.powercontrol_monitor.pid"
         sudo rm -f "$INSTALL_DIR/.sleepcontrol_lock"
         sudo rm -f "$INSTALL_DIR/.sleepcontrol_monitor.pid"
         sudo rm -f "$INSTALL_DIR/.sleepcontrol_pid.lock"
+        sudo rm -f "/usr/local/bin/.ChromeOS_PowerControl.install_dir"
+        sudo rm -f "/usr/local/bin/fancontrol_conf.sh"
+        sudo rm -f "/usr/local/bin/powercontrol_conf.sh"
+        sudo rm -f "/usr/local/bin/sleepcontrol_conf.sh"
+        sudo rm -f "/usr/local/bin/batterycontrol_conf.sh"
+        sudo rm -f "/usr/local/bin/gpucontrol_conf.sh"
         sudo pkill -f "/usr/local/bin/gpucontrol"
         sudo pkill -f "/usr/local/bin/fancontrol"
         sudo pkill -f "/usr/local/bin/sleepcontrol"
@@ -121,10 +129,8 @@ case "$choice" in
         remove_file_with_message "$INSTALL_DIR/batterycontrol"
         remove_file_with_message "$INSTALL_DIR/gpucontrol"
         remove_file_with_message "$INSTALL_DIR/sleepcontrol"
-
         remove_file_with_message "$INSTALL_DIR/LICENSE"
         remove_file_with_message "$INSTALL_DIR/README.md"
-        remove_file_with_message "/usr/local/bin/.ChromeOS_PowerControl.install_dir"
         remove_file_with_message "$INSTALL_DIR/Uninstall_ChromeOS_PowerControl.sh"
 
         if [ -d "$INSTALL_DIR" ] && [ -z "$(ls -A "$INSTALL_DIR")" ]; then
