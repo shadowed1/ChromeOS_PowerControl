@@ -48,12 +48,13 @@ echo "║             SleepControl: Control how long ChromeOS can remain idle be
 echo "╚═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝"
 echo "${RESET}"
 echo "${CYAN}${BOLD}"
+echo ""
 echo "╔═════════════════════════════════════════════════════════════════════════════╗"
 echo "║      Downloading to: /home/chronos/ChromeOS_PowerControl_Installer.sh       ║"
 echo "╚═════════════════════════════════════════════════════════════════════════════╝"
 curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/unstable/ChromeOS_PowerControl_Installer.sh -o /home/chronos/ChromeOS_PowerControl_Installer.sh
-echo "${RESET}${GREEN}${BOLD}"
-echo "╔═════════════════════════════════════════════════════════════════════════════╗"
+
+echo "echo "${RESET}${GREEN}${BOLD}"╔═════════════════════════════════════════════════════════════════════════════╗"
 echo "║   Download complete. Run the installer with VT-2 or enable sudo in crosh.   ║"
 echo "║     Move it to an executable location or run these commands with VT-2:      ║"
 echo "╚═════════════════════════════════════════════════════════════════════════════╝"
