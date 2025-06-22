@@ -7,15 +7,7 @@ MAGENTA=$(tput setaf 5)
 CYAN=$(tput setaf 6)
 BOLD=$(tput bold)
 RESET=$(tput sgr0)
-
-INSTALL_DIR_FILE="/usr/local/bin/.ChromeOS_PowerControl.install_dir"
-if [ -f "$INSTALL_DIR_FILE" ]; then
-    INSTALL_DIR=$(cat "$INSTALL_DIR_FILE")
-else
-    INSTALL_DIR="/usr/local/bin/ChromeOS_PowerControl"
-fi
-INSTALL_DIR="${INSTALL_DIR%/}"
-
+INSTALL_DIR="@INSTALL_DIR@"
 CONFIG_FILE="$INSTALL_DIR/config.sh"
 PID_FILE="$INSTALL_DIR/.sleepcontrol_pid"
 RUN_FLAG="$INSTALL_DIR/.sleepcontrol_enabled"
@@ -101,19 +93,23 @@ save_config() {
 }
 
 show_help() {
-        echo ""
-        echo "${BLUE}# SleepControl Commands with examples"
-        echo ""
-        echo "sudo sleepcontrol                     # Show SleepControl status"
-        echo "sudo sleepcontrol start               # Start SleepControl"
-        echo "sudo sleepcontrol stop                # Stop SleepControl"
-        echo "sudo sleepcontrol battery 3 7 12      # When idle, display dims in 3m, timeout in 7m, and ChromeOS sleeps in 12m when on battery"
-        echo "sudo sleepcontrol power 5 15 30       # When idle, display dims in 5m, timeout in 15m and ChromeOS sleeps in 30m when plugged-in"
-        echo "sudo sleepcontrol battery audio 0     # Disable audio detection on battery; sleep can occur during media playback"
-        echo "sudo sleepcontrol power audio 1       # Enable audio detection on power; delaying sleep until audio is stopped"
-        echo "sudo sleepcontrol startup             # Copy or Remove sleepcontrol.conf at: /etc/init/"
-        echo "sudo sleepcontrol help                # Help menu${RESET}"
-        echo ""
+echo "${BLUE}"
+echo "╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
+echo "║                                                                                                                    ║"
+echo "║                                          SleepControl commands with examples:                                      ║"
+echo "║                                                                                                                    ║"
+echo "║  sudo sleepcontrol                  # Show SleepControl status                                                     ║"
+echo "║  sudo sleepcontrol start            # Start SleepControl                                                           ║"
+echo "║  sudo sleepcontrol stop             # Stop SleepControl                                                            ║"
+echo "║  sudo sleepcontrol battery 3 7 12   # When idle, display dims in 3m -> timeout in 7m -> sleeps in 12m on battery   ║"
+echo "║  sudo sleepcontrol power 5 15 30    # When idle, display dims in 5m -> timeout -> 15m -> sleeps in 30m plugged-in  ║"
+echo "║  sudo sleepcontrol battery audio 0  # Disable audio detection on battery; sleep can occur during media playback    ║"
+echo "║  sudo sleepcontrol power audio 1    # Enable audio detection on power; delaying sleep until audio is stopped       ║"
+echo "║  sudo sleepcontrol startup          # Copy or Remove sleepcontrol.conf at: /etc/init/                              ║"
+echo "║  sudo sleepcontrol help             # Help menu                                                                    ║"
+echo "║                                                                                                                    ║"
+echo "╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝"
+echo "${RESET}"
             }
 
 load_config
@@ -166,7 +162,7 @@ monitor_idle_activity() {
     
 exec 200>"$PID_FILE.lock"
 flock -n 200 || {
-    echo "Another instance is running"
+    echo "Another instance is running - using flock"
     exit 1
                 } 
     
@@ -559,22 +555,33 @@ flock -n 200 || {
         if [ -f "$RUN_FLAG" ]; then
             PID=$(cat "$PID_FILE")
             if ps -p "$PID" > /dev/null 2>&1; then
-                echo "${GREEN}SleepControl Status: RUNNING (PID $PID)${RESET}"
+echo "${BLUE}"
+echo "══════════════════════════════════════════════════════════════════════════════════════════"
+echo "                        SleepControl Status: RUNNING (PID $PID)                                  "                                 
+echo ""
             else
-                echo "${YELLOW}SleepControl Status: RUN FLAG PRESENT, but process not running${RESET}"
+echo "${RED}"
+echo "══════════════════════════════════════════════════════════════════════════════════════════"
+echo "            SleepControl Status: RUN FLAG PRESENT, but process not running                       "
+echo ""
+
             fi
-            echo ""
-            echo "Battery = Dim: $((BATTERY_DIM_DELAY)) min -> Timeout: $((BATTERY_BACKLIGHT)) min -> Sleep: $((BATTERY_DELAY)) min | Audio Detection: $AUDIO_DETECTION_BATTERY"
-            echo "Power   = Dim: $((POWER_DIM_DELAY)) min -> Timeout: $((POWER_BACKLIGHT)) min -> Sleep: $((POWER_DELAY)) min | Audio Detection: $AUDIO_DETECTION_POWER"
-            echo ""
-        else
-            echo "${YELLOW}SleepControl Status: STOPPED${RESET}"
+
+         else
+echo "${RED}"
+echo "══════════════════════════════════════════════════════════════════════════════════════════"
+echo "                            SleepControl Status: STOPPED                                       "
         fi
+echo "  Battery = Dim: $((BATTERY_DIM_DELAY)) min -> Timeout: $((BATTERY_BACKLIGHT)) min -> Sleep: $((BATTERY_DELAY)) min | Audio Detection: $AUDIO_DETECTION_BATTERY"
+echo "  Power   = Dim: $((POWER_DIM_DELAY)) min -> Timeout: $((POWER_BACKLIGHT)) min -> Sleep: $((POWER_DELAY)) min | Audio Detection: $AUDIO_DETECTION_POWER"
+echo "══════════════════════════════════════════════════════════════════════════════════════════"
+echo "${RESET}"
+       
         ;;
     __monitor__)
         monitor_idle_activity
         ;;
-        help)
+        --h|-h|h|--help|-help|help)
             show_help
         ;;
     *)
