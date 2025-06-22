@@ -622,7 +622,7 @@ case "$1" in
     *) echo "Unknown command: $1"; show_help ;;
   monitor)
     LOG_FILE="/var/log/powercontrol.log"
-    MONITOR_PID_FILE="$INSTALL_DIR/.powercontrol_tail_monitor.pid"
+    MONITOR_PID_FILE="$INSTALL_DIR/.powercontrol_monitor.pid"
 
     if [ -f "$MONITOR_PID_FILE" ]; then
         MONITOR_PID=$(cat "$MONITOR_PID_FILE")
