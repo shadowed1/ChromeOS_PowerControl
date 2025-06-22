@@ -254,6 +254,7 @@ declare -a ordered_keys=(
   "MIN_TEMP"
   "MIN_PERF_PCT"
   "HOTZONE"
+  "CPU_POLL"
   "RAMP_UP"
   "RAMP_DOWN"
   "CHARGE_MAX"
@@ -261,7 +262,7 @@ declare -a ordered_keys=(
   "FAN_MAX_TEMP"
   "MIN_FAN"
   "MAX_FAN"
-  "SLEEP_INTERVAL"
+  "FAN_POLL"
   "STEP_UP"
   "STEP_DOWN"
   "GPU_TYPE"
@@ -290,9 +291,9 @@ declare -a ordered_keys=(
 
 declare -a ordered_categories=("PowerControl" "BatteryControl" "FanControl" "GPUControl" "SleepControl" "Platform Configuration")
 declare -A categories=(
-  ["PowerControl"]="MAX_TEMP MIN_TEMP MAX_PERF_PCT MIN_PERF_PCT HOTZONE RAMP_UP RAMP_DOWN"
+  ["PowerControl"]="MAX_TEMP MIN_TEMP MAX_PERF_PCT MIN_PERF_PCT HOTZONE CPU_POLL RAMP_UP RAMP_DOWN"
   ["BatteryControl"]="CHARGE_MAX"
-  ["FanControl"]="MIN_FAN MAX_FAN FAN_MIN_TEMP FAN_MAX_TEMP STEP_UP STEP_DOWN SLEEP_INTERVAL"
+  ["FanControl"]="MIN_FAN MAX_FAN FAN_MIN_TEMP FAN_MAX_TEMP STEP_UP STEP_DOWN FAN_POLL"
   ["GPUControl"]="GPU_MAX_FREQ"
   ["SleepControl"]="BATTERY_DELAY BATTERY_BACKLIGHT BATTERY_DIM_DELAY POWER_DELAY POWER_BACKLIGHT POWER_DIM_DELAY AUDIO_DETECTION_BATTERY AUDIO_DETECTION_POWER"
   ["Platform Configuration"]="IS_AMD IS_INTEL IS_ARM PERF_PATH TURBO_PATH GPU_TYPE GPU_FREQ_PATH ORIGINAL_GPU_MAX_FREQ PP_OD_FILE AMD_SELECTED_SCLK_INDEX BACKLIGHT_NAME BRIGHTNESS_PATH MAX_BRIGHTNESS_PATH"
@@ -304,6 +305,7 @@ if [[ -z "${MIN_TEMP}" ]]; then MIN_TEMP=60; fi
 if [[ -z "${MAX_PERF_PCT}" ]]; then MAX_PERF_PCT=100; fi
 if [[ -z "${MIN_PERF_PCT}" ]]; then MIN_PERF_PCT=40; fi
 if [[ -z "${HOTZONE}" ]]; then HOTZONE=80; fi
+if [[ -z "${CPU_POLL}" ]]; then CPU_POLL=1; fi
 if [[ -z "${RAMP_UP}" ]]; then RAMP_UP=15; fi
 if [[ -z "${RAMP_DOWN}" ]]; then RAMP_DOWN=20; fi
 if [[ -z "${CHARGE_MAX}" ]]; then CHARGE_MAX=77; fi
@@ -313,7 +315,7 @@ if [[ -z "${FAN_MIN_TEMP}" ]]; then FAN_MIN_TEMP=46; fi
 if [[ -z "${FAN_MAX_TEMP}" ]]; then FAN_MAX_TEMP=80; fi
 if [[ -z "${STEP_UP}" ]]; then STEP_UP=20; fi
 if [[ -z "${STEP_DOWN}" ]]; then STEP_DOWN=1; fi
-if [[ -z "${SLEEP_INTERVAL}" ]]; then SLEEP_INTERVAL=3; fi
+if [[ -z "${FAN_POLL}" ]]; then FAN_POLL=3; fi
 if [[ -z "${BATTERY_DELAY}" ]]; then BATTERY_DELAY=12; fi
 if [[ -z "${BATTERY_BACKLIGHT}" ]]; then BATTERY_BACKLIGHT=7; fi
 if [[ -z "${BATTERY_DIM_DELAY}" ]]; then BATTERY_DIM_DELAY=3; fi
@@ -330,6 +332,7 @@ declare -A defaults=(
   [MAX_PERF_PCT]=$MAX_PERF_PCT
   [MIN_PERF_PCT]=$MIN_PERF_PCT
   [HOTZONE]=$HOTZONE
+  [CPU_POLL]=$CPU_POLL
   [RAMP_UP]=$RAMP_UP
   [RAMP_DOWN]=$RAMP_DOWN
   [CHARGE_MAX]=$CHARGE_MAX
@@ -339,7 +342,7 @@ declare -A defaults=(
   [FAN_MAX_TEMP]=$FAN_MAX_TEMP
   [STEP_UP]=$STEP_UP
   [STEP_DOWN]=$STEP_DOWN
-  [SLEEP_INTERVAL]=$SLEEP_INTERVAL
+  [FAN_POLL]=$FAN_POLL
   [GPU_MAX_FREQ]=$GPU_MAX_FREQ
   [GPU_TYPE]=$GPU_TYPE
   [BATTERY_DELAY]=$BATTERY_DELAY
@@ -585,6 +588,7 @@ echo "║  sudo powercontrol min_perf_pct 50  # Set minimum performance at max t
 echo "║  sudo powercontrol max_temp 86      # Max temperature threshold - Limit is 90°C                                    ║"
 echo "║  sudo powercontrol min_temp 60      # Min temperature threshold                                                    ║"
 echo "║  sudo powercontrol hotzone 78       # Temperature threshold for aggressive thermal management                      ║"
+echo "║  sudo powercontrol cpu_poll 1       # Interval in seconds PowerControl operates at (0.1s - 5s)                     ║"
 echo "║  sudo powercontrol ramp_up 15       # % in steps CPU will increase in clockspeed per second                        ║"
 echo "║  sudo powercontrol ramp_down 20     # % in steps CPU will decrease in clockspeed per second                        ║"
 echo "║  sudo powercontrol monitor          # Toggle on/off live monitoring in terminal                                    ║"
