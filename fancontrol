@@ -18,11 +18,11 @@ DEFAULT_FAN_MIN_TEMP=46
 DEFAULT_FAN_MAX_TEMP=80
 DEFAULT_MIN_FAN=0
 DEFAULT_MAX_FAN=100  
-DEFAULT_SLEEP_INTERVAL=3
+DEFAULT_FAN_POLL=3
 DEFAULT_STEP_UP=20
 DEFAULT_STEP_DOWN=1
 
-SLEEP_INTERVAL=$DEFAULT_SLEEP_INTERVAL
+FAN_POLL=$DEFAULT_FAN_POLL
 STEP_UP=$DEFAULT_STEP_UP
 STEP_DOWN=$DEFAULT_STEP_DOWN
 load_config() {
@@ -77,8 +77,8 @@ validate_config() {
     if [[ -z "$STEP_DOWN" || ! "$STEP_DOWN" =~ ^[0-9]+$ ]]; then
         STEP_DOWN=$DEFAULT_STEP_DOWN
     fi
-    if [[ -z "$SLEEP_INTERVAL" || ! "$SLEEP_INTERVAL" =~ ^[0-9]+$ ]]; then
-        SLEEP_INTERVAL=$DEFAULT_SLEEP_INTERVAL
+    if [[ -z "$FAN_POLL" || ! "$FAN_POLL" =~ ^[0-9]+$ ]]; then
+        FAN_POLL=$DEFAULT_FAN_POLL
     fi
 }
 
@@ -87,7 +87,7 @@ save_config() {
     sed -i "s/^FAN_MIN_TEMP=.*/FAN_MIN_TEMP=$FAN_MIN_TEMP/" "$CONFIG_FILE" || echo "FAN_MIN_TEMP=$FAN_MIN_TEMP" >> "$CONFIG_FILE"
     sed -i "s/^MAX_FAN=.*/MAX_FAN=$MAX_FAN/" "$CONFIG_FILE" || echo "MAX_FAN=$MAX_FAN" >> "$CONFIG_FILE"
     sed -i "s/^MIN_FAN=.*/MIN_FAN=$MIN_FAN/" "$CONFIG_FILE" || echo "MIN_FAN=$MIN_FAN" >> "$CONFIG_FILE"
-    sed -i "s/^SLEEP_INTERVAL=.*/SLEEP_INTERVAL=$SLEEP_INTERVAL/" "$CONFIG_FILE" || echo "SLEEP_INTERVAL=$SLEEP_INTERVAL" >> "$CONFIG_FILE"
+    sed -i "s/^FAN_POLL=.*/FAN_POLL=$FAN_POLL/" "$CONFIG_FILE" || echo "FAN_POLL=$FAN_POLL" >> "$CONFIG_FILE"
     sed -i "s/^STEP_UP=.*/STEP_UP=$STEP_UP/" "$CONFIG_FILE" || echo "STEP_UP=$STEP_UP" >> "$CONFIG_FILE"
     sed -i "s/^STEP_DOWN=.*/STEP_DOWN=$STEP_DOWN/" "$CONFIG_FILE" || echo "STEP_DOWN=$STEP_DOWN" >> "$CONFIG_FILE"
 }
@@ -208,7 +208,7 @@ sudo ectool fanduty "$initial_duty"
 
         last_duty=$target_duty
 
-        sleep "$SLEEP_INTERVAL"
+        sleep "$FAN_POLL"
     done
 
     cleanup
@@ -320,14 +320,14 @@ max_fan() {
     fi
 }
 
-set_sleep_interval() {
+set_fan_poll() {
     if [[ "$2" =~ ^[0-9]+$ ]] && (( $2 >= 1 && $2 <= 10 )); then
         load_config
-        SLEEP_INTERVAL=$2
+        FAN_POLL=$2
         save_config
-        echo "$(date '+%Y-%m-%d %H:%M:%S') - Sleep interval set to $SLEEP_INTERVAL seconds" | tee -a "$LOG_FILE"
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - FanControl polling rate set to $FAN_POLL seconds" | tee -a "$LOG_FILE"
     else
-        echo "Usage: $0 update <sleep_interval_seconds (1-10)>"
+        echo "Usage: $0 update <fan_poll_seconds (1-10)>"
     fi
 }
 
@@ -384,7 +384,7 @@ case "$1" in
     fan_max_temp) fan_max_temp "$@" ;;
     min_fan)  min_fan "$@" ;;
     max_fan)  max_fan "$@" ;;
-    update)   set_sleep_interval "$@" ;;
+    update)   set_fan_poll "$@" ;;
     step_up)   set_stepup "$@" ;;
     step_down) set_stepdown "$@" ;;
     startup)
@@ -434,7 +434,7 @@ echo -n "  "; sudo ectool pwmgetnumfans
 echo -n "  "; sudo ectool pwmgetfanrpm all
 echo "  CPU temp: $(get_temp)°C"
 echo "  Fan Curve: $FAN_MIN_TEMP°C = ${MIN_FAN}% RPM -> $FAN_MAX_TEMP°C = ${MAX_FAN}% RPM"
-echo "  Sleep interval: $SLEEP_INTERVAL seconds"
+echo "  Polling rate: $FAN_POLL seconds"
 echo "  Step-up: $STEP_UP%, Step-down: $STEP_DOWN%"
 echo "══════════════════════════════════════════════════════════"
 echo "${RESET}"
