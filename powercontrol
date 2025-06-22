@@ -142,16 +142,7 @@ validate_config() {
         fi
     fi
 
-    if ! [[ "$CPU_POLL" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
-        echo "${RED}Warning: CPU_POLL is not a valid number, resetting to $DEFAULT_CPU_POLL ${RESET}"
-        CPU_POLL=$DEFAULT_CPU_POLL
-    elif (( $(echo "$CPU_POLL < 0.1" | bc -l) )); then
-        echo "${RED}Warning: CPU_POLL below 0.1s, resetting to 0.1s${RESET}"
-        CPU_POLL=0.1
-    elif (( $(echo "$CPU_POLL > 5" | bc -l) )); then
-        echo "${RED}Warning: CPU_POLL above 5s, resetting to 5s${RESET}"
-        CPU_POLL=5
-    fi
+    
 
 }
 
@@ -723,6 +714,25 @@ case "$1" in
         exit 1
     fi
     ;;
+   cpu_poll)
+    if [[ "$2" =~ ^[0-9]+([.][0-9]+)?$ ]]; then
+        CPU_POLL=$(printf "%.2f" "$2")
+        if (( $(awk "BEGIN {print ($CPU_POLL < 0.1)}") )); then
+            echo "${RED}Warning: CPU_POLL below 0.1s, resetting to 0.1s${RESET}"
+            CPU_POLL=0.1
+        elif (( $(awk "BEGIN {print ($CPU_POLL > 5)}") )); then
+            echo "${RED}Warning: CPU_POLL above 5s, resetting to 5s${RESET}"
+            CPU_POLL=5
+        fi
+        sed -i "s/^CPU_POLL=.*/CPU_POLL=$CPU_POLL/" "$CONFIG_FILE"
+        echo "${CYAN}PowerControl polling rate set to $CPU_POLL seconds${RESET}"
+    else
+        echo "Error: cpu_poll must be a number between 0.1 and 5 (e.g., 0.5, 1, 2.5)"
+        exit 1
+    fi
+    ;;
+
+        ;;
        version)
             if [[ -f "$VERSION_FILE" ]]; then
             CURRENT_VER=$(cat "$INSTALL_DIR/version")
