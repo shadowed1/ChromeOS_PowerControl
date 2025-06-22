@@ -510,7 +510,7 @@ start_component_now() {
                     echo ""
                 fi
 
-                read -rp "${BOLD}${CYAN}Do you want to ${RESET}${BOLD}${BLUE}disable${RESET}${CYAN}${BOLD} Intel Turbo Boost ${RESET}${BOLD}${BLUE}now?${RESET}${BOLD} (Y/n):$RESET " run_no_turbo
+                read -rp "${BOLD}${CYAN}Do you want to ${RESET}${BOLD}${BLUE}disable${RESET}${CYAN}${BOLD} Intel Turbo Boost ${RESET}${BOLD}${BLUE}now${RESET}${BOLD}${CYAN}?${RESET}${BOLD} (Y/n):$RESET " run_no_turbo
                 if [[ -z "$run_no_turbo" || "$run_no_turbo" =~ ^[Yy]$ ]]; then
                     echo 1 | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo > /dev/null
                     echo "Turbo Boost disabled immediately."
