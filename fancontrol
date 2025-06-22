@@ -356,7 +356,7 @@ show_help() {
 echo "${YELLOW}"
 echo "╔════════════════════════════════════════════════════════════════════════════════════╗"
 echo "║                                                                                    ║"
-echo "║                           FanControl commands with examples:                       ║"
+echo "║                          FanControl commands with examples:                        ║"
 echo "║                                                                                    ║"
 echo "║  sudo fancontrol                  # Show FanControl status                         ║"
 echo "║  sudo fancontrol start            # Start FanControl                               ║"
