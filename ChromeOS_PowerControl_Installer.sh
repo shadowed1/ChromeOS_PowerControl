@@ -242,7 +242,7 @@ LOG_DIR="/var/log"
 CONFIG_FILE="$INSTALL_DIR/config.sh"
 sudo touch "$LOG_DIR/powercontrol.log" "$LOG_DIR/batterycontrol.log" "$LOG_DIR/fancontrol.log" "$LOG_DIR/gpucontrol.log" "$LOG_DIR/sleepcontrol.log"
 sudo chmod 644 "$LOG_DIR/powercontrol.log" "$LOG_DIR/batterycontrol.log" "$LOG_DIR/fancontrol.log" "$LOG_DIR/gpucontrol.log" "$LOG_DIR/sleepcontrol.log"
-echo "${YELLOW}Log files for PowerControl, BatteryControl, and FanControl are stored in /var/log/$RESET"
+echo "${YELLOW}${BOLD}Log files for PowerControl, BatteryControl, and FanControl are stored in /var/log/$RESET"
 echo ""
 
 USER_HOME="/home/chronos"
@@ -384,6 +384,8 @@ for category in "${ordered_categories[@]}"; do
   echo >> "$CONFIG_FILE"
 done
 echo "${GREEN}${BOLD}Installing to: $INSTALL_DIR $RESET"
+echo ""
+echo ""
 
 
 read -rp "Enable ${BOLD}Global Commands${RESET} for ${RESET}${BOLD}${CYAN}PowerControl${RESET}, ${GREEN}${BOLD}BatteryControl${RESET}, ${YELLOW}${BOLD}FanControl${RESET}, ${BOLD}${MAGENTA}GPUControl${RESET}, ${BOLD}${BLUE}SleepControl${RESET}?${RESET}${BOLD} (Y/n):$RESET " link_cmd
