@@ -581,7 +581,7 @@ echo "${RESET}"
     __monitor__)
         monitor_idle_activity
         ;;
-        h | help | --help | -h)
+        -help | --h | h | help | --help | -h)
             show_help
         ;;
     *)
