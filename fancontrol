@@ -7,30 +7,22 @@ MAGENTA=$(tput setaf 5)
 CYAN=$(tput setaf 6)
 BOLD=$(tput bold)
 RESET=$(tput sgr0)
-INSTALL_DIR_FILE=/usr/local/bin/.ChromeOS_PowerControl.install_dir
-if [ -f "$INSTALL_DIR_FILE" ]; then
-    INSTALL_DIR=$(cat "$INSTALL_DIR_FILE")
-else
-    INSTALL_DIR="$INSTALL_DIR"
-fi
-
-INSTALL_DIR="${INSTALL_DIR%/}"
+INSTALL_DIR="@INSTALL_DIR@"
 CONFIG_FILE="$INSTALL_DIR/config.sh"
 ZONE_PATH="/sys/class/thermal/thermal_zone0/temp"
 RUN_FLAG="$INSTALL_DIR/.fancontrol_running"
 PID_FILE="$INSTALL_DIR/.fancontrol_pid"
 LOG_FILE="/var/log/fancontrol.log"
-MONITOR_PID_FILE="$INSTALL_DIR/.fancontrol_tail_fan_monitor.pid"
-
+MONITOR_PID_FILE="$INSTALL_DIR/.fancontrol_monitor.pid"
 DEFAULT_FAN_MIN_TEMP=46
 DEFAULT_FAN_MAX_TEMP=80
 DEFAULT_MIN_FAN=0
 DEFAULT_MAX_FAN=100  
-DEFAULT_SLEEP_INTERVAL=3
+DEFAULT_FAN_POLL=3
 DEFAULT_STEP_UP=20
 DEFAULT_STEP_DOWN=1
 
-SLEEP_INTERVAL=$DEFAULT_SLEEP_INTERVAL
+FAN_POLL=$DEFAULT_FAN_POLL
 STEP_UP=$DEFAULT_STEP_UP
 STEP_DOWN=$DEFAULT_STEP_DOWN
 load_config() {
@@ -85,8 +77,8 @@ validate_config() {
     if [[ -z "$STEP_DOWN" || ! "$STEP_DOWN" =~ ^[0-9]+$ ]]; then
         STEP_DOWN=$DEFAULT_STEP_DOWN
     fi
-    if [[ -z "$SLEEP_INTERVAL" || ! "$SLEEP_INTERVAL" =~ ^[0-9]+$ ]]; then
-        SLEEP_INTERVAL=$DEFAULT_SLEEP_INTERVAL
+    if [[ -z "$FAN_POLL" || ! "$FAN_POLL" =~ ^[0-9]+$ ]]; then
+        FAN_POLL=$DEFAULT_FAN_POLL
     fi
 }
 
@@ -95,7 +87,7 @@ save_config() {
     sed -i "s/^FAN_MIN_TEMP=.*/FAN_MIN_TEMP=$FAN_MIN_TEMP/" "$CONFIG_FILE" || echo "FAN_MIN_TEMP=$FAN_MIN_TEMP" >> "$CONFIG_FILE"
     sed -i "s/^MAX_FAN=.*/MAX_FAN=$MAX_FAN/" "$CONFIG_FILE" || echo "MAX_FAN=$MAX_FAN" >> "$CONFIG_FILE"
     sed -i "s/^MIN_FAN=.*/MIN_FAN=$MIN_FAN/" "$CONFIG_FILE" || echo "MIN_FAN=$MIN_FAN" >> "$CONFIG_FILE"
-    sed -i "s/^SLEEP_INTERVAL=.*/SLEEP_INTERVAL=$SLEEP_INTERVAL/" "$CONFIG_FILE" || echo "SLEEP_INTERVAL=$SLEEP_INTERVAL" >> "$CONFIG_FILE"
+    sed -i "s/^FAN_POLL=.*/FAN_POLL=$FAN_POLL/" "$CONFIG_FILE" || echo "FAN_POLL=$FAN_POLL" >> "$CONFIG_FILE"
     sed -i "s/^STEP_UP=.*/STEP_UP=$STEP_UP/" "$CONFIG_FILE" || echo "STEP_UP=$STEP_UP" >> "$CONFIG_FILE"
     sed -i "s/^STEP_DOWN=.*/STEP_DOWN=$STEP_DOWN/" "$CONFIG_FILE" || echo "STEP_DOWN=$STEP_DOWN" >> "$CONFIG_FILE"
 }
@@ -157,8 +149,16 @@ sudo ectool fanduty "$initial_duty"
             DUTY=$((MIN_FAN + (OFFSET * (MAX_FAN - MIN_FAN) / RANGE)))
         fi
 
+
         # Apply hysteresis / gradual ramping with asymmetric steps
         HYSTERESIS=2  # percent
+             if (( last_duty < 50 )); then
+                effective_step_down=$((STEP_DOWN / 2))
+                (( effective_step_down < 1 )) && effective_step_down=1
+            else
+                effective_step_down=$STEP_DOWN
+            fi
+
             if (( last_duty < 0 )); then
                 target_duty=$DUTY
             elif (( DUTY > last_duty + HYSTERESIS )); then
@@ -170,8 +170,8 @@ sudo ectool fanduty "$initial_duty"
                 fi
             elif (( DUTY < last_duty - HYSTERESIS )); then
                 diff=$((last_duty - DUTY))
-                if (( diff > STEP_DOWN )); then
-                    target_duty=$((last_duty - STEP_DOWN))
+                if (( diff > effective_step_down )); then
+                    target_duty=$((last_duty - effective_step_down))
                 else
                     target_duty=$DUTY
                 fi
@@ -179,14 +179,17 @@ sudo ectool fanduty "$initial_duty"
                 target_duty=$last_duty  # No change if within hysteresis
             fi
 
-        KICKSTART_DUTY=50
+
 
         echo "$(date '+%Y-%m-%d %H:%M:%S') CPU: ${TEMP_C}°C -> Fan: ${target_duty}%" >> "$LOG_FILE"
 
-        if (( last_duty > 0 && target_duty == 0 )); then
-            echo "Applying kickstart at ${KICKSTART_DUTY}% before setting to 0%" >> "$LOG_FILE"
-            sudo ectool fanduty "$KICKSTART_DUTY" | grep -v "Fan duty cycle set for all fans." >> "$LOG_FILE"
-            sleep 1
+       if (( last_duty > 0 && target_duty == 0 )); then
+            echo "Applying kickstart ramp-up before setting to 0%" >> "$LOG_FILE"
+            for duty in 10 20 30 40; do
+                echo "  - Kickstart: ${duty}%" >> "$LOG_FILE"
+                sudo ectool fanduty "$duty" | grep -v "Fan duty cycle set for all fans." >> "$LOG_FILE"
+                sleep 0.3
+            done
             sudo ectool fanduty 0 | grep -v "Fan duty cycle set for all fans." >> "$LOG_FILE"
         else
             sudo ectool fanduty "$target_duty" | grep -v "Fan duty cycle set for all fans." >> "$LOG_FILE"
@@ -205,7 +208,7 @@ sudo ectool fanduty "$initial_duty"
 
         last_duty=$target_duty
 
-        sleep "$SLEEP_INTERVAL"
+        sleep "$FAN_POLL"
     done
 
     cleanup
@@ -317,14 +320,14 @@ max_fan() {
     fi
 }
 
-set_sleep_interval() {
+set_fan_poll() {
     if [[ "$2" =~ ^[0-9]+$ ]] && (( $2 >= 1 && $2 <= 10 )); then
         load_config
-        SLEEP_INTERVAL=$2
+        FAN_POLL=$2
         save_config
-        echo "$(date '+%Y-%m-%d %H:%M:%S') - Sleep interval set to $SLEEP_INTERVAL seconds" | tee -a "$LOG_FILE"
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - FanControl polling rate set to $FAN_POLLs" | tee -a "$LOG_FILE"
     else
-        echo "Usage: $0 update <sleep_interval_seconds (1-10)>"
+        echo "Usage: $0 update <fan_poll_seconds (1-10)>"
     fi
 }
 
@@ -351,21 +354,26 @@ set_stepdown() {
 }
 show_help() {
 echo "${YELLOW}"
-echo "FanControl commands with examples:"
-echo ""
-echo "sudo fancontrol                       # Show FanControl status"
-echo "sudo fancontrol start                 # Start FanControl"
-echo "sudo fancontrol stop                  # Stop FanControl"
-echo "sudo fancontrol fan_min_temp 48       # Min temp threshold"
-echo "sudo fancontrol fan_max_temp 81       # Max temp threshold - Limit is 90°C"
-echo "sudo fancontrol min_fan 0             # Min fan speed %"
-echo "sudo fancontrol max_fan 100           # Max fan speed %"
-echo "sudo fancontrol step_up 20            # Fan step-up %"
-echo "sudo fancontrol step_down 1           # Fan step-down %"
-echo "sudo fancontrol monitor               # Toggle on/off live monitoring in terminal"
-echo "sudo fancontrol startup               # Copy or Remove fancontrol.conf at: /etc/init/"
-echo "sudo fancontrol help                  # Help menu${RESET}"
-echo ""
+echo "╔════════════════════════════════════════════════════════════════════════════════════╗"
+echo "║                                                                                    ║"
+echo "║                          FanControl commands with examples:                        ║"
+echo "║                                                                                    ║"
+echo "║  sudo fancontrol                  # Show FanControl status                         ║"
+echo "║  sudo fancontrol start            # Start FanControl                               ║"
+echo "║  sudo fancontrol stop             # Stop FanControl                                ║"
+echo "║  sudo fancontrol fan_min_temp 48  # Min temp threshold                             ║"
+echo "║  sudo fancontrol fan_max_temp 81  # Max temp threshold - Limit is 90°C             ║"
+echo "║  sudo fancontrol min_fan 0        # Min fan speed %                                ║"
+echo "║  sudo fancontrol max_fan 100      # Max fan speed %                                ║"
+echo "║  sudo fancontrol step_up 20       # Fan step-up %                                  ║"
+echo "║  sudo fancontrol step_down 1      # Fan step-down %                                ║"
+echo "║  sudo fancontrol poll 2           # FanControl polling rate in seconds (1 to 10s)  ║"
+echo "║  sudo fancontrol monitor          # Toggle on/off live monitoring in terminal      ║"
+echo "║  sudo fancontrol startup          # Copy or Remove fancontrol.conf at: /etc/init/  ║"
+echo "║  sudo fancontrol help             # Help menu                                      ║"
+echo "║                                                                                    ║"
+echo "╚════════════════════════════════════════════════════════════════════════════════════╝"
+echo "${RESET}"
 }
 
 case "$1" in
@@ -376,7 +384,7 @@ case "$1" in
     fan_max_temp) fan_max_temp "$@" ;;
     min_fan)  min_fan "$@" ;;
     max_fan)  max_fan "$@" ;;
-    update)   set_sleep_interval "$@" ;;
+    poll | fan_poll)   set_fan_poll "$@" ;;
     step_up)   set_stepup "$@" ;;
     step_down) set_stepdown "$@" ;;
     startup)
@@ -407,21 +415,30 @@ case "$1" in
         if [ -f "$RUN_FLAG" ]; then
             PID=$(cat "$PID_FILE")
             if ps -p "$PID" > /dev/null 2>&1; then
-                echo "${GREEN}FanControl Status: ENABLED (PID $PID)${RESET}"
+echo "${YELLOW}"
+echo "══════════════════════════════════════════════════════════"
+echo "         FanControl Status: RUNNING (PID $PID)"
             else
-                echo "${YELLOW}FanControl Status: RUN FLAG PRESENT, but process not running${RESET}"
+echo "${RED}"
+echo "══════════════════════════════════════════════════════════"
+echo "  FanControl Status: RUN FLAG PRESENT, but not running   "
             fi
         else
-            echo "${YELLOW}FanControl Status: STOPPED${RESET}"
+            echo
+echo "${RED}"
+echo "══════════════════════════════════════════════════════════"
+echo "                FanControl Status: STOPPED               "
         fi
-        echo
-        sudo ectool pwmgetnumfans
-        sudo ectool pwmgetfanrpm all
-        echo "Current CPU temp: $(get_temp)°C"
-        echo "Fan Curve: $FAN_MIN_TEMP°C = ${MIN_FAN}%, $FAN_MAX_TEMP°C = ${MAX_FAN}%"
-        echo "Sleep interval: $SLEEP_INTERVAL seconds"
-        echo "Step-up: $STEP_UP%, Step-down: $STEP_DOWN%"
+echo ""
+echo -n "  "; sudo ectool pwmgetnumfans
+echo -n "  "; sudo ectool pwmgetfanrpm all
+echo "  CPU temp: $(get_temp)°C"
+echo "  Fan Curve: $FAN_MIN_TEMP°C = ${MIN_FAN}% RPM -> $FAN_MAX_TEMP°C = ${MAX_FAN}% RPM"
+echo "  Polling rate: ${FAN_POLL}s"
+echo "  Step-up: $STEP_UP%, Step-down: $STEP_DOWN%"
+echo "══════════════════════════════════════════════════════════"
+echo "${RESET}"
         ;;
-    help) show_help ;;
+    --h|-h|h|--help|-help|help) show_help ;;
     *) echo "Unknown command: $1"; show_help ;;
 esac
