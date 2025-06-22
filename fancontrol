@@ -325,7 +325,7 @@ set_fan_poll() {
         load_config
         FAN_POLL=$2
         save_config
-        echo "$(date '+%Y-%m-%d %H:%M:%S') - FanControl polling rate set to $FAN_POLL seconds" | tee -a "$LOG_FILE"
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - FanControl polling rate set to $FAN_POLLs" | tee -a "$LOG_FILE"
     else
         echo "Usage: $0 update <fan_poll_seconds (1-10)>"
     fi
