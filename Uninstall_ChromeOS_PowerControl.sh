@@ -137,6 +137,7 @@ case "$choice" in
         else
             echo "Installation directory not found or still contains files: $INSTALL_DIR"
         fi
+        echo "Stopping PowerControl processes..."
         sleep 1
         sudo pkill -f "/usr/local/bin/gpucontrol"
         sudo pkill -f "/usr/local/bin/fancontrol"
