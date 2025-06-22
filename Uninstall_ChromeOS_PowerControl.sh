@@ -2,18 +2,13 @@
 RED=$(tput setaf 1)
 GREEN=$(tput setaf 2)
 YELLOW=$(tput setaf 3)
+BLUE=$(tput setaf 4)
+MAGENTA=$(tput setaf 5)
 CYAN=$(tput setaf 6)
 BOLD=$(tput bold)
 RESET=$(tput sgr0)
-INSTALL_DIR_FILE="/usr/local/bin/.ChromeOS_PowerControl.install_dir"
-if [ -f "$INSTALL_DIR_FILE" ]; then
-    INSTALL_DIR=$(cat "$INSTALL_DIR_FILE")
-else
-    INSTALL_DIR="/usr/local/bin/ChromeOS_PowerControl"
-fi
-INSTALL_DIR="${INSTALL_DIR%/}"
-CONFIG_FILE="$INSTALL_DIR/config.sh"
-
+INSTALL_DIR="@INSTALL_DIR@"
+trap 'echo "Uninstall interrupted."; exit 1' SIGINT SIGTERM
 
 
 remove_file_with_message() {
@@ -79,11 +74,6 @@ case "$choice" in
         remove_file_with_message /etc/init/sleepcontrol.conf
 
         remove_file_with_message /usr/local/bin/ChromeOS_PowerControl_Installer.sh
-        remove_file_with_message /usr/local/bin/.powercontrol_conf.sh
-        remove_file_with_message /usr/local/bin/.fancontrol_conf.sh
-        remove_file_with_message /usr/local/bin/.batterycontrol_conf.sh
-        remove_file_with_message /usr/local/bin/.gpucontrol_conf.sh
-        remove_file_with_message /usr/local/bin/.sleepcontrol_conf.sh
 
         remove_file_with_message /usr/local/bin/powercontrol
         remove_file_with_message /usr/local/bin/batterycontrol
@@ -113,23 +103,24 @@ case "$choice" in
         sudo rm -f "$INSTALL_DIR/.batterycontrol_pid"
         sudo rm -f "$INSTALL_DIR/.fancontrol_tail_fan_monitor.pid"
         sudo rm -f "$INSTALL_DIR/.powercontrol_tail_fan_monitor.pid"
+        sudo rm -f "$INSTALL_DIR/.fancontrol_monitor.pid"
+        sudo rm -f "$INSTALL_DIR/.powercontrol_monitor.pid"
         sudo rm -f "$INSTALL_DIR/.sleepcontrol_lock"
         sudo rm -f "$INSTALL_DIR/.sleepcontrol_monitor.pid"
         sudo rm -f "$INSTALL_DIR/.sleepcontrol_pid.lock"
-        sudo pkill -f "/usr/local/bin/.gpucontrol_conf.sh"
-        sudo pkill -f "/usr/local/bin/.fancontrol_conf.sh"
-        sudo pkill -f "/usr/local/bin/.sleepcontrol_conf.sh"
-        sudo pkill -f "/usr/local/bin/.batterycontrol_conf.sh"
-        sudo pkill -f "/usr/local/bin/.powercontrol_conf.sh"
+        sudo rm -f "/usr/local/bin/.ChromeOS_PowerControl.install_dir"
+        sudo rm -f "/usr/local/bin/fancontrol_conf.sh"
+        sudo rm -f "/usr/local/bin/powercontrol_conf.sh"
+        sudo rm -f "/usr/local/bin/sleepcontrol_conf.sh"
+        sudo rm -f "/usr/local/bin/batterycontrol_conf.sh"
+        sudo rm -f "/usr/local/bin/gpucontrol_conf.sh"
         remove_file_with_message "$INSTALL_DIR/powercontrol"
         remove_file_with_message "$INSTALL_DIR/fancontrol"
         remove_file_with_message "$INSTALL_DIR/batterycontrol"
         remove_file_with_message "$INSTALL_DIR/gpucontrol"
         remove_file_with_message "$INSTALL_DIR/sleepcontrol"
-
         remove_file_with_message "$INSTALL_DIR/LICENSE"
         remove_file_with_message "$INSTALL_DIR/README.md"
-        remove_file_with_message "/usr/local/bin/.ChromeOS_PowerControl.install_dir"
         remove_file_with_message "$INSTALL_DIR/Uninstall_ChromeOS_PowerControl.sh"
 
         if [ -d "$INSTALL_DIR" ] && [ -z "$(ls -A "$INSTALL_DIR")" ]; then
@@ -137,10 +128,27 @@ case "$choice" in
         else
             echo "Installation directory not found or still contains files: $INSTALL_DIR"
         fi
+        echo "Stopping PowerControl processes..."
+        echo ""
+        sleep 1
+echo "${RED}╔═══════════════════════════════╗${RESET}"
+echo "${YELLOW}║ ╔═══════════════════════════╗ ║${RESET}"
+echo "${GREEN}║ ║ ╔═══════════════════════╗ ║ ║${RESET}"
+echo "${RESET}║ ║ ║  Uninstall Complete!  ║ ║ ║${RESET}"
+echo "${CYAN}║ ║ ╚═══════════════════════╝ ║ ║${RESET}"
+echo "${BLUE}║ ╚═══════════════════════════╝ ║${RESET}"
+echo "${MAGENTA}╚═══════════════════════════════╝${RESET}"
+echo ""
+        sudo pkill -f "/usr/local/bin/gpucontrol"
+        sudo pkill -f "/usr/local/bin/fancontrol"
+        sudo pkill -f "/usr/local/bin/sleepcontrol"
+        sudo pkill -f "/usr/local/bin/batterycontrol"
+        sudo pkill -f "/usr/local/bin/powercontrol"
 
-        echo "${GREEN}Uninstall Complete.$RESET"
+exit 0
         ;;
     *)
         echo "${RED}Invalid option.$RESET"
+        exit 1
         ;;
 esac
