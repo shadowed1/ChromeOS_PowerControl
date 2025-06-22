@@ -132,15 +132,15 @@ case "$choice" in
         else
             echo "Installation directory not found or still contains files: $INSTALL_DIR"
         fi
-echo "${GREEN}"
-echo "╔═══════════════════════════════╗"
-echo "║ ╔═══════════════════════════╗ ║"
-echo "║ ║ ╔═══════════════════════╗ ║ ║"
-echo "║ ║ ║  Uninstall Complete!  ║ ║ ║"
-echo "║ ║ ╚═══════════════════════╝ ║ ║"
-echo "║ ╚═══════════════════════════╝ ║"
-echo "╚═══════════════════════════════╝"
-echo "${RESET}"
+echo ""
+echo "${RED}╔═══════════════════════════════╗${RESET}"
+echo "${YELLOW}║ ╔═══════════════════════════╗ ║${RESET}"
+echo "${GREEN}║ ║ ╔═══════════════════════╗ ║ ║${RESET}"
+echo "${RESET}║ ║ ║  Uninstall Complete!  ║ ║ ║${RESET}"
+echo "${CYAN}║ ║ ╚═══════════════════════╝ ║ ║${RESET}"
+echo "${BLUE}║ ╚═══════════════════════════╝ ║${RESET}"
+echo "${MAGENTA}╚═══════════════════════════════╝${RESET}"
+echo ""
         ;;
     *)
         echo "${RED}Invalid option.$RESET"
