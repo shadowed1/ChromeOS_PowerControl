@@ -29,7 +29,7 @@
 
 
 
-__How to Install:__
+### __How to Install:__
 
 - Open crosh shell and run: <br>
 
