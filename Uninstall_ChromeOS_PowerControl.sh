@@ -138,13 +138,8 @@ case "$choice" in
             echo "Installation directory not found or still contains files: $INSTALL_DIR"
         fi
         echo "Stopping PowerControl processes..."
+        echo ""
         sleep 1
-        sudo pkill -f "/usr/local/bin/gpucontrol"
-        sudo pkill -f "/usr/local/bin/fancontrol"
-        sudo pkill -f "/usr/local/bin/sleepcontrol"
-        sudo pkill -f "/usr/local/bin/batterycontrol"
-        sudo pkill -f "/usr/local/bin/powercontrol"
-echo ""
 echo "${RED}╔═══════════════════════════════╗${RESET}"
 echo "${YELLOW}║ ╔═══════════════════════════╗ ║${RESET}"
 echo "${GREEN}║ ║ ╔═══════════════════════╗ ║ ║${RESET}"
@@ -153,6 +148,12 @@ echo "${CYAN}║ ║ ╚══════════════════�
 echo "${BLUE}║ ╚═══════════════════════════╝ ║${RESET}"
 echo "${MAGENTA}╚═══════════════════════════════╝${RESET}"
 echo ""
+        sudo pkill -f "/usr/local/bin/gpucontrol"
+        sudo pkill -f "/usr/local/bin/fancontrol"
+        sudo pkill -f "/usr/local/bin/sleepcontrol"
+        sudo pkill -f "/usr/local/bin/batterycontrol"
+        sudo pkill -f "/usr/local/bin/powercontrol"
+
 exit 0
         ;;
     *)
