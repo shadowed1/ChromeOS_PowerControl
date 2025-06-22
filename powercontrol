@@ -52,6 +52,7 @@ detect_cpu_type() {
     DEFAULT_RAMP_UP=15
     DEFAULT_RAMP_DOWN=20
     MAX_TEMP_LIMIT=90
+    DEFAULT_CPU_POLL=1
 
     HOTZONE=""
     MAX_TEMP=""
@@ -60,6 +61,8 @@ detect_cpu_type() {
     MIN_PERF_PCT=""
     RAMP_UP=""
     RAMP_DOWN=""
+    CPU_POLL=""
+
 
 load_config() {
     if [ -f "$CONFIG_FILE" ]; then
@@ -73,6 +76,7 @@ load_config() {
         HOTZONE=${HOTZONE:-$DEFAULT_HOTZONE}
         RAMP_UP=${RAMP_UP:-$DEFAULT_RAMP_UP}
         RAMP_DOWN=${RAMP_DOWN:-$DEFAULT_RAMP_DOWN}
+        CPU_POLL=${CPU_POLL:-$DEFAULT_CPU_POLL}
         validate_config
     fi
 }
@@ -86,6 +90,7 @@ validate_config() {
     if [[ -z "$HOTZONE" ]]; then HOTZONE=$DEFAULT_HOTZONE; fi
     if [[ -z "$RAMP_UP" ]]; then RAMP_UP=$DEFAULT_RAMP_UP; fi
     if [[ -z "$RAMP_DOWN" ]]; then RAMP_DOWN=$DEFAULT_RAMP_DOWN; fi
+    if [[ -z "$CPU_POLL" ]]; then CPU_POLL=$DEFAULT_INTERVAL; fi
 
     # Clamp temps to limits
     if (( MAX_TEMP > MAX_TEMP_LIMIT )); then
@@ -136,6 +141,18 @@ validate_config() {
             MAX_PERF_PCT=100
         fi
     fi
+
+    if ! [[ "$CPU_POLL" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
+        echo "${RED}Warning: CPU_POLL is not a valid number, resetting to $DEFAULT_CPU_POLL ${RESET}"
+        CPU_POLL=$DEFAULT_CPU_POLL
+    elif (( $(echo "$CPU_POLL < 0.1" | bc -l) )); then
+        echo "${RED}Warning: CPU_POLL below 0.1s, resetting to 0.1s${RESET}"
+        CPU_POLL=0.1
+    elif (( $(echo "$CPU_POLL > 5" | bc -l) )); then
+        echo "${RED}Warning: CPU_POLL above 5s, resetting to 5s${RESET}"
+        CPU_POLL=5
+    fi
+
 }
 
 save_config() {
@@ -148,6 +165,7 @@ save_config() {
     sed -i "s/^RAMP_UP=.*/RAMP_UP=$RAMP_UP/" "$CONFIG_FILE" || echo "RAMP_UP=$RAMP_UP" >> "$CONFIG_FILE"
     sed -i "s/^RAMP_DOWN=.*/RAMP_DOWN=$RAMP_DOWN/" "$CONFIG_FILE" || echo "RAMP_DOWN=$RAMP_DOWN" >> "$CONFIG_FILE"
     sed -i "s/^HOTZONE=.*/HOTZONE=$HOTZONE/" "$CONFIG_FILE" || echo "HOTZONE=$HOTZONE" >> "$CONFIG_FILE"
+    sed -i "s/^CPU_POLL=.*/CPU_POLL=$CPU_POLL/" "$CONFIG_FILE" || echo "CPU_POLL=$CPU_POLL" >> "$CONFIG_FILE"
     source "$INSTALL_DIR/config.sh"
 }
 
@@ -344,7 +362,8 @@ start_monitoring_loop() {
             set_max_perf_pct "$pct"
         fi
 
-        sleep 1
+        sleep "$CPU_POLL"
+
     done
 
     echo "${YELLOW}PowerControl stopped.${RESET}" | tee -a "$LOG_FILE"
@@ -518,6 +537,8 @@ echo "║  sudo powercontrol min_temp 60         # Min temperature threshold    
 echo "║  sudo powercontrol hotzone 78          # Temperature threshold for aggressive thermal management          ║"
 echo "║  sudo powercontrol ramp_up 15          # % in steps CPU will increase in clockspeed per second            ║"
 echo "║  sudo powercontrol ramp_down 20        # % in steps CPU will decrease in clockspeed per second            ║"
+echo "║  sudo powercontrol hotzone 78          # Temperature threshold for aggressive thermal management          ║"
+echo "║  sudo powercontrol cpu_poll 1          # Interval in seconds PowerControl operates at (0.1s - 5s)         ║"
 echo "║  sudo powercontrol monitor             # Toggle live temperature monitoring                               ║"
 echo "║  sudo powercontrol startup             # Copy or Remove no_turbo.conf & powercontrol.conf at: /etc/init/  ║"
 echo "║  sudo powercontrol reinstall           # Redownload and reinstall ChromeOS_PowerControl from Github       ║"
