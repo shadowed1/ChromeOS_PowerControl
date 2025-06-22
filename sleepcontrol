@@ -96,7 +96,7 @@ show_help() {
 echo "${BLUE}"
 echo "╔═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
 echo "║                                                                                                                         ║"
-echo "║                                             # SleepControl Commands with examples                                       ║"
+echo "║                                             SleepControl commands with examples:                                        ║"
 echo "║                                                                                                                         ║"
 echo "║  sudo sleepcontrol                  # Show SleepControl status                                                          ║"
 echo "║  sudo sleepcontrol start            # Start SleepControl                                                                ║"
