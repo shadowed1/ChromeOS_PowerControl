@@ -9,10 +9,6 @@
 <p align="center">
   <img src="https://i.imgur.com/UUDXngC.png" alt="logo" width="600" />
 </p>  
-<br> <br>
-
-  <br> <br>
-
 
 <p align="center">
   <img src="https://i.imgur.com/fh8dBwa.png" alt="logo" />
