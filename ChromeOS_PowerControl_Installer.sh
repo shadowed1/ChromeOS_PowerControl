@@ -588,7 +588,7 @@ echo "║  sudo powercontrol min_perf_pct 50  # Set minimum performance at max t
 echo "║  sudo powercontrol max_temp 86      # Max temperature threshold - Limit is 90°C                                    ║"
 echo "║  sudo powercontrol min_temp 60      # Min temperature threshold                                                    ║"
 echo "║  sudo powercontrol hotzone 78       # Temperature threshold for aggressive thermal management                      ║"
-echo "║  sudo powercontrol cpu_poll 1       # Interval in seconds PowerControl operates at (0.1s - 5s)                     ║"
+echo "║  sudo powercontrol cpu_poll 1       # Interval in seconds PowerControl operates at (0.1s to 5s)                    ║"
 echo "║  sudo powercontrol ramp_up 15       # % in steps CPU will increase in clockspeed per second                        ║"
 echo "║  sudo powercontrol ramp_down 20     # % in steps CPU will decrease in clockspeed per second                        ║"
 echo "║  sudo powercontrol monitor          # Toggle on/off live monitoring in terminal                                    ║"
