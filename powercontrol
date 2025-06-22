@@ -715,7 +715,7 @@ case "$1" in
         exit 1
     fi
     ;;
-   cpu_poll)
+   poll | cpu_poll)
     if [[ "$2" =~ ^[0-9]+([.][0-9]+)?$ ]]; then
         CPU_POLL=$(printf "%.2f" "$2")
         if (( $(awk "BEGIN {print ($CPU_POLL < 0.1)}") )); then
