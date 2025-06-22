@@ -1,13 +1,12 @@
 
 
 
- # Providing hardware control for ChromeOS with customization.
-
+ # *Lightweight shell scripts providing hardware control in ChromeOS.*
  <br>
  <br>
  
 <p align="center">
-  <img src="https://i.imgur.com/UUDXngC.png" alt="logo" width="600" />
+  <img src="https://i.imgur.com/uELNNt2.png" alt="logo" width="400" />
 </p>  
 
 <p align="center">
