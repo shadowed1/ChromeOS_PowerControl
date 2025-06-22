@@ -125,7 +125,7 @@ echo ""
         active_port=$(detect_active_usbpd_port)
         if [ "$active_port" != "-1" ]; then
 
-echo "Active USB-PD Charger Port: $active_port (CROS_USBPD_CHARGER$active_port) ${RESET}"
+echo "Active USB-PD Charger Port: $active_port (CROS_USBPD_CHARGER$active_port)"
 sudo ectool usbpdpower 2>/dev/null || echo "Failed to run ectool usbpdpower (is ectool installed and available?)"
 echo
 sudo ectool battery 2>/dev/null || echo "Failed to run ectool battery (is ectool installed and available?)"
