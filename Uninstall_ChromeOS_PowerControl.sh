@@ -7,6 +7,8 @@ MAGENTA=$(tput setaf 5)
 CYAN=$(tput setaf 6)
 BOLD=$(tput bold)
 RESET=$(tput sgr0)
+trap 'echo "Uninstall completed."; exit 1' SIGINT SIGTERM
+
 INSTALL_DIR_FILE="/usr/local/bin/.ChromeOS_PowerControl.install_dir"
 if [ -f "$INSTALL_DIR_FILE" ]; then
     INSTALL_DIR=$(cat "$INSTALL_DIR_FILE")
@@ -121,11 +123,6 @@ case "$choice" in
         sudo rm -f "/usr/local/bin/sleepcontrol_conf.sh"
         sudo rm -f "/usr/local/bin/batterycontrol_conf.sh"
         sudo rm -f "/usr/local/bin/gpucontrol_conf.sh"
-        sudo pkill -f "/usr/local/bin/gpucontrol"
-        sudo pkill -f "/usr/local/bin/fancontrol"
-        sudo pkill -f "/usr/local/bin/sleepcontrol"
-        sudo pkill -f "/usr/local/bin/batterycontrol"
-        sudo pkill -f "/usr/local/bin/powercontrol"
         remove_file_with_message "$INSTALL_DIR/powercontrol"
         remove_file_with_message "$INSTALL_DIR/fancontrol"
         remove_file_with_message "$INSTALL_DIR/batterycontrol"
@@ -140,6 +137,12 @@ case "$choice" in
         else
             echo "Installation directory not found or still contains files: $INSTALL_DIR"
         fi
+        sleep 1
+        sudo pkill -f "/usr/local/bin/gpucontrol"
+        sudo pkill -f "/usr/local/bin/fancontrol"
+        sudo pkill -f "/usr/local/bin/sleepcontrol"
+        sudo pkill -f "/usr/local/bin/batterycontrol"
+        sudo pkill -f "/usr/local/bin/powercontrol"
 echo ""
 echo "${RED}╔═══════════════════════════════╗${RESET}"
 echo "${YELLOW}║ ╔═══════════════════════════╗ ║${RESET}"
