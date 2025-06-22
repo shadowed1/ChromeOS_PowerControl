@@ -384,7 +384,7 @@ case "$1" in
     fan_max_temp) fan_max_temp "$@" ;;
     min_fan)  min_fan "$@" ;;
     max_fan)  max_fan "$@" ;;
-    update)   set_fan_poll "$@" ;;
+    fan_poll)   set_fan_poll "$@" ;;
     step_up)   set_stepup "$@" ;;
     step_down) set_stepdown "$@" ;;
     startup)
