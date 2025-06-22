@@ -1,7 +1,7 @@
 
 
 
- ## *A suite of Lightweight shell scripts providing hardware control in ChromeOS.*
+ ## *A suite of lightweight shell scripts providing hardware control in ChromeOS.*
  <br>
  <br>
  
