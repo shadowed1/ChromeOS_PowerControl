@@ -256,7 +256,7 @@ case "$1" in
             sudo rm -r /etc/init/batterycontrol.conf
         fi
         ;;
-   --h | -help | h | help | --help | -h)
+   --h|-h|h|--help|-help|help)
         show_help
         ;;
     __monitor__)
