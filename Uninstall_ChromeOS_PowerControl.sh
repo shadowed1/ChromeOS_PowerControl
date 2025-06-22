@@ -2,9 +2,11 @@
 RED=$(tput setaf 1)
 GREEN=$(tput setaf 2)
 YELLOW=$(tput setaf 3)
+BLUE=$(tput setaf 4)
+MAGENTA=$(tput setaf 5)
 CYAN=$(tput setaf 6)
 BOLD=$(tput bold)
-RESET=$(tput sgr0)
+RESET=$(tput sgr0
 INSTALL_DIR_FILE="/usr/local/bin/.ChromeOS_PowerControl.install_dir"
 if [ -f "$INSTALL_DIR_FILE" ]; then
     INSTALL_DIR=$(cat "$INSTALL_DIR_FILE")
