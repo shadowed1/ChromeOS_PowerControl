@@ -7,14 +7,7 @@ MAGENTA=$(tput setaf 5)
 CYAN=$(tput setaf 6)
 BOLD=$(tput bold)
 RESET=$(tput sgr0)
-INSTALL_DIR_FILE="/usr/local/bin/.ChromeOS_PowerControl.install_dir"
-if [ -f "$INSTALL_DIR_FILE" ]; then
-    INSTALL_DIR=$(cat "$INSTALL_DIR_FILE")
-else
-    INSTALL_DIR="/usr/local/bin/ChromeOS_PowerControl"
-fi
-INSTALL_DIR="${INSTALL_DIR%/}"
-
+INSTALL_DIR="@INSTALL_DIR@"
 CONFIG_FILE="$INSTALL_DIR/config.sh"
 BATTERY_PATH="/sys/class/power_supply/BAT0/capacity"
 STATUS_PATH="/sys/class/power_supply/BAT0/status"
@@ -69,16 +62,20 @@ set_threshold() {
     load_config
 
 show_help() {
-    echo "${GREEN}"
-    echo "BatteryControl commands with examples:"
-    echo
-echo "sudo batterycontrol                   # Check BatteryControl status"
-echo "sudo batterycontrol start             # Start BatteryControl"
-echo "sudo batterycontrol stop              # Stop BatteryControl"
-echo "sudo batterycontrol 77                # Charge limit set to 77% - Minimum setting allowed is 14%"
-echo "sudo batterycontrol startup           # Copy or Remove batterycontrol.conf at: /etc/init/"
-echo "sudo batterycontrol help              # Help menu${RESET}"
-echo ""
+echo "${GREEN}"
+echo "╔════════════════════════════════════════════════════════════════════════════════════╗"
+echo "║                                                                                    ║"
+echo "║                       BatteryControl commands with examples:                       ║"
+echo "║                                                                                    ║"
+echo "║  sudo batterycontrol          # Check BatteryControl status                        ║"
+echo "║  sudo batterycontrol start    # Start BatteryControl                               ║"
+echo "║  sudo batterycontrol stop     # Stop BatteryControl                                ║"
+echo "║  sudo batterycontrol 77       # Charge limit set to 77% - Minimum allowed is 14%   ║"
+echo "║  sudo batterycontrol startup  # Copy or Remove batterycontrol.conf at: /etc/init/  ║"
+echo "║  sudo batterycontrol help     # Help menu                                          ║"
+echo "║                                                                                    ║"
+echo "╚════════════════════════════════════════════════════════════════════════════════════╝"
+echo "${RESET}"
 }
 
 detect_active_usbpd_port() {
@@ -102,26 +99,46 @@ battery_status() {
         if [ -f "$PID_FILE" ]; then
             PID=$(cat "$PID_FILE")
             if ps -p "$PID" > /dev/null 2>&1; then
-                echo "${GREEN}BatteryControl is: RUNNING (PID $PID)${RESET}"
+echo "${GREEN}"
+echo "═════════════════════════════════════════════════════════════════════════════"
+echo "                BatteryControl is: RUNNING (PID $PID)"
             else
-                echo "${YELLOW}BatteryControl is: RUNNING (but process is NOT)${RESET}"
+echo "${RED}"
+echo "═════════════════════════════════════════════════════════════════════════════"
+echo "              BatteryControl is: RUNNING (but process is NOT)         "
                 rm -f "$PID_FILE"
             fi
         else
-            echo "${YELLOW}BatteryControl is: RUNNING (PID not found)${RESET}"
+echo "${RED}"
+echo "═════════════════════════════════════════════════════════════════════════════"
+echo "                   BatteryControl is: RUNNING (PID not found)                       "
         fi
-    else
-        echo "${YELLOW}BatteryControl is: STOPPED${RESET}"
+else
+echo "${RED}"
+echo "═════════════════════════════════════════════════════════════════════════════"
+echo "                       BatteryControl is: STOPPED"
     fi
-    echo ""
-    echo "Charge Limit: $CHARGE_MAX"
+echo ""
+echo "Charge Limit: $CHARGE_MAX"
+echo ""
+        local active_port
+        active_port=$(detect_active_usbpd_port)
+        if [ "$active_port" != "-1" ]; then
 
-    local active_port
-    active_port=$(detect_active_usbpd_port)
-    if [ "$active_port" != "-1" ]; then
-        echo "Active USB-PD Charger Port: $active_port (CROS_USBPD_CHARGER$active_port)"
-    else
-        echo "Active USB-PD Charger Port: None detected"
+echo "Active USB-PD Charger Port: $active_port (CROS_USBPD_CHARGER$active_port)"
+sudo ectool usbpdpower 2>/dev/null || echo "Failed to run ectool usbpdpower (is ectool installed and available?)"
+echo
+sudo ectool battery 2>/dev/null || echo "Failed to run ectool battery (is ectool installed and available?)"
+echo "═════════════════════════════════════════════════════════════════════════════"
+echo "${RESET}"
+        else
+echo "Active USB-PD Charger Port: None detected ${RESET}"
+sudo ectool usbpdpower 2>/dev/null || echo "Failed to run ectool usbpdpower (is ectool installed and available?)"
+echo
+sudo ectool battery 2>/dev/null || echo "Failed to run ectool battery (is ectool installed and available?)"
+echo "═════════════════════════════════════════════════════════════════════════════"
+echo "${RESET}"
+
     fi
 }
 
@@ -220,11 +237,6 @@ case "$1" in
         ;;
     ""|status)
         battery_status
-        echo
-        sudo ectool usbpdpower 2>/dev/null || echo "Failed to run ectool usbpdpower (is ectool installed and available?)"
-        echo
-        sudo ectool battery 2>/dev/null || echo "Failed to run ectool battery (is ectool installed and available?)"
-        echo
         ;;
     startup)
         CONF_SOURCE="$INSTALL_DIR/batterycontrol.conf"
@@ -244,7 +256,7 @@ case "$1" in
             sudo rm -r /etc/init/batterycontrol.conf
         fi
         ;;
-    help | --help | -h)
+   --h|-h|h|--help|-help|help)
         show_help
         ;;
     __monitor__)
@@ -259,8 +271,8 @@ case "$1" in
         if [[ "$1" =~ ^[0-9]+$ ]] && (( $1 >= 14 && $1 <= 100 )); then
             set_threshold "$1"
         else
-            echo "Unknown command or value is too low: $1"
-            echo "Use '$0 help' to see available commands."
+            echo "${RED}Unknown command or value is too low: $1 ${RESET}"
+            show_help
             exit 1
         fi
         ;;
