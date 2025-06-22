@@ -1,17 +1,21 @@
 
 
 
+ # Providing hardware control for ChromeOS with customization.
+
+ <br>
+ <br>
+ 
 <p align="center">
-  <img src="https://i.imgur.com/RbK8dR6.png" alt="logo" />
+  <img src="https://i.imgur.com/UUDXngC.png" alt="logo" width="600" />
 </p>  
 <br> <br>
-ChromeOS_PowerControl is a suite of lightweight shell scripts providing hardware control in ChromeOS.
 
   <br> <br>
 
 
 <p align="center">
-  <img src="https://i.imgur.com/Qwc8dFw.png" alt="logo" />
+  <img src="https://i.imgur.com/fh8dBwa.png" alt="logo" />
 </p>
 
   <br> <br>
