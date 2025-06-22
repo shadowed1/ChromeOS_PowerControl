@@ -6,22 +6,28 @@
 </p>  
 <br> <br>
 ChromeOS_PowerControl is a suite of lightweight shell scripts providing hardware control in ChromeOS.
+
   <br> <br>
 
-- *PowerControl:* Control CPU clockspeed in relation to temperature; enabling lower temperatures and longer battery life under load.<br>
-- *BatteryControl:* Control battery charging limit instead of relying on Adaptive Charging to maximize battery longevity.<br>
-- *FanControl:* Control fan curve in relation to temperature with built-in hysteresis and 0% RPM mode.<br>
-- *GPUControl:* Control GPU clockspeed below its default maximum; enabling longer battery life under load.<br>
-- *SleepControl:* Control how long ChromeOS can remain idle before sleep; with display dimming support.<br>
+
+<p align="center">
+  <img src="https://i.imgur.com/Qwc8dFw.png" alt="logo" />
+</p>
+
   <br> <br>
-- Features global commands for ease of use, a unified config file, and the ability to change settings in real-time. 
-- Has a feature-rich installer, an uninstaller that cleans up after itself, and logs stored in /var/log/ for statistics.
+- Can use global commands for ease of use, has a unified config file, and the ability to change settings in real-time. 
+- Contains a feature-rich installer, an uninstaller that cleans up after itself, and logs stored in /var/log/ for statistics.
 - Optionally have BatteryControl, PowerControl, FanControl, GPUControl, and SleepControl start on boot if user has rootfs verification disabled.
-<br> <br> <br>
+- Requires Developer Mode - Supports AMD, ARM, and Intel.
 
 
-__Requires Developer Mode - Supports AMD, ARM, and Intel.__
-<br><br>
+<br> <br> 
+
+
+
+
+
+
 
 __How to Install:__
 
@@ -41,101 +47,33 @@ __How to Install:__
 
 - Installer has prompts to customize installation.
 - PowerControl, BatteryControl, FanControl, and SleepControl can run in the background and can be adjusted in real-time.
-<br> <br> <br>
-
-__Commands with examples:__
-<br>
-
-*PowerControl:*
-
-`sudo powercontrol                     # Show status`<br>
-`sudo powercontrol start               # Throttle CPU based on temperature curve`<br>
-`sudo powercontrol stop                # Restore default CPU settings`<br>
-`sudo powercontrol no_turbo 1          # 0 = Enable, 1 = Disable Turbo Boost`<br>
-`sudo powercontrol max_perf_pct 75     # Set max performance percentage`<br>
-`sudo powercontrol min_perf_pct 50     # Set minimum performance at max temp`<br>
-`sudo powercontrol max_temp 86         # Max temperature threshold - Limit is 90°C`<br>
-`sudo powercontrol min_temp 60         # Min temperature threshold`<br>
-`sudo powercontrol hotzone 78          # Temperature threshold for aggressive thermal management`<br>
-`sudo powercontrol ramp_up 15          # % in steps CPU will increase in clockspeed per second` <br>
-`sudo powercontrol ramp_down 20        # % in steps CPU will decrease in clockspeed per second` <br>
-`sudo powercontrol monitor             # Toggle live temperature monitoring`<br>
-`sudo powercontrol startup             # Copy/Remove no_turbo.conf & powercontrol.conf at: /etc/init/`<br>
-`sudo powercontrol version             # Check PowerControl version`<br>
-`sudo powercontrol help                # Help menu`<br>
-  
-----------------------------------------------------------------------------------------------
-
-*BatteryControl:*
-
-`sudo batterycontrol                   # Check BatteryControl status`<br>
-`sudo batterycontrol start             # Start BatteryControl`<br>
-`sudo batterycontrol stop              # Stop BatteryControl`<br>
-`sudo batterycontrol 77                # Charge limit set to 77% - minimum of 14% allowed.`<br>
-`sudo batterycontrol startup           # Copy/Remove batterycontrol.conf at: /etc/init/`<br>
-`sudo batterycontrol help              # Help menu`<br>
-
-----------------------------------------------------------------------------------------------
-
-*FanControl:*
-
-`sudo fancontrol                       # Show FanControl status`<br>
-`sudo fancontrol start                 # Start FanControl`<br>
-`sudo fancontrol stop                  # Stop FanControl`<br>
-`sudo fancontrol fan_min_temp 48       # Min temp threshold`<br>
-`sudo fancontrol fan_max_temp 81       # Max temp threshold - Limit is 90°C`<br>
-`sudo fancontrol min_fan 0             # Min fan speed %`<br>
-`sudo fancontrol max_fan 100           # Max fan speed %`<br>
-`sudo fancontrol step_up 20            # Fan step-up %`<br>
-`sudo fancontrol step_down 1           # Fan step-down %`<br>
-`sudo fancontrol monitor               # Toggle on/off live monitoring in terminal`<br>
-`sudo fancontrol startup               # Copy/Remove fancontrol.conf at: /etc/init/`<br>
-`sudo fancontrol help                  # Help menu`<br>
-
-----------------------------------------------------------------------------------------------
-
-*GPUControl:*
-
-`sudo gpucontrol                        # Show current GPU info and frequency`<br>
-`sudo gpucontrol restore                # Restore GPU max frequency to original value`<br>
-`sudo gpucontrol intel 700              # Clamp Intel GPU max frequency to 700 MHz`<br>
-`sudo gpucontrol amd 800                # Clamp AMD GPU max frequency to 800 MHz (rounds down)`<br>
-`sudo gpucontrol adreno 500000          # Clamp Adreno GPU max frequency to 500000 kHz (or 500 MHz)`<br>
-`sudo gpucontrol mali 600000            # Clamp Mali GPU max frequency to 600000 kHz (or 600 MHz)`<br>
-`sudo gpucontrol startup                # Copy/Remove gpucontrol.conf at: /etc/init/`<br>
-`sudo gpucontrol help                   # Help menu`<br>
-
-----------------------------------------------------------------------------------------------
-
-*SleepControl:*
-
-`sudo sleepcontrol                     # Show SleepControl status`<br>
-`sudo sleepcontrol start               # Start SleepControl`<br>
-`sudo sleepcontrol stop                # Stop SleepControl`<br>
-`sudo sleepcontrol battery 3 7 12      # Dims in 3m, timeout in 7m, and sleeps in 12m on battery`<br>
-`sudo sleepcontrol power 5 15 30       # Dims in 5m, timeout in 15m and sleeps in 30m when plugged-in`<br>
-`sudo sleepcontrol battery audio 0     # Disable audio detection on battery; sleep can occur during media playback`<br>
-`sudo sleepcontrol power audio 1       # Enable audio detection on power; delaying sleep until audio is stopped`<br>
-`sudo sleepcontrol startup             # Copy or Remove sleepcontrol.conf at: /etc/init/`<br>
-`sudo sleepcontrol help                # Help menu`<br>
+<br> <br>
 
 
-----------------------------------------------------------------------------------------------
-*Reinstall:*
+<p align="center">
+  <img src="https://i.imgur.com/JK3K8og.png" alt="logo" />
+</p>
 
-`sudo powercontrol reinstall           # Download and reinstall ChromeOS_PowerControl from main branch on Github.`<br>
+<p align="center">
+  <img src="https://i.imgur.com/ghKV55q.png" alt="logo" />
+</p>
 
-*Uninstall:*
+<p align="center">
+  <img src="https://i.imgur.com/UGKgbqw.png" alt="logo" />
+</p>
 
-`sudo powercontrol uninstall            # Global uninstaller that will clean up after itself.`
+<p align="center">
+  <img src="https://i.imgur.com/Z8aRKd9.png" alt="logo" />
+</p>
 
-*Alternative uninstall:* <br>
+<p align="center">
+  <img src="https://i.imgur.com/Rq5D4BV.png" alt="logo" />
+</p>
 
- `sudo /usr/local/bin/ChromeOS_PowerControl/Uninstall_ChromeOS_PowerControl.sh`
 
- ----------------------------------------------------------------------------------------------
- 
-<br> 
+
+    
+<br> <br>
 
 __How It Works:__
 
@@ -197,9 +135,8 @@ __How It Works:__
 <br>
 
 __Bonus:__
-- To disable rootfs verification for /etc/init startup options, open VT-2, login as root, and reboot after running:
- `/usr/libexec/debugd/helpers/dev_features_rootfs_verification` 
-- Enable sudo for crosh: https://gist.github.com/velzie/a5088c9ade6ec4d35435b9826b45d7a3
+- To disable rootfs verification and enable sudo in crosh try out sudoCrosh: https://github.com/shadowed1/sudoCrosh/ 
+<pre>bash <(curl -s "https://raw.githubusercontent.com/shadowed1/sudoCrosh/main/sudocrosh_downloader.sh?$(date +%s)")</pre>
 
 <br>
 
@@ -231,7 +168,10 @@ BatteryControl simplified; no need to manage $CHARGE_MIN and removed requirement
 Fixed FanControl from not fully disabling autofanctrl on boot for the first minute or so.`<br><br>
 - 0.24: `Changed variable for input to choice then checked if it's populated, else use existing value for INSTALL_DIR.
 Added checking versions for latest available and offering reinstall option if it's not up-to-date.
-Thanks to DennisLfromGA for implementing these changes.`
+Thanks to DennisLfromGA for implementing these changes.` <br><br>
+- 0.25: `Simplified file structure thanks to DennyL's crouton upstart script from 2014. Improved version checking thanks to DennyL. 
+Reworked FanControl zero RPM ramp to be more gradual. Improve step-up and step-down algorithm. Renamed fancontrol update command.
+Added PowerControl polling command. Made UI more organized.`
 
 <br>
 
