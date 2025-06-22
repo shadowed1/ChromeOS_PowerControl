@@ -174,7 +174,7 @@ Added PowerControl polling command. Made UI more organized.`
 
 <br>
 
-__Credits:__
+__Acknowledgements:__
 
 - Thanks to WesBosch for helping me learn to make an installer:
   https://github.com/WesBosch
