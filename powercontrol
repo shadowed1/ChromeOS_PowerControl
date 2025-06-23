@@ -20,11 +20,12 @@ IS_AMD=0
 IS_INTEL=0
 IS_ARM=0
 
-if [[ "$1" != "--h" && "$1" != "-h" && "$1" != "h" && "$1" != "--help" && "$1" != "-help" && "$1" != "help" && "$1" != "status" && -z "$SUDO_USER" ]]; then
+if ! ( [[ -z "$1" ]] || [[ "$1" == "--h" || "$1" == "-h" || "$1" == "h" || "$1" == "--help" || "$1" == "-help" || "$1" == "help" || "$1" == "status" ]] ) && [[ -z "$SUDO_USER" ]]; then
     echo "${RED}PowerControl requires sudo to run.${RESET}"
     echo "  Try: sudo powercontrol $*  or  sudo $0 $*"
     exit 1
 fi
+
 
 detect_cpu_type() {
     case "$CPU_VENDOR" in
@@ -777,5 +778,7 @@ case "$1" in
         LOG_FILE="/var/log/powercontrol.log"
         start_monitoring_loop
         ;;
-    *) echo "Unknown command: $1"; show_help ;;
+    *)
+        show_status
+        ;;
 esac

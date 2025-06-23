@@ -15,8 +15,7 @@ PID_FILE="$INSTALL_DIR/.fancontrol_pid"
 LOG_FILE="/var/log/fancontrol.log"
 MONITOR_PID_FILE="$INSTALL_DIR/.fancontrol_monitor.pid"
 
-if [[ "$1" != "--h" && "$1" != "-h" && "$1" != "h" && "$1" != "--help" && "$1" != "-help" && "$1" != "help" && "$1" != "status" && -z "$SUDO_USER" ]]; then
-    echo "${RED}FanControl requires sudo to run.${RESET}"
+if ! ( [[ -z "$1" ]] || [[ "$1" == "--h" || "$1" == "-h" || "$1" == "h" || "$1" == "--help" || "$1" == "-help" || "$1" == "help" || "$1" == "status" ]] ) && [[ -z "$SUDO_USER" ]]; then    echo "${RED}FanControl requires sudo to run.${RESET}"
     echo "  Try: sudo fancontrol $*  or  sudo $0 $*"
     exit 1
 fi
