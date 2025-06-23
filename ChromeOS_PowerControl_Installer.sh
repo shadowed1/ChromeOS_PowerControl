@@ -11,6 +11,8 @@ SHOW_POWERCONTROL_NOTICE=0
 SHOW_BATTERYCONTROL_NOTICE=0
 SHOW_SLEEPCONTROL_NOTICE=0
 SHOW_GPUCONTROL_NOTICE=0
+
+
 detect_cpu_type() {
     CPU_VENDOR=$(grep -m1 'vendor_id' /proc/cpuinfo | awk '{print $3}' || echo "unknown")
     IS_INTEL=0
@@ -151,6 +153,7 @@ detect_backlight_path() {
     fi
 }
 
+
 INSTALL_DIR="/usr/local/bin/ChromeOS_PowerControl"
 echo "${YELLOW}"
 echo "╔═══════════════════════════════════════════════════════════════════════════════════════════════╗"
@@ -211,8 +214,16 @@ for file in "${files[@]}"; do
     echo ""
 done
 
+FAN_COUNT=$(sudo ectool pwmgetnumfans | awk -F= '{print $2}' | sed -e 's/ //g')
 
-
+if [ "$FAN_COUNT" -eq 0 ]; then
+    echo "${GREEN}Passively cooled device detected, skipping FanControl setup.${RESET}"
+    SKIP_FANCONTROL=true
+    sed -i '/^STARTUP_FANCONTROL=/d' "$CONFIG_FILE" 2>/dev/null
+    echo "STARTUP_FANCONTROL=0" >> "$CONFIG_FILE"
+else
+    SKIP_FANCONTROL=false
+fi
 
 detect_backlight_path
 detect_cpu_type
@@ -439,15 +450,23 @@ enable_component_on_boot() {
         echo ""
     fi
 }
+
 if [[ -z "$link_cmd" || "$link_cmd" =~ ^[Yy]$ ]]; then
     enable_component_on_boot "BatteryControl" "$INSTALL_DIR/batterycontrol.conf"
     enable_component_on_boot "PowerControl" "$INSTALL_DIR/powercontrol.conf"
-    enable_component_on_boot "FanControl" "$INSTALL_DIR/fancontrol.conf"
+
+    if [ "$SKIP_FANCONTROL" = false ]; then
+        enable_component_on_boot "FanControl" "$INSTALL_DIR/fancontrol.conf"
+    else
+        echo "${GREEN}Skipping FanControl boot setup. No fan to control.${RESET}"
+    fi
+
     enable_component_on_boot "GPUControl" "$INSTALL_DIR/gpucontrol.conf"
     enable_component_on_boot "SleepControl" "$INSTALL_DIR/sleepcontrol.conf"
 else
     echo "Skipping boot-time setup since global commands were declined."
 fi
+
 
 
 if grep -q '^STARTUP_GPUCONTROL=1' "$CONFIG_FILE"; then
@@ -554,7 +573,11 @@ done
 echo ""
 start_component_now "BatteryControl" "$INSTALL_DIR/batterycontrol"
 start_component_now "PowerControl" "$INSTALL_DIR/powercontrol"
-start_component_now "FanControl" "$INSTALL_DIR/fancontrol"
+if [ "$SKIP_FANCONTROL" = false ]; then
+    start_component_now "FanControl" "$INSTALL_DIR/fancontrol"
+else
+    echo "${YELLOW}FanControl start skipped - no fans detected.${RESET}"
+fi
 start_component_now "SleepControl" "$INSTALL_DIR/sleepcontrol"
 
 echo ""
