@@ -172,7 +172,8 @@ Thanks to DennisLfromGA for implementing these changes.` <br><br>
 Reworked FanControl zero RPM ramp to be more gradual. Improve step-up and step-down algorithm. Renamed fancontrol update command.
 Added PowerControl polling command. Made UI more organized.` <br><br>
 - 0.26: `Passively cooled device awareness added for FanControl and the installer. 
-Added message to make sure sudo is run for commands (excluding status and help). Thanks again to DennyL for the suggestions!`
+Added message to make sure sudo is run for commands (excluding status and help).
+Thanks again to DennyL for the suggestions!`
 
 __Acknowledgements:__
 
