@@ -22,7 +22,7 @@ IS_ARM=0
 
 if [[ "$1" != "--h" && "$1" != "-h" && "$1" != "h" && "$1" != "--help" && "$1" != "-help" && "$1" != "help" && "$1" != "status" && -z "$SUDO_USER" ]]; then
     echo "${RED}PowerControl requires sudo to run.${RESET}"
-    echo "  sudo $0 $*"
+    echo "  Try: sudo powercontrol $*  or  sudo $0 $*"
     exit 1
 fi
 

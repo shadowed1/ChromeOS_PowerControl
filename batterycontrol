@@ -18,9 +18,10 @@ LOG_FILE="/var/log/batterycontrol.log"
 
 if [[ "$1" != "--h" && "$1" != "-h" && "$1" != "h" && "$1" != "--help" && "$1" != "-help" && "$1" != "help" && "$1" != "status" && -z "$SUDO_USER" ]]; then
     echo "${RED}BatteryControl requires sudo to run.${RESET}"
-    echo "  sudo $0 $*"
+    echo "  Try: sudo batterycontrol $*  or  sudo $0 $*"
     exit 1
 fi
+
 
 
 DEFAULT_CHARGE_MAX=77
