@@ -413,13 +413,13 @@ case "$1" in
     __monitor__)
         echo $$ > "$PID_FILE"
         touch "$RUN_FLAG"
-        run_loop
         FAN_COUNT=$(sudo ectool pwmgetnumfans | awk -F= '{print $2}' | sed -e 's/ //g')
             if [[ "$FAN_COUNT" =~ ^[0-9]+$ ]] && (( FAN_COUNT == 0 )); then
                 echo "${RED}$(date '+%Y-%m-%d %H:%M:%S') - No fans detected (FAN_COUNT=0). Stopping monitor.${RESET}" | tee -a "$LOG_FILE"
                 rm -f "$RUN_FLAG" "$PID_FILE"
                 exit 1
             fi
+        run_loop
         ;;
     ""|status)
         load_config
