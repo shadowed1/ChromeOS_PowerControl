@@ -332,13 +332,20 @@ max_fan() {
 }
 
 set_fan_poll() {
-    if [[ "$2" =~ ^[0-9]+$ ]] && (( $2 >= 1 && $2 <= 10 )); then
-        load_config
-        FAN_POLL=$2
-        save_config
-        echo "$(date '+%Y-%m-%d %H:%M:%S') - FanControl polling rate set to $FAN_POLLs" | tee -a "$LOG_FILE"
+    if [[ "$2" =~ ^[0-9]+([.][0-9]+)?$ ]]; then
+        FAN_POLL=$(printf "%.2f" "$2")
+        if (( $(awk "BEGIN {print ($FAN_POLL < 1.0)}") )); then
+            echo "${RED}Warning: FAN_POLL below 1.0s, resetting to 1.0s${RESET}"
+            FAN_POLL=1.0
+        elif (( $(awk "BEGIN {print ($FAN_POLL > 10.0)}") )); then
+            echo "${RED}Warning: FAN_POLL above 10s, resetting to 10s${RESET}"
+            FAN_POLL=10
+        fi
+        sed -i "s/^FAN_POLL=.*/FAN_POLL=$FAN_POLL/" "$CONFIG_FILE"
+        echo "${CYAN}FanControl polling rate set to $FAN_POLL seconds${RESET}"
     else
-        echo "Usage: $0 update <fan_poll_seconds (1-10)>"
+        echo "Error: FAN_POLL must be a number between 1.0 and 10.0 (e.g., 1.5, 3, 4.2)"
+        exit 1
     fi
 }
 
@@ -369,7 +376,7 @@ echo "╔═══════════════════════�
 echo "║                                                                                    ║"
 echo "║                          FanControl commands with examples:                        ║"
 echo "║                                                                                    ║"
-echo "║  sudo fancontrol                  # Show FanControl status                         ║"
+echo "║  fancontrol                       # Show FanControl status                         ║"
 echo "║  sudo fancontrol start            # Start FanControl                               ║"
 echo "║  sudo fancontrol stop             # Stop FanControl                                ║"
 echo "║  sudo fancontrol fan_min_temp 48  # Min temp threshold                             ║"

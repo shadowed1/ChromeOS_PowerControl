@@ -75,7 +75,7 @@ echo "╔═══════════════════════�
 echo "║                                                                                    ║"
 echo "║                       BatteryControl commands with examples:                       ║"
 echo "║                                                                                    ║"
-echo "║  sudo batterycontrol          # Check BatteryControl status                        ║"
+echo "║  batterycontrol               # Check BatteryControl status                        ║"
 echo "║  sudo batterycontrol start    # Start BatteryControl                               ║"
 echo "║  sudo batterycontrol stop     # Stop BatteryControl                                ║"
 echo "║  sudo batterycontrol 77       # Charge limit set to 77% - Minimum allowed is 14%   ║"

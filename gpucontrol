@@ -140,7 +140,7 @@ echo "╔═══════════════════════�
 echo "║                                                                                                                  ║"
 echo "║                                         GPUControl commands with examples:                                       ║"
 echo "║                                                                                                                  ║"
-echo "║  sudo gpucontrol                # Show current GPU info and frequency                                            ║"
+echo "║  gpucontrol                     # Show current GPU info and frequency                                            ║"
 echo "║  sudo gpucontrol restore        # Restore GPU max frequency to original value                                    ║"
 echo "║  sudo gpucontrol intel 700      # Set Intel GPU max frequency to 700 MHz                                         ║"
 echo "║  sudo gpucontrol amd 800        # Set AMD GPU max frequency to 800 MHz - rounds down to pp_od_clk_voltage index  ║"
