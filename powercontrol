@@ -777,8 +777,5 @@ case "$1" in
         LOG_FILE="/var/log/powercontrol.log"
         start_monitoring_loop
         ;;
-    *)
-        show_status
-        ;;
     *) echo "Unknown command: $1"; show_help ;;
 esac
