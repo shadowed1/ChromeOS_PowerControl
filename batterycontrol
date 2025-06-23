@@ -16,7 +16,7 @@ PID_FILE="$INSTALL_DIR/.batterycontrol_pid"
 LOG_FILE="/var/log/batterycontrol.log"
 
 
-if [[ "$1" != "--h" && "$1" != "-h" && "$1" != "h" && "$1" != "--help" && "$1" != "-help" && "$1" != "help" && -z "$SUDO_USER" ]]; then
+if [[ "$1" != "--h" && "$1" != "-h" && "$1" != "h" && "$1" != "--help" && "$1" != "-help" && "$1" != "help" && "$1" != "status" && -z "$SUDO_USER" ]]; then
     echo "${RED}BatteryControl requires sudo to run.${RESET}"
     echo "  sudo $0 $*"
     exit 1
