@@ -13,7 +13,7 @@ CONFIG_FILE="$INSTALL_DIR/config.sh"
 GPU_MAX_FREQ=
 ORIGINAL_GPU_MAX_FREQ=
 
-if ! ( [[ -z "$1" ]] || [[ "$1" == "--h" || "$1" == "-h" || "$1" == "h" || "$1" == "--help" || "$1" == "-help" || "$1" == "help" || "$1" == "status" ]] ) && [[ -z "$SUDO_USER" ]]; then    echo "${RED}GPUControl requires sudo to run.${RESET}"
+if ! ( [[ -z "$1" ]] || [[ "$1" == "--h" || "$1" == "-h" || "$1" == "h" || "$1" == "--help" || "$1" == "-help" || "$1" == "help" || "$1" == "status" ]] ) && [[ "$(id -u)" -ne 0 ]]; then    echo "${RED}GPUControl requires sudo to run.${RESET}"
     echo "  Try: sudo gpucontrol $*  or  sudo $0 $*"
     exit 1
 fi
