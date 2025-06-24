@@ -138,9 +138,9 @@ sudo ectool usbpdpower 2>/dev/null || echo "Failed to run ectool usbpdpower (is 
 echo
 sudo ectool battery 2>/dev/null || echo "Failed to run ectool battery (is ectool installed and available?)"
 echo "═════════════════════════════════════════════════════════════════════════════"
-echo "${RESET}"
+echo ""
         else
-echo "Active USB-PD Charger Port: None detected ${RESET}"
+echo "Active USB-PD Charger Port: None detected "
 sudo ectool usbpdpower 2>/dev/null || echo "Failed to run ectool usbpdpower (is ectool installed and available?)"
 echo
 sudo ectool battery 2>/dev/null || echo "Failed to run ectool battery (is ectool installed and available?)"
