@@ -174,7 +174,7 @@ Added PowerControl polling command. Made UI more organized.` <br><br>
 - 0.26: `Passively cooled device awareness added for FanControl and the installer. 
 Added message to make sure sudo is run for commands (excluding status and help).
 Thanks again to DennyL for the suggestions!`
-
+- 0.27: `Fixed bug with SleepControl not starting on boot.` <br> <br>
 __Acknowledgements:__
 
 - Thanks to WesBosch for helping me learn to make an installer:
