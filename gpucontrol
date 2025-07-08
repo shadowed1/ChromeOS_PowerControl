@@ -55,7 +55,9 @@ else
 fi
 
 if ! [[ "$ORIGINAL_GPU_MAX_FREQ" =~ ^[0-9]+$ ]]; then
+    echo ""
     echo "${RED}Error: Could not verify original max GPU frequency. Aborting.${RESET}"
+    echo ""
     exit 1
 fi
 
@@ -94,12 +96,13 @@ amd_set_max_freq() {
         fi
         new_cmd+="s $idx $freq $volt\n"
     done <<< "$states_raw"
-
+    echo ""
     printf -v new_cmd_expanded "%b" "$new_cmd"
     echo -e "$new_cmd_expanded" | sudo tee "$pp_od_file" > /dev/null
     echo "c" | sudo tee "$pp_od_file" > /dev/null
     GPU_MAX_FREQ="$requested_freq"
     save_config
+    echo ""
 }
 
 get_current_freq() {
@@ -111,7 +114,9 @@ get_current_freq() {
             [[ -f "$GPU_FREQ_PATH" ]] && grep '*' "$GPU_FREQ_PATH" | awk '{print $2}' || echo "Unavailable"
             ;;
         *)
+            echo ""
             echo "Unsupported GPU type"
+            echo ""
             ;;
     esac
 }
@@ -151,7 +156,9 @@ case "$1" in
                 exit 1
                 ;;
         esac
+        echo ""
         echo "${GREEN}GPU frequency restored to original: $ORIGINAL_GPU_MAX_FREQ${RESET}"
+        echo ""
         exit 0
         ;;
     startup)
@@ -199,12 +206,16 @@ GPU_ARG=$(echo "$1" | tr '[:upper:]' '[:lower:]')
 REQUESTED_FREQ="$2"
 
 if [[ "$GPU_ARG" != "$GPU_TYPE" ]]; then
+    echo ""
     echo "${RED}Error: GPU type '$GPU_ARG' does not match detected type '$GPU_TYPE'.${RESET}"
+    echo ""
     exit 1
 fi
 
 if ! [[ "$REQUESTED_FREQ" =~ ^[0-9]+$ ]]; then
+    echo ""
     echo "${RED}Error: Frequency must be a whole number.${RESET}"
+    echo ""
     help
     exit 1
 fi
@@ -218,21 +229,28 @@ case "$GPU_ARG" in
         [[ "$FREQ_KHZ" -lt 10000 && "$UNIT" == "kHz" ]] && FREQ_KHZ=$((REQUESTED_FREQ * 1000))
 
         if (( FREQ_KHZ > ORIGINAL_GPU_MAX_FREQ )); then
+            echo ""
             echo "${RED}Error: Frequency exceeds max allowed.${RESET}"
+            echo """
             exit 1
         fi
-
+        echo ""
         echo "$FREQ_KHZ" | sudo tee "$GPU_FREQ_PATH" > /dev/null
         echo "${GREEN}$GPU_ARG GPU frequency set to $FREQ_KHZ $UNIT${RESET}" | tee -a "$LOG_FILE"
         GPU_MAX_FREQ="$REQUESTED_FREQ"
+        echo ""
         save_config
         ;;
     amd)
         amd_set_max_freq "$REQUESTED_FREQ"
+        echo ""
         echo "${GREEN}AMD GPU frequency set to $REQUESTED_FREQ MHz${RESET}" | tee -a "$LOG_FILE"
+        echo ""
         ;;
     *)
+        echo ""
         echo "${RED}Unsupported GPU type '$GPU_ARG'.${RESET}"
+        echo ""
         help
         exit 1
         ;;
