@@ -155,6 +155,50 @@ echo "${RESET}"
 
 if [[ $# -eq 0 ]]; then
     load_config
+    case "$GPU_TYPE" in
+        amd)
+            amd_set_max_freq "$GPU_MAX_FREQ"
+            ;;
+        intel|adreno|mali)
+            if [[ -n "$GPU_FREQ_PATH" && -w "$GPU_FREQ_PATH" ]]; then
+                echo "$GPU_MAX_FREQ" | sudo tee "$GPU_FREQ_PATH" > /dev/null
+            fi
+            ;;
+    esac
+
+    echo "$(date): Applied GPU_MAX_FREQ=$GPU_MAX_FREQ to $GPU_TYPE GPU" >> "$LOG_FILE"
+
+    echo "${MAGENTA}"
+    echo "═══════════════════════════════════════════════════"
+    echo -n "GPUControl Max Frequency: ${RESET}${BOLD}${MAGENTA}"
+    get_current_freq "$GPU_TYPE"
+    echo "${RESET}${MAGENTA}"
+    echo "GPU Type: $GPU_TYPE"
+    echo "Default Max Frequency: $ORIGINAL_GPU_MAX_FREQ"
+    echo "═══════════════════════════════════════════════════"
+    echo "${RESET}"
+
+    # AMD SCLK state print if applicable
+    if [[ "$GPU_TYPE" == "amd" && -f "$PP_OD_FILE" ]]; then
+        echo "${MAGENTA}"
+        echo "═══════════════════════════════════════════════════"
+        echo "Available AMD SCLK States:"
+        grep -i '^sclk' "$PP_OD_FILE" | nl -v0 | while read -r index line; do
+            freq=$(echo "$line" | sed -n 's/.*[[:space:]]\([0-9]\{2,\}\)[[:space:]]*[Mm][Hh][Zz].*/\1/p')
+
+            marker=""
+            if [[ "$index" -eq "$AMD_SELECTED_SCLK_INDEX" ]]; then
+                marker="${GREEN}<-- SELECTED${RESET}"
+            fi
+            printf "║ Index %2d: %s MHz %s\n" "$index" "$freq" "$marker"
+        done
+        echo "═══════════════════════════════════════════════════"
+        echo "${RESET}"
+    fi
+
+    exit 0
+fi
+
 echo "${MAGENTA}"
 echo "═══════════════════════════════════════════════════"
 echo -n "GPUControl Max Frequency: ${RESET}${BOLD}${MAGENTA}"
