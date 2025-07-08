@@ -48,6 +48,7 @@ save_config() {
 
 if [[ -f "$CONFIG_FILE" ]]; then
     source "$CONFIG_FILE"
+    load_config
 else
     echo "${RED}Error: GPU config file missing. Please re-run the installer.${RESET}"
     exit 1
@@ -165,8 +166,6 @@ if [[ $# -eq 0 ]]; then
             fi
             ;;
     esac
-
-    echo "$(date): Applied GPU_MAX_FREQ=$GPU_MAX_FREQ to $GPU_TYPE GPU" | sudo tee -a "$LOG_FILE"
 
     echo "${MAGENTA}"
     echo "═══════════════════════════════════════════════════"
