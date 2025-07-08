@@ -175,7 +175,7 @@ Added PowerControl polling command. Made UI more organized.` <br><br>
 Added message to make sure sudo is run for commands (excluding status and help).
 Thanks again to DennyL for the suggestions!`
 - 0.27: `Fixed bug with SleepControl not starting on boot.` <br> <br>
-- 0.28: `Fixed bug with GPUControl not applying user-preferred clockspeed on boot.` <br><br>
+- 0.28: `Fixed bug with GPUControl not applying user-preferred clockspeed on boot. Fixed version script for supporting base 10 values.` <br><br>
 __Acknowledgements:__
 
 - Thanks to WesBosch for helping me learn to make an installer:
