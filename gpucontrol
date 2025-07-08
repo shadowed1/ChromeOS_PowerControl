@@ -166,7 +166,7 @@ if [[ $# -eq 0 ]]; then
             ;;
     esac
 
-    echo "$(date): Applied GPU_MAX_FREQ=$GPU_MAX_FREQ to $GPU_TYPE GPU" >> "$LOG_FILE"
+    echo "$(date): Applied GPU_MAX_FREQ=$GPU_MAX_FREQ to $GPU_TYPE GPU" | sudo tee -a "$LOG_FILE"
 
     echo "${MAGENTA}"
     echo "═══════════════════════════════════════════════════"
