@@ -103,7 +103,7 @@ echo "╔═══════════════════════�
 echo "║                                                                                                                    ║"
 echo "║                                          SleepControl commands with examples:                                      ║"
 echo "║                                                                                                                    ║"
-echo "║  sleepcontrol        po               # Show SleepControl status                                                     ║"
+echo "║  sleepcontrol                       # Show SleepControl status                                                     ║"
 echo "║  sudo sleepcontrol start            # Start SleepControl                                                           ║"
 echo "║  sudo sleepcontrol stop             # Stop SleepControl                                                            ║"
 echo "║  sudo sleepcontrol battery 3 7 12   # When idle, display dims in 3m -> timeout in 7m -> sleeps in 12m on battery   ║"
