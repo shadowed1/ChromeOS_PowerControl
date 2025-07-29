@@ -12,103 +12,6 @@ SHOW_BATTERYCONTROL_NOTICE=0
 SHOW_SLEEPCONTROL_NOTICE=0
 SHOW_GPUCONTROL_NOTICE=0
 
-
-detect_cpu_type() {
-    CPU_VENDOR=$(grep -m1 'vendor_id' /proc/cpuinfo | awk '{print $3}' || echo "unknown")
-    IS_INTEL=0
-    IS_AMD=0
-    IS_ARM=0
-    case "$CPU_VENDOR" in
-        GenuineIntel)
-            IS_INTEL=1
-            PERF_PATH="/sys/devices/system/cpu/intel_pstate/max_perf_pct"
-            TURBO_PATH="/sys/devices/system/cpu/intel_pstate/no_turbo"
-            ;;
-        AuthenticAMD)
-            IS_AMD=1
-            if [ -f "/sys/devices/system/cpu/amd_pstate/max_perf_pct" ]; then
-                PERF_PATH="/sys/devices/system/cpu/amd_pstate/max_perf_pct"
-            else
-                PERF_PATH="/sys/devices/system/cpu/cpufreq/policy0/scaling_max_freq"
-            fi
-            TURBO_PATH=""
-            ;;
-        *)
-            IS_ARM=1
-            PERF_PATH="/sys/devices/system/cpu/cpufreq/policy0/scaling_max_freq"
-            TURBO_PATH=""
-            ;;
-    esac
-}
-detect_gpu_freq() {
-    GPU_FREQ_PATH=""
-    GPU_MAX_FREQ=""
-    # Xe
-    if [ -f "/sys/class/drm/card0/gt_max_freq_mhz" ]; then
-        GPU_FREQ_PATH="/sys/class/drm/card0/gt_max_freq_mhz"
-        GPU_MAX_FREQ=$(cat "$GPU_FREQ_PATH")
-        GPU_TYPE="intel"
-        return
-    fi
-  # Radeon
-if [ -f "/sys/class/drm/card0/device/pp_od_clk_voltage" ]; then
-    GPU_TYPE="amd"
-    PP_OD_FILE="/sys/class/drm/card0/device/pp_od_clk_voltage"
-
-    mapfile -t SCLK_LINES < <(grep -i '^sclk' "$PP_OD_FILE")
-
-    if [[ ${#SCLK_LINES[@]} -gt 0 ]]; then
-        MAX_MHZ=$(printf '%s\n' "${SCLK_LINES[@]}" | sed -n 's/.*\([0-9]\{1,\}\)[Mm][Hh][Zz].*/\1/p' | sort -nr | head -n1)
-        if [[ -n "$MAX_MHZ" ]]; then
-            GPU_MAX_FREQ="$MAX_MHZ"
-            AMD_SELECTED_SCLK_INDEX=$(printf '%s\n' "${SCLK_LINES[@]}" | grep -in "$MAX_MHZ" | head -n1 | cut -d':' -f1)
-            AMD_SELECTED_SCLK_INDEX=$((AMD_SELECTED_SCLK_INDEX - 1))
-        else
-            GPU_MAX_FREQ=0
-            AMD_SELECTED_SCLK_INDEX=0
-        fi
-    else
-        GPU_MAX_FREQ=0
-        AMD_SELECTED_SCLK_INDEX=0
-    fi
-    GPU_FREQ_PATH="$PP_OD_FILE"
-    return
-fi
-
-    # Mali
-    if [ -d "/sys/class/devfreq/mali0" ]; then
-        if [ -f "/sys/class/devfreq/mali0/max_freq" ]; then
-            GPU_FREQ_PATH="/sys/class/devfreq/mali0/max_freq"
-            GPU_MAX_FREQ=$(cat "$GPU_FREQ_PATH")
-            GPU_TYPE="mali"
-            return
-        elif [ -f "/sys/class/devfreq/mali0/available_frequencies" ]; then
-            GPU_FREQ_PATH="/sys/class/devfreq/mali0/available_frequencies"
-            MAX_FREQ=$(tr ' ' '\n' < "$GPU_FREQ_PATH" | sort -nr | head -n1)
-            GPU_MAX_FREQ=$MAX_FREQ
-            GPU_TYPE="mali"
-            return
-        fi
-    fi
-    # Adreno
-    if [ -d "/sys/class/kgsl/kgsl-3d0" ]; then
-        if [ -f "/sys/class/kgsl/kgsl-3d0/max_gpuclk" ]; then
-            GPU_FREQ_PATH="/sys/class/kgsl/kgsl-3d0/max_gpuclk"
-            GPU_MAX_FREQ=$(cat "$GPU_FREQ_PATH")
-            GPU_TYPE="adreno"
-            return
-        elif [ -f "/sys/class/kgsl/kgsl-3d0/gpuclk" ]; then
-            GPU_FREQ_PATH="/sys/class/kgsl/kgsl-3d0/gpuclk"
-            GPU_MAX_FREQ=$(cat "$GPU_FREQ_PATH")
-            GPU_TYPE="adreno"
-            return
-        fi
-    fi
-    GPU_FREQ_PATH=""
-    GPU_MAX_FREQ=""
-    GPU_TYPE="unknown"
-}
-
 detect_backlight_path() {
     BACKLIGHT_BASE="/sys/class/backlight"
     BRIGHTNESS_PATH=""
@@ -153,6 +56,109 @@ detect_backlight_path() {
     fi
 }
 
+ detect_cpu_type() {
+    CPU_VENDOR=$(grep -m1 'vendor_id' /proc/cpuinfo | awk '{print $3}' || echo "unknown")
+    IS_INTEL=0
+    IS_AMD=0
+    IS_ARM=0
+    PERF_PATH=""
+    PERF_PATHS=()
+    TURBO_PATH=""
+
+    case "$CPU_VENDOR" in
+        GenuineIntel)
+            IS_INTEL=1
+            if [ -f "/sys/devices/system/cpu/intel_pstate/max_perf_pct" ]; then
+                PERF_PATH="/sys/devices/system/cpu/intel_pstate/max_perf_pct"
+                TURBO_PATH="/sys/devices/system/cpu/intel_pstate/no_turbo"
+            fi
+            ;;
+        AuthenticAMD)
+            IS_AMD=1
+            if [ -f "/sys/devices/system/cpu/amd_pstate/max_perf_pct" ]; then
+                PERF_PATH="/sys/devices/system/cpu/amd_pstate/max_perf_pct"
+            else
+                mapfile -t PERF_PATHS < <(find /sys/devices/system/cpu/cpufreq/ -type f -name 'scaling_max_freq' 2>/dev/null)
+            fi
+            ;;
+        *)
+            IS_ARM=1
+            mapfile -t PERF_PATHS < <(find /sys/devices/system/cpu/cpufreq/ -type f -name 'scaling_max_freq' 2>/dev/null)
+            ;;
+    esac
+}
+
+
+detect_gpu_freq() {
+    GPU_FREQ_PATH=""
+    GPU_MAX_FREQ=""
+    # Xe
+    if [ -f "/sys/class/drm/card0/gt_max_freq_mhz" ]; then
+        GPU_FREQ_PATH="/sys/class/drm/card0/gt_max_freq_mhz"
+        GPU_MAX_FREQ=$(cat "$GPU_FREQ_PATH")
+        GPU_TYPE="intel"
+        return
+    fi
+  # Radeon
+if [ -f "/sys/class/drm/card0/device/pp_od_clk_voltage" ]; then
+    GPU_TYPE="amd"
+    PP_OD_FILE="/sys/class/drm/card0/device/pp_od_clk_voltage"
+
+    mapfile -t SCLK_LINES < <(grep -i '^sclk' "$PP_OD_FILE")
+
+    if [[ ${#SCLK_LINES[@]} -gt 0 ]]; then
+        MAX_MHZ=$(printf '%s\n' "${SCLK_LINES[@]}" | sed -n 's/.*\([0-9]\{1,\}\)[Mm][Hh][Zz].*/\1/p' | sort -nr | head -n1)
+        if [[ -n "$MAX_MHZ" ]]; then
+            GPU_MAX_FREQ="$MAX_MHZ"
+            AMD_SELECTED_SCLK_INDEX=$(printf '%s\n' "${SCLK_LINES[@]}" | grep -in "$MAX_MHZ" | head -n1 | cut -d':' -f1)
+            AMD_SELECTED_SCLK_INDEX=$((AMD_SELECTED_SCLK_INDEX - 1))
+        else
+            GPU_MAX_FREQ=0
+            AMD_SELECTED_SCLK_INDEX=0
+        fi
+    else
+        GPU_MAX_FREQ=0
+        AMD_SELECTED_SCLK_INDEX=0
+    fi
+    GPU_FREQ_PATH="$PP_OD_FILE"
+    return
+fi
+
+    # Mali
+for d in /sys/class/devfreq/*; do
+    if grep -qi 'mali' <<< "$d" || grep -qi 'gpu' <<< "$d"; then
+        if [ -f "$d/max_freq" ]; then
+            GPU_FREQ_PATH="$d/max_freq"
+            GPU_MAX_FREQ=$(cat "$GPU_FREQ_PATH")
+            GPU_TYPE="mali"
+            return
+        elif [ -f "$d/available_frequencies" ]; then
+            GPU_FREQ_PATH="$d/available_frequencies"
+            GPU_MAX_FREQ=$(tr ' ' '\n' < "$GPU_FREQ_PATH" | sort -nr | head -n1)
+            GPU_TYPE="mali"
+            return
+        fi
+    fi
+done
+
+    # Adreno
+    if [ -d "/sys/class/kgsl/kgsl-3d0" ]; then
+        if [ -f "/sys/class/kgsl/kgsl-3d0/max_gpuclk" ]; then
+            GPU_FREQ_PATH="/sys/class/kgsl/kgsl-3d0/max_gpuclk"
+            GPU_MAX_FREQ=$(cat "$GPU_FREQ_PATH")
+            GPU_TYPE="adreno"
+            return
+        elif [ -f "/sys/class/kgsl/kgsl-3d0/gpuclk" ]; then
+            GPU_FREQ_PATH="/sys/class/kgsl/kgsl-3d0/gpuclk"
+            GPU_MAX_FREQ=$(cat "$GPU_FREQ_PATH")
+            GPU_TYPE="adreno"
+            return
+        fi
+    fi
+    GPU_FREQ_PATH=""
+    GPU_MAX_FREQ=""
+    GPU_TYPE="unknown"
+}
 
 INSTALL_DIR="/usr/local/bin/ChromeOS_PowerControl"
 echo "${YELLOW}"
@@ -214,6 +220,10 @@ for file in "${files[@]}"; do
     echo ""
 done
 
+CONFIG_FILE="$INSTALL_DIR/config.sh"
+
+
+
 FAN_COUNT=$(sudo ectool pwmgetnumfans | awk -F= '{print $2}' | sed -e 's/ //g')
 
 if [ "$FAN_COUNT" -eq 0 ]; then
@@ -239,6 +249,7 @@ echo ""
 
 echo "${CYAN}Detected CPU Vendor: $CPU_VENDOR"
 echo "PERF_PATH: $PERF_PATH"
+echo "PERF_PATHS: ${PERF_PATHS[*]}"
 echo "TURBO_PATH: $TURBO_PATH"
 echo "$RESET"
 sudo chmod +x "$INSTALL_DIR/powercontrol" "$INSTALL_DIR/batterycontrol" "$INSTALL_DIR/fancontrol" "$INSTALL_DIR/gpucontrol" "$INSTALL_DIR/sleepcontrol" "$INSTALL_DIR/Uninstall_ChromeOS_PowerControl.sh" "$INSTALL_DIR/config.sh"
@@ -285,9 +296,8 @@ declare -a ordered_keys=(
   "POWER_DELAY"
   "POWER_BACKLIGHT"
   "POWER_DIM_DELAY"
-  "AUDIO_DETECTION_BATTERY"
-  "AUDIO_DETECTION_POWER"
   "PERF_PATH"
+  "PERF_PATHS"
   "TURBO_PATH"
   "ORIGINAL_GPU_MAX_FREQ"
   "PP_OD_FILE"
@@ -307,7 +317,7 @@ declare -A categories=(
   ["FanControl"]="MIN_FAN MAX_FAN FAN_MIN_TEMP FAN_MAX_TEMP STEP_UP STEP_DOWN FAN_POLL"
   ["GPUControl"]="GPU_MAX_FREQ"
   ["SleepControl"]="BATTERY_DELAY BATTERY_BACKLIGHT BATTERY_DIM_DELAY POWER_DELAY POWER_BACKLIGHT POWER_DIM_DELAY AUDIO_DETECTION_BATTERY AUDIO_DETECTION_POWER"
-  ["Platform Configuration"]="IS_AMD IS_INTEL IS_ARM PERF_PATH TURBO_PATH GPU_TYPE GPU_FREQ_PATH ORIGINAL_GPU_MAX_FREQ PP_OD_FILE AMD_SELECTED_SCLK_INDEX BACKLIGHT_NAME BRIGHTNESS_PATH MAX_BRIGHTNESS_PATH"
+  ["Platform Configuration"]="IS_AMD IS_INTEL IS_ARM PERF_PATH PERF_PATHS TURBO_PATH GPU_TYPE GPU_FREQ_PATH ORIGINAL_GPU_MAX_FREQ PP_OD_FILE AMD_SELECTED_SCLK_INDEX BACKLIGHT_NAME BRIGHTNESS_PATH MAX_BRIGHTNESS_PATH"
 )
 
 if [[ -z "${ORIGINAL_GPU_MAX_FREQ}" ]]; then ORIGINAL_GPU_MAX_FREQ=$GPU_MAX_FREQ; fi
@@ -333,8 +343,6 @@ if [[ -z "${BATTERY_DIM_DELAY}" ]]; then BATTERY_DIM_DELAY=3; fi
 if [[ -z "${POWER_DELAY}" ]]; then POWER_DELAY=30; fi
 if [[ -z "${POWER_BACKLIGHT}" ]]; then POWER_BACKLIGHT=15; fi
 if [[ -z "${POWER_DIM_DELAY}" ]]; then POWER_DIM_DELAY=5; fi
-if [[ -z "${AUDIO_DETECTION_BATTERY}" ]]; then AUDIO_DETECTION_BATTERY=0; fi
-if [[ -z "${AUDIO_DETECTION_POWER}" ]]; then AUDIO_DETECTION_POWER=1; fi
 
 
 declare -A defaults=(
@@ -360,8 +368,6 @@ declare -A defaults=(
   [POWER_DELAY]=$POWER_DELAY
   [BATTERY_BACKLIGHT]=$BATTERY_BACKLIGHT
   [POWER_BACKLIGHT]=$POWER_BACKLIGHT
-  [AUDIO_DETECTION_BATTERY]=$AUDIO_DETECTION_BATTERY
-  [AUDIO_DETECTION_POWER]=$AUDIO_DETECTION_POWER
   [PERF_PATH]=$PERF_PATH
   [TURBO_PATH]=$TURBO_PATH
   [GPU_FREQ_PATH]=$GPU_FREQ_PATH
@@ -385,12 +391,22 @@ fi
 for category in "${ordered_categories[@]}"; do
   echo "# --- ${category} ---" >> "$CONFIG_FILE"
   for key in ${categories[$category]}; do
-        if [ -n "${!key+x}" ]; then
-          val="${!key}"
-        else
-          val="${defaults[$key]}"
-        fi
-    echo "$key=$val" >> "$CONFIG_FILE"
+    if [ -n "${!key+x}" ]; then
+      if declare -p "$key" 2>/dev/null | grep -q 'declare \-a'; then
+        eval "arr=(\"\${${key}[@]}\")"
+        printf '%s=(' "$key" >> "$CONFIG_FILE"
+        for elem in "${arr[@]}"; do
+          printf '"%s" ' "$elem" >> "$CONFIG_FILE"
+        done
+        echo ")" >> "$CONFIG_FILE"
+      else
+        val="${!key}"
+        echo "$key=$val" >> "$CONFIG_FILE"
+      fi
+    else
+      val="${defaults[$key]}"
+      echo "$key=$val" >> "$CONFIG_FILE"
+    fi
   done
   echo >> "$CONFIG_FILE"
 done
@@ -459,6 +475,7 @@ if [[ -z "$link_cmd" || "$link_cmd" =~ ^[Yy]$ ]]; then
         enable_component_on_boot "FanControl" "$INSTALL_DIR/fancontrol.conf"
     else
         echo "${GREEN}Skipping FanControl boot setup. No fan to control.${RESET}"
+        echo ""
     fi
 
     enable_component_on_boot "GPUControl" "$INSTALL_DIR/gpucontrol.conf"
@@ -544,7 +561,7 @@ start_component_now() {
                     echo ""
                 fi
             else
-                echo "This is not an Intel CPU, skipping Turbo Boost options."
+                echo "${CYAN}This is not an Intel CPU, skipping Turbo Boost options.${RESET}"
                 echo ""
             fi
         fi
@@ -555,7 +572,9 @@ start_component_now() {
     fi
 }
 
-echo "${BLUE}Stopping any running components of PowerControl${RESET}"
+
+
+echo "${BLUE}Stopping any running components of PowerControl (in case of reinstall)${RESET}"
 sudo bash "$INSTALL_DIR/gpucontrol" restore >/dev/null 2>&1
 sudo ectool backlight 1 >/dev/null 2>&1
 for component in batterycontrol powercontrol fancontrol sleepcontrol; do
@@ -575,10 +594,9 @@ if [ "$SKIP_FANCONTROL" = false ]; then
     start_component_now "FanControl" "$INSTALL_DIR/fancontrol"
 else
     echo "${YELLOW}FanControl start skipped - no fans detected.${RESET}"
+    echo ""
 fi
 start_component_now "SleepControl" "$INSTALL_DIR/sleepcontrol"
-
-sleep 2
 
 echo ""
 echo "                                                       ${RED}████████████${RESET}           "
@@ -678,8 +696,6 @@ echo "║  sudo sleepcontrol start            # Start SleepControl              
 echo "║  sudo sleepcontrol stop             # Stop SleepControl                                                            ║"
 echo "║  sudo sleepcontrol battery 3 7 12   # When idle, display dims in 3m -> timeout in 7m -> sleeps in 12m on battery   ║"
 echo "║  sudo sleepcontrol power 5 15 30    # When idle, display dims in 5m -> timeout -> 15m -> sleeps in 30m plugged-in  ║"
-echo "║  sudo sleepcontrol battery audio 0  # Disable audio detection on battery; sleep can occur during media playback    ║"
-echo "║  sudo sleepcontrol power audio 1    # Enable audio detection on power; delaying sleep until audio is stopped       ║"
 echo "║  sudo sleepcontrol startup          # Copy or Remove sleepcontrol.conf at: /etc/init/                              ║"
 echo "║  sudo sleepcontrol help             # Help menu                                                                    ║"
 echo "║                                                                                                                    ║"
