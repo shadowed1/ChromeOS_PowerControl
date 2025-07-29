@@ -182,8 +182,14 @@ if [[ $# -eq 0 ]]; then
 
     echo "${MAGENTA}"
     echo "═══════════════════════════════════════════════════"
-    echo -n "GPUControl Max Frequency: ${RESET}${BOLD}${MAGENTA}"
-    get_current_freq "$GPU_TYPE"
+    CURRENT_FREQ=$(get_current_freq "$GPU_TYPE")
+    if [[ "$CURRENT_FREQ" =~ ^[0-9]+$ ]]; then
+        DISPLAY_FREQ=$((CURRENT_FREQ / 1000))
+        echo -n "GPUControl Max Frequency: ${RESET}${BOLD}${MAGENTA}${DISPLAY_FREQ} MHz"
+    else
+        echo -n "GPUControl Max Frequency: ${RESET}${BOLD}${MAGENTA}Unavailable"
+    fi
+
     echo "${RESET}${MAGENTA}"
     echo "GPU Type: $GPU_TYPE"
     echo "Default Max Frequency: $ORIGINAL_GPU_MAX_FREQ"
@@ -232,9 +238,10 @@ fi
 
 case "$GPU_ARG" in
     intel)
-        FREQ_KHZ="$REQUESTED_FREQ"
-        UNIT="MHz"
-        ;;
+    FREQ_KHZ=$((REQUESTED_FREQ * 1000))
+    DISPLAY_FREQ="$REQUESTED_FREQ"
+    UNIT="MHz"
+    ;;
 
      mali|adreno)
         if (( REQUESTED_FREQ < 10000 )); then
@@ -275,7 +282,7 @@ fi
 echo ""
 echo "$FREQ_KHZ" | sudo tee "$GPU_FREQ_PATH" > /dev/null
 echo "${GREEN}$GPU_ARG GPU frequency set to $DISPLAY_FREQ $UNIT${RESET}" | tee -a "$LOG_FILE"
-GPU_MAX_FREQ="$REQUESTED_FREQ"
+GPU_MAX_FREQ="$FREQ_KHZ"
 echo ""
 save_config
 
