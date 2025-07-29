@@ -555,6 +555,7 @@ start_component_now() {
     fi
 }
 
+sleep 2
 
 
 echo "${BLUE}Stopping any running components of PowerControl${RESET}"
