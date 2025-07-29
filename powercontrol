@@ -217,17 +217,18 @@ set_max_perf_pct() {
     detect_cpu_type
     load_config
 
-    if (( pct > 100 )); then pct=100; fi
-    if (( pct < 10 )); then pct=10; fi
+    (( pct > 100 )) && pct=100
+    (( pct < 10 )) && pct=10
 
-    echo "[$(date)] Applying to PERF_PATHS: ${PERF_PATHS[@]}" >&2
-    echo "[$(date)] Applying to PERF_PATH: ${PERF_PATH}" >&2
+    echo "[$(date)] Requested perf_pct=$pct" >> /tmp/powercontrol_debug.log
 
     if (( IS_INTEL == 1 || IS_AMD == 1 )) && [[ "$PERF_PATH" == *max_perf_pct ]]; then
         if [ -w "$PERF_PATH" ]; then
             echo "$pct" | sudo tee "$PERF_PATH" > /dev/null
+            echo "[$(date)] Set $PERF_PATH to $pct%" >> /tmp/powercontrol_debug.log
         else
             echo "${RED}Permission denied: Cannot write to $PERF_PATH${RESET}" >&2
+            echo "[$(date)] ERROR: Cannot write to $PERF_PATH" >> /tmp/powercontrol_debug.log
             exit 1
         fi
 
@@ -239,43 +240,35 @@ set_max_perf_pct() {
                 max_freq=$(<"$policy_dir/cpuinfo_max_freq")
                 min_freq=$(<"$policy_dir/cpuinfo_min_freq")
 
-                if (( pct >= 100 )); then
-                    target_freq=$max_freq
-                elif (( pct <= 0 )); then
-                    target_freq=$min_freq
-                else
-                    target_freq=$(( min_freq + (max_freq - min_freq) * pct / 100 ))
-                fi
+                target_freq=$(( min_freq + (max_freq - min_freq) * pct / 100 ))
+                chosen_freq=""
 
                 if [[ -f "$policy_dir/scaling_available_frequencies" ]]; then
                     read -a available_freqs <<< "$(cat "$policy_dir/scaling_available_frequencies")"
-                    echo "[$(date)] $policy_dir available_freqs: ${available_freqs[*]}" >> /tmp/powercontrol_debug.log
-
-                    chosen_freq=""
                     for freq in "${available_freqs[@]}"; do
                         if (( freq >= target_freq )); then
                             chosen_freq=$freq
                             break
                         fi
                     done
-
                     [[ -z "$chosen_freq" ]] && chosen_freq=${available_freqs[-1]}
                     [[ -z "$chosen_freq" ]] && chosen_freq=$target_freq
-
-                    echo "[$(date)] $policy_dir: min=$min_freq max=$max_freq pct=$pct target=$target_freq chosen=$chosen_freq" >> /tmp/powercontrol_debug.log
                     target_freq=$chosen_freq
+                    echo "[$(date)] $policy_dir: pct=$pct% min=$min_freq max=$max_freq avail=(${available_freqs[*]}) chosen=$target_freq" >> /tmp/powercontrol_debug.log
                 else
-                    echo "[$(date)] $policy_dir: min=$min_freq max=$max_freq pct=$pct target=$target_freq (no available_frequencies)" >> /tmp/powercontrol_debug.log
+                    echo "[$(date)] $policy_dir: pct=$pct% min=$min_freq max=$max_freq target=$target_freq (no avail freqs)" >> /tmp/powercontrol_debug.log
                 fi
 
                 if [ -w "$path" ]; then
                     echo "$target_freq" | sudo tee "$path" > /dev/null
-                    echo "[$(date)] Updated $path to $target_freq (pct=$pct)" >> /tmp/powercontrol_debug.log
+                    echo "[$(date)] Wrote $target_freq to $path (pct=$pct%)" >> /tmp/powercontrol_debug.log
                 else
-                    echo "${YELLOW}Warning: Permission denied to write $path; skipping.${RESET}" >&2
+                    echo "${YELLOW}Warning: Cannot write to $path; skipping.${RESET}" >&2
+                    echo "[$(date)] WARNING: Permission denied for $path" >> /tmp/powercontrol_debug.log
                 fi
             else
                 echo "${YELLOW}Warning: Missing cpuinfo_*_freq for $path; skipping.${RESET}" >&2
+                echo "[$(date)] WARNING: Missing cpuinfo values for $policy_dir" >> /tmp/powercontrol_debug.log
             fi
         done
 
@@ -283,12 +276,10 @@ set_max_perf_pct() {
 
     else
         echo "${RED}Unsupported CPU or PERF_PATH not set correctly.${RESET}" >&2
+        echo "[$(date)] ERROR: Unsupported CPU or PERF_PATH logic failed." >> /tmp/powercontrol_debug.log
         exit 1
     fi
 }
-
-
-
 
 set_temp_threshold() {
     if ! [[ "$1" =~ ^[0-9]+$ ]]; then
@@ -575,6 +566,7 @@ echo "║                                                                       
 echo "║                                    PowerControl commands with examples:                                   ║"
 echo "║                                                                                                           ║"
 echo "║  powercontrol                          # Show status                                                      ║"
+echo "║  powercontrol help                     # Help menu                                                        ║"
 echo "║  sudo powercontrol start               # Throttle CPU based on temperature curve                          ║"
 echo "║  sudo powercontrol stop                # Restore default CPU settings                                     ║"
 echo "║  sudo powercontrol no_turbo 1          # 0 = Enable, 1 = Disable Turbo Boost                              ║"
@@ -592,7 +584,6 @@ echo "║  sudo powercontrol startup             # Copy or Remove no_turbo.conf 
 echo "║  sudo powercontrol reinstall           # Redownload and reinstall ChromeOS_PowerControl from Github       ║"
 echo "║  sudo powercontrol uninstall           # Uninstall ChromeOS_PowerControl                                  ║"
 echo "║  sudo powercontrol version             # Check PowerControl version                                       ║"
-echo "║  sudo powercontrol help                # Help menu                                                        ║"
 echo "║                                                                                                           ║"
 echo "╚═══════════════════════════════════════════════════════════════════════════════════════════════════════════╝"
 echo "${RESET}"
