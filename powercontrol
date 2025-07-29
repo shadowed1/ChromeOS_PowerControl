@@ -532,7 +532,6 @@ stop_monitoring() {
 
         for i in {1..10}; do
             if ! ps -p "$PID" > /dev/null 2>&1; then
-                echo "PowerControl stopped."
                 rm -f "$PID_FILE"
                 return
             fi
