@@ -555,9 +555,6 @@ start_component_now() {
     fi
 }
 
-sleep 2
-
-
 echo "${BLUE}Stopping any running components of PowerControl${RESET}"
 sudo bash "$INSTALL_DIR/gpucontrol" restore >/dev/null 2>&1
 sudo ectool backlight 1 >/dev/null 2>&1
@@ -580,6 +577,8 @@ else
     echo "${YELLOW}FanControl start skipped - no fans detected.${RESET}"
 fi
 start_component_now "SleepControl" "$INSTALL_DIR/sleepcontrol"
+
+sleep 2
 
 echo ""
 echo "                                                       ${RED}████████████${RESET}           "
