@@ -644,7 +644,7 @@ max_perf_pct() {
 
     if [[ -f "$intel_path" ]]; then
         if echo "$MAX_PERF_PCT" | sudo tee "$intel_path" > /dev/null; then
-            echo "  ${GREEN}Set intel_pstate to $MAX_PERF_PCT%${RESET}" | tee -a "$LOG_FILE"
+            echo "  ${GREEN}Setting intel_pstate to $MAX_PERF_PCT%${RESET}" | tee -a "$LOG_FILE"
             applied=1
         else
             echo "${RED}Failed to set intel_pstate${RESET}" | tee -a "$LOG_FILE"
@@ -654,7 +654,7 @@ max_perf_pct() {
     for path in "${policy_paths[@]}"; do
         if echo "$MAX_PERF_PCT" | sudo tee "$path" > /dev/null; then
             policy=$(basename "$(dirname "$path")")
-            echo "  ${GREEN}Set $policy to $MAX_PERF_PCT%${RESET}" | tee -a "$LOG_FILE"
+            echo "  ${GREEN}Setting $policy to $MAX_PERF_PCT%${RESET}" | tee -a "$LOG_FILE"
             applied=1
         else
             echo "${RED}Failed to set $path${RESET}" | tee -a "$LOG_FILE"
