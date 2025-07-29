@@ -202,13 +202,23 @@ if [[ $# -eq 0 ]]; then
     exit 0
 fi
 
-GPU_ARG=$(echo "$1" | tr '[:upper:]' '[:lower:]')
-REQUESTED_FREQ="$2"
+if [[ $# -eq 1 && "$1" =~ ^[0-9]+$ ]]; then
+    REQUESTED_FREQ="$1"
+    GPU_ARG="$GPU_TYPE"
+elif [[ $# -eq 2 && "$1" =~ ^[a-zA-Z]+$ && "$2" =~ ^[0-9]+$ ]]; then
+    GPU_ARG=$(echo "$1" | tr '[:upper:]' '[:lower:]')
+    REQUESTED_FREQ="$2"
 
-if [[ "$GPU_ARG" != "$GPU_TYPE" ]]; then
+    if [[ "$GPU_ARG" != "$GPU_TYPE" ]]; then
+        echo ""
+        echo "${RED}Error: GPU type '$GPU_ARG' does not match detected type '$GPU_TYPE'.${RESET}"
+        echo ""
+        exit 1
+    fi
+else
     echo ""
-    echo "${RED}Error: GPU type '$GPU_ARG' does not match detected type '$GPU_TYPE'.${RESET}"
-    echo ""
+    echo "${RED}Invalid arguments.${RESET}"
+    help
     exit 1
 fi
 
