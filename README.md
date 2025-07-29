@@ -32,7 +32,7 @@
 
 - Open crosh shell and run: <br>
 
- `bash <(curl -s "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/ChromeOS_PowerControl_Downloader.sh?$(date +%s)")`
+ `bash <(curl -s "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/unstable/ChromeOS_PowerControl_Downloader.sh?$(date +%s)")`
 
 - The installer will be placed: <br>
 
@@ -176,6 +176,7 @@ Added message to make sure sudo is run for commands (excluding status and help).
 Thanks again to DennyL for the suggestions!`
 - 0.27: `Fixed bug with SleepControl not starting on boot.` <br> <br>
 - 0.28: `Fixed bug with GPUControl not applying user-preferred clockspeed on boot and refactored sections. Fixed version script for supporting base 10 values.` <br><br>
+- 0.29: `Fixed ARM detection for BatteryControl, PowerControl, and GPUControl.` <br><br>
 __Acknowledgements:__
 
 - Thanks to WesBosch for helping me learn to make an installer:
