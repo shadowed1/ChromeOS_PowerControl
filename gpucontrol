@@ -274,7 +274,7 @@ fi
 
 echo ""
 echo "$FREQ_KHZ" | sudo tee "$GPU_FREQ_PATH" > /dev/null
-echo "${GREEN}$GPU_ARG GPU frequency set to $FREQ_KHZ $UNIT${RESET}" | tee -a "$LOG_FILE"
+echo "${GREEN}$GPU_ARG GPU frequency set to $DISPLAY_FREQ $UNIT${RESET}" | tee -a "$LOG_FILE"
 GPU_MAX_FREQ="$REQUESTED_FREQ"
 echo ""
 save_config
