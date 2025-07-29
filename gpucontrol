@@ -236,15 +236,16 @@ case "$GPU_ARG" in
         UNIT="MHz"
         ;;
 
-    mali|adreno)
-        UNIT="kHz"
-       if (( REQUESTED_FREQ < 10000 )); then
-        FREQ_KHZ=$((REQUESTED_FREQ * 1000))
-        UNIT="MHz"
-    else
-        FREQ_KHZ=$REQUESTED_FREQ
-        UNIT="kHz"
-    fi
+     mali|adreno)
+        if (( REQUESTED_FREQ < 10000 )); then
+            FREQ_KHZ=$((REQUESTED_FREQ * 1000))
+            DISPLAY_FREQ="$REQUESTED_FREQ"
+            UNIT="MHz"
+        else
+            FREQ_KHZ=$REQUESTED_FREQ
+            DISPLAY_FREQ=$((REQUESTED_FREQ / 1000))
+            UNIT="MHz"
+        fi
         ;;
 
     amd)
