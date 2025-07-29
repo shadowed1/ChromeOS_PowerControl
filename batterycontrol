@@ -95,9 +95,9 @@ set_threshold() {
 
     CHARGE_MAX=$1
     save_config
-    echo ""
-    echo "$(date '+%Y-%m-%d %H:%M:%S') - ${GREEN}Charge Limit: ${CHARGE_MAX}% ${RESET}" | tee -a "$LOG_FILE"
-    echo ""
+    echo "${GREEN}"
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - Charge Limit: ${CHARGE_MAX}%" | tee -a "$LOG_FILE"
+    echo "${RESET}"
 }
 
     load_config
