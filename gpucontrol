@@ -287,19 +287,5 @@ case "$GPU_ARG" in
         exit 1
         ;;
 esac
-if (( FREQ_KHZ > ORIGINAL_GPU_MAX_FREQ )); then
-    echo ""
-    echo "${RED}Error: Frequency exceeds max allowed ($ORIGINAL_GPU_MAX_FREQ kHz).${RESET}"
-    echo ""
-    exit 1
-fi
-
-echo ""
-echo "$FREQ_KHZ" | sudo tee "$GPU_FREQ_PATH" > /dev/null
-echo "${GREEN}$GPU_ARG GPU frequency set to $DISPLAY_FREQ $UNIT${RESET}" | tee -a "$LOG_FILE"
-GPU_MAX_FREQ="$FREQ_KHZ"
-echo ""
-save_config
-
 
 exit 0
