@@ -221,9 +221,6 @@ for file in "${files[@]}"; do
 done
 
 CONFIG_FILE="$INSTALL_DIR/config.sh"
-
-
-
 FAN_COUNT=$(sudo ectool pwmgetnumfans | awk -F= '{print $2}' | sed -e 's/ //g')
 
 if [ "$FAN_COUNT" -eq 0 ]; then
