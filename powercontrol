@@ -220,8 +220,8 @@ set_max_perf_pct() {
     if (( pct > 100 )); then pct=100; fi
     if (( pct < 10 )); then pct=10; fi
 
-    echo "Applying to PERF_PATHS: ${PERF_PATHS[@]}" >&2
-    echo "Applying to PERF_PATH: ${PERF_PATH}" >&2
+    echo "[$(date)] Applying to PERF_PATHS: ${PERF_PATHS[@]}" >&2
+    echo "[$(date)] Applying to PERF_PATH: ${PERF_PATH}" >&2
 
     if (( IS_INTEL == 1 || IS_AMD == 1 )) && [[ "$PERF_PATH" == *max_perf_pct ]]; then
         if [ -w "$PERF_PATH" ]; then
