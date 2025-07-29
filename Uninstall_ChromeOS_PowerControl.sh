@@ -130,7 +130,7 @@ case "$choice" in
         fi
         echo "Stopping PowerControl processes..."
         echo ""
-        sleep 2
+        sleep 1
 echo "${RED}╔═══════════════════════════════╗${RESET}"
 echo "${YELLOW}║ ╔═══════════════════════════╗ ║${RESET}"
 echo "${GREEN}║ ║ ╔═══════════════════════╗ ║ ║${RESET}"
@@ -144,6 +144,7 @@ echo ""
         sudo pkill -f "/usr/local/bin/sleepcontrol"
         sudo pkill -f "/usr/local/bin/batterycontrol"
         sudo pkill -f "/usr/local/bin/powercontrol"
+echo "ChromeOS_PowerControl has been:"
 
 exit 0
         ;;
