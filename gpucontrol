@@ -228,10 +228,13 @@ case "$GPU_ARG" in
 
     mali|adreno)
         UNIT="kHz"
-        if (( REQUESTED_FREQ > 5000 )); then
-            echo "${YELLOW}Note: You entered ${REQUESTED_FREQ}, assuming MHz. If you meant kHz, divide by 1000.${RESET}"
-        fi
+       if (( REQUESTED_FREQ < 10000 )); then
         FREQ_KHZ=$((REQUESTED_FREQ * 1000))
+        UNIT="MHz"
+    else
+        FREQ_KHZ=$REQUESTED_FREQ
+        UNIT="kHz"
+    fi
         ;;
 
     amd)
