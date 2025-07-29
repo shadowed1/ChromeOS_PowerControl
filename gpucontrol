@@ -177,19 +177,27 @@ esac
 if [[ $# -eq 0 ]]; then
     case "$GPU_TYPE" in
         amd) amd_set_max_freq "$GPU_MAX_FREQ" ;;
-        intel|mali|adreno) echo "$GPU_MAX_FREQ" | sudo tee "$GPU_FREQ_PATH" > /dev/null ;;
+        intel)
+            echo "$GPU_MAX_FREQ" | sudo tee "$GPU_FREQ_PATH" > /dev/null
+            ;;
+        mali|adreno)
+            echo "$GPU_MAX_FREQ" | sudo tee "$GPU_FREQ_PATH" > /dev/null
+            ;;
     esac
 
     echo "${MAGENTA}"
     echo "═══════════════════════════════════════════════════"
     CURRENT_FREQ=$(get_current_freq "$GPU_TYPE")
     if [[ "$CURRENT_FREQ" =~ ^[0-9]+$ ]]; then
-        DISPLAY_FREQ=$((CURRENT_FREQ / 1000))
+        if [[ "$GPU_TYPE" == "intel" ]]; then
+            DISPLAY_FREQ="$CURRENT_FREQ"
+        else
+            DISPLAY_FREQ=$((CURRENT_FREQ / 1000))
+        fi
         echo -n "GPUControl Max Frequency: ${RESET}${BOLD}${MAGENTA}${DISPLAY_FREQ} MHz"
     else
         echo -n "GPUControl Max Frequency: ${RESET}${BOLD}${MAGENTA}Unavailable"
     fi
-
     echo "${RESET}${MAGENTA}"
     echo "GPU Type: $GPU_TYPE"
     echo "Default Max Frequency: $ORIGINAL_GPU_MAX_FREQ"
