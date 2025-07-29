@@ -640,13 +640,12 @@ max_perf_pct() {
 
     MAX_PERF_PCT=$2
     save_config
-    echo "Setting max_perf_pct to $MAX_PERF_PCT%" | tee -a "$LOG_FILE"
 
     local applied=0
 
     if [[ -f "$intel_path" ]]; then
         if echo "$MAX_PERF_PCT" | sudo tee "$intel_path" > /dev/null; then
-            echo "  Set intel_pstate to $MAX_PERF_PCT%" | tee -a "$LOG_FILE"
+            echo "  ${GREEN}Set intel_pstate to $MAX_PERF_PCT%${RESET}" | tee -a "$LOG_FILE"
             applied=1
         else
             echo "${RED}Failed to set intel_pstate${RESET}" | tee -a "$LOG_FILE"
@@ -656,7 +655,7 @@ max_perf_pct() {
     for path in "${policy_paths[@]}"; do
         if echo "$MAX_PERF_PCT" | sudo tee "$path" > /dev/null; then
             policy=$(basename "$(dirname "$path")")
-            echo "  Set $policy to $MAX_PERF_PCT%" | tee -a "$LOG_FILE"
+            echo "  ${GREEN}Set $policy to $MAX_PERF_PCT%${RESET}" | tee -a "$LOG_FILE"
             applied=1
         else
             echo "${RED}Failed to set $path${RESET}" | tee -a "$LOG_FILE"
@@ -668,7 +667,7 @@ max_perf_pct() {
 case "$1" in
    start)
     if [ ! -f "$CONFIG_FILE" ]; then
-        echo "Initializing config file with default values..."
+        echo "${CYAN}Initializing config file with default values...${RESET}"
         detect_cpu_type
         load_config
     fi
@@ -855,7 +854,7 @@ case "$1" in
 
     reinstall)
     echo "Downloading to:${CYAN} /home/chronos/ChromeOS_PowerControl_Installer.sh $RESET"
-    bash <(curl -s "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/unstable/ChromeOS_PowerControl_Downloader.sh?$(date +%s)")
+    bash <(curl -s "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/beta/ChromeOS_PowerControl_Downloader.sh?$(date +%s)")
     echo "Running commands:"
     echo ""
     sudo mkdir -p /usr/local/bin
