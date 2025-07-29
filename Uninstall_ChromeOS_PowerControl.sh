@@ -51,13 +51,13 @@ case "$choice" in
         sudo initctl stop gpu_control 2>/dev/null
         sudo initctl stop sleep_control 2>/dev/null
         sudo ectool backlight 1 2>/dev/null
-        sudo bash "$INSTALL_DIR/powercontrol" stop
-        sudo bash "$INSTALL_DIR/powercontrol" max_perf_pct 100
-        sudo bash "$INSTALL_DIR/powercontrol" no_turbo 0
-        sudo bash "$INSTALL_DIR/batterycontrol" stop
-        sudo bash "$INSTALL_DIR/fancontrol" stop
-        sudo bash "$INSTALL_DIR/gpucontrol" restore
-        sudo bash "$INSTALL_DIR/sleepcontrol" stop
+        sudo bash "$INSTALL_DIR/powercontrol" stop 2>/dev/null
+        sudo bash "$INSTALL_DIR/powercontrol" max_perf_pct 100 2>/dev/null
+        sudo bash "$INSTALL_DIR/powercontrol" no_turbo 0 2>/dev/null
+        sudo bash "$INSTALL_DIR/batterycontrol" stop 2>/dev/null
+        sudo bash "$INSTALL_DIR/fancontrol" stop 2>/dev/null
+        sudo bash "$INSTALL_DIR/gpucontrol" restore 2>/dev/null
+        sudo bash "$INSTALL_DIR/sleepcontrol" stop 2>/dev/null
 
         remove_file_with_message "$INSTALL_DIR/no_turbo.conf"
         remove_file_with_message "$INSTALL_DIR/batterycontrol.conf"
@@ -139,11 +139,13 @@ echo "${CYAN}║ ║ ╚══════════════════�
 echo "${BLUE}║ ╚═══════════════════════════╝ ║${RESET}"
 echo "${MAGENTA}╚═══════════════════════════════╝${RESET}"
 echo ""
-        sudo pkill -f "/usr/local/bin/gpucontrol" 2>/dev/null
-        sudo pkill -f "/usr/local/bin/fancontrol" 2>/dev/null
-        sudo pkill -f "/usr/local/bin/sleepcontrol" 2>/dev/null
-        sudo pkill -f "/usr/local/bin/batterycontrol" 2>/dev/null
-        sudo pkill -f "/usr/local/bin/powercontrol" 2>/dev/null
+        sudo pkill -f "/usr/local/bin/gpucontrol" >/dev/null 2>&1
+        sudo pkill -f "/usr/local/bin/fancontrol" >/dev/null 2>&1
+        sudo pkill -f "/usr/local/bin/sleepcontrol" >/dev/null 2>&1
+        sudo pkill -f "/usr/local/bin/batterycontrol" >/dev/null 2>&1
+        sudo pkill -f "/usr/local/bin/powercontrol" >/dev/null 2>&1
+
+trap '' SIGTERM
 
 exit 0
         ;;
