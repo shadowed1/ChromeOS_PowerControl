@@ -267,7 +267,8 @@ case "$GPU_ARG" in
 
         echo ""
         echo "$FREQ_KHZ" | sudo tee "$GPU_FREQ_PATH" > /dev/null
-        echo "${GREEN}$GPU_ARG GPU frequency set to $REQUESTED_FREQ $UNIT${RESET}" | tee -a "$LOG_FILE"
+        DISPLAY_FREQ=$((FREQ_KHZ / 1000))
+        echo "${GREEN}$GPU_ARG GPU frequency set to $DISPLAY_FREQ MHz${RESET}" | tee -a "$LOG_FILE"
         GPU_MAX_FREQ="$FREQ_KHZ"
         echo ""
         save_config
