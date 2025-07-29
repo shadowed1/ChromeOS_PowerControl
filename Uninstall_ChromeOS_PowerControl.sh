@@ -130,7 +130,7 @@ case "$choice" in
         fi
         echo "Stopping PowerControl processes..."
         echo ""
-        sleep 1
+        sleep 2
 echo "${RED}╔═══════════════════════════════╗${RESET}"
 echo "${YELLOW}║ ╔═══════════════════════════╗ ║${RESET}"
 echo "${GREEN}║ ║ ╔═══════════════════════╗ ║ ║${RESET}"
