@@ -267,11 +267,11 @@ set_max_perf_pct() {
                     echo "$target_freq" | sudo tee "$path" > /dev/null
                     echo "[$(date)] Wrote $target_freq to $path (pct=$pct%)" >> /tmp/powercontrol_debug.log
                 else
-                    echo "${YELLOW}Warning: Cannot write to $path; skipping.${RESET}" >&2
+                    echo "${RED}Warning: Cannot write to $path; skipping.${RESET}" >&2
                     echo "[$(date)] WARNING: Permission denied for $path" >> /tmp/powercontrol_debug.log
                 fi
             else
-                echo "${YELLOW}Warning: Missing cpuinfo_*_freq for $path; skipping.${RESET}" >&2
+                echo "${RED}Warning: Missing cpuinfo_*_freq for $path; skipping.${RESET}" >&2
                 echo "[$(date)] WARNING: Missing cpuinfo values for $policy_dir" >> /tmp/powercontrol_debug.log
             fi
         done
@@ -438,7 +438,7 @@ start_monitoring_loop() {
         sleep "$CPU_POLL"
     done
 
-    echo "${YELLOW}PowerControl stopped.${RESET}" | tee -a "$LOG_FILE"
+    echo "${RED}PowerControl stopped.${RESET}" | tee -a "$LOG_FILE"
     rm -f "$PID_FILE"
 }
 
@@ -671,7 +671,7 @@ case "$1" in
     fi
 
     if pgrep -f "$0 __monitor__" >/dev/null; then
-        echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') - Monitor is already running. Showing live output...${RESET}" | tee -a "$LOG_FILE"
+        echo "${RED}$(date '+%Y-%m-%d %H:%M:%S') - Monitor is already running. Showing live output...${RESET}" | tee -a "$LOG_FILE"
         tail -n 20 -f "$LOG_FILE"
     else
         nohup "$0" __monitor__ >> "$LOG_FILE" 2>&1 &
@@ -733,7 +733,7 @@ case "$1" in
             if [ -f "$CONF_SOURCE_NO_TURBO" ]; then
                 echo "Copying no_turbo.conf to /etc/init/..."
                 sudo cp "$CONF_SOURCE_NO_TURBO" "/etc/init/"
-                echo "${GREEN}no_turbo.conf copied.${RESET}"
+                echo "${CYAN}no_turbo.conf copied.${RESET}"
             else
                 echo "Intel Turbo Boost will start automatically."
                 sudo rm -f /etc/init/no_turbo.conf
@@ -749,7 +749,7 @@ case "$1" in
         if [ -f "$CONF_SOURCE" ]; then
             echo "Copying powercontrol.conf to /etc/init/..."
             sudo cp "$CONF_SOURCE" "$CONF_TARGET"
-            echo "${GREEN}powercontrol.conf copied.${RESET}"
+            echo "${CYAN}powercontrol.conf copied.${RESET}"
         else
             echo "${RED}powercontrol.conf not found at $CONF_SOURCE${RESET}"
         fi
@@ -829,10 +829,10 @@ case "$1" in
                 echo "${CYAN}Reinstalling!${RESET}"
                 exec sudo powercontrol reinstall
             else
-                echo "${YELLOW}Skipping reinstall.${RESET}"
+                echo "${RED}Skipping reinstall.${RESET}"
             fi
         else
-            echo "${GREEN}You're using $CURRENT_VER which is up-to-date, so you're good.${RESET}"
+            echo "${CYAN}You're using $CURRENT_VER which is up-to-date, so you're good.${RESET}"
         fi
     else
         echo "${RED}Version file not found.${RESET}"
