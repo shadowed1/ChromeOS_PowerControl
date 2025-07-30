@@ -207,7 +207,7 @@ fi
     if [[ "$GPU_TYPE" == "intel" || "$GPU_TYPE" == "amd" ]]; then
         DEFAULT_MHZ=$ORIGINAL_GPU_MAX_FREQ
     else
-        DEFAULT_MHZ=$((ORIGINAL_GPU_MAX_FREQ / 1000))
+        DEFAULT_MHZ=$((ORIGINAL_GPU_MAX_FREQ / 1000000))
     fi
     echo "Default Max Frequency: ${DEFAULT_MHZ} MHz"
     echo "═══════════════════════════════════════════════════"
@@ -264,7 +264,7 @@ case "$GPU_ARG" in
         save_config
         ;;
     mali|adreno)
-        local freq_hz
+        freq_hz=
         if (( REQUESTED_FREQ < 10000 )); then
             freq_hz=$((REQUESTED_FREQ * 1000000))
         else
