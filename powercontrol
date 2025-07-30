@@ -792,13 +792,13 @@ case "$1" in
     hotzone)
     if [[ "$2" =~ ^[0-9]+$ ]]; then
         if (( $2 < 60 || $2 > 90 )); then
-            echo "Error: hotzone must be between 60 and 90°C"
+            echo "Error: hotzone must be between 60°C and 90°C"
             exit 1
         fi
         sed -i "s/^HOTZONE=.*/HOTZONE=$2/" "$CONFIG_FILE"
         echo "hotzone set to $2°C"
     else
-        echo "Error: hotzone must be between 60 and 90°C"
+        echo "Error: hotzone must be between 60°C and 90°C"
         exit 1
     fi
     ;;
