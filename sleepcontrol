@@ -104,6 +104,7 @@ echo "║                                                                       
 echo "║                                          SleepControl commands with examples:                                      ║"
 echo "║                                                                                                                    ║"
 echo "║  sleepcontrol                       # Show SleepControl status                                                     ║"
+echo "║  sudo sleepcontrol help             # Help menu                                                                    ║"
 echo "║  sudo sleepcontrol start            # Start SleepControl                                                           ║"
 echo "║  sudo sleepcontrol stop             # Stop SleepControl                                                            ║"
 echo "║  sudo sleepcontrol battery 3 7 12   # When idle, display dims in 3m -> timeout in 7m -> sleeps in 12m on battery   ║"
@@ -111,7 +112,6 @@ echo "║  sudo sleepcontrol power 5 15 30    # When idle, display dims in 5m ->
 echo "║  sudo sleepcontrol battery audio 0  # Disable audio detection on battery; sleep can occur during media playback    ║"
 echo "║  sudo sleepcontrol power audio 1    # Enable audio detection on power; delaying sleep until audio is stopped       ║"
 echo "║  sudo sleepcontrol startup          # Copy or Remove sleepcontrol.conf at: /etc/init/                              ║"
-echo "║  sudo sleepcontrol help             # Help menu                                                                    ║"
 echo "║                                                                                                                    ║"
 echo "╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝"
 echo "${RESET}"
@@ -197,7 +197,7 @@ flock -n 200 || {
         if (( fake_activity_pid == 0 )); then
             (
                 while true; do
-                    sleep 120
+                    sleep 60
                     send_fake_activity
                 done
             ) &
@@ -403,7 +403,7 @@ stop_monitoring() {
             kill -- -"$PID" 2>/dev/null
             sleep 1
             kill "$PID" 2>/dev/null
-            echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') - SleepControl Stopped (PID $PID)${RESET}"
+            echo "${RED}$(date '+%Y-%m-%d %H:%M:%S') - SleepControl Stopped (PID $PID)${RESET}"
         fi
     fi
     rm -f "$RUN_FLAG"
@@ -440,12 +440,10 @@ flock -n 200 || {
         fi
 
     if [[ $# -eq 4 ]]; then
-        # 3 values: dim_delay, backlight_off_delay, sleep_delay
         DIM_VAL=$2
         BACKLIGHT_VAL=$3
         DELAY_VAL=$4
 
-        # Validate all three values
         for v in "$DIM_VAL" "$BACKLIGHT_VAL" "$DELAY_VAL"; do
             if ! [[ "$v" =~ ^[0-9]+$ && "$v" -ge 1 && "$v" -le 9999 ]]; then
                 echo "${RED}Values must be integers between 1 and 9999 minutes.${RESET}"
@@ -474,10 +472,9 @@ flock -n 200 || {
         fi
 
         save_config
-        echo "${GREEN}${BOLD}${MODE^}${RESET}${GREEN} = Dim: $((DIM_VAL)) min -> Timeout: $((BACKLIGHT_VAL)) min -> Sleep: $((DELAY_VAL)) min${RESET}"
+        echo "${BLUE}${BOLD}${MODE^}${RESET}${BLUE} = Dim: $((DIM_VAL)) min -> Timeout: $((BACKLIGHT_VAL)) min -> Sleep: $((DELAY_VAL)) min${RESET}"
 
     elif [[ $# -eq 3 ]]; then
-        # 2 values: backlight_off_delay, sleep_delay
         BACKLIGHT_VAL=$2
         DELAY_VAL=$3
 
@@ -509,7 +506,6 @@ flock -n 200 || {
 
 
     elif [[ $# -eq 2 ]]; then
-        # 1 value: sleep_delay only (deprecated? or for backward compatibility)
         VAL=$2
 
         if ! [[ "$VAL" =~ ^[0-9]+$ && "$VAL" -ge 1 && "$VAL" -le 9999 ]]; then
@@ -527,7 +523,6 @@ flock -n 200 || {
         echo "${GREEN}${BOLD}${MODE^}${RESET}${GREEN} = Sleep: $((POWER_DELAY)) min${RESET}"
 
     else
-        # No parameters - show current config
         load_config
         if [[ "$MODE" == "battery" ]]; then
             echo "Battery = Dim: $((BATTERY_DIM_DELAY)) min -> Timeout: $((BATTERY_BACKLIGHT)) min -> Sleep: $((BATTERY_DELAY)) min | Audio Detection: $AUDIO_DETECTION_BATTERY"
