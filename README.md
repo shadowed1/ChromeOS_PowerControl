@@ -125,6 +125,7 @@ __How It Works:__
 *SleepControl:*
 
 - By reading powerd.LATEST log, SleepControl monitors when the powerd daemon reports 'User activity stopped'.
+- The file /usr/share/power_manager/send_feedback_if_undimmed (when set to 1) is what controls this behavior. 
 - Parsing strings like 'User activity started' or 'Audio activity started' tells SleepControl the user is active. to pause until  is reported.
 - If 'User activity stopped' and 'Audio activity stopped' is parsed, SleepControl assumes the user is away and custom sleep timers can begin.
 - Can turn on or off audio detection to customize sleep during multimedia playback.
