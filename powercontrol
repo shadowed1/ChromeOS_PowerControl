@@ -222,7 +222,7 @@ set_max_perf_pct() {
 
     echo "[$(date)] Requested perf_pct=$pct" >> /tmp/powercontrol_debug.log
 
-    if (( IS_INTEL == 1 || IS_AMD == 1 )) && [[ "$PERF_PATH" == *max_perf_pct ]]; then
+    if (( IS_INTEL == 1 )) && [[ "$PERF_PATH" == *intel_pstate/max_perf_pct ]] && [[ -f "$PERF_PATH" ]]; then
         if [ -w "$PERF_PATH" ]; then
             echo "$pct" | sudo tee "$PERF_PATH" > /dev/null
             echo "[$(date)] Set $PERF_PATH to $pct%" >> /tmp/powercontrol_debug.log
