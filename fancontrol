@@ -284,7 +284,9 @@ fan_min_temp() {
         load_config
         FAN_MIN_TEMP=$2
         save_config
+        echo "${YELLOW}"
         echo "$(date '+%Y-%m-%d %H:%M:%S') - Min temp set to $FAN_MIN_TEMP°C" | tee -a "$LOG_FILE"
+        echo "${RESET}"
     else
         echo "Usage: $0 fan_min_temp <number>"
     fi
@@ -295,7 +297,9 @@ fan_max_temp() {
         load_config
         FAN_MAX_TEMP=$2
         save_config
+        echo "${YELLOW}"
         echo "$(date '+%Y-%m-%d %H:%M:%S') - Max temp set to $FAN_MAX_TEMP°C" | tee -a "$LOG_FILE"
+        echo "${RESET}"
     else
         echo "Usage: $0 fan_max_temp <number (<=90)>"
     fi
@@ -307,7 +311,9 @@ min_fan() {
         if (( MAX_FAN > $2 )); then
             MIN_FAN=$2
             save_config
+            echo "${YELLOW}"
             echo "$(date '+%Y-%m-%d %H:%M:%S') - Min fan set to $MIN_FAN%" | tee -a "$LOG_FILE"
+            echo "${RESET}"
         else
             echo "Error: MIN_FAN must be less than MAX_FAN ($MAX_FAN)"
         fi
@@ -322,7 +328,9 @@ max_fan() {
         if (( $2 > MIN_FAN )); then
             MAX_FAN=$2
             save_config
+            echo "${YELLOW}"
             echo "$(date '+%Y-%m-%d %H:%M:%S') - Max fan set to $MAX_FAN%" | tee -a "$LOG_FILE"
+            echo ${RESET}
         else
             echo "Error: MAX_FAN must be greater than MIN_FAN ($MIN_FAN)"
         fi
@@ -342,7 +350,9 @@ set_fan_poll() {
             FAN_POLL=10
         fi
         sed -i "s/^FAN_POLL=.*/FAN_POLL=$FAN_POLL/" "$CONFIG_FILE"
-        echo "${CYAN}FanControl polling rate set to $FAN_POLL seconds${RESET}"
+        echo ""
+        echo "${YELLOW}FanControl polling rate set to $FAN_POLL seconds${RESET}"
+        echo ""
     else
         echo "Error: FAN_POLL must be a number between 1.0 and 10.0 (e.g., 1.5, 3, 4.2)"
         exit 1
@@ -354,7 +364,9 @@ set_stepup() {
         load_config
         STEP_UP=$2
         save_config
+        echo "${YELLOW}"
         echo "$(date '+%Y-%m-%d %H:%M:%S') - Step-up size set to $STEP_UP%" | tee -a "$LOG_FILE"
+        echo "{RESET}"
     else
         echo "Usage: $0 step_up <step_size_percent (1-100)>"
     fi
@@ -365,32 +377,34 @@ set_stepdown() {
         load_config
         STEP_DOWN=$2
         save_config
+        echo "${YELLOW}"
         echo "$(date '+%Y-%m-%d %H:%M:%S') - Step-down size set to $STEP_DOWN%" | tee -a "$LOG_FILE"
+        echo "${RESET}"
     else
         echo "Usage: $0 step_down <step_size_percent (1-100)>"
     fi
 }
 show_help() {
 echo "${YELLOW}"
-echo "╔════════════════════════════════════════════════════════════════════════════════════╗"
-echo "║                                                                                    ║"
-echo "║                          FanControl commands with examples:                        ║"
-echo "║                                                                                    ║"
-echo "║  fancontrol                       # Show FanControl status                         ║"
-echo "║  fancontrol help                  # Help menu                                      ║"
-echo "║  sudo fancontrol start            # Start FanControl                               ║"
-echo "║  sudo fancontrol stop             # Stop FanControl                                ║"
-echo "║  sudo fancontrol fan_min_temp 48  # Min temp threshold                             ║"
-echo "║  sudo fancontrol fan_max_temp 81  # Max temp threshold - Limit is 90°C             ║"
-echo "║  sudo fancontrol min_fan 0        # Min fan speed %                                ║"
-echo "║  sudo fancontrol max_fan 100      # Max fan speed %                                ║"
-echo "║  sudo fancontrol step_up 20       # Fan step-up %                                  ║"
-echo "║  sudo fancontrol step_down 1      # Fan step-down %                                ║"
-echo "║  sudo fancontrol poll 2           # FanControl polling rate in seconds (1 to 10s)  ║"
-echo "║  sudo fancontrol monitor          # Toggle on/off live monitoring in terminal      ║"
-echo "║  sudo fancontrol startup          # Copy or Remove fancontrol.conf at: /etc/init/  ║"
-echo "║                                                                                    ║"
-echo "╚════════════════════════════════════════════════════════════════════════════════════╝"
+echo "╔════════════════════════════════════════════════════════════════════════════════╗"
+echo "║                                                                                ║"
+echo "║                       FanControl commands with examples:                       ║"
+echo "║                                                                                ║"
+echo "║  fancontrol                   # Show FanControl status                         ║"
+echo "║  fancontrol help              # Help menu                                      ║"
+echo "║  sudo fancontrol start        # Start FanControl                               ║"
+echo "║  sudo fancontrol stop         # Stop FanControl                                ║"
+echo "║  sudo fancontrol min_temp 48  # Min temp threshold                             ║"
+echo "║  sudo fancontrol max_temp 81  # Max temp threshold - Limit is 90°C             ║"
+echo "║  sudo fancontrol min 0        # Min fan speed %                                ║"
+echo "║  sudo fancontrol max 100      # Max fan speed %                                ║"
+echo "║  sudo fancontrol step_up 20   # Fan step-up %                                  ║"
+echo "║  sudo fancontrol step_down 1  # Fan step-down %                                ║"
+echo "║  sudo fancontrol poll 2       # FanControl polling rate in seconds (1 to 10s)  ║"
+echo "║  sudo fancontrol monitor      # Toggle on/off live monitoring in terminal      ║"
+echo "║  sudo fancontrol startup      # Copy or Remove fancontrol.conf at: /etc/init/  ║"
+echo "║                                                                                ║"
+echo "╚════════════════════════════════════════════════════════════════════════════════╝"
 echo "${RESET}"
 }
 
@@ -398,10 +412,10 @@ case "$1" in
     start) start ;;
     stop) stop ;;
     monitor) monitor ;;
-    fan_min_temp) fan_min_temp "$@" ;;
-    fan_max_temp) fan_max_temp "$@" ;;
-    min_fan)  min_fan "$@" ;;
-    max_fan)  max_fan "$@" ;;
+    fan_min_temp|min_temp) fan_min_temp "$@" ;;
+    fan_max_temp|max_temp) fan_max_temp "$@" ;;
+    min_fan|min)  min_fan "$@" ;;
+    max_fan|max)  max_fan "$@" ;;
     poll | fan_poll)   set_fan_poll "$@" ;;
     step_up)   set_stepup "$@" ;;
     step_down) set_stepdown "$@" ;;
