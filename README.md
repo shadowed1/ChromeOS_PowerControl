@@ -177,7 +177,7 @@ Thanks again to DennyL for the suggestions!`
 - 0.27: `Fixed bug with SleepControl not starting on boot.` <br> <br>
 - 0.28: `Fixed bug with GPUControl not applying user-preferred clockspeed on boot and refactored sections. Fixed version script for supporting base 10 values.` <br><br>
 - 0.29: `Improved ARM detection for BatteryControl, PowerControl, and GPUControl. Removed requirement for entering GPU type and improved kHz conversion in GPUControl.
-Added min and max arguments for shorter min_perf_pct and max_perf_pct commands in Powercontrol.` <br><br>
+Shortened arguments for PowerControl and FanControl.` <br><br>
 __Acknowledgements:__
 
 - Thanks to WesBosch for helping me learn to make an installer:
