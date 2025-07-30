@@ -189,18 +189,26 @@ if [[ $# -eq 0 ]]; then
     echo "═══════════════════════════════════════════════════"
     CURRENT_FREQ=$(get_current_freq "$GPU_TYPE")
     if [[ "$CURRENT_FREQ" =~ ^[0-9]+$ ]]; then
-        if [[ "$GPU_TYPE" == "intel" ]]; then
-            DISPLAY_FREQ="$CURRENT_FREQ"
-        else
-            DISPLAY_FREQ=$((CURRENT_FREQ / 1000000))
-        fi
-        echo -n "GPUControl Max Frequency: ${RESET}${BOLD}${MAGENTA}${DISPLAY_FREQ} MHz"
-    else
-        echo -n "GPUControl Max Frequency: ${RESET}${BOLD}${MAGENTA}Unavailable"
-    fi
+    case "$GPU_TYPE" in
+        intel|amd)
+            DISPLAY_FREQ="$CURRENT_FREQ" ;;  # MHz already
+        mali|adreno)
+            DISPLAY_FREQ=$((CURRENT_FREQ / 1000000)) ;;
+        *)
+            DISPLAY_FREQ="$CURRENT_FREQ" ;;
+    esac
+    echo -n "GPUControl Max Frequency: ${RESET}${BOLD}${MAGENTA}${DISPLAY_FREQ} MHz"
+else
+    echo -n "GPUControl Max Frequency: ${RESET}${BOLD}${MAGENTA}Unavailable"
+fi
+
     echo "${RESET}${MAGENTA}"
     echo "GPU Type: $GPU_TYPE"
-    DEFAULT_MHZ=$((ORIGINAL_GPU_MAX_FREQ / 1000000))
+    if [[ "$GPU_TYPE" == "intel" || "$GPU_TYPE" == "amd" ]]; then
+        DEFAULT_MHZ=$ORIGINAL_GPU_MAX_FREQ
+    else
+        DEFAULT_MHZ=$((ORIGINAL_GPU_MAX_FREQ / 1000))
+    fi
     echo "Default Max Frequency: ${DEFAULT_MHZ} MHz"
     echo "═══════════════════════════════════════════════════"
     echo "${RESET}"
@@ -246,45 +254,32 @@ if ! [[ "$REQUESTED_FREQ" =~ ^[0-9]+$ ]]; then
 fi
 
 case "$GPU_ARG" in
-    intel|mali|adreno)
-        UNIT="kHz"
-        if [[ "$GPU_ARG" == "intel" ]]; then
-            UNIT="MHz"
-            FREQ_KHZ="$REQUESTED_FREQ"
-        else
-            if (( REQUESTED_FREQ < 10000 )); then
-                FREQ_KHZ=$((REQUESTED_FREQ * 1000))
-            else
-                FREQ_KHZ=$REQUESTED_FREQ
-            fi
-        fi
-
-        if (( FREQ_KHZ > ORIGINAL_GPU_MAX_FREQ )); then
-            echo ""
-            echo "${RED}Error: Frequency exceeds max allowed ($ORIGINAL_GPU_MAX_FREQ kHz).${RESET}"
-            echo ""
-            exit 1
-        fi
-
+    intel)
         echo ""
-        echo "$FREQ_KHZ" | sudo tee "$GPU_FREQ_PATH" > /dev/null
-        if [[ "$GPU_ARG" == "intel" ]]; then
-        DISPLAY_FREQ="$FREQ_KHZ"
-        else
-            DISPLAY_FREQ=$((FREQ_KHZ / 1000))
-        fi
-        echo "${MAGENTA}$GPU_ARG GPU frequency set to $DISPLAY_FREQ MHz${RESET}" | tee -a "$LOG_FILE"
-
-        GPU_MAX_FREQ="$FREQ_KHZ"
-        echo ""
+        echo "$REQUESTED_FREQ" | sudo tee "$GPU_FREQ_PATH" > /dev/null
+        DISPLAY_FREQ="$REQUESTED_FREQ"
+        echo "${MAGENTA}Intel GPU frequency set to $DISPLAY_FREQ MHz${RESET}" | tee -a "$LOG_FILE"
+        GPU_MAX_FREQ="$REQUESTED_FREQ"
         save_config
         ;;
-    
+    mali|adreno)
+        local freq_hz
+        if (( REQUESTED_FREQ < 10000 )); then
+            freq_hz=$((REQUESTED_FREQ * 1000000))
+        else
+            freq_hz="$REQUESTED_FREQ"
+        fi
+
+        echo ""
+        echo "$freq_hz" | sudo tee "$GPU_FREQ_PATH" > /dev/null
+        DISPLAY_FREQ=$((freq_hz / 1000000))
+        echo "${MAGENTA}$GPU_ARG GPU frequency set to $DISPLAY_FREQ MHz${RESET}" | tee -a "$LOG_FILE"
+        GPU_MAX_FREQ="$freq_hz"
+        save_config
+        ;;
     amd)
         amd_set_max_freq "$REQUESTED_FREQ"
-        echo ""
         echo "${GREEN}AMD GPU frequency set to $REQUESTED_FREQ MHz${RESET}" | tee -a "$LOG_FILE"
-        echo ""
         ;;
     *)
         echo ""
