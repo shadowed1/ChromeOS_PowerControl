@@ -98,7 +98,6 @@ save_config() {
     sed -i "s/^STEP_DOWN=.*/STEP_DOWN=$STEP_DOWN/" "$CONFIG_FILE" || echo "STEP_DOWN=$STEP_DOWN" >> "$CONFIG_FILE"
 }
 
-# === Fan logic with hysteresis ===
 cleanup() {
     echo "${YELLOW} $(date '+%Y-%m-%d %H:%M:%S') - Restoring automatic fan control...${RESET}" | tee -a "$LOG_FILE"
     sudo ectool autofanctrl
@@ -156,8 +155,7 @@ sudo ectool fanduty "$initial_duty"
         fi
 
 
-        # Apply hysteresis / gradual ramping with asymmetric steps
-        HYSTERESIS=2  # percent
+        HYSTERESIS=2
              if (( last_duty < 50 )); then
                 effective_step_down=$((STEP_DOWN / 2))
                 (( effective_step_down < 1 )) && effective_step_down=1
@@ -182,7 +180,7 @@ sudo ectool fanduty "$initial_duty"
                     target_duty=$DUTY
                 fi
             else
-                target_duty=$last_duty  # No change if within hysteresis
+                target_duty=$last_duty
             fi
 
 
@@ -220,7 +218,6 @@ sudo ectool fanduty "$initial_duty"
     cleanup
 }
 
-# === Start / Stop / Monitor ===
 start() {
     "$0" stop >/dev/null 2>&1
     FAN_COUNT=$(sudo ectool pwmgetnumfans | awk -F= '{print $2}' | sed -e 's/ //g')
@@ -233,7 +230,6 @@ start() {
 
     LOG_FILE="/var/log/fancontrol.log"
 
-    # Truncate if log exceeds 32KB
     if [ -f "$LOG_FILE" ] && [ "$(stat -c%s "$LOG_FILE")" -gt 32768 ]; then
         echo "$(date '+%Y-%m-%d %H:%M:%S') - Truncated log file (exceeded 32KB)" > "$LOG_FILE"
     fi
