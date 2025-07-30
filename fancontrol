@@ -122,7 +122,7 @@ fi
 
 sudo ectool fanduty "$initial_duty"
 
-    echo "${GREEN} $(date '+%Y-%m-%d %H:%M:%S') - FanControl started.${RESET}" | tee -a "$LOG_FILE"
+    echo "${YELLOW} $(date '+%Y-%m-%d %H:%M:%S') - FanControl started.${RESET}" | tee -a "$LOG_FILE"
     prev_temp=$TEMP_C
     local last_duty=-1
     local last_reload_time=0
@@ -242,7 +242,7 @@ start() {
     else
         nohup "$0" __monitor__ >> "$LOG_FILE" 2>&1 &
         echo ""
-        echo "${GREEN}$(date '+%Y-%m-%d %H:%M:%S') - Starting FanControl - Output is logged to $LOG_FILE${RESET}" | tee -a "$LOG_FILE"
+        echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') - Starting FanControl - Output is logged to $LOG_FILE${RESET}" | tee -a "$LOG_FILE"
         echo ""
     fi
 }
@@ -430,7 +430,7 @@ case "$1" in
         if [ -f "$CONF_SOURCE" ]; then
             echo "Copying fancontrol.conf to /etc/init/..."
             sudo cp "$CONF_SOURCE" "$CONF_TARGET"
-            echo "${GREEN}fancontrol.conf copied.${RESET}"
+            echo "${YELLOW}fancontrol.conf copied.${RESET}"
         else
             echo "${RED}fancontrol.conf not found at $CONF_SOURCE${RESET}"
         fi
