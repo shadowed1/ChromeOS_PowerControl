@@ -130,8 +130,8 @@ __How It Works:__
 - If 'User activity stopped' and 'Audio activity stopped' is parsed, SleepControl assumes the user is away and sleep timers begin.
 - Can turn on or off audio detection to customize sleep during multimedia playback.
 - ChromeOS will report 'User activity stopped' after around 20 seconds of inactivity, so the timers won't be exact.
-- When idle, SleepControl uses dbus to send an empty input every 120s until interrupted/sleeping with the configurable timer.  
-- By using epoch timestamps, SleepControl is able to check when its simulated inputs are to be ignored.
+- When idle, SleepControl uses dbus to send an empty input every 60s until interrupted/sleeping with the configurable timer.  
+- By using epoch timestamps, SleepControl is able to verify when its simulated inputs are to be ignored.
 <br>
 
 __Bonus:__
