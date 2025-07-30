@@ -627,6 +627,7 @@ echo "║                                                  PowerControl:        
 echo "╠════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣"
 echo "║                                                                                                                    ║"
 echo "║  powercontrol                       # Show status                                                                  ║"
+echo "║  powercontrol all                   # Show status of all ChromeOS_PowerControl components                          ║"
 echo "║  powercontrol help                  # Help menu                                                                    ║"
 echo "║  sudo powercontrol start            # Throttle CPU based on temperature curve                                      ║"
 echo "║  sudo powercontrol stop             # Restore default CPU settings                                                 ║"
