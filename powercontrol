@@ -857,5 +857,6 @@ case "$1" in
     ;;
     all)
         powercontrol && batterycontrol && fancontrol && gpucontrol && sleepcontrol
+    ;;
     *) echo "Unknown command: $1"; show_help ;;
 esac
