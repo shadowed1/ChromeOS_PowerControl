@@ -688,7 +688,7 @@ case "$1" in
         tail -n 20 -f "$LOG_FILE"
     else
         nohup "$0" __monitor__ >> "$LOG_FILE" 2>&1 &
-        echo "${GREEN}$(date '+%Y-%m-%d %H:%M:%S') - Starting PowerControl - Output is logged to $LOG_FILE${RESET}" | tee -a "$LOG_FILE"
+        echo "${CYAN}$(date '+%Y-%m-%d %H:%M:%S') - Starting PowerControl - Output is logged to $LOG_FILE${RESET}" | tee -a "$LOG_FILE"
     fi
     ;;
     stop)
