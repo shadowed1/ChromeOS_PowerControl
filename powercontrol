@@ -683,32 +683,30 @@ case "$1" in
         echo "${GREEN}$(date '+%Y-%m-%d %H:%M:%S') - Starting PowerControl - Output is logged to $LOG_FILE${RESET}" | tee -a "$LOG_FILE"
     fi
     ;;
-
-
     stop)
         stop_monitoring
-        ;;
+    ;;
     max_temp)
         set_temp_threshold "$2"
-        ;;
+    ;;
     min_temp)
         set_min_temp "$2"
-        ;;
+    ;;
     min_perf_pct|min)
         set_min_perf_pct "$2"
-        ;;
+    ;;
     max_perf_pct|max)
         max_perf_pct "$@"
-        ;;
+    ;;
     no_turbo)
         set_no_turbo "$2"
-        ;;
+    ;;
     uninstall)
         uninstall_script
-        ;;
+    ;;
     --h|-h|h|--help|-help|help)
         show_help
-        ;;
+    ;;
   monitor)
     LOG_FILE="/var/log/powercontrol.log"
     MONITOR_PID_FILE="$INSTALL_DIR/.powercontrol_monitor.pid"
@@ -845,7 +843,7 @@ case "$1" in
         echo "${RED}Version file not found.${RESET}"
         exit 1
     fi
-;;
+    ;;
 
     reinstall)
     echo "Downloading to:${CYAN} /home/chronos/ChromeOS_PowerControl_Installer.sh $RESET"
@@ -862,6 +860,6 @@ case "$1" in
     __monitor__)
         LOG_FILE="/var/log/powercontrol.log"
         start_monitoring_loop
-        ;;
+    ;;
     *) echo "Unknown command: $1"; show_help ;;
 esac
