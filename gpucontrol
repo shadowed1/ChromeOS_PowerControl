@@ -143,7 +143,7 @@ case "$1" in
         exit 0
         ;;
     restore)
-        echo "${YELLOW}Restoring GPU to original max frequency...${RESET}"
+        echo "${MAGENTA}Restoring GPU to original max frequency...${RESET}"
         case "$GPU_TYPE" in
             intel|adreno|mali)
                 [[ -w "$GPU_FREQ_PATH" ]] && echo "$ORIGINAL_GPU_MAX_FREQ" | sudo tee "$GPU_FREQ_PATH" > /dev/null
