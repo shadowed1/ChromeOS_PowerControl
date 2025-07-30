@@ -440,12 +440,10 @@ flock -n 200 || {
         fi
 
     if [[ $# -eq 4 ]]; then
-        # 3 values: dim_delay, backlight_off_delay, sleep_delay
         DIM_VAL=$2
         BACKLIGHT_VAL=$3
         DELAY_VAL=$4
 
-        # Validate all three values
         for v in "$DIM_VAL" "$BACKLIGHT_VAL" "$DELAY_VAL"; do
             if ! [[ "$v" =~ ^[0-9]+$ && "$v" -ge 1 && "$v" -le 9999 ]]; then
                 echo "${RED}Values must be integers between 1 and 9999 minutes.${RESET}"
@@ -477,7 +475,6 @@ flock -n 200 || {
         echo "${GREEN}${BOLD}${MODE^}${RESET}${GREEN} = Dim: $((DIM_VAL)) min -> Timeout: $((BACKLIGHT_VAL)) min -> Sleep: $((DELAY_VAL)) min${RESET}"
 
     elif [[ $# -eq 3 ]]; then
-        # 2 values: backlight_off_delay, sleep_delay
         BACKLIGHT_VAL=$2
         DELAY_VAL=$3
 
@@ -509,7 +506,6 @@ flock -n 200 || {
 
 
     elif [[ $# -eq 2 ]]; then
-        # 1 value: sleep_delay only (deprecated? or for backward compatibility)
         VAL=$2
 
         if ! [[ "$VAL" =~ ^[0-9]+$ && "$VAL" -ge 1 && "$VAL" -le 9999 ]]; then
@@ -527,7 +523,6 @@ flock -n 200 || {
         echo "${GREEN}${BOLD}${MODE^}${RESET}${GREEN} = Sleep: $((POWER_DELAY)) min${RESET}"
 
     else
-        # No parameters - show current config
         load_config
         if [[ "$MODE" == "battery" ]]; then
             echo "Battery = Dim: $((BATTERY_DIM_DELAY)) min -> Timeout: $((BATTERY_BACKLIGHT)) min -> Sleep: $((BATTERY_DELAY)) min | Audio Detection: $AUDIO_DETECTION_BATTERY"
