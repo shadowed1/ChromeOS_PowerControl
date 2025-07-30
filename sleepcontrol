@@ -472,7 +472,7 @@ flock -n 200 || {
         fi
 
         save_config
-        echo "${GREEN}${BOLD}${MODE^}${RESET}${GREEN} = Dim: $((DIM_VAL)) min -> Timeout: $((BACKLIGHT_VAL)) min -> Sleep: $((DELAY_VAL)) min${RESET}"
+        echo "${BLUE}${BOLD}${MODE^}${RESET}${BLUE} = Dim: $((DIM_VAL)) min -> Timeout: $((BACKLIGHT_VAL)) min -> Sleep: $((DELAY_VAL)) min${RESET}"
 
     elif [[ $# -eq 3 ]]; then
         BACKLIGHT_VAL=$2
