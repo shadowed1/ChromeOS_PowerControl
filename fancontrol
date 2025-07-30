@@ -225,7 +225,9 @@ start() {
     "$0" stop >/dev/null 2>&1
     FAN_COUNT=$(sudo ectool pwmgetnumfans | awk -F= '{print $2}' | sed -e 's/ //g')
         if [[ "$FAN_COUNT" =~ ^[0-9]+$ ]] && (( FAN_COUNT == 0 )); then
+            echo ""
             echo "${RED}$(date '+%Y-%m-%d %H:%M:%S') - No fans detected (FAN_COUNT=0). Stopping.${RESET}" | tee -a "$LOG_FILE"
+            echo ""
             exit 1
         fi
 
@@ -237,11 +239,15 @@ start() {
     fi
 
     if pgrep -f "[f]ancontrol __monitor__" >/dev/null; then
+        echo ""
         echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') - FanControl already running. Showing live output...${RESET}" | tee -a "$LOG_FILE"
+        echo ""
         tail -n 10 -f "$LOG_FILE"
     else
         nohup "$0" __monitor__ >> "$LOG_FILE" 2>&1 &
+        echo ""
         echo "${GREEN}$(date '+%Y-%m-%d %H:%M:%S') - Starting FanControl - Output is logged to $LOG_FILE${RESET}" | tee -a "$LOG_FILE"
+        echp ""
     fi
 }
 
