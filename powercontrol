@@ -633,14 +633,16 @@ max_perf_pct() {
 
     local applied=0
 
-   if sudo tee "$intel_path" <<< "$MAX_PERF_PCT" >/dev/null; then
-    echo ""
-    echo "${CYAN}Setting intel_pstate to $MAX_PERF_PCT%${RESET}" | tee -a "$LOG_FILE"
-    echo ""
-    applied=1
+   if [[ -f "$intel_path" ]]; then
+    if sudo tee "$intel_path" <<< "$MAX_PERF_PCT" >/dev/null; then
+        echo ""
+        echo "${CYAN}Setting intel_pstate to $MAX_PERF_PCT%${RESET}" | tee -a "$LOG_FILE"
+        echo ""
+        applied=1
     else
         echo "${RED}Failed to set intel_pstate${RESET}" | tee -a "$LOG_FILE"
     fi
+fi
 
     for path in "${policy_paths[@]}"; do
         if sudo tee "$path" <<< "$MAX_PERF_PCT" >/dev/null; then
