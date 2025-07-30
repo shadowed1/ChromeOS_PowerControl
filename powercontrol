@@ -707,7 +707,7 @@ case "$1" in
     --h|-h|h|--help|-help|help)
         show_help
     ;;
-  monitor)
+    monitor)
     LOG_FILE="/var/log/powercontrol.log"
     MONITOR_PID_FILE="$INSTALL_DIR/.powercontrol_monitor.pid"
 
@@ -727,7 +727,7 @@ case "$1" in
     echo $! > "$MONITOR_PID_FILE"
     echo "Monitor started (PID $!)"
     ;;
-     startup)
+    startup)
     CONF_SOURCE="$INSTALL_DIR/powercontrol.conf"
     CONF_TARGET="/etc/init/powercontrol.conf"
     CONF_SOURCE_NO_TURBO="$INSTALL_DIR/no_turbo.conf"
@@ -763,7 +763,7 @@ case "$1" in
         sudo rm -f /etc/init/powercontrol.conf
     fi
     ;;
-      ramp_up)
+    ramp_up)
     if [[ "$2" =~ ^[0-9]+$ ]]; then
         if (( $2 < 1 || $2 > 100 )); then
             echo "Error: ramp_up must be between 1 and 100"
@@ -776,7 +776,7 @@ case "$1" in
         exit 1
     fi
     ;;
-  ramp_down)
+    ramp_down)
     if [[ "$2" =~ ^[0-9]+$ ]]; then
         if (( $2 < 1 || $2 > 100 )); then
             echo "Error: ramp_down must be between 1 and 100"
@@ -819,7 +819,7 @@ case "$1" in
         exit 1
     fi
     ;;
-        version)
+    version)
     if [[ -f "$VERSION_FILE" ]]; then
         CURRENT_VER=$(cat "$INSTALL_DIR/version")
         CURRENT_VER_NO=$(echo "$CURRENT_VER" | sed -e 's/VERSION=//' -e 's/"//g' -e 's/\.//g' -e 's/^0*//')
@@ -844,7 +844,6 @@ case "$1" in
         exit 1
     fi
     ;;
-
     reinstall)
     echo "Downloading to:${CYAN} /home/chronos/ChromeOS_PowerControl_Installer.sh $RESET"
     bash <(curl -s "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/beta/ChromeOS_PowerControl_Downloader.sh?$(date +%s)")
