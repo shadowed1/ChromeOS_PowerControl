@@ -125,12 +125,13 @@ __How It Works:__
 *SleepControl:*
 
 - By reading powerd.LATEST log, SleepControl monitors when the powerd daemon reports 'User activity stopped'.
+- The file /usr/share/power_manager/send_feedback_if_undimmed (when set to 1) is what controls this behavior. 
 - Parsing strings like 'User activity started' or 'Audio activity started' tells SleepControl the user is active. to pause until  is reported.
-- If 'User activity stopped' and 'Audio activity stopped' is parsed, SleepControl assumes the user is away and custom sleep timers can begin.
+- If 'User activity stopped' and 'Audio activity stopped' is parsed, SleepControl assumes the user is away and sleep timers begin.
 - Can turn on or off audio detection to customize sleep during multimedia playback.
 - ChromeOS will report 'User activity stopped' after around 20 seconds of inactivity, so the timers won't be exact.
-- When idle, SleepControl uses dbus to send an empty input every 120s until interrupted/sleeping with the configurable timer.  
-- By using epoch timestamps, SleepControl is able to check when its simulated inputs are to be ignored.
+- When idle, SleepControl uses dbus to send an empty input every 60s until interrupted/sleeping with the configurable timer.  
+- By using epoch timestamps, SleepControl is able to verify when its simulated inputs are to be ignored.
 <br>
 
 __Bonus:__
@@ -176,6 +177,8 @@ Added message to make sure sudo is run for commands (excluding status and help).
 Thanks again to DennyL for the suggestions!`
 - 0.27: `Fixed bug with SleepControl not starting on boot.` <br> <br>
 - 0.28: `Fixed bug with GPUControl not applying user-preferred clockspeed on boot and refactored sections. Fixed version script for supporting base 10 values.` <br><br>
+- 0.29: `Improved ARM support for BatteryControl, PowerControl, and GPUControl. Removed requirement for entering GPU type and improved kHz conversion in GPUControl.
+Shortened arguments for PowerControl and FanControl. Fixed minor errors in SleepControl before its rewrite.` <br><br>
 __Acknowledgements:__
 
 - Thanks to WesBosch for helping me learn to make an installer:
