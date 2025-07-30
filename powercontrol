@@ -635,28 +635,34 @@ max_perf_pct() {
 
     local applied=0
 
-   if [[ -f "$intel_path" ]]; then
-    if sudo tee "$intel_path" <<< "$MAX_PERF_PCT" >/dev/null; then
-        echo ""
-        echo "${CYAN}Setting intel_pstate to $MAX_PERF_PCT%${RESET}" | tee -a "$LOG_FILE"
-        echo ""
-        applied=1
-    else
-        echo "${RED}Failed to set intel_pstate${RESET}" | tee -a "$LOG_FILE"
+   if [[ -z "$2" ]]; then
+    if [[ -f "$intel_path" ]]; then
+        val=$(cat "$intel_path")
+        echo "  intel_pstate: $val%"
     fi
+
+    if [[ ${#policy_paths[@]} -gt 0 ]]; then
+        echo "  Per-policy max_perf_pct:"
+        for path in "${policy_paths[@]}"; do
+            val=$(cat "$path")
+            policy=$(basename "$(dirname "$path")")
+            echo "  $policy: $val%"
+        done
+    elif [[ "$IS_ARM" -eq 1 ]]; then
+        echo "  Per-policy scaling_max_freq:"
+        for path in /sys/devices/system/cpu/cpufreq/policy*/scaling_max_freq; do
+            [[ -f "$path" ]] || continue
+            freq_khz=$(cat "$path")
+            freq_mhz=$((freq_khz / 1000))
+            policy=$(basename "$(dirname "$path")")
+            echo "  $policy: ${freq_mhz} MHz"
+        done
+    else
+        echo "${RED}No max_perf_pct or scaling_max_freq paths found.${RESET}"
+    fi
+    return
 fi
 
-    for path in "${policy_paths[@]}"; do
-        if sudo tee "$path" <<< "$MAX_PERF_PCT" >/dev/null; then
-            policy=$(basename "$(dirname "$path")")
-            echo ""
-            echo "  ${CYAN}Setting $policy to $MAX_PERF_PCT%${RESET}" | tee -a "$LOG_FILE"
-            echo ""
-            applied=1
-        else
-            echo "${RED}Failed to set $path${RESET}" | tee -a "$LOG_FILE"
-        fi
-    done
 
 }
 
