@@ -12,103 +12,6 @@ SHOW_BATTERYCONTROL_NOTICE=0
 SHOW_SLEEPCONTROL_NOTICE=0
 SHOW_GPUCONTROL_NOTICE=0
 
-
-detect_cpu_type() {
-    CPU_VENDOR=$(grep -m1 'vendor_id' /proc/cpuinfo | awk '{print $3}' || echo "unknown")
-    IS_INTEL=0
-    IS_AMD=0
-    IS_ARM=0
-    case "$CPU_VENDOR" in
-        GenuineIntel)
-            IS_INTEL=1
-            PERF_PATH="/sys/devices/system/cpu/intel_pstate/max_perf_pct"
-            TURBO_PATH="/sys/devices/system/cpu/intel_pstate/no_turbo"
-            ;;
-        AuthenticAMD)
-            IS_AMD=1
-            if [ -f "/sys/devices/system/cpu/amd_pstate/max_perf_pct" ]; then
-                PERF_PATH="/sys/devices/system/cpu/amd_pstate/max_perf_pct"
-            else
-                PERF_PATH="/sys/devices/system/cpu/cpufreq/policy0/scaling_max_freq"
-            fi
-            TURBO_PATH=""
-            ;;
-        *)
-            IS_ARM=1
-            PERF_PATH="/sys/devices/system/cpu/cpufreq/policy0/scaling_max_freq"
-            TURBO_PATH=""
-            ;;
-    esac
-}
-detect_gpu_freq() {
-    GPU_FREQ_PATH=""
-    GPU_MAX_FREQ=""
-    # Xe
-    if [ -f "/sys/class/drm/card0/gt_max_freq_mhz" ]; then
-        GPU_FREQ_PATH="/sys/class/drm/card0/gt_max_freq_mhz"
-        GPU_MAX_FREQ=$(cat "$GPU_FREQ_PATH")
-        GPU_TYPE="intel"
-        return
-    fi
-  # Radeon
-if [ -f "/sys/class/drm/card0/device/pp_od_clk_voltage" ]; then
-    GPU_TYPE="amd"
-    PP_OD_FILE="/sys/class/drm/card0/device/pp_od_clk_voltage"
-
-    mapfile -t SCLK_LINES < <(grep -i '^sclk' "$PP_OD_FILE")
-
-    if [[ ${#SCLK_LINES[@]} -gt 0 ]]; then
-        MAX_MHZ=$(printf '%s\n' "${SCLK_LINES[@]}" | sed -n 's/.*\([0-9]\{1,\}\)[Mm][Hh][Zz].*/\1/p' | sort -nr | head -n1)
-        if [[ -n "$MAX_MHZ" ]]; then
-            GPU_MAX_FREQ="$MAX_MHZ"
-            AMD_SELECTED_SCLK_INDEX=$(printf '%s\n' "${SCLK_LINES[@]}" | grep -in "$MAX_MHZ" | head -n1 | cut -d':' -f1)
-            AMD_SELECTED_SCLK_INDEX=$((AMD_SELECTED_SCLK_INDEX - 1))
-        else
-            GPU_MAX_FREQ=0
-            AMD_SELECTED_SCLK_INDEX=0
-        fi
-    else
-        GPU_MAX_FREQ=0
-        AMD_SELECTED_SCLK_INDEX=0
-    fi
-    GPU_FREQ_PATH="$PP_OD_FILE"
-    return
-fi
-
-    # Mali
-    if [ -d "/sys/class/devfreq/mali0" ]; then
-        if [ -f "/sys/class/devfreq/mali0/max_freq" ]; then
-            GPU_FREQ_PATH="/sys/class/devfreq/mali0/max_freq"
-            GPU_MAX_FREQ=$(cat "$GPU_FREQ_PATH")
-            GPU_TYPE="mali"
-            return
-        elif [ -f "/sys/class/devfreq/mali0/available_frequencies" ]; then
-            GPU_FREQ_PATH="/sys/class/devfreq/mali0/available_frequencies"
-            MAX_FREQ=$(tr ' ' '\n' < "$GPU_FREQ_PATH" | sort -nr | head -n1)
-            GPU_MAX_FREQ=$MAX_FREQ
-            GPU_TYPE="mali"
-            return
-        fi
-    fi
-    # Adreno
-    if [ -d "/sys/class/kgsl/kgsl-3d0" ]; then
-        if [ -f "/sys/class/kgsl/kgsl-3d0/max_gpuclk" ]; then
-            GPU_FREQ_PATH="/sys/class/kgsl/kgsl-3d0/max_gpuclk"
-            GPU_MAX_FREQ=$(cat "$GPU_FREQ_PATH")
-            GPU_TYPE="adreno"
-            return
-        elif [ -f "/sys/class/kgsl/kgsl-3d0/gpuclk" ]; then
-            GPU_FREQ_PATH="/sys/class/kgsl/kgsl-3d0/gpuclk"
-            GPU_MAX_FREQ=$(cat "$GPU_FREQ_PATH")
-            GPU_TYPE="adreno"
-            return
-        fi
-    fi
-    GPU_FREQ_PATH=""
-    GPU_MAX_FREQ=""
-    GPU_TYPE="unknown"
-}
-
 detect_backlight_path() {
     BACKLIGHT_BASE="/sys/class/backlight"
     BRIGHTNESS_PATH=""
@@ -153,6 +56,109 @@ detect_backlight_path() {
     fi
 }
 
+ detect_cpu_type() {
+    CPU_VENDOR=$(grep -m1 'vendor_id' /proc/cpuinfo | awk '{print $3}' || echo "unknown")
+    IS_INTEL=0
+    IS_AMD=0
+    IS_ARM=0
+    PERF_PATH=""
+    PERF_PATHS=()
+    TURBO_PATH=""
+
+    case "$CPU_VENDOR" in
+        GenuineIntel)
+            IS_INTEL=1
+            if [ -f "/sys/devices/system/cpu/intel_pstate/max_perf_pct" ]; then
+                PERF_PATH="/sys/devices/system/cpu/intel_pstate/max_perf_pct"
+                TURBO_PATH="/sys/devices/system/cpu/intel_pstate/no_turbo"
+            fi
+            ;;
+        AuthenticAMD)
+            IS_AMD=1
+            if [ -f "/sys/devices/system/cpu/amd_pstate/max_perf_pct" ]; then
+                PERF_PATH="/sys/devices/system/cpu/amd_pstate/max_perf_pct"
+            else
+                mapfile -t PERF_PATHS < <(find /sys/devices/system/cpu/cpufreq/ -type f -name 'scaling_max_freq' 2>/dev/null)
+            fi
+            ;;
+        *)
+            IS_ARM=1
+            mapfile -t PERF_PATHS < <(find /sys/devices/system/cpu/cpufreq/ -type f -name 'scaling_max_freq' 2>/dev/null)
+            ;;
+    esac
+}
+
+
+detect_gpu_freq() {
+    GPU_FREQ_PATH=""
+    GPU_MAX_FREQ=""
+    # Xe
+    if [ -f "/sys/class/drm/card0/gt_max_freq_mhz" ]; then
+        GPU_FREQ_PATH="/sys/class/drm/card0/gt_max_freq_mhz"
+        GPU_MAX_FREQ=$(cat "$GPU_FREQ_PATH")
+        GPU_TYPE="intel"
+        return
+    fi
+  # Radeon
+if [ -f "/sys/class/drm/card0/device/pp_od_clk_voltage" ]; then
+    GPU_TYPE="amd"
+    PP_OD_FILE="/sys/class/drm/card0/device/pp_od_clk_voltage"
+
+    mapfile -t SCLK_LINES < <(grep -i '^sclk' "$PP_OD_FILE")
+
+    if [[ ${#SCLK_LINES[@]} -gt 0 ]]; then
+        MAX_MHZ=$(printf '%s\n' "${SCLK_LINES[@]}" | sed -n 's/.*\([0-9]\{1,\}\)[Mm][Hh][Zz].*/\1/p' | sort -nr | head -n1)
+        if [[ -n "$MAX_MHZ" ]]; then
+            GPU_MAX_FREQ="$MAX_MHZ"
+            AMD_SELECTED_SCLK_INDEX=$(printf '%s\n' "${SCLK_LINES[@]}" | grep -in "$MAX_MHZ" | head -n1 | cut -d':' -f1)
+            AMD_SELECTED_SCLK_INDEX=$((AMD_SELECTED_SCLK_INDEX - 1))
+        else
+            GPU_MAX_FREQ=0
+            AMD_SELECTED_SCLK_INDEX=0
+        fi
+    else
+        GPU_MAX_FREQ=0
+        AMD_SELECTED_SCLK_INDEX=0
+    fi
+    GPU_FREQ_PATH="$PP_OD_FILE"
+    return
+fi
+
+    # Mali
+for d in /sys/class/devfreq/*; do
+    if grep -qi 'mali' <<< "$d" || grep -qi 'gpu' <<< "$d"; then
+        if [ -f "$d/max_freq" ]; then
+            GPU_FREQ_PATH="$d/max_freq"
+            GPU_MAX_FREQ=$(cat "$GPU_FREQ_PATH")
+            GPU_TYPE="mali"
+            return
+        elif [ -f "$d/available_frequencies" ]; then
+            GPU_FREQ_PATH="$d/available_frequencies"
+            GPU_MAX_FREQ=$(tr ' ' '\n' < "$GPU_FREQ_PATH" | sort -nr | head -n1)
+            GPU_TYPE="mali"
+            return
+        fi
+    fi
+done
+
+    # Adreno
+    if [ -d "/sys/class/kgsl/kgsl-3d0" ]; then
+        if [ -f "/sys/class/kgsl/kgsl-3d0/max_gpuclk" ]; then
+            GPU_FREQ_PATH="/sys/class/kgsl/kgsl-3d0/max_gpuclk"
+            GPU_MAX_FREQ=$(cat "$GPU_FREQ_PATH")
+            GPU_TYPE="adreno"
+            return
+        elif [ -f "/sys/class/kgsl/kgsl-3d0/gpuclk" ]; then
+            GPU_FREQ_PATH="/sys/class/kgsl/kgsl-3d0/gpuclk"
+            GPU_MAX_FREQ=$(cat "$GPU_FREQ_PATH")
+            GPU_TYPE="adreno"
+            return
+        fi
+    fi
+    GPU_FREQ_PATH=""
+    GPU_MAX_FREQ=""
+    GPU_TYPE="unknown"
+}
 
 INSTALL_DIR="/usr/local/bin/ChromeOS_PowerControl"
 echo "${YELLOW}"
@@ -214,6 +220,7 @@ for file in "${files[@]}"; do
     echo ""
 done
 
+CONFIG_FILE="$INSTALL_DIR/config.sh"
 FAN_COUNT=$(sudo ectool pwmgetnumfans | awk -F= '{print $2}' | sed -e 's/ //g')
 
 if [ "$FAN_COUNT" -eq 0 ]; then
@@ -239,6 +246,7 @@ echo ""
 
 echo "${CYAN}Detected CPU Vendor: $CPU_VENDOR"
 echo "PERF_PATH: $PERF_PATH"
+echo "PERF_PATHS: ${PERF_PATHS[*]}"
 echo "TURBO_PATH: $TURBO_PATH"
 echo "$RESET"
 sudo chmod +x "$INSTALL_DIR/powercontrol" "$INSTALL_DIR/batterycontrol" "$INSTALL_DIR/fancontrol" "$INSTALL_DIR/gpucontrol" "$INSTALL_DIR/sleepcontrol" "$INSTALL_DIR/Uninstall_ChromeOS_PowerControl.sh" "$INSTALL_DIR/config.sh"
@@ -254,7 +262,6 @@ CONFIG_FILE="$INSTALL_DIR/config.sh"
 sudo touch "$LOG_DIR/powercontrol.log" "$LOG_DIR/batterycontrol.log" "$LOG_DIR/fancontrol.log" "$LOG_DIR/gpucontrol.log" "$LOG_DIR/sleepcontrol.log"
 sudo chmod 644 "$LOG_DIR/powercontrol.log" "$LOG_DIR/batterycontrol.log" "$LOG_DIR/fancontrol.log" "$LOG_DIR/gpucontrol.log" "$LOG_DIR/sleepcontrol.log"
 echo "${YELLOW}${BOLD}Log files for PowerControl, BatteryControl, FanControl, GPUControl, and SleepControl are stored in /var/log/$RESET"
-echo ""
 
 USER_HOME="/home/chronos"
 echo ""
@@ -288,6 +295,7 @@ declare -a ordered_keys=(
   "AUDIO_DETECTION_BATTERY"
   "AUDIO_DETECTION_POWER"
   "PERF_PATH"
+  "PERF_PATHS"
   "TURBO_PATH"
   "ORIGINAL_GPU_MAX_FREQ"
   "PP_OD_FILE"
@@ -307,14 +315,14 @@ declare -A categories=(
   ["FanControl"]="MIN_FAN MAX_FAN FAN_MIN_TEMP FAN_MAX_TEMP STEP_UP STEP_DOWN FAN_POLL"
   ["GPUControl"]="GPU_MAX_FREQ"
   ["SleepControl"]="BATTERY_DELAY BATTERY_BACKLIGHT BATTERY_DIM_DELAY POWER_DELAY POWER_BACKLIGHT POWER_DIM_DELAY AUDIO_DETECTION_BATTERY AUDIO_DETECTION_POWER"
-  ["Platform Configuration"]="IS_AMD IS_INTEL IS_ARM PERF_PATH TURBO_PATH GPU_TYPE GPU_FREQ_PATH ORIGINAL_GPU_MAX_FREQ PP_OD_FILE AMD_SELECTED_SCLK_INDEX BACKLIGHT_NAME BRIGHTNESS_PATH MAX_BRIGHTNESS_PATH"
+  ["Platform Configuration"]="IS_AMD IS_INTEL IS_ARM PERF_PATH PERF_PATHS TURBO_PATH GPU_TYPE GPU_FREQ_PATH ORIGINAL_GPU_MAX_FREQ PP_OD_FILE AMD_SELECTED_SCLK_INDEX BACKLIGHT_NAME BRIGHTNESS_PATH MAX_BRIGHTNESS_PATH"
 )
 
 if [[ -z "${ORIGINAL_GPU_MAX_FREQ}" ]]; then ORIGINAL_GPU_MAX_FREQ=$GPU_MAX_FREQ; fi
 if [[ -z "${MAX_TEMP}" ]]; then MAX_TEMP=87; fi
 if [[ -z "${MIN_TEMP}" ]]; then MIN_TEMP=60; fi
 if [[ -z "${MAX_PERF_PCT}" ]]; then MAX_PERF_PCT=100; fi
-if [[ -z "${MIN_PERF_PCT}" ]]; then MIN_PERF_PCT=40; fi
+if [[ -z "${MIN_PERF_PCT}" ]]; then MIN_PERF_PCT=10; fi
 if [[ -z "${HOTZONE}" ]]; then HOTZONE=80; fi
 if [[ -z "${CPU_POLL}" ]]; then CPU_POLL=1; fi
 if [[ -z "${RAMP_UP}" ]]; then RAMP_UP=15; fi
@@ -333,7 +341,7 @@ if [[ -z "${BATTERY_DIM_DELAY}" ]]; then BATTERY_DIM_DELAY=3; fi
 if [[ -z "${POWER_DELAY}" ]]; then POWER_DELAY=30; fi
 if [[ -z "${POWER_BACKLIGHT}" ]]; then POWER_BACKLIGHT=15; fi
 if [[ -z "${POWER_DIM_DELAY}" ]]; then POWER_DIM_DELAY=5; fi
-if [[ -z "${AUDIO_DETECTION_BATTERY}" ]]; then AUDIO_DETECTION_BATTERY=0; fi
+if [[ -z "${AUDIO_DETECTION_BATTERY}" ]]; then AUDIO_DETECTION_BATTERY=1; fi
 if [[ -z "${AUDIO_DETECTION_POWER}" ]]; then AUDIO_DETECTION_POWER=1; fi
 
 
@@ -385,17 +393,26 @@ fi
 for category in "${ordered_categories[@]}"; do
   echo "# --- ${category} ---" >> "$CONFIG_FILE"
   for key in ${categories[$category]}; do
-        if [ -n "${!key+x}" ]; then
-          val="${!key}"
-        else
-          val="${defaults[$key]}"
-        fi
-    echo "$key=$val" >> "$CONFIG_FILE"
+    if [ -n "${!key+x}" ]; then
+      if declare -p "$key" 2>/dev/null | grep -q 'declare \-a'; then
+        eval "arr=(\"\${${key}[@]}\")"
+        printf '%s=(' "$key" >> "$CONFIG_FILE"
+        for elem in "${arr[@]}"; do
+          printf '"%s" ' "$elem" >> "$CONFIG_FILE"
+        done
+        echo ")" >> "$CONFIG_FILE"
+      else
+        val="${!key}"
+        echo "$key=$val" >> "$CONFIG_FILE"
+      fi
+    else
+      val="${defaults[$key]}"
+      echo "$key=$val" >> "$CONFIG_FILE"
+    fi
   done
   echo >> "$CONFIG_FILE"
 done
 echo "${GREEN}${BOLD}Installing to: $INSTALL_DIR $RESET"
-echo ""
 echo ""
 
 
@@ -459,6 +476,7 @@ if [[ -z "$link_cmd" || "$link_cmd" =~ ^[Yy]$ ]]; then
         enable_component_on_boot "FanControl" "$INSTALL_DIR/fancontrol.conf"
     else
         echo "${GREEN}Skipping FanControl boot setup. No fan to control.${RESET}"
+        echo ""
     fi
 
     enable_component_on_boot "GPUControl" "$INSTALL_DIR/gpucontrol.conf"
@@ -544,7 +562,7 @@ start_component_now() {
                     echo ""
                 fi
             else
-                echo "This is not an Intel CPU, skipping Turbo Boost options."
+                echo "${CYAN}This is not an Intel CPU, skipping Turbo Boost options.${RESET}"
                 echo ""
             fi
         fi
@@ -557,7 +575,7 @@ start_component_now() {
 
 
 
-echo "${BLUE}Stopping any running components of PowerControl${RESET}"
+echo "${BLUE}Stopping any existing components of ChromeOS_PowerControl (in case of reinstall)${RESET}"
 sudo bash "$INSTALL_DIR/gpucontrol" restore >/dev/null 2>&1
 sudo ectool backlight 1 >/dev/null 2>&1
 for component in batterycontrol powercontrol fancontrol sleepcontrol; do
@@ -577,6 +595,7 @@ if [ "$SKIP_FANCONTROL" = false ]; then
     start_component_now "FanControl" "$INSTALL_DIR/fancontrol"
 else
     echo "${YELLOW}FanControl start skipped - no fans detected.${RESET}"
+    echo ""
 fi
 start_component_now "SleepControl" "$INSTALL_DIR/sleepcontrol"
 
@@ -608,11 +627,13 @@ echo "║                                                  PowerControl:        
 echo "╠════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣"
 echo "║                                                                                                                    ║"
 echo "║  powercontrol                       # Show status                                                                  ║"
+echo "║  powercontrol all                   # Show status of all ChromeOS_PowerControl components                          ║"
+echo "║  powercontrol help                  # Help menu                                                                    ║"
 echo "║  sudo powercontrol start            # Throttle CPU based on temperature curve                                      ║"
 echo "║  sudo powercontrol stop             # Restore default CPU settings                                                 ║"
 echo "║  sudo powercontrol no_turbo 1       # 0 = Enable, 1 = Disable Turbo Boost                                          ║"
-echo "║  sudo powercontrol max_perf_pct 75  # Set max performance percentage                                               ║"
-echo "║  sudo powercontrol min_perf_pct 50  # Set minimum performance at max temp                                          ║"
+echo "║  sudo powercontrol max 75           # Set max performance percentage                                               ║"
+echo "║  sudo powercontrol min 20           # Set minimum performance at max temp                                          ║"
 echo "║  sudo powercontrol max_temp 86      # Max temperature threshold - Limit is 90°C                                    ║"
 echo "║  sudo powercontrol min_temp 60      # Min temperature threshold                                                    ║"
 echo "║  sudo powercontrol hotzone 78       # Temperature threshold for aggressive thermal management                      ║"
@@ -621,7 +642,6 @@ echo "║  sudo powercontrol ramp_up 15       # % in steps CPU will increase in 
 echo "║  sudo powercontrol ramp_down 20     # % in steps CPU will decrease in clockspeed per second                        ║"
 echo "║  sudo powercontrol monitor          # Toggle on/off live monitoring in terminal                                    ║"
 echo "║  sudo powercontrol startup          # Copy or Remove no_turbo.conf & powercontrol.conf at: /etc/init/              ║"
-echo "║  sudo powercontrol help             # Help menu                                                                    ║"
 echo "║                                                                                                                    ║"
 echo "╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝"
 echo "${RESET}${GREEN}╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
@@ -629,11 +649,11 @@ echo "║                                                 BatteryControl:       
 echo "╠════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣"
 echo "║                                                                                                                    ║"
 echo "║  batterycontrol               # Check BatteryControl status                                                        ║"
+echo "║  batterycontrol help          # Help menu                                                                          ║"
 echo "║  sudo batterycontrol start    # Start BatteryControl                                                               ║"
 echo "║  sudo batterycontrol stop     # Stop BatteryControl                                                                ║"
 echo "║  sudo batterycontrol 77       # Charge limit set to 77% - minimum of 14% allowed                                   ║"
 echo "║  sudo batterycontrol startup  # Copy or Remove batterycontrol.conf at: /etc/init/                                  ║"
-echo "║  sudo batterycontrol help     # Help menu                                                                          ║"
 echo "║                                                                                                                    ║"
 echo "╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝"
 echo "${RESET}${YELLOW}╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
@@ -641,18 +661,18 @@ echo "║                                                  FanControl:          
 echo "╠════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣"
 echo "║                                                                                                                    ║"
 echo "║  fancontrol                       # Show FanControl status                                                         ║"
+echo "║  fancontrol help                  # Help menu                                                                      ║"
 echo "║  sudo fancontrol start            # Start FanControl                                                               ║"
 echo "║  sudo fancontrol stop             # Stop FanControl                                                                ║"
-echo "║  sudo fancontrol fan_min_temp 48  # Min temp threshold                                                             ║"
-echo "║  sudo fancontrol fan_max_temp 81  # Max temp threshold - Limit is 90°C                                             ║"
-echo "║  sudo fancontrol min_fan 0        # Min fan speed %                                                                ║"
-echo "║  sudo fancontrol max_fan 100      # Max fan speed %                                                                ║"
+echo "║  sudo fancontrol min_temp 48      # Min temp threshold                                                             ║"
+echo "║  sudo fancontrol max_temp 81      # Max temp threshold - Limit is 90°C                                             ║"
+echo "║  sudo fancontrol min     0        # Min fan speed %                                                                ║"
+echo "║  sudo fancontrol max     100      # Max fan speed %                                                                ║"
 echo "║  sudo fancontrol step_up 20       # Fan step-up %                                                                  ║"
 echo "║  sudo fancontrol step_down 1      # Fan step-down %                                                                ║"
 echo "║  sudo fancontrol poll 2           # FanControl polling rate in seconds (1 to 10s)                                  ║"
 echo "║  sudo fancontrol monitor          # Toggle on/off live monitoring in terminal                                      ║"
 echo "║  sudo fancontrol startup          # Copy or Remove fancontrol.conf at: /etc/init/                                  ║"
-echo "║  sudo fancontrol help             # Help menu                                                                      ║"
 echo "║                                                                                                                    ║"
 echo "╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝"
 echo "${RESET}${MAGENTA}╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
@@ -660,13 +680,13 @@ echo "║                                                   GPUControl:         
 echo "╠════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣"
 echo "║                                                                                                                    ║"
 echo "║  gpucontrol                     # Show current GPU info and frequency                                              ║"
+echo "║  gpucontrol help                # Help menu                                                                        ║"
 echo "║  sudo gpucontrol restore        # Restore GPU max frequency to original value                                      ║"
 echo "║  sudo gpucontrol intel 700      # Set Intel GPU max frequency to 700 MHz                                           ║"
 echo "║  sudo gpucontrol amd 800        # Set AMD GPU max frequency to 800 MHz - rounds down to pp_od_clk_voltage index    ║"
 echo "║  sudo gpucontrol adreno 500000  # Set Adreno GPU max frequency to 500000 kHz (or 500 MHz)                          ║"
 echo "║  sudo gpucontrol mali 600000    # Set Mali GPU max frequency to 600000 kHz (or 600 MHz)                            ║"
 echo "║  sudo gpucontrol startup        # Copy or Remove gpucontrol.conf at: /etc/init/                                    ║"
-echo "║  sudo gpucontrol help           # Help menu                                                                        ║"
 echo "║                                                                                                                    ║"
 echo "╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝"
 echo "${RESET}${BLUE}╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
@@ -674,14 +694,12 @@ echo "║                                                  SleepControl         
 echo "╠════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣"
 echo "║                                                                                                                    ║"
 echo "║  sleepcontrol                       # Show SleepControl status                                                     ║"
+echo "║  sleepcontrol help                  # Help menu                                                                    ║"
 echo "║  sudo sleepcontrol start            # Start SleepControl                                                           ║"
 echo "║  sudo sleepcontrol stop             # Stop SleepControl                                                            ║"
 echo "║  sudo sleepcontrol battery 3 7 12   # When idle, display dims in 3m -> timeout in 7m -> sleeps in 12m on battery   ║"
 echo "║  sudo sleepcontrol power 5 15 30    # When idle, display dims in 5m -> timeout -> 15m -> sleeps in 30m plugged-in  ║"
-echo "║  sudo sleepcontrol battery audio 0  # Disable audio detection on battery; sleep can occur during media playback    ║"
-echo "║  sudo sleepcontrol power audio 1    # Enable audio detection on power; delaying sleep until audio is stopped       ║"
 echo "║  sudo sleepcontrol startup          # Copy or Remove sleepcontrol.conf at: /etc/init/                              ║"
-echo "║  sudo sleepcontrol help             # Help menu                                                                    ║"
 echo "║                                                                                                                    ║"
 echo "╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝"
 echo "${RESET}${CYAN}${BOLD}╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
