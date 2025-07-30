@@ -320,7 +320,9 @@ set_min_perf_pct() {
     load_config
     MIN_PERF_PCT=$1
     save_config
-    echo "Minimum performance percentage set to $MIN_PERF_PCT%" | tee -a "$LOG_FILE"
+    echo ""
+    echo "${CYAN}Minimum performance percentage set to $MIN_PERF_PCT%${RESET}" | tee -a "$LOG_FILE"
+    echo ""
 }
 
 set_no_turbo() {
