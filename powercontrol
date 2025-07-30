@@ -692,10 +692,10 @@ case "$1" in
     min_temp)
         set_min_temp "$2"
         ;;
-    min_perf_pct)
+    min_perf_pct|min)
         set_min_perf_pct "$2"
         ;;
-    max_perf_pct)
+    max_perf_pct|max)
         max_perf_pct "$@"
         ;;
     no_turbo)
