@@ -815,7 +815,7 @@ case "$1" in
         sed -i "s/^CPU_POLL=.*/CPU_POLL=$CPU_POLL/" "$CONFIG_FILE"
         echo "${CYAN}PowerControl polling rate set to $CPU_POLL seconds${RESET}"
     else
-        echo "Error: cpu_poll must be a number between 0.1 and 5 (e.g., 0.5, 1, 2.5)"
+        echo "Error: cpu_poll must be a number between 0.1 and 5 (0.5, 1.2, 2.0, etc)"
         exit 1
     fi
     ;;
