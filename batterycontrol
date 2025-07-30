@@ -9,8 +9,39 @@ BOLD=$(tput bold)
 RESET=$(tput sgr0)
 INSTALL_DIR="@INSTALL_DIR@"
 CONFIG_FILE="$INSTALL_DIR/config.sh"
-BATTERY_PATH="/sys/class/power_supply/BAT0/capacity"
-STATUS_PATH="/sys/class/power_supply/BAT0/status"
+BATTERY_STATUS_PATH="/var/log/power_manager/powerd.LATEST"
+
+get_battery_info() {
+    local line
+    line=$(grep -E "On (battery|AC)|line_power (connected|online)" "$BATTERY_STATUS_PATH" | tail -n1)
+
+    if [[ "$line" =~ On\ battery\ at\ ([0-9]+)% ]]; then
+        CHARGE="${BASH_REMATCH[1]}"
+        STATUS="Discharging"
+
+    elif [[ "$line" =~ On\ AC ]]; then
+        if [[ "$line" =~ battery\ at\ ([0-9]+)% ]]; then
+            CHARGE="${BASH_REMATCH[1]}"
+        else
+            CHARGE=""
+        fi
+        STATUS="Charging"
+
+    elif [[ "$line" == *"line_power connected"* || "$line" == *"line_power online"* ]]; then
+        if [[ "$line" =~ at\ ([0-9]+)% ]]; then
+            CHARGE="${BASH_REMATCH[1]}"
+        else
+            CHARGE=""
+        fi
+        STATUS="Charging"
+
+    else
+        CHARGE=""
+        STATUS="Unknown"
+    fi
+}
+
+
 RUN_FLAG="$INSTALL_DIR/.batterycontrol_enabled"
 PID_FILE="$INSTALL_DIR/.batterycontrol_pid"
 LOG_FILE="/var/log/batterycontrol.log"
@@ -64,7 +95,9 @@ set_threshold() {
 
     CHARGE_MAX=$1
     save_config
-    echo "$(date '+%Y-%m-%d %H:%M:%S') - Charge Limit: $CHARGE_MAX" | tee -a "$LOG_FILE"
+    echo "${GREEN}"
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - Charge Limit: ${CHARGE_MAX}%" | tee -a "$LOG_FILE"
+    echo "${RESET}"
 }
 
     load_config
@@ -76,11 +109,11 @@ echo "║                                                                       
 echo "║                       BatteryControl commands with examples:                       ║"
 echo "║                                                                                    ║"
 echo "║  batterycontrol               # Check BatteryControl status                        ║"
+echo "║  batterycontrol help          # Help menu                                          ║"
 echo "║  sudo batterycontrol start    # Start BatteryControl                               ║"
 echo "║  sudo batterycontrol stop     # Stop BatteryControl                                ║"
 echo "║  sudo batterycontrol 77       # Charge limit set to 77% - Minimum allowed is 14%   ║"
 echo "║  sudo batterycontrol startup  # Copy or Remove batterycontrol.conf at: /etc/init/  ║"
-echo "║  sudo batterycontrol help     # Help menu                                          ║"
 echo "║                                                                                    ║"
 echo "╚════════════════════════════════════════════════════════════════════════════════════╝"
 echo "${RESET}"
@@ -171,14 +204,12 @@ start_monitoring_loop() {
             last_reload_time=$now
         fi
 
-        if [ -f "$BATTERY_PATH" ]; then
-            CHARGE=$(cat "$BATTERY_PATH" 2>/dev/null)
-        else
+                get_battery_info
+        if [[ -z "$CHARGE" ]]; then
             sleep 10
             continue
         fi
 
-        STATUS=$(cat "$STATUS_PATH" 2>/dev/null)
         if [[ "$STATUS" == "Charging" ]]; then
             ACTIVE_PORT=$(detect_active_usbpd_port)
         else
