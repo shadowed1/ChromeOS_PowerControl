@@ -96,10 +96,6 @@ validate_config() {
         HOTZONE=70
     fi
 
-    if (( IS_ARM == 1 && MIN_TEMP > 60 )); then
-        MIN_TEMP=55
-    fi
-
     if (( MAX_TEMP > MAX_TEMP_LIMIT )); then
         echo "Warning: MAX_TEMP exceeds limit ($MAX_TEMP_LIMIT), resetting."
         MAX_TEMP=$DEFAULT_MAX_TEMP
