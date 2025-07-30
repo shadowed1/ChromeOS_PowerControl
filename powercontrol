@@ -612,10 +612,17 @@ max_perf_pct() {
                 policy=$(basename "$(dirname "$path")")
                 echo "  $policy: $val%"
             done
-        fi
-
-        if [[ ! -f "$intel_path" && ${#policy_paths[@]} -eq 0 ]]; then
-            echo "${RED}No max_perf_pct paths found.${RESET}"
+        elif [[ "$IS_ARM" -eq 1 ]]; then
+            echo "  Per-policy scaling_max_freq:"
+            for path in /sys/devices/system/cpu/cpufreq/policy*/scaling_max_freq; do
+                [[ -f "$path" ]] || continue
+                freq_khz=$(cat "$path")
+                freq_mhz=$((freq_khz / 1000))
+                policy=$(basename "$(dirname "$path")")
+                echo "  $policy: ${freq_mhz} MHz"
+            done
+        else
+            echo "${RED}No max_perf_pct or scaling_max_freq paths found.${RESET}"
         fi
         return
     fi
@@ -633,37 +640,9 @@ max_perf_pct() {
     MAX_PERF_PCT=$2
     save_config
 
-    local applied=0
-
-   if [[ -z "$2" ]]; then
-    if [[ -f "$intel_path" ]]; then
-        val=$(cat "$intel_path")
-        echo "  intel_pstate: $val%"
-    fi
-
-    if [[ ${#policy_paths[@]} -gt 0 ]]; then
-        echo "  Per-policy max_perf_pct:"
-        for path in "${policy_paths[@]}"; do
-            val=$(cat "$path")
-            policy=$(basename "$(dirname "$path")")
-            echo "  $policy: $val%"
-        done
-    elif [[ "$IS_ARM" -eq 1 ]]; then
-        echo "  Per-policy scaling_max_freq:"
-        for path in /sys/devices/system/cpu/cpufreq/policy*/scaling_max_freq; do
-            [[ -f "$path" ]] || continue
-            freq_khz=$(cat "$path")
-            freq_mhz=$((freq_khz / 1000))
-            policy=$(basename "$(dirname "$path")")
-            echo "  $policy: ${freq_mhz} MHz"
-        done
-    else
-        echo "${RED}No max_perf_pct or scaling_max_freq paths found.${RESET}"
-    fi
-    return
-fi
-
-
+    echo ""
+    echo "${CYAN}Maximum performance percentage set to $MAX_PERF_PCT%${RESET}" | tee -a "$LOG_FILE"
+    echo ""
 }
 
 
