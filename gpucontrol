@@ -255,6 +255,13 @@ fi
 
 case "$GPU_ARG" in
     intel)
+        if (( REQUESTED_FREQ > ORIGINAL_GPU_MAX_FREQ )); then
+            echo ""
+            echo "${RED}Error: Requested frequency (${REQUESTED_FREQ} MHz) exceeds original maximum (${ORIGINAL_GPU_MAX_FREQ} MHz).${RESET}"
+            echo ""
+            exit 1
+        fi
+
         echo ""
         echo "$REQUESTED_FREQ" | sudo tee "$GPU_FREQ_PATH" > /dev/null
         DISPLAY_FREQ="$REQUESTED_FREQ"
@@ -271,6 +278,13 @@ case "$GPU_ARG" in
             freq_hz="$REQUESTED_FREQ"
         fi
 
+        if (( freq_hz > ORIGINAL_GPU_MAX_FREQ )); then
+            echo ""
+            echo "${RED}Error: Requested frequency (${freq_hz} Hz) exceeds original maximum (${ORIGINAL_GPU_MAX_FREQ} Hz).${RESET}"
+            echo ""
+            exit 1
+        fi
+
         echo ""
         echo "$freq_hz" | sudo tee "$GPU_FREQ_PATH" > /dev/null
         DISPLAY_FREQ=$((freq_hz / 1000000))
@@ -280,6 +294,13 @@ case "$GPU_ARG" in
         save_config
         ;;
     amd)
+        if (( REQUESTED_FREQ > ORIGINAL_GPU_MAX_FREQ )); then
+            echo ""
+            echo "${RED}Error: Requested frequency (${REQUESTED_FREQ} MHz) exceeds original maximum (${ORIGINAL_GPU_MAX_FREQ} MHz).${RESET}"
+            echo ""
+            exit 1
+        fi
+
         amd_set_max_freq "$REQUESTED_FREQ"
         echo "${GREEN}AMD GPU frequency set to $REQUESTED_FREQ MHz${RESET}" | tee -a "$LOG_FILE"
         echo ""
