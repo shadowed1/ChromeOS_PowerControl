@@ -166,9 +166,9 @@ case "$1" in
         CONF_TARGET="/etc/init/gpucontrol.conf"
         read -p "Enable GPUControl on startup with delay? (y/n): " choice
         if [[ "$choice" =~ ^[Yy]$ ]]; then
-            sudo cp "$CONF_SOURCE" "$CONF_TARGET" && echo "${GREEN}Startup enabled.${RESET}"
+            sudo cp "$CONF_SOURCE" "$CONF_TARGET" && echo "${MAGENTA}Startup enabled.${RESET}"
         else
-            sudo rm -f "$CONF_TARGET" && echo "${YELLOW}Startup disabled.${RESET}"
+            sudo rm -f "$CONF_TARGET" && echo "${RED}Startup disabled.${RESET}"
         fi
         exit 0
         ;;
@@ -218,7 +218,7 @@ fi
         grep -i '^sclk' "$PP_OD_FILE" | nl -v0 | while read -r index line; do
             freq=$(echo "$line" | sed -n 's/.*[[:space:]]\([0-9]\{2,\}\)[[:space:]]*[Mm][Hh][Zz].*/\1/p')
             marker=""
-            [[ "$index" -eq "$AMD_SELECTED_SCLK_INDEX" ]] && marker="${GREEN}<-- SELECTED${RESET}"
+            [[ "$index" -eq "$AMD_SELECTED_SCLK_INDEX" ]] && marker="${MAGENTA}<-- SELECTED${RESET}"
             printf "║ Index %2d: %s MHz %s\n" "$index" "$freq" "$marker"
         done
     fi
@@ -302,7 +302,7 @@ case "$GPU_ARG" in
         fi
 
         amd_set_max_freq "$REQUESTED_FREQ"
-        echo "${GREEN}AMD GPU frequency set to $REQUESTED_FREQ MHz${RESET}" | tee -a "$LOG_FILE"
+        echo "${MAGENTA}AMD GPU frequency set to $REQUESTED_FREQ MHz${RESET}" | tee -a "$LOG_FILE"
         echo ""
         ;;
     *)
