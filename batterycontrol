@@ -160,7 +160,7 @@ start_monitoring_loop() {
 
     while true; do
         if [ ! -f "$RUN_FLAG" ]; then
-            echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') - Stopping BatteryControl${RESET}." | tee -a "$LOG_FILE"
+            echo "${RED}$(date '+%Y-%m-%d %H:%M:%S') - Stopping BatteryControl${RESET}." | tee -a "$LOG_FILE"
             rm -f "$PID_FILE"
             exit 0
         fi
