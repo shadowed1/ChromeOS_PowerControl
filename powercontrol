@@ -88,12 +88,16 @@ validate_config() {
     if [[ -z "$RAMP_DOWN" ]]; then RAMP_DOWN=$DEFAULT_RAMP_DOWN; fi
     if [[ -z "$CPU_POLL" ]]; then CPU_POLL=$DEFAULT_CPU_POLL; fi
 
-    if (( IS_ARM == 1 && MAX_TEMP > 77 )); then
-        MAX_TEMP=77
+    if (( IS_ARM == 1 && MAX_TEMP > 75 )); then
+        MAX_TEMP=75
     fi
 
-     if (( IS_ARM == 1 && HOTZONE > 71 )); then
-        HOTZONE=71
+    if (( IS_ARM == 1 && HOTZONE > 70 )); then
+        HOTZONE=70
+    fi
+
+    if (( IS_ARM == 1 && MIN_TEMP > 60 )); then
+        MIN_TEMP=55
     fi
 
     if (( MAX_TEMP > MAX_TEMP_LIMIT )); then
