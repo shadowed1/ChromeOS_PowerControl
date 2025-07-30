@@ -191,7 +191,7 @@ if [[ $# -eq 0 ]]; then
     if [[ "$CURRENT_FREQ" =~ ^[0-9]+$ ]]; then
     case "$GPU_TYPE" in
         intel|amd)
-            DISPLAY_FREQ="$CURRENT_FREQ" ;;  # MHz already
+            DISPLAY_FREQ="$CURRENT_FREQ" ;;
         mali|adreno)
             DISPLAY_FREQ=$((CURRENT_FREQ / 1000000)) ;;
         *)
