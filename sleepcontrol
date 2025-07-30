@@ -197,7 +197,7 @@ flock -n 200 || {
         if (( fake_activity_pid == 0 )); then
             (
                 while true; do
-                    sleep 120
+                    sleep 60
                     send_fake_activity
                 done
             ) &
