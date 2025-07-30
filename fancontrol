@@ -258,8 +258,10 @@ stop() {
     fi
     sudo ectool fanduty 50 | grep -v "Fan duty cycle set for all fans." >> "$LOG_FILE"
     sleep 1
+    echo "${YELLOW}"
     echo "$(date '+%Y-%m-%d %H:%M:%S') - Restoring automatic fan control..." | tee -a "$LOG_FILE" | tee -a "$LOG_FILE"
     sudo ectool autofanctrl
+    echo "${RESET}"
     rm -f "$RUN_FLAG" "$PID_FILE"
 }
 
