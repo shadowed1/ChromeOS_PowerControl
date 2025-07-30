@@ -157,7 +157,7 @@ case "$1" in
                 ;;
         esac
         echo ""
-        echo "${GREEN}GPU frequency restored to original: $ORIGINAL_GPU_MAX_FREQ${RESET}"
+        echo "${PURPLE}GPU frequency restored to original: $ORIGINAL_GPU_MAX_FREQ${RESET}"
         echo ""
         exit 0
         ;;
