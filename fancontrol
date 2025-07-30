@@ -243,7 +243,7 @@ start() {
         nohup "$0" __monitor__ >> "$LOG_FILE" 2>&1 &
         echo ""
         echo "${GREEN}$(date '+%Y-%m-%d %H:%M:%S') - Starting FanControl - Output is logged to $LOG_FILE${RESET}" | tee -a "$LOG_FILE"
-        echp ""
+        echo ""
     fi
 }
 
