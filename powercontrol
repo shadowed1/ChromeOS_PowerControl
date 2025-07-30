@@ -430,6 +430,10 @@ start_monitoring_loop() {
 
         last_pct=$pct
 
+        if [[ "$last_pct" != "$pct" ]]; then
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - CPU ${temp_c}°C -> Clockspeed ${pct}%" >> "$LOG_FILE"
+        fi
+
         set_max_perf_pct "$pct"
 
         sleep "$CPU_POLL"
