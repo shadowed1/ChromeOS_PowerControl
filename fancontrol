@@ -98,7 +98,6 @@ save_config() {
     sed -i "s/^STEP_DOWN=.*/STEP_DOWN=$STEP_DOWN/" "$CONFIG_FILE" || echo "STEP_DOWN=$STEP_DOWN" >> "$CONFIG_FILE"
 }
 
-# === Fan logic with hysteresis ===
 cleanup() {
     echo "${YELLOW} $(date '+%Y-%m-%d %H:%M:%S') - Restoring automatic fan control...${RESET}" | tee -a "$LOG_FILE"
     sudo ectool autofanctrl
@@ -123,7 +122,7 @@ fi
 
 sudo ectool fanduty "$initial_duty"
 
-    echo "${GREEN} $(date '+%Y-%m-%d %H:%M:%S') - FanControl started.${RESET}" | tee -a "$LOG_FILE"
+    echo "${YELLOW} $(date '+%Y-%m-%d %H:%M:%S') - FanControl started.${RESET}" | tee -a "$LOG_FILE"
     prev_temp=$TEMP_C
     local last_duty=-1
     local last_reload_time=0
@@ -156,8 +155,7 @@ sudo ectool fanduty "$initial_duty"
         fi
 
 
-        # Apply hysteresis / gradual ramping with asymmetric steps
-        HYSTERESIS=2  # percent
+        HYSTERESIS=2
              if (( last_duty < 50 )); then
                 effective_step_down=$((STEP_DOWN / 2))
                 (( effective_step_down < 1 )) && effective_step_down=1
@@ -182,7 +180,7 @@ sudo ectool fanduty "$initial_duty"
                     target_duty=$DUTY
                 fi
             else
-                target_duty=$last_duty  # No change if within hysteresis
+                target_duty=$last_duty
             fi
 
 
@@ -220,28 +218,32 @@ sudo ectool fanduty "$initial_duty"
     cleanup
 }
 
-# === Start / Stop / Monitor ===
 start() {
     "$0" stop >/dev/null 2>&1
     FAN_COUNT=$(sudo ectool pwmgetnumfans | awk -F= '{print $2}' | sed -e 's/ //g')
         if [[ "$FAN_COUNT" =~ ^[0-9]+$ ]] && (( FAN_COUNT == 0 )); then
+            echo ""
             echo "${RED}$(date '+%Y-%m-%d %H:%M:%S') - No fans detected (FAN_COUNT=0). Stopping.${RESET}" | tee -a "$LOG_FILE"
+            echo ""
             exit 1
         fi
 
     LOG_FILE="/var/log/fancontrol.log"
 
-    # Truncate if log exceeds 32KB
     if [ -f "$LOG_FILE" ] && [ "$(stat -c%s "$LOG_FILE")" -gt 32768 ]; then
         echo "$(date '+%Y-%m-%d %H:%M:%S') - Truncated log file (exceeded 32KB)" > "$LOG_FILE"
     fi
 
     if pgrep -f "[f]ancontrol __monitor__" >/dev/null; then
+        echo ""
         echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') - FanControl already running. Showing live output...${RESET}" | tee -a "$LOG_FILE"
+        echo ""
         tail -n 10 -f "$LOG_FILE"
     else
         nohup "$0" __monitor__ >> "$LOG_FILE" 2>&1 &
-        echo "${GREEN}$(date '+%Y-%m-%d %H:%M:%S') - Starting FanControl - Output is logged to $LOG_FILE${RESET}" | tee -a "$LOG_FILE"
+        echo ""
+        echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') - Starting FanControl - Output is logged to $LOG_FILE${RESET}" | tee -a "$LOG_FILE"
+        echo ""
     fi
 }
 
@@ -249,15 +251,17 @@ start() {
 stop() {
     if [ -f "$PID_FILE" ]; then
         PID=$(cat "$PID_FILE")
-        echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') - Stopping FanControl (PID $PID)...${RESET}" | tee -a "$LOG_FILE"
+        echo "${RED}$(date '+%Y-%m-%d %H:%M:%S') - Stopping FanControl (PID $PID)...${RESET}" | tee -a "$LOG_FILE"
         rm -f "$RUN_FLAG"
         kill "$PID" 2>/dev/null
         sleep 1
     fi
     sudo ectool fanduty 50 | grep -v "Fan duty cycle set for all fans." >> "$LOG_FILE"
     sleep 1
+    echo "${YELLOW}"
     echo "$(date '+%Y-%m-%d %H:%M:%S') - Restoring automatic fan control..." | tee -a "$LOG_FILE" | tee -a "$LOG_FILE"
     sudo ectool autofanctrl
+    echo "${RESET}"
     rm -f "$RUN_FLAG" "$PID_FILE"
 }
 
@@ -284,7 +288,9 @@ fan_min_temp() {
         load_config
         FAN_MIN_TEMP=$2
         save_config
+        echo "${YELLOW}"
         echo "$(date '+%Y-%m-%d %H:%M:%S') - Min temp set to $FAN_MIN_TEMP°C" | tee -a "$LOG_FILE"
+        echo "${RESET}"
     else
         echo "Usage: $0 fan_min_temp <number>"
     fi
@@ -295,7 +301,9 @@ fan_max_temp() {
         load_config
         FAN_MAX_TEMP=$2
         save_config
+        echo "${YELLOW}"
         echo "$(date '+%Y-%m-%d %H:%M:%S') - Max temp set to $FAN_MAX_TEMP°C" | tee -a "$LOG_FILE"
+        echo "${RESET}"
     else
         echo "Usage: $0 fan_max_temp <number (<=90)>"
     fi
@@ -307,7 +315,9 @@ min_fan() {
         if (( MAX_FAN > $2 )); then
             MIN_FAN=$2
             save_config
+            echo "${YELLOW}"
             echo "$(date '+%Y-%m-%d %H:%M:%S') - Min fan set to $MIN_FAN%" | tee -a "$LOG_FILE"
+            echo "${RESET}"
         else
             echo "Error: MIN_FAN must be less than MAX_FAN ($MAX_FAN)"
         fi
@@ -322,7 +332,9 @@ max_fan() {
         if (( $2 > MIN_FAN )); then
             MAX_FAN=$2
             save_config
+            echo "${YELLOW}"
             echo "$(date '+%Y-%m-%d %H:%M:%S') - Max fan set to $MAX_FAN%" | tee -a "$LOG_FILE"
+            echo ${RESET}
         else
             echo "Error: MAX_FAN must be greater than MIN_FAN ($MIN_FAN)"
         fi
@@ -342,7 +354,9 @@ set_fan_poll() {
             FAN_POLL=10
         fi
         sed -i "s/^FAN_POLL=.*/FAN_POLL=$FAN_POLL/" "$CONFIG_FILE"
-        echo "${CYAN}FanControl polling rate set to $FAN_POLL seconds${RESET}"
+        echo ""
+        echo "${YELLOW}FanControl polling rate set to $FAN_POLL seconds${RESET}"
+        echo ""
     else
         echo "Error: FAN_POLL must be a number between 1.0 and 10.0 (e.g., 1.5, 3, 4.2)"
         exit 1
@@ -354,7 +368,9 @@ set_stepup() {
         load_config
         STEP_UP=$2
         save_config
+        echo "${YELLOW}"
         echo "$(date '+%Y-%m-%d %H:%M:%S') - Step-up size set to $STEP_UP%" | tee -a "$LOG_FILE"
+        echo "{RESET}"
     else
         echo "Usage: $0 step_up <step_size_percent (1-100)>"
     fi
@@ -365,32 +381,34 @@ set_stepdown() {
         load_config
         STEP_DOWN=$2
         save_config
+        echo "${YELLOW}"
         echo "$(date '+%Y-%m-%d %H:%M:%S') - Step-down size set to $STEP_DOWN%" | tee -a "$LOG_FILE"
+        echo "${RESET}"
     else
         echo "Usage: $0 step_down <step_size_percent (1-100)>"
     fi
 }
 show_help() {
 echo "${YELLOW}"
-echo "╔════════════════════════════════════════════════════════════════════════════════════╗"
-echo "║                                                                                    ║"
-echo "║                          FanControl commands with examples:                        ║"
-echo "║                                                                                    ║"
-echo "║  fancontrol                       # Show FanControl status                         ║"
-echo "║  sudo fancontrol start            # Start FanControl                               ║"
-echo "║  sudo fancontrol stop             # Stop FanControl                                ║"
-echo "║  sudo fancontrol fan_min_temp 48  # Min temp threshold                             ║"
-echo "║  sudo fancontrol fan_max_temp 81  # Max temp threshold - Limit is 90°C             ║"
-echo "║  sudo fancontrol min_fan 0        # Min fan speed %                                ║"
-echo "║  sudo fancontrol max_fan 100      # Max fan speed %                                ║"
-echo "║  sudo fancontrol step_up 20       # Fan step-up %                                  ║"
-echo "║  sudo fancontrol step_down 1      # Fan step-down %                                ║"
-echo "║  sudo fancontrol poll 2           # FanControl polling rate in seconds (1 to 10s)  ║"
-echo "║  sudo fancontrol monitor          # Toggle on/off live monitoring in terminal      ║"
-echo "║  sudo fancontrol startup          # Copy or Remove fancontrol.conf at: /etc/init/  ║"
-echo "║  sudo fancontrol help             # Help menu                                      ║"
-echo "║                                                                                    ║"
-echo "╚════════════════════════════════════════════════════════════════════════════════════╝"
+echo "╔════════════════════════════════════════════════════════════════════════════════╗"
+echo "║                                                                                ║"
+echo "║                       FanControl commands with examples:                       ║"
+echo "║                                                                                ║"
+echo "║  fancontrol                   # Show FanControl status                         ║"
+echo "║  fancontrol help              # Help menu                                      ║"
+echo "║  sudo fancontrol start        # Start FanControl                               ║"
+echo "║  sudo fancontrol stop         # Stop FanControl                                ║"
+echo "║  sudo fancontrol min_temp 48  # Min temp threshold                             ║"
+echo "║  sudo fancontrol max_temp 81  # Max temp threshold - Limit is 90°C             ║"
+echo "║  sudo fancontrol min 0        # Min fan speed %                                ║"
+echo "║  sudo fancontrol max 100      # Max fan speed %                                ║"
+echo "║  sudo fancontrol step_up 20   # Fan step-up %                                  ║"
+echo "║  sudo fancontrol step_down 1  # Fan step-down %                                ║"
+echo "║  sudo fancontrol poll 2       # FanControl polling rate in seconds (1 to 10s)  ║"
+echo "║  sudo fancontrol monitor      # Toggle on/off live monitoring in terminal      ║"
+echo "║  sudo fancontrol startup      # Copy or Remove fancontrol.conf at: /etc/init/  ║"
+echo "║                                                                                ║"
+echo "╚════════════════════════════════════════════════════════════════════════════════╝"
 echo "${RESET}"
 }
 
@@ -398,10 +416,10 @@ case "$1" in
     start) start ;;
     stop) stop ;;
     monitor) monitor ;;
-    fan_min_temp) fan_min_temp "$@" ;;
-    fan_max_temp) fan_max_temp "$@" ;;
-    min_fan)  min_fan "$@" ;;
-    max_fan)  max_fan "$@" ;;
+    fan_min_temp|min_temp) fan_min_temp "$@" ;;
+    fan_max_temp|max_temp) fan_max_temp "$@" ;;
+    min_fan|min)  min_fan "$@" ;;
+    max_fan|max)  max_fan "$@" ;;
     poll | fan_poll)   set_fan_poll "$@" ;;
     step_up)   set_stepup "$@" ;;
     step_down) set_stepdown "$@" ;;
@@ -414,7 +432,7 @@ case "$1" in
         if [ -f "$CONF_SOURCE" ]; then
             echo "Copying fancontrol.conf to /etc/init/..."
             sudo cp "$CONF_SOURCE" "$CONF_TARGET"
-            echo "${GREEN}fancontrol.conf copied.${RESET}"
+            echo "${YELLOW}fancontrol.conf copied.${RESET}"
         else
             echo "${RED}fancontrol.conf not found at $CONF_SOURCE${RESET}"
         fi
