@@ -59,6 +59,26 @@ load_config() {
     validate_config
 }
 
+print_powerd_settings() {
+    local POWERD_DIR="/usr/share/power_manager"
+    local FILE
+    local VALUE
+
+    echo -e "\n${BOLD}Current power_manager settings:${RESET}"
+    echo "═════════════════════════════════════════════"
+
+    # Grouped output for better readability
+    for MODE in "plugged_" "unplugged_" ""; do
+        echo -e "\n${CYAN}${MODE^^:-General}:${RESET}"
+        find "$POWERD_DIR" -maxdepth 1 -type f -name "${MODE}*" | sort | while read -r FILE; do
+            VALUE=$(<"$FILE")
+            BASENAME=$(basename "$FILE")
+            printf "  %-40s %s\n" "$BASENAME" "$VALUE"
+        done
+    done
+    echo ""
+}
+
 validate_config() {
     if [[ -z "$BATTERY_DELAY" || ! "$BATTERY_DELAY" =~ ^[0-9]+$ ]]; then
         BATTERY_DELAY=$DEFAULT_BATTERY_DELAY
@@ -293,6 +313,7 @@ case "$1" in
                 echo ""    
                 echo "  Battery = Dim: $((BATTERY_DIM_DELAY)) min -> Display Off: $((BATTERY_BACKLIGHT)) min -> Sleep: $((BATTERY_DELAY)) min"
                 echo "  Power   = Dim: $((POWER_DIM_DELAY)) min -> Display Off: $((POWER_BACKLIGHT)) min -> Sleep: $((POWER_DELAY)) min"
+                print_powerd_settings
                 echo "══════════════════════════════════════════════════════════════════════════════════════════"
                 echo "${RESET}"
         ;;
