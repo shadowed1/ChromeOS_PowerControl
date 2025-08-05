@@ -16,7 +16,7 @@ BATTERY_STATUS_PATH="/sys/class/power_supply/BAT0/status"
 BACKLIGHT_NAME=""
 BRIGHTNESS_PATH=""
 MAX_BRIGHTNESS_PATH=""
-FAKE_ACTIVITY_INTERVAL=60
+FAKE_ACTIVITY_INTERVAL=120
 
 if ! ( [[ -z "$1" ]] || [[ "$1" == "--h" || "$1" == "-h" || "$1" == "h" || "$1" == "--help" || "$1" == "-help" || "$1" == "help" || "$1" == "status" ]] ) && [[ "$(id -u)" -ne 0 ]]; then    echo "${RED}SleepControl requires sudo to run.${RESET}"
     echo "  Try: sudo sleepcontrol $*  or  sudo $0 $*"
@@ -203,7 +203,7 @@ monitor_idle_activity() {
             ) &
             fake_activity_pid=$!
             sending_fake_activity=1
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - Started fake activity loop (PID $fake_activity_pid)." >> "$LOG_FILE"
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - Starting simulated activity loop... (PID $fake_activity_pid)." >> "$LOG_FILE"
         fi
     }
 
@@ -211,7 +211,7 @@ monitor_idle_activity() {
         if (( sending_fake_activity == 1 )); then
             kill "$fake_activity_pid" 2>/dev/null
             wait "$fake_activity_pid" 2>/dev/null
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - Stopped fake activity loop (PID $fake_activity_pid)." >> "$LOG_FILE"
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - Stopping simulated activity loop... (PID $fake_activity_pid)." >> "$LOG_FILE"
             sending_fake_activity=0
             fake_activity_pid=0
         fi
