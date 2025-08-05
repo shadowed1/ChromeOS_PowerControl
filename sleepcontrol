@@ -381,7 +381,10 @@ if (( monitor_idle == 1 )); then
     
             echo "$(date '+%Y-%m-%d %H:%M:%S') - Sending suspend command..." >> "$LOG_FILE"
             if sudo powerd_dbus_suspend >> "$LOG_FILE" 2>&1; then
+                sleep 5
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Suspend successful." >> "$LOG_FILE"
+                last_activity_time=$(date +%s)
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - last_activity_time reset after suspend." >> "$LOG_FILE"
             else
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Suspend failed!" >> "$LOG_FILE"
             fi
