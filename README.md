@@ -46,33 +46,86 @@
 
 - Installer has prompts to customize installation.
 - PowerControl, BatteryControl, FanControl, and SleepControl can run in the background and can be adjusted in real-time.
-<br> <br>
+<br><br><br><br>
 
+__PowerControl commands with examples:__                                
+                                                                                                     
+  `powercontrol                    # Show status`                                                      
+  `powercontrol all                # Show status of all ChromeOS_PowerControl components`              
+  `powercontrol help               # Help menu`                                                        
+  `sudo powercontrol start         # Throttle CPU based on temperature curve`                          
+  `sudo powercontrol stop          # Restore default CPU settings`                                     
+  `sudo powercontrol no_turbo 1    # 0 = Enable, 1 = Disable Turbo Boost`                              
+  `sudo powercontrol max 75        # Set max performance percentage`                                   
+  `sudo powercontrol min 50        # Set minimum performance at max temp`                              
+  `sudo powercontrol max_temp 86   # Max temperature threshold - Limit is 90°C`                        
+  `sudo powercontrol min_temp 60   # Min temperature threshold`                                        
+  `sudo powercontrol hotzone 78    # Temperature threshold for aggressive thermal management`          
+  `sudo powercontrol ramp_up 15    # % in steps CPU will increase in clockspeed per second`            
+  `sudo powercontrol ramp_down 20  # % in steps CPU will decrease in clockspeed per second`            
+  `sudo powercontrol hotzone 78    # Temperature threshold for aggressive thermal management`          
+  `sudo powercontrol poll 1        # PowerControl polling rate in seconds (0.1s - 5s)`                 
+  `sudo powercontrol monitor       # Toggle live temperature monitoring`                               
+  `sudo powercontrol startup       # Copy or Remove no_turbo.conf & powercontrol.conf at: /etc/init/`  
+  `sudo powercontrol reinstall     # Redownload and reinstall ChromeOS_PowerControl from Github`       
+  `sudo powercontrol uninstall     # Uninstall ChromeOS_PowerControl`                                  
+  `sudo powercontrol version       # Check PowerControl version`                                                                                           
 
-<p align="center">
-  <img src="https://i.imgur.com/JK3K8og.png" alt="logo" />
-</p>
+<br><br>
+                                                                           
+  __BatteryControl commands with examples:__                       
+                                                                                    
+  `batterycontrol               # Check BatteryControl status`                     
+  `batterycontrol help          # Help menu`                                          
+  `sudo batterycontrol start    # Start BatteryControl`                               
+  `sudo batterycontrol stop     # Stop BatteryControl`                                
+  `sudo batterycontrol 77       # Charge limit set to 77% - Minimum allowed is 14%`   
+  `sudo batterycontrol startup  # Copy or Remove batterycontrol.conf at: /etc/init/`
 
-<p align="center">
-  <img src="https://i.imgur.com/ghKV55q.png" alt="logo" />
-</p>
+<br>
+<br>
+                                                                                                                                            
+  __FanControl commands with examples:__                      
+                                                                                
+  `fancontrol                   # Show FanControl status`                         
+  `fancontrol help              # Help menu`                                      
+  `sudo fancontrol start        # Start FanControl`                               
+  `sudo fancontrol stop         # Stop FanControl`                                
+  `sudo fancontrol min_temp 48  # Min temp threshold`                             
+  `sudo fancontrol max_temp 81  # Max temp threshold - Limit is 90°C`             
+  `sudo fancontrol min 0        # Min fan speed %`                                
+  `sudo fancontrol max 100      # Max fan speed %`                                
+  `sudo fancontrol step_up 20   # Fan step-up %`                                 
+  `sudo fancontrol step_down 1  # Fan step-down %`                                
+  `sudo fancontrol poll 2       # FanControl polling rate in seconds (1 to 10s)`  
+  `sudo fancontrol monitor      # Toggle on/off live monitoring in terminal`      
+  `sudo fancontrol startup      # Copy or Remove fancontrol.conf at: /etc/init/`
+  <br><br>
+                                                                                                                  
+  __GPUControl commands with examples:__                                       
+                                                                                                                  
+  `gpucontrol                     # Show current GPU info and frequency`                                            
+  `gpucontrol help                # Show this help menu`                                                            
+  `sudo gpucontrol restore        # Restore GPU max frequency to original value`                                    
+  `sudo gpucontrol 800            # Set GPU max frequency to 800 MHz`                                               
+  `sudo gpucontrol startup        # Enable or disable GPUControl on startup`
+  <br><br>
+                                                                                                                    
+  __SleepControl commands with examples:__                                      
+                                                                                                                    
+  `sleepcontrol                       # Show SleepControl status`                                                
+  `sleepcontrol help                  # Help menu`                                                                   
+  `sleepcontrol monitor               # Monitor sleepcontrol's log in realtime (ctrl-c to exit)`                     
+  `sleepcontrol powerd                # Monitor powerd.LATEST log in realtime (ctrl-c to exit)`                     
+  `sudo sleepcontrol start            # Start SleepControl`                                                           
+  `sudo sleepcontrol stop             # Stop SleepControl`                                                           
+  `sudo sleepcontrol battery 3 7 12   # When idle, display dims in 3m -> timeout in 7m -> sleeps in 12m on battery`   
+  `sudo sleepcontrol power 5 15 30    # When idle, display dims in 5m -> timeout -> 15m -> sleeps in 30m plugged-in`  
+  `sudo sleepcontrol battery audio 0  # Disable audio detection on battery; sleep can occur during media playback`   
+  `sudo sleepcontrol power audio 1    # Enable audio detection on power; delaying sleep until audio is stopped`       
+  `sudo sleepcontrol startup          # Copy or Remove sleepcontrol.conf at: /etc/init/`     
 
-<p align="center">
-  <img src="https://i.imgur.com/UGKgbqw.png" alt="logo" />
-</p>
-
-<p align="center">
-  <img src="https://i.imgur.com/Z8aRKd9.png" alt="logo" />
-</p>
-
-<p align="center">
-  <img src="https://i.imgur.com/Rq5D4BV.png" alt="logo" />
-</p>
-
-
-
-    
-<br> <br>
+<br><br><br><br>
 
 __How It Works:__
 
