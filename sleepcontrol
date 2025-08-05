@@ -344,7 +344,7 @@ if (( monitor_idle == 1 )); then
         AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_POWER
     fi
 
-    echo "Idle -> $now Since -> $last_ts" >> "$LOG_FILE"
+    echo "Now -> $now | Last reported activity -> $last_ts" >> "$LOG_FILE"
 
     if (( now - last_ts >= dim_delay && now - last_ts < backlight_delay )); then
         if [[ $saved_display_brightness -gt 0 ]]; then
