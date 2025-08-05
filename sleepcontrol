@@ -324,7 +324,7 @@ monitor_idle_activity() {
                     brightness_value=$((brightness_percent * max_brightness / 100))
 
                     saved_display_brightness="$brightness_value"
-                    echo "$(date '+%Y-%m-%d %H:%M:%S') - User set brightness to $brightness_percent% ($brightness_value). Saved." >> "$LOG_FILE"
+                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Saved rightness to $brightness_percent% ($brightness_value)." >> "$LOG_FILE"
                 fi
                 ;;
             *)
