@@ -180,6 +180,8 @@ Thanks again to DennyL for the suggestions!`
 - 0.29: `Improved ARM support for BatteryControl, PowerControl, and GPUControl. Removed requirement for entering GPU type and improved kHz conversion in GPUControl.
 Shortened arguments for PowerControl and FanControl. Fixed minor errors in SleepControl before its rewrite.` <br><br>
 - 0.30: `Fixed logic order for sleepcontrol that caused it to eventually stop working. Added monitor command for sleepcontrol.` <br><br>
+- 0.31: `Sleepcontrol simulation thresholds rewritten. Fixed bug with missing stop command for sleepcontrol during uninstall/reinstall. Added powerd monitor command for sleepcontrol.` <br><br>
+  
 __Acknowledgements:__
 
 - Thanks to WesBosch for helping me learn to make an installer:
