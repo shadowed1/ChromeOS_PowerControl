@@ -563,6 +563,9 @@ echo "${RESET}"
         --h|-h|h|--help|-help|help)
             show_help
         ;;
+    monitor)
+        sudo tail -f /var/log/sleepcontrol.log
+        ;;
     *)
         show_help
         ;;
