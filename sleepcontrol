@@ -187,7 +187,8 @@ monitor_idle_activity() {
     local battery_backlight_ts=$(date +%s)
     local last_reload_time=0
     local last_power_check_time=0
-    local saved_kb_brightness=$(sudo ectool pwmgetkblight | awk '{print $NF}')
+    local saved_kb_brightness=$(sudo ectool pwmgetkblight 2>/dev/null | awk '{print $NF}')
+
 
     saved_display_brightness=0
     if [[ -n "$BRIGHTNESS_PATH" ]]; then
@@ -304,7 +305,7 @@ monitor_idle_activity() {
                     echo "$saved_display_brightness" | sudo tee "$BRIGHTNESS_PATH" >/dev/null
                 fi
 
-                current_kb_brightness=$(sudo ectool pwmgetkblight | awk '{print $NF}')
+                current_kb_brightness=$(sudo ectool pwmgetkblight 2>/dev/null | awk '{print $NF}')
                 if [[ "$current_kb_brightness" =~ ^[0-9]+$ ]] && (( current_kb_brightness > 1 )); then
                     saved_kb_brightness=$current_kb_brightness
                     echo "$(date '+%Y-%m-%d %H:%M:%S') - Updated saved keyboard brightness: $saved_kb_brightness" >> "$LOG_FILE"
