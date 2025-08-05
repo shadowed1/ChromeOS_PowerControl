@@ -114,6 +114,7 @@ echo "║  sudo sleepcontrol battery audio 0  # Disable audio detection on batte
 echo "║  sudo sleepcontrol power audio 1    # Enable audio detection on power; delaying sleep until audio is stopped       ║"
 echo "║  sudo sleepcontrol startup          # Copy or Remove sleepcontrol.conf at: /etc/init/                              ║"
 echo "║  sudo sleepcontrol monitor          # Monitor sleepcontrol's log in realtime (ctrl-c to exit)                      ║"
+echo "║  sudo sleepcontrol powerd           # Monitor powerd.LATEST log in realtime (ctrl-c to exit)                       ║"
 echo "║                                                                                                                    ║"
 echo "╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝"
 echo "${RESET}"
