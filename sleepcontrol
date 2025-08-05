@@ -331,41 +331,49 @@ monitor_idle_activity() {
                 ;;
         esac
 
-         if (( monitor_idle == 1 )); then
-            if [[ "$status" == "Discharging" ]]; then
-                dim_delay=$((BATTERY_DIM_DELAY * 60))
-                backlight_delay=$((BATTERY_BACKLIGHT * 60))
-                suspend_delay=$((BATTERY_DELAY * 60))
-                AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_BATTERY
-            else
-                dim_delay=$((POWER_DIM_DELAY * 60))
-                backlight_delay=$((POWER_BACKLIGHT * 60))
-                suspend_delay=$((POWER_DELAY * 60))
-                AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_POWER
-            fi
+if (( monitor_idle == 1 )); then
+    if [[ "$status" == "Discharging" ]]; then
+        dim_delay=$((BATTERY_DIM_DELAY * 60))
+        backlight_delay=$((BATTERY_BACKLIGHT * 60))
+        suspend_delay=$((BATTERY_DELAY * 60))
+        AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_BATTERY
+    else
+        dim_delay=$((POWER_DIM_DELAY * 60))
+        backlight_delay=$((POWER_BACKLIGHT * 60))
+        suspend_delay=$((POWER_DELAY * 60))
+        AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_POWER
+    fi
 
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - Idle logic active: $now $last_ts" >> "$LOG_FILE"
+    echo "Idle -> $now Since -> $last_ts" >> "$LOG_FILE"
 
-             if (( now - last_ts >= dim_delay && now - last_ts < backlight_delay )); then
-                if [[ $saved_display_brightness -gt 0 ]]; then
-                    max_brightness=$(cat "$MAX_BRIGHTNESS_PATH" 2>/dev/null || echo 255)
-                    dim_value=$((saved_display_brightness / 8))
-                    if (( dim_value < 1 )); then dim_value=1; fi
-                    set_display_brightness "$dim_value"
-                fi
-            elif (( now - last_ts >= backlight_delay )); then
-                if [ "$backlight_off" -eq 0 ]; then
-                    sudo ectool backlight 0 2>/dev/null
-                    backlight_off=1
-                    echo "$(date '+%Y-%m-%d %H:%M:%S') - keyboard backlight off." >> "$LOG_FILE"
-                fi
-            fi
-
-            if (( idle_since > 0 && now - idle_since >= suspend_delay )); then
-                stop_fake_activity
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Stopped simulating user activity (sleep timeout reached)." >> "$LOG_FILE"
-            fi
+    if (( now - last_ts >= dim_delay && now - last_ts < backlight_delay )); then
+        if [[ $saved_display_brightness -gt 0 ]]; then
+            max_brightness=$(cat "$MAX_BRIGHTNESS_PATH" 2>/dev/null || echo 255)
+            dim_value=$((saved_display_brightness / 8))
+            if (( dim_value < 1 )); then dim_value=1; fi
+            set_display_brightness "$dim_value"
         fi
+    elif (( now - last_ts >= backlight_delay )); then
+        if [ "$backlight_off" -eq 0 ]; then
+            sudo ectool backlight 0 2>/dev/null
+            backlight_off=1
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - keyboard backlight off." >> "$LOG_FILE"
+        fi
+    fi
+
+    if (( idle_since > 0 && now - idle_since >= suspend_delay )); then
+        stop_fake_activity
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - Stopped simulating user activity (sleep timeout reached)." >> "$LOG_FILE"
+
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - Sending suspend command..." >> "$LOG_FILE"
+        if sudo powerd_dbus_suspend >> "$LOG_FILE" 2>&1; then
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - Suspend successful." >> "$LOG_FILE"
+        else
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - Suspend failed!" >> "$LOG_FILE"
+        fi
+    fi
+fi
+
     done
 
     stop_fake_activity
