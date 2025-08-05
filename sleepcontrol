@@ -407,6 +407,7 @@ stop_monitoring() {
     fi
     rm -f "$RUN_FLAG"
     rm -f "$PID_FILE"
+    rm -f "$PID_FILE.lock"
 }
 
 
