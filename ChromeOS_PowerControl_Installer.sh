@@ -700,6 +700,7 @@ echo "║  sudo sleepcontrol stop             # Stop SleepControl               
 echo "║  sudo sleepcontrol battery 3 7 12   # When idle, display dims in 3m -> timeout in 7m -> sleeps in 12m on battery   ║"
 echo "║  sudo sleepcontrol power 5 15 30    # When idle, display dims in 5m -> timeout -> 15m -> sleeps in 30m plugged-in  ║"
 echo "║  sudo sleepcontrol startup          # Copy or Remove sleepcontrol.conf at: /etc/init/                              ║"
+echo "║  sudo sleepcontrol monitor          # Monitor sleepcontrol's log in realtime (ctrl-c to exit)                      ║"
 echo "║                                                                                                                    ║"
 echo "╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝"
 echo "${RESET}${CYAN}${BOLD}╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
