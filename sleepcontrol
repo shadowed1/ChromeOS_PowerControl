@@ -293,6 +293,8 @@ monitor_idle_activity() {
             *"User activity reported"*|*"User activity ongoing"*|*"Enabling wakeup for"*|*"User triggered wake"*|*"powerd_suspend returned 0"*|*"Chrome is using normal display mode"*|*"Configuring devices for mode"*)
                 if (( monitor_idle == 1 )); then
                     echo "$(date '+%Y-%m-%d %H:%M:%S') - User activity resumed." >> "$LOG_FILE"
+                    echo "Suspend delay is set to $((suspend_delay / 60)) minutes."
+
                 fi
                 monitor_idle=0
                 active=1
@@ -384,7 +386,7 @@ if (( monitor_idle == 1 )); then
             fi
         fi
     fi
-
+fi
 
     done
 
