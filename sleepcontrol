@@ -16,6 +16,7 @@ BATTERY_STATUS_PATH="/sys/class/power_supply/BAT0/status"
 BACKLIGHT_NAME=""
 BRIGHTNESS_PATH=""
 MAX_BRIGHTNESS_PATH=""
+FAKE_ACTIVITY_INTERVAL=60
 
 if ! ( [[ -z "$1" ]] || [[ "$1" == "--h" || "$1" == "-h" || "$1" == "h" || "$1" == "--help" || "$1" == "-help" || "$1" == "help" || "$1" == "status" ]] ) && [[ "$(id -u)" -ne 0 ]]; then    echo "${RED}SleepControl requires sudo to run.${RESET}"
     echo "  Try: sudo sleepcontrol $*  or  sudo $0 $*"
@@ -164,109 +165,90 @@ send_fake_activity() {
 }
 
 monitor_idle_activity() {
-    
-exec 200>"$PID_FILE.lock"
-flock -n 200 || {
-    echo "Another instance is running - using flock"
-    exit 1
-                } 
-    
+    exec 200>"$PID_FILE.lock"
+    flock -n 200 || {
+        echo "Another instance is running - using flock"
+        exit 1
+    }
+
     echo "$BASHPID" > "$PID_FILE"
     touch "$RUN_FLAG"
     echo "$(date '+%Y-%m-%d %H:%M:%S') - SleepControl started (PID $$)." > "$LOG_FILE"
+
+    (
+        while [ -f "$RUN_FLAG" ]; do
+            send_fake_activity
+            sleep "$FAKE_ACTIVITY_INTERVAL"
+        done
+    ) &
+    fake_activity_pid=$!
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - Started fake activity loop (PID $fake_activity_pid)." >> "$LOG_FILE"
+
     local active=1
     local monitor_idle=0
     local backlight_off=0
     local kb_brightness_restored=1
     local power_backlight_ts=$(date +%s)
     local battery_backlight_ts=$(date +%s)
-    local fake_activity_pid=0
     local last_reload_time=0
     local last_power_check_time=0
     local saved_kb_brightness=$(sudo ectool pwmgetkblight | awk '{print $NF}')
 
     saved_display_brightness=0
     if [[ -n "$BRIGHTNESS_PATH" ]]; then
-    saved_display_brightness=$(cat "$BRIGHTNESS_PATH" 2>/dev/null || echo 0)
+        saved_display_brightness=$(cat "$BRIGHTNESS_PATH" 2>/dev/null || echo 0)
     fi
-
-    
-
-
-    start_fake_activity() {
-        if (( fake_activity_pid == 0 )); then
-            (
-                while true; do
-                    sleep 60
-                    send_fake_activity
-                done
-            ) &
-            fake_activity_pid=$!
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - Started fake activity loop (PID $fake_activity_pid)." >> "$LOG_FILE"
-        fi
-    }
-
-    stop_fake_activity() {
-        if (( fake_activity_pid != 0 )); then
-            kill "$fake_activity_pid" 2>/dev/null
-            wait "$fake_activity_pid" 2>/dev/null
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - Stopped fake activity loop (PID $fake_activity_pid)." >> "$LOG_FILE"
-            fake_activity_pid=0
-        fi
-    }
 
     tail -Fn0 /var/log/power_manager/powerd.LATEST | while read -r line; do
         now=$(date +%s)
 
-    if (( now - last_power_check_time >= 30 )); then
-        if [[ -f "$BATTERY_STATUS_PATH" ]]; then
-            battery_status=$(cat "$BATTERY_STATUS_PATH")
-            if [[ "$battery_status" == "Discharging" ]]; then
-                status="Discharging"
-            else
-                status="Charging"
+        if (( now - last_power_check_time >= 30 )); then
+            if [[ -f "$BATTERY_STATUS_PATH" ]]; then
+                battery_status=$(cat "$BATTERY_STATUS_PATH")
+                if [[ "$battery_status" == "Discharging" ]]; then
+                    status="Discharging"
+                else
+                    status="Charging"
+                fi
             fi
+            last_power_check_time=$now
         fi
-        last_power_check_time=$now
-    fi
 
+        if [[ "$status" == "Discharging" ]]; then
+            AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_BATTERY
+        else
+            AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_POWER
+        fi
 
-    if [[ "$status" == "Discharging" ]]; then
-        AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_BATTERY
-    else
-        AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_POWER
-    fi
+        if (( AUDIO_DETECTION_ENABLED == 0 )); then
+            audio_active=0
+        fi
 
-    if (( AUDIO_DETECTION_ENABLED == 0 )); then
-    audio_active=0
-    fi
-
-     now=$(date +%s)
         if (( now - last_reload_time >= 20 )); then
             load_config
             last_reload_time=$now
         fi
 
         case "$line" in
-               *"Audio activity started"*|*"Audio activity ongoing"*)
-                    if (( AUDIO_DETECTION_ENABLED == 1 )); then
-                        audio_active=1
-                    fi
-                    ;;
-                *"Audio activity stopped"*)
-                    if (( AUDIO_DETECTION_ENABLED == 1 )); then
-                        audio_active=0
-                    fi
-                    ;;
+            *"Audio activity started"*|*"Audio activity ongoing"*)
+                if (( AUDIO_DETECTION_ENABLED == 1 )); then
+                    audio_active=1
+                fi
+                ;;
+            *"Audio activity stopped"*)
+                if (( AUDIO_DETECTION_ENABLED == 1 )); then
+                    audio_active=0
+                fi
+                ;;
             *"User activity stopped"*)
                 if (( audio_active == 0 )); then
                     monitor_idle=1
                     active=0
                     kb_brightness_restored=0
-                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Starting dbus-send simulation..." >> "$LOG_FILE"
+                    echo "$(date '+%Y-%m-%d %H:%M:%S') - User idle detected." >> "$LOG_FILE"
                 fi
                 ;;
-                *"On battery at"*)
+            *"On battery at"*)
                 if [[ "$status" != "Discharging" ]]; then
                     status="Discharging"
                     echo "$(date '+%Y-%m-%d %H:%M:%S') - On Battery - changing power plan." >> "$LOG_FILE"
@@ -275,7 +257,7 @@ flock -n 200 || {
                     suspend_delay=$((BATTERY_DELAY * 60))
                 fi
                 ;;
-                 *"On AC"*)
+            *"On AC"*)
                 if [[ "$status" != "Charging" ]]; then
                     status="Charging"
                     echo "$(date '+%Y-%m-%d %H:%M:%S') - On AC - changing power plan." >> "$LOG_FILE"
@@ -283,78 +265,74 @@ flock -n 200 || {
                     backlight_delay=$((POWER_BACKLIGHT * 60))
                     suspend_delay=$((POWER_DELAY * 60))
                 fi
-            ;;
+                ;;
             *"User activity reported"*|*"User activity ongoing"*|*"Enabling wakeup for"*|*"User triggered wake"*|*"powerd_suspend returned 0"*|*"Chrome is using normal display mode"*|*"Configuring devices for mode"*)
                 if (( monitor_idle == 1 )); then
-                        echo "$(date '+%Y-%m-%d %H:%M:%S') - pausing dbus-send simulation..." >> "$LOG_FILE"
-                    fi
-                     if [[ $saved_display_brightness -gt 0 ]]; then
-                      echo "$saved_display_brightness" | sudo tee "$BRIGHTNESS_PATH" >/dev/null
-                    fi
-                    
-                    current_kb_brightness=$(sudo ectool pwmgetkblight | awk '{print $NF}')
-                    if [[ "$current_kb_brightness" =~ ^[0-9]+$ ]] && (( current_kb_brightness > 1 )); then
-                        saved_kb_brightness=$current_kb_brightness
-                        echo "$(date '+%Y-%m-%d %H:%M:%S') - Updated saved keyboard brightness: $saved_kb_brightness" >> "$LOG_FILE"
-                    fi
-                    
-                    monitor_idle=0
-                    active=1
-                    stop_fake_activity
-                    sudo ectool backlight 1 2>/dev/null
-                    sudo ectool pwmsetkblight "$saved_kb_brightness" 2>/dev/null
-                    backlight_off=0
-                    kb_brightness_restored=1
-                    echo "$(date '+%Y-%m-%d %H:%M:%S') - powerd keyword triggered wake." >> "$LOG_FILE"
-                    power_backlight_ts=$now
-                    battery_backlight_ts=$now
+                    echo "$(date '+%Y-%m-%d %H:%M:%S') - User activity resumed." >> "$LOG_FILE"
+                fi
+                if [[ $saved_display_brightness -gt 0 ]]; then
+                    echo "$saved_display_brightness" | sudo tee "$BRIGHTNESS_PATH" >/dev/null
+                fi
+
+                current_kb_brightness=$(sudo ectool pwmgetkblight | awk '{print $NF}')
+                if [[ "$current_kb_brightness" =~ ^[0-9]+$ ]] && (( current_kb_brightness > 1 )); then
+                    saved_kb_brightness=$current_kb_brightness
+                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Updated saved keyboard brightness: $saved_kb_brightness" >> "$LOG_FILE"
+                fi
+
+                monitor_idle=0
+                active=1
+                sudo ectool backlight 1 2>/dev/null
+                sudo ectool pwmsetkblight "$saved_kb_brightness" 2>/dev/null
+                backlight_off=0
+                kb_brightness_restored=1
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - powerd keyword triggered wake." >> "$LOG_FILE"
+                power_backlight_ts=$now
+                battery_backlight_ts=$now
                 ;;
-                *"Got user-triggered request to set brightness to "*)
+            *"Got user-triggered request to set brightness to "*)
                 brightness_percent=$(echo "$line" | sed -E 's/.*set brightness to ([0-9.]+)%/\1/')
                 if [[ -n "$brightness_percent" ]]; then
-                   max_brightness=$(cat "$MAX_BRIGHTNESS_PATH" 2>/dev/null || echo 255)
-                   brightness_percent=$(awk "BEGIN {print int(($brightness_percent + 0.5))}")
+                    max_brightness=$(cat "$MAX_BRIGHTNESS_PATH" 2>/dev/null || echo 255)
+                    brightness_percent=$(awk "BEGIN {print int(($brightness_percent + 0.5))}")
                     if ((brightness_percent > 100)); then
                         brightness_percent=100
                     fi
 
                     brightness_value=$((brightness_percent * max_brightness / 100))
-        
+
                     saved_display_brightness="$brightness_value"
                     echo "$(date '+%Y-%m-%d %H:%M:%S') - User set brightness to $brightness_percent% ($brightness_value). Saved." >> "$LOG_FILE"
                 fi
                 ;;
-
             *)
                 ;;
         esac
 
         if (( monitor_idle == 1 )); then
-        if [[ "$status" == "Discharging" ]]; then
-            dim_delay=$((BATTERY_DIM_DELAY * 60))
-            backlight_delay=$((BATTERY_BACKLIGHT * 60))
-            last_ts=$battery_backlight_ts
-            suspend_delay=$((BATTERY_DELAY * 60))
-            AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_BATTERY
-        else
-            dim_delay=$((POWER_DIM_DELAY * 60))
-            backlight_delay=$((POWER_BACKLIGHT * 60))
-            last_ts=$power_backlight_ts
-            suspend_delay=$((POWER_DELAY * 60))
-            AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_POWER
+            if [[ "$status" == "Discharging" ]]; then
+                dim_delay=$((BATTERY_DIM_DELAY * 60))
+                backlight_delay=$((BATTERY_BACKLIGHT * 60))
+                last_ts=$battery_backlight_ts
+                suspend_delay=$((BATTERY_DELAY * 60))
+                AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_BATTERY
+            else
+                dim_delay=$((POWER_DIM_DELAY * 60))
+                backlight_delay=$((POWER_BACKLIGHT * 60))
+                last_ts=$power_backlight_ts
+                suspend_delay=$((POWER_DELAY * 60))
+                AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_POWER
+            fi
 
-        fi
-
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - dbus-send simulation active: $now $last_ts" >> "$LOG_FILE"
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - Idle logic active: $now $last_ts" >> "$LOG_FILE"
 
             if (( now - last_ts >= dim_delay && now - last_ts < backlight_delay )); then
                 if [[ $saved_display_brightness -gt 0 ]]; then
                     max_brightness=$(cat "$MAX_BRIGHTNESS_PATH" 2>/dev/null || echo 255)
                     dim_value=$((saved_display_brightness / 8))
                     if (( dim_value < 1 )); then
-                    dim_value=1
+                        dim_value=1
                     fi
-
                     set_display_brightness "$dim_value"
                 fi
             elif (( now - last_ts >= backlight_delay )); then
@@ -387,13 +365,15 @@ flock -n 200 || {
                 sleep 1
                 active=1
                 sudo ectool backlight 1 2>/dev/null
-
                 continue
             fi
         fi
     done
-}
 
+    kill "$fake_activity_pid" 2>/dev/null
+    wait "$fake_activity_pid" 2>/dev/null
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - Stopped fake activity loop (PID $fake_activity_pid)." >> "$LOG_FILE"
+}
 
 stop_monitoring() {
     if [ -f "$PID_FILE" ]; then
