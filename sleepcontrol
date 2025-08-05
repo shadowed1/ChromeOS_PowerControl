@@ -192,6 +192,10 @@ monitor_idle_activity() {
     if [[ -n "$BRIGHTNESS_PATH" ]]; then
         saved_display_brightness=$(cat "$BRIGHTNESS_PATH" 2>/dev/null || echo 0)
     fi
+   
+    if (( idle_elapsed < suspend_delay - 10 )); then
+        stop_fake_activity
+    fi
 
     start_fake_activity() {
         if (( sending_fake_activity == 0 )); then
@@ -358,10 +362,6 @@ if (( monitor_idle == 1 )); then
             backlight_off=1
             echo "$(date '+%Y-%m-%d %H:%M:%S') - keyboard backlight off." >> "$LOG_FILE"
         fi
-    fi
-
-    if (( idle_elapsed < suspend_delay - 10 )); then
-        stop_fake_activity
     fi
 
     idle_elapsed=$(( now - idle_since ))
