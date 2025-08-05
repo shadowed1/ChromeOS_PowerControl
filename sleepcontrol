@@ -160,7 +160,6 @@ send_fake_activity() {
         --dest=org.chromium.PowerManager \
         /org/chromium/PowerManager \
         org.chromium.PowerManager.HandleUserActivity int32:0 int32:0
-    save_sim_time
     echo "$(date '+%Y-%m-%d %H:%M:%S') - Simulated user activity." >> "$LOG_FILE"
 }
 
