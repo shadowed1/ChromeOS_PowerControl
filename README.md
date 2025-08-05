@@ -179,6 +179,7 @@ Thanks again to DennyL for the suggestions!`
 - 0.28: `Fixed bug with GPUControl not applying user-preferred clockspeed on boot and refactored sections. Fixed version script for supporting base 10 values.` <br><br>
 - 0.29: `Improved ARM support for BatteryControl, PowerControl, and GPUControl. Removed requirement for entering GPU type and improved kHz conversion in GPUControl.
 Shortened arguments for PowerControl and FanControl. Fixed minor errors in SleepControl before its rewrite.` <br><br>
+- 0.30: `Fixed logic order for sleepcontrol that made it stop working. Added monitor command to sleepcontrol.`
 __Acknowledgements:__
 
 - Thanks to WesBosch for helping me learn to make an installer:
