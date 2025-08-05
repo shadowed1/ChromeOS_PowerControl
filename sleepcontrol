@@ -545,7 +545,7 @@ echo ""
             else
 echo "${RED}"
 echo "══════════════════════════════════════════════════════════════════════════════════════════"
-echo "            SleepControl Status: RUN FLAG PRESENT, but process not running                       "
+echo " SleepControl Status: RUN FLAG PRESENT, but process not yet running (120s delay on boot)"
 echo ""
 
             fi
