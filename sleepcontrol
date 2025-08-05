@@ -589,6 +589,9 @@ echo "${RESET}"
     powerd)
         sudo tail -f /var/log/power_manager/powerd.LATEST
         ;;
+    stop)
+        stop_monitoring
+        ;;
     *)
         show_help
         ;;
