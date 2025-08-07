@@ -734,7 +734,7 @@ fi
 if [[ "$SHOW_SLEEPCONTROL_NOTICE" -eq 1 ]]; then
 echo "${BLUE}╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
 echo "║  ${RESET}${BLUE}${BOLD}SleepControl Notice:${RESET}${BLUE}                                                                                              ║"
-echo "║  Set 'While inactive' preferences in System Preferences -> Power -> To 'Sleep'. Customize using commands above.            ║"
+echo "║  Overrides default ChromeOS sleep behavior - Change sleepcontrol settings with commands listed above.              ║"
 echo "╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝${RESET}"
 echo ""
 fi
