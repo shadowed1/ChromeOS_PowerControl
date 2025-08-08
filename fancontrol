@@ -234,13 +234,13 @@ start() {
         echo "$(date '+%Y-%m-%d %H:%M:%S') - Truncated log file (exceeded 32KB)" > "$LOG_FILE"
     fi
 
-    if pgrep -f "[f]ancontrol __monitor__" >/dev/null; then
+    if pgrep -f "[f]ancontrol __fancontrol_monitor__" >/dev/null; then
         echo ""
         echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') - FanControl already running. Showing live output...${RESET}" | tee -a "$LOG_FILE"
         echo ""
         tail -n 10 -f "$LOG_FILE"
     else
-        nohup "$0" __monitor__ >> "$LOG_FILE" 2>&1 &
+        nohup "$0" __fancontrol_monitor__ >> "$LOG_FILE" 2>&1 &
         echo ""
         echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') - Starting FanControl - Output is logged to $LOG_FILE${RESET}" | tee -a "$LOG_FILE"
         echo ""
@@ -441,7 +441,7 @@ case "$1" in
         sudo rm -r /etc/init/fancontrol.conf
     fi
         ;;
-    __monitor__)
+    __fancontrol_monitor__)
         echo $$ > "$PID_FILE"
         touch "$RUN_FLAG"
         FAN_COUNT=$(sudo ectool pwmgetnumfans | awk -F= '{print $2}' | sed -e 's/ //g')
