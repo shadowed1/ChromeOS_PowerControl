@@ -666,11 +666,12 @@ case "$1" in
         echo "$(date '+%Y-%m-%d %H:%M:%S') - Truncated log file (exceeded 32KB)" > "$LOG_FILE"
     fi
 
-    if pgrep -f "$0 __monitor__" >/dev/null; then
+    if pgrep -f "$0 __powercontrol_monitor__" >/dev/null; then
         echo "${RED}$(date '+%Y-%m-%d %H:%M:%S') - Monitor is already running. Showing live output...${RESET}" | tee -a "$LOG_FILE"
         tail -n 20 -f "$LOG_FILE"
     else
-        nohup "$0" __monitor__ >> "$LOG_FILE" 2>&1 &
+        nohup "$0" __powercontrol_monitor__ >> "$LOG_FILE" 2>&1 &
+        echo $! > "$PID_FILE"
         echo "${CYAN}$(date '+%Y-%m-%d %H:%M:%S') - Starting PowerControl - Output is logged to $LOG_FILE${RESET}" | tee -a "$LOG_FILE"
     fi
     ;;
@@ -847,7 +848,7 @@ case "$1" in
     echo "sudo bash /usr/local/bin/ChromeOS_PowerControl_Installer.sh"
     sudo bash /usr/local/bin/ChromeOS_PowerControl_Installer.sh
     ;;
-    __monitor__)
+    __powercontrol_monitor__)
         LOG_FILE="/var/log/powercontrol.log"
         start_monitoring_loop
     ;;
