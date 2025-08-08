@@ -429,7 +429,7 @@ flock -n 200 || {
         if [ -f "$LOG_FILE" ] && [ "$(stat -c%s "$LOG_FILE")" -gt 32768 ]; then
             echo "$(date '+%Y-%m-%d %H:%M:%S') - Truncated log file (exceeded 32KB)" | tee -a "$LOG_FILE"
         fi
-        setsid "$0" __monitor__ >> "$LOG_FILE" 2>&1 &
+        setsid "$0" __sleepcontrol_monitor__ >> "$LOG_FILE" 2>&1 &
         echo "${GREEN}$(date '+%Y-%m-%d %H:%M:%S') - SleepControl Started. Output is logged to $LOG_FILE${RESET}" | tee -a "$LOG_FILE"
         ;;
     stop)
@@ -584,7 +584,7 @@ echo "════════════════════════�
 echo "${RESET}"
        
         ;;
-    __monitor__)
+    __sleepcontrol_monitor__)
         monitor_idle_activity
         ;;
         --h|-h|h|--help|-help|help)
