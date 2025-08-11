@@ -184,8 +184,9 @@ echo "${RESET}"
 }
 
 start_monitoring_loop() {
-    touch "$RUN_FLAG"
     echo $$ > "$PID_FILE"
+    touch "$RUN_FLAG"
+    
 
     echo "${GREEN}$(date '+%Y-%m-%d %H:%M:%S') - BatteryControl started. (PID $$).${RESET}"
 
@@ -249,11 +250,18 @@ stop_monitoring() {
         if ps -p "$PID" > /dev/null 2>&1; then
             kill "$PID"
             echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') - Stopping BatteryControl (PID $PID)${RESET}" | tee -a "$LOG_FILE"
+        else
+            echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') - No running BatteryControl process found for PID $PID${RESET}" | tee -a "$LOG_FILE"
         fi
         rm -f "$PID_FILE"
+    else
+        echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') - PID file not found.${RESET}" | tee -a "$LOG_FILE"
     fi
 
-    rm -f "$RUN_FLAG"
+    if [ -f "$RUN_FLAG" ]; then
+        rm -f "$RUN_FLAG"
+        echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') - Removed RUN_FLAG${RESET}" | tee -a "$LOG_FILE"
+    fi
 }
 
 case "$1" in
