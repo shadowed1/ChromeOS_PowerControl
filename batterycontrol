@@ -260,7 +260,6 @@ stop_monitoring() {
 
     if [ -f "$RUN_FLAG" ]; then
         rm -f "$RUN_FLAG"
-        echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') - Removed RUN_FLAG${RESET}" | tee -a "$LOG_FILE"
     fi
 }
 
