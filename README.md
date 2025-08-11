@@ -235,7 +235,7 @@ Shortened arguments for PowerControl and FanControl. Fixed minor errors in Sleep
 - 0.30: `Fixed logic order for sleepcontrol that caused it to eventually stop working. Added monitor command for sleepcontrol.` <br><br>
 - 0.31: `Sleepcontrol simulation thresholds rewritten. Fixed bug with missing stop command for sleepcontrol during uninstall/reinstall. Fixed bug with removing $PID_FILE.lock on stop. Added ability to keep backlit keyboard off during simulated activity. Added powerd monitor command for SleepControl.` <br><br>
 - 0.32: `Fixed monitor process syntax so stop commands will work reliably` <br><br>
-- 0.33: `Fixed batterycontrol run flag being duplicated.`
+- 0.33: `Fixed batterycontrol run flag being duplicated. Restore Battery charge control when stopping BatteryControl.`
   
 __Acknowledgements:__
 
