@@ -280,6 +280,7 @@ case "$1" in
         ;;
     stop)
         stop_monitoring
+        sudo ectool chargecontrol normal
         ;;
     ""|status)
         battery_status
