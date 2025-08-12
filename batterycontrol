@@ -268,14 +268,25 @@ case "$1" in
         set_threshold "$2"
         ;;
     start)
-        stop_monitoring >/dev/null 2>&1
-        LOG_FILE="/var/log/batterycontrol.log"
-
-        if [ -f "$LOG_FILE" ] && [ "$(stat -c%s "$LOG_FILE")" -gt 32768 ]; then
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - Truncated log file (exceeded 32KB)" | tee -a "$LOG_FILE"
+        if [ -f "$PID_FILE" ]; then
+            PID=$(cat "$PID_FILE")
+            if ps -p "$PID" > /dev/null 2>&1; then
+                echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') - BatteryControl already running (PID $PID). Not starting another.${RESET}" | tee -a "$LOG_FILE"
+                exit 0
+            else
+                echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') - PID file exists but process $PID not running. Cleaning PID file.${RESET}" | tee -a "$LOG_FILE"
+                rm -f "$PID_FILE"
+            fi
         fi
-
+    
+        LOG_FILE="/var/log/batterycontrol.log"
+    
+        if [ -f "$LOG_FILE" ] && [ "$(stat -c%s "$LOG_FILE")" -gt 32768 ]; then
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - Truncated log file (exceeded 32KB)" > "$LOG_FILE"
+        fi
+    
         nohup "$0" __batterycontrol_monitor__ >> "$LOG_FILE" 2>&1 &
+    
         echo "${GREEN}$(date '+%Y-%m-%d %H:%M:%S') - Starting BatteryControl - Output is logged to $LOG_FILE${RESET}" | tee -a "$LOG_FILE"
         ;;
     stop)
