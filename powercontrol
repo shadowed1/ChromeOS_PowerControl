@@ -788,7 +788,9 @@ case "$1" in
             exit 1
         fi
         sed -i "s/^HOTZONE=.*/HOTZONE=$2/" "$CONFIG_FILE"
-        echo "hotzone set to $2°C"
+        echo "${CYAN}"
+        echo "Hotzone set to $2°C"
+        echo "${RESET}"   
     else
         echo "Error: hotzone must be between 60°C and 90°C"
         exit 1
