@@ -293,7 +293,9 @@ set_temp_threshold() {
     load_config
     MAX_TEMP=$1
     save_config
+    echo "${CYAN}"
     echo "Max temperature threshold set to $MAX_TEMP°C"
+    echo "${RESET}"
 }
 
 set_min_temp() {
@@ -304,7 +306,9 @@ set_min_temp() {
     load_config
     MIN_TEMP=$1
     save_config
+    echo "${CYAN}"
     echo "Min temperature threshold set to $MIN_TEMP°C"
+    echo ${RESET}"
 }
 
 set_min_perf_pct() {
