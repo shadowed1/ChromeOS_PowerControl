@@ -308,7 +308,7 @@ set_min_temp() {
     save_config
     echo "${CYAN}"
     echo "Min temperature threshold set to $MIN_TEMP°C"
-    echo ${RESET}"
+    echo "${RESET}"
 }
 
 set_min_perf_pct() {
