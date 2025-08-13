@@ -15,7 +15,7 @@ remove_file_with_message() {
     local file="$1"
     if [ -f "$file" ]; then
         sudo rm "$file" && echo "Removed: $file"
-    elif [ -L "$file" ]; th
+    elif [ -L "$file" ]; then
         sudo rm "$file" && echo "Removed symlink: $file"
     else
         echo "Not found: $file"
