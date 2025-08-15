@@ -241,12 +241,11 @@ monitor_idle_activity() {
         fi
     }
 
-        while [ -f "$RUN_FLAG" ]; do
-            sleep 20
+        now=$(date +%s)
+        if (( now - last_reload_time >= 30 )); then
             load_config
-        done
-    ) &
-    config_reload_pid=$!
+            last_reload_time=$now
+        fi
 
     tail -Fn0 /var/log/power_manager/powerd.LATEST | while read -r line; do
         now=$(date +%s)
