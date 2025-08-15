@@ -61,7 +61,7 @@ DEFAULT_BATTERY_DIM_DELAY=3
 DEFAULT_POWER_DELAY=30
 DEFAULT_POWER_BACKLIGHT=15
 DEFAULT_POWER_DIM_DELAY=8
-DEFAULT_MODE_TYPE=deep
+DEFAULT_SUSPEND_MODE=deep
 
 AUDIO_DETECTION_BATTERY=
 AUDIO_DETECTION_POWER=
@@ -71,7 +71,8 @@ BATTERY_DIM_DELAY=
 POWER_DELAY=
 POWER_BACKLIGHT=
 POWER_DIM_DELAY=
-MODE_TYPE=
+SUSPEND_MODE=
+ORIGINAL_SUSPEND_MODE
 audio_active=0
 saved_display_brightness=0
 
@@ -81,7 +82,8 @@ BATTERY_BACKLIGHT=$DEFAULT_BATTERY_BACKLIGHT
 POWER_BACKLIGHT=$DEFAULT_POWER_BACKLIGHT
 BATTERY_DIM_DELAY=$DEFAULT_BATTERY_DIM_DELAY
 POWER_DIM_DELAY=$DEFAULT_POWER_DIM_DELAY
-MODE_TYPE=$DEFAULT_MODE_TYPE
+SUSPEND_MODE=$DEFAULT_SUSPEND_MODE
+ORIGINAL_SUSPEND_MODE=$ORIGINAL_SUSPEND_MODE
 
 load_config() {
     if [ -f "$CONFIG_FILE" ]; then
@@ -134,19 +136,19 @@ validate_config() {
         AUDIO_DETECTION_POWER=1
     fi
 
-    if [[ -z "$MODE_TYPE" || ( "$MODE_TYPE" != "freeze" && "$MODE_TYPE" != "deep" ) ]]; then
+    if [[ -z "$SUSPEND_MODE" || ( "$SUSPEND_MODE" != "freeze" && "$SUSPEND_MODE" != "deep" ) ]]; then
         # Default to current suspend mode from system if invalid or empty
         if [[ -f "/usr/share/power_manager/suspend_mode" ]]; then
-            MODE_TYPE=$(cat /usr/share/power_manager/suspend_mode)
-            if [[ "$MODE_TYPE" != "freeze" && "$MODE_TYPE" != "deep" ]]; then
-                MODE_TYPE="freeze"
+            SUSPEND_MODE=$(cat /usr/share/power_manager/suspend_mode)
+            if [[ "$SUSPEND_MODE" != "freeze" && "$SUSPEND_MODE" != "deep" ]]; then
+                SUSPEND_MODE="freeze"
             fi
         else
-            MODE_TYPE="freeze"
+            SUSPEND_MODE="freeze"
         fi
     fi
 
-    SUSPEND_MODE="$MODE_TYPE"
+    SUSPEND_MODE="$SUSPEND_MODE"
 }
 
 
@@ -160,7 +162,8 @@ save_config() {
     sed -i "s/^POWER_DIM_DELAY=.*/POWER_DIM_DELAY=$POWER_DIM_DELAY/" "$CONFIG_FILE" || echo "POWER_DIM_DELAY=$POWER_DIM_DELAY" >> "$CONFIG_FILE"
     sed -i "s/^AUDIO_DETECTION_BATTERY=.*/AUDIO_DETECTION_BATTERY=$AUDIO_DETECTION_BATTERY/" "$CONFIG_FILE" || echo "AUDIO_DETECTION_BATTERY=$AUDIO_DETECTION_BATTERY" >> "$CONFIG_FILE"
     sed -i "s/^AUDIO_DETECTION_POWER=.*/AUDIO_DETECTION_POWER=$AUDIO_DETECTION_POWER/" "$CONFIG_FILE" || echo "AUDIO_DETECTION_POWER=$AUDIO_DETECTION_POWER" >> "$CONFIG_FILE"
-    sed -i "s/^MODE_TYPE=.*/MODE_TYPE=$SUSPEND_MODE/" "$CONFIG_FILE" || echo "MODE_TYPE=$SUSPEND_MODE" >> "$CONFIG_FILE"
+    sed -i "s/^SUSPEND_MODE=.*/SUSPEND_MODE=$SUSPEND_MODE/" "$CONFIG_FILE" || echo "SUSPEND_MODE=$SUSPEND_MODE" >> "$CONFIG_FILE"
+    sed -i "s/^ORIGINAL_SUSPEND_MODE=.*/ORIGINAL_SUSPEND_MODE=$ORIGINAL_SUSPEND_MODE/" "$CONFIG_FILE" || echo "ORIGINAL_SUSPEND_MODE=$ORIGINAL_SUSPEND_MODE" >> "$CONFIG_FILE"
 
 
 }
@@ -655,7 +658,7 @@ echo "${RED}"
 echo "═══════════════════════════════════════════════════════════════════════════════════════════"
 echo "                            SleepControl Status: STOPPED                                       "
         fi
-echo "  Suspend Mode: ${MODE_TYPE}"
+echo "  Suspend Mode:${SUSPEND_MODE}"
 echo "  Battery = Dim: $((BATTERY_DIM_DELAY)) min -> Timeout: $((BATTERY_BACKLIGHT)) min -> Sleep: $((BATTERY_DELAY)) min | Audio Detection: $AUDIO_DETECTION_BATTERY"
 echo "  Power   = Dim: $((POWER_DIM_DELAY)) min -> Timeout: $((POWER_BACKLIGHT)) min -> Sleep: $((POWER_DELAY)) min | Audio Detection: $AUDIO_DETECTION_POWER"
 echo "══════════════════════════════════════════════════════════════════════════════════════════"
@@ -679,17 +682,17 @@ echo "${RESET}"
         ;;
     mode)
         if [[ $# -eq 2 ]]; then
-            MODE_TYPE="$2"
-            if [[ "$MODE_TYPE" != "freeze" && "$MODE_TYPE" != "deep" ]]; then
-                echo "${RED}Invalid suspend type: $MODE_TYPE${RESET}"
+            SUSPEND_MODE="$2"
+            if [[ "$SUSPEND_MODE" != "freeze" && "$SUSPEND_MODE" != "deep" ]]; then
+                echo "${RED}Invalid suspend type: ${SUSPEND_MODE}${RESET}"
                 echo "Valid suspend types: freeze, deep"
                 exit 1
             fi
 
-            echo "$MODE_TYPE" | sudo tee /usr/share/power_manager/suspend_mode >/dev/null
+            echo "$SUSPEND_MODE" | sudo tee /usr/share/power_manager/suspend_mode >/dev/null
             sudo restart powerd
 
-            SUSPEND_MODE="$MODE_TYPE"
+            SUSPEND_MODE="$SUSPEND_MODE"
             save_config
 
             echo "${BLUE}Suspend mode set to: $SUSPEND_MODE${RESET}"
