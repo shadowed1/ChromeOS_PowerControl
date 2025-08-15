@@ -53,7 +53,25 @@ load_config() {
         source "$CONFIG_FILE"
     fi
     validate_config
+    recalc_timers
 }
+
+recalc_timers() {
+    if [[ "$status" == "Discharging" ]]; then
+        dim_delay=$((BATTERY_DIM_DELAY * 60))
+        backlight_delay=$((BATTERY_BACKLIGHT * 60))
+        suspend_delay=$((BATTERY_DELAY * 60))
+        AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_BATTERY
+    else
+        dim_delay=$((POWER_DIM_DELAY * 60))
+        backlight_delay=$((POWER_BACKLIGHT * 60))
+        suspend_delay=$((POWER_DELAY * 60))
+        AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_POWER
+    fi
+
+    echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Settings updated:Dim=$dim_delay -> Timeout=$backlight_delay -> Sleep=$suspend_delay${RESET}" >> "$LOG_FILE"
+}
+
 
 validate_config() {
     if [[ -z "$BATTERY_DELAY" || ! "$BATTERY_DELAY" =~ ^[0-9]+$ ]]; then
@@ -222,6 +240,13 @@ monitor_idle_activity() {
             fake_activity_pid=0
         fi
     }
+
+        while [ -f "$RUN_FLAG" ]; do
+            sleep 20
+            load_config
+        done
+    ) &
+    config_reload_pid=$!
 
     tail -Fn0 /var/log/power_manager/powerd.LATEST | while read -r line; do
         now=$(date +%s)
@@ -398,6 +423,8 @@ fi
     done
 
     stop_fake_activity
+    kill "$config_reload_pid" 2>/dev/null
+    wait "$config_reload_pid" 2>/dev/null
 }
 
 stop_monitoring() {
@@ -479,6 +506,7 @@ flock -n 200 || {
 
         save_config
         echo "${BLUE}${BOLD}${MODE^}${RESET}${BLUE} = Dim: $((DIM_VAL)) min -> Timeout: $((BACKLIGHT_VAL)) min -> Sleep: $((DELAY_VAL)) min${RESET}"
+        load_config
 
     elif [[ $# -eq 3 ]]; then
         BACKLIGHT_VAL=$2
@@ -508,7 +536,8 @@ flock -n 200 || {
         fi
 
         save_config
-        echo "${GREEN}${BOLD}${MODE^}${RESET}${GREEN} = Timeout: $((POWER_BACKLIGHT)) min -> Sleep: $((POWER_DELAY)) min${RESET}"
+        echo "${BLUE}${BOLD}${MODE^}${RESET}${BLUE} = Timeout: $((POWER_BACKLIGHT)) min -> Sleep: $((POWER_DELAY)) min${RESET}"
+        load_config
 
 
     elif [[ $# -eq 2 ]]; then
@@ -526,14 +555,15 @@ flock -n 200 || {
         fi
 
         save_config
-        echo "${GREEN}${BOLD}${MODE^}${RESET}${GREEN} = Sleep: $((POWER_DELAY)) min${RESET}"
+        echo "${BLUE}${BOLD}${MODE^}${RESET}${BLUE} = Sleep: $((POWER_DELAY)) min${RESET}"
+        load_config
 
     else
         load_config
         if [[ "$MODE" == "battery" ]]; then
-            echo "Battery = Dim: $((BATTERY_DIM_DELAY)) min -> Timeout: $((BATTERY_BACKLIGHT)) min -> Sleep: $((BATTERY_DELAY)) min | Audio Detection: $AUDIO_DETECTION_BATTERY"
+            echo "${BLUE}Battery = Dim: $((BATTERY_DIM_DELAY)) min -> Timeout: $((BATTERY_BACKLIGHT)) min -> Sleep: $((BATTERY_DELAY)) min | Audio Detection: $AUDIO_DETECTION_BATTERY${RESET}"
         else
-            echo "Power = Dim: $((POWER_DIM_DELAY)) min -> Timeout: $((POWER_BACKLIGHT)) min -> Sleep: $((POWER_DELAY)) min | Audio Detection: $AUDIO_DETECTION_POWER"
+            echo "${BLUE}Power = Dim: $((POWER_DIM_DELAY)) min -> Timeout: $((POWER_BACKLIGHT)) min -> Sleep: $((POWER_DELAY)) min | Audio Detection: $AUDIO_DETECTION_POWER${RESET}"
         fi
     fi
     ;;
