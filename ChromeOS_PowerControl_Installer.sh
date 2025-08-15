@@ -733,6 +733,7 @@ echo "${GREEN}"
 echo "╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
 echo "║   ${RESET}${GREEN}${BOLD}BatteryControl Notice:${RESET}${GREEN}                                                                                           ║"
 echo "║   Disable Adaptive Charging in Settings → System Preferences → Power to avoid notification spam.                   ║"
+echo "║   Deep Sleep disables batterycontrol. Run sudo sleepcontrol mode freeze to prevent this behavior.                  ║"
 echo "╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝${RESET}"
 fi
 
