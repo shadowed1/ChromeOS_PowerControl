@@ -38,6 +38,11 @@ Open Crosh shell (ctrl-alt-t), enter `shell`, copy paste, and run:
  `sudo mkdir -p /usr/local/bin` <br>
  `sudo mv /home/chronos/ChromeOS_PowerControl_Installer.sh /usr/local/bin` <br>
  `sudo bash /usr/local/bin/ChromeOS_PowerControl_Installer.sh`
+<br>
+
+ - To disable rootfs verification and enable sudo in crosh check out sudoCrosh by pasting this in crosh shell:
+<pre>bash <(curl -s "https://raw.githubusercontent.com/shadowed1/sudoCrosh/main/sudocrosh_downloader.sh?$(date +%s)")</pre>
+<br>
 
 - Installer has prompts to customize installation.
 - PowerControl, BatteryControl, FanControl, and SleepControl can run in the background and can be adjusted in real-time.
@@ -188,8 +193,7 @@ __How It Works:__
 <br>
 
 __Bonus:__
-- To disable rootfs verification and enable sudo in crosh try out sudoCrosh: https://github.com/shadowed1/sudoCrosh/ 
-<pre>bash <(curl -s "https://raw.githubusercontent.com/shadowed1/sudoCrosh/main/sudocrosh_downloader.sh?$(date +%s)")</pre>
+
 
 <br>
 
