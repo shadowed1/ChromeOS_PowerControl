@@ -12,11 +12,43 @@ CONFIG_FILE="$INSTALL_DIR/config.sh"
 PID_FILE="$INSTALL_DIR/.sleepcontrol_pid"
 RUN_FLAG="$INSTALL_DIR/.sleepcontrol_enabled"
 LOG_FILE="/var/log/sleepcontrol.log"
-BATTERY_STATUS_PATH="/sys/class/power_supply/BAT0/status"
+BATTERY_STATUS_PATH="/var/log/power_manager/powerd.LATEST"
 BACKLIGHT_NAME=""
 BRIGHTNESS_PATH=""
 MAX_BRIGHTNESS_PATH=""
 FAKE_ACTIVITY_INTERVAL=120
+
+
+get_battery_info() {
+    local line
+    line=$(grep -E "On (battery|AC)|line_power (connected|online)" "$BATTERY_STATUS_PATH" | tail -n1)
+
+    if [[ "$line" =~ On\ battery\ at\ ([0-9]+)% ]]; then
+        CHARGE="${BASH_REMATCH[1]}"
+        STATUS="Discharging"
+
+    elif [[ "$line" =~ On\ AC ]]; then
+        if [[ "$line" =~ battery\ at\ ([0-9]+)% ]]; then
+            CHARGE="${BASH_REMATCH[1]}"
+        else
+            CHARGE=""
+        fi
+        STATUS="Charging"
+
+    elif [[ "$line" == *"line_power connected"* || "$line" == *"line_power online"* ]]; then
+        if [[ "$line" =~ at\ ([0-9]+)% ]]; then
+            CHARGE="${BASH_REMATCH[1]}"
+        else
+            CHARGE=""
+        fi
+        STATUS="Charging"
+
+    else
+        CHARGE=""
+        STATUS="Unknown"
+    fi
+}
+
 
 if ! ( [[ -z "$1" ]] || [[ "$1" == "--h" || "$1" == "-h" || "$1" == "h" || "$1" == "--help" || "$1" == "-help" || "$1" == "help" || "$1" == "monitor" || "$1" == "powerd" || "$1" == "status" ]] ) && [[ "$(id -u)" -ne 0 ]]; then    echo "${RED}SleepControl requires sudo to run.${RESET}"
     echo "  Try: sudo sleepcontrol $*  or  sudo $0 $*"
@@ -251,16 +283,14 @@ monitor_idle_activity() {
         now=$(date +%s)
 
         if (( now - last_power_check_time >= 30 )); then
-            if [[ -f "$BATTERY_STATUS_PATH" ]]; then
-                battery_status=$(cat "$BATTERY_STATUS_PATH")
-                if [[ "$battery_status" == "Discharging" ]]; then
-                    status="Discharging"
-                else
-                    status="Charging"
-                fi
+            get_battery_info
+            if [[ -z "$STATUS" ]]; then
+                STATUS="Unknown"
+                CHARGE=""
             fi
             last_power_check_time=$now
         fi
+
 
         if [[ "$status" == "Discharging" ]]; then
             AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_BATTERY
