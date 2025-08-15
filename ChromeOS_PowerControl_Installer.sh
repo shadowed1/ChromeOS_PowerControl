@@ -540,10 +540,11 @@ start_component_now() {
             read -rp "${BOLD}${GREEN}Do you want to set suspend mode from deep to freeze, allowing  BatteryControl to function while sleeping?${RESET}${BOLD} (Y/n): ${RESET} " set_freeze
             if [[ -z "$set_freeze" || "$set_freeze" =~ ^[Yy]$ ]]; then
                 echo "freeze" | sudo tee /usr/share/power_manager/suspend_mode >/dev/null
-                echo "${GREEN}sleep_mode set to freeze.${RESET}"
+                sudo powerd restart >/dev/null
+                echo "${GREEN}Suspend Mode set to freeze.${RESET}"
                 echo ""
             else
-                echo "${YELLOW}sleep_mode not changed.${RESET}"
+                echo "${YELLOW}Suspend Mode unchanged.${RESET}"
                 echo ""
             fi
         fi
