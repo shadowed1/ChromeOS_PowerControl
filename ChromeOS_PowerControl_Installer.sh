@@ -160,6 +160,15 @@ done
     GPU_TYPE="unknown"
 }
 
+detect_suspend_mode() {
+    if [ -f /usr/share/power_manager/suspend_mode ]; then
+        CURRENT_SUSPEND_MODE=$(cat /usr/share/power_manager/suspend_mode)
+    else
+        CURRENT_SUSPEND_MODE="deep"
+    fi
+    echo "Detected suspend mode: $CURRENT_SUSPEND_MODE"
+}
+
 INSTALL_DIR="/usr/local/bin/ChromeOS_PowerControl"
 echo "${YELLOW}"
 echo "╔═══════════════════════════════════════════════════════════════════════════════════════════════╗"
@@ -232,6 +241,7 @@ else
     SKIP_FANCONTROL=false
 fi
 
+detect_suspend_mode
 detect_backlight_path
 detect_cpu_type
 
@@ -370,6 +380,7 @@ declare -A defaults=(
   [POWER_BACKLIGHT]=$POWER_BACKLIGHT
   [AUDIO_DETECTION_BATTERY]=$AUDIO_DETECTION_BATTERY
   [AUDIO_DETECTION_POWER]=$AUDIO_DETECTION_POWER
+  [SUSPEND_MODE]=$CURRENT_SUSPEND_MODE
   [PERF_PATH]=$PERF_PATH
   [TURBO_PATH]=$TURBO_PATH
   [GPU_FREQ_PATH]=$GPU_FREQ_PATH
