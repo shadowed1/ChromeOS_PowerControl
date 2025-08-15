@@ -72,7 +72,7 @@ POWER_DELAY=
 POWER_BACKLIGHT=
 POWER_DIM_DELAY=
 SUSPEND_MODE=
-ORIGINAL_SUSPEND_MODE
+ORIGINAL_SUSPEND_MODE=
 audio_active=0
 saved_display_brightness=0
 
@@ -146,8 +146,6 @@ validate_config() {
             SUSPEND_MODE="freeze"
         fi
     fi
-
-    SUSPEND_MODE="$SUSPEND_MODE"
 }
 
 
