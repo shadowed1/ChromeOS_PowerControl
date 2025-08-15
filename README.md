@@ -122,7 +122,8 @@ __PowerControl commands with examples:__
   `sudo sleepcontrol battery 3 7 12   # When idle, display dims in 3m -> timeout in 7m -> sleeps in 12m on battery`   
   `sudo sleepcontrol power 5 15 30    # When idle, display dims in 5m -> timeout -> 15m -> sleeps in 30m on power`  
   `sudo sleepcontrol battery audio 0  # Disable audio detection on battery; sleep can occur during media playback`   
-  `sudo sleepcontrol power audio 1    # Enable audio detection on power; delaying sleep until audio is stopped`       
+  `sudo sleepcontrol power audio 1    # Enable audio detection on power; delaying sleep until audio is stopped`
+  `sudo sleepcontrol mode freeze      # Change suspend mode to freeze, enabling batterycontrol to work asleep`
   `sudo sleepcontrol startup          # Copy or Remove sleepcontrol.conf at: /etc/init/`     
 
 <br><br><br><br>
