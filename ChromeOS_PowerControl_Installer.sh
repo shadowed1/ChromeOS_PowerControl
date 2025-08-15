@@ -530,13 +530,22 @@ start_component_now() {
         *)                COLOR=${RESET} ;;
     esac
 
-    read -rp "${COLOR}Do you want to start $component now?${RESET}${BOLD} (Y/n): ${RESET} " start_now
+   read -rp "${COLOR}Do you want to start $component now?${RESET}${BOLD} (Y/n): ${RESET} " start_now
     if [[ -z "$start_now" || "$start_now" =~ ^[Yy]$ ]]; then
         sudo "$command" start
         echo ""
 
         if [[ "$component" == "BatteryControl" ]]; then
             declare -g SHOW_BATTERYCONTROL_NOTICE=1
+            read -rp "${BOLD}${GREEN}Do you want to set suspend mode from deep to freeze, allowing  BatteryControl to function while sleeping?${RESET}${BOLD} (Y/n): ${RESET} " set_freeze
+            if [[ -z "$set_freeze" || "$set_freeze" =~ ^[Yy]$ ]]; then
+                echo "freeze" | sudo tee /usr/share/power_manager/suspend_mode >/dev/null
+                echo "${GREEN}sleep_mode set to freeze.${RESET}"
+                echo ""
+            else
+                echo "${YELLOW}sleep_mode not changed.${RESET}"
+                echo ""
+            fi
         fi
 
         if [[ "$component" == "GPUControl" ]]; then
