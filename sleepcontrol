@@ -21,7 +21,6 @@ FAKE_ACTIVITY_INTERVAL=120
 SUSPEND_APPLIED_FLAG="/tmp/.sleepcontrol_suspend_applied"
 
 if [[ ! -f "$SUSPEND_APPLIED_FLAG" ]]; then
-    # Resolve the real install dir from symlink
     INSTALL_DIR="$(dirname "$(readlink -f "$0")")"
     CONFIG_FILE="$INSTALL_DIR/config.sh"
 
@@ -126,7 +125,6 @@ recalc_timers() {
 
 
 validate_config() {
-    # Numeric delay checks
     if [[ -z "$BATTERY_DELAY" || ! "$BATTERY_DELAY" =~ ^[0-9]+$ ]]; then
         BATTERY_DELAY=$DEFAULT_BATTERY_DELAY
     fi
