@@ -241,7 +241,8 @@ Shortened arguments for PowerControl and FanControl. Fixed minor errors in Sleep
 - 0.32: `Fixed monitor process syntax so stop commands will work reliably` <br><br>
 - 0.33: `Fixed batterycontrol run flag being duplicated. Restore Battery charge control when stopping BatteryControl.` <br><br>
 - 0.34: `Added sleepcontrol mode command to alter suspend modes; enabling batterycontrol/ectool logic during sleep.
-Fixed config loading logic in sleepcontrol so settings update properly. Updated SleepControl battery detection using powerd.LATEST for better compatibility.` <br><br>
+Fixed config loading logic in sleepcontrol so settings update properly. Updated SleepControl battery detection using powerd.LATEST for better compatibility.
+Added prompt in installer to set suspend mode to freeze. ` <br><br>
   
 __Acknowledgements:__
 
