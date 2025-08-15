@@ -608,8 +608,8 @@ echo "${RED}"
 echo "══════════════════════════════════════════════════════════════════════════════R════════════"
 echo "                            SleepControl Status: STOPPED                                       "
         fi
-echo "  Battery = Dim: $((BATTERY_DIM_DELAY)) min -> Timeout: $((BATTERY_BACKLIGHT)) min -> Sleep: $((BATTERY_DELAY)) min | Audio Detection: $AUDIO_DETECTION_BATTERY"
-echo "  Power   = Dim: $((POWER_DIM_DELAY)) min -> Timeout: $((POWER_BACKLIGHT)) min -> Sleep: $((POWER_DELAY)) min | Audio Detection: $AUDIO_DETECTION_POWER"
+echo "  Battery = Dim: $((BATTERY_DIM_DELAY)) min -> Timeout: $((BATTERY_BACKLIGHT)) min -> Sleep: $((BATTERY_DELAY)) min | Audio Detection: $AUDIO_DETECTION_BATTERY | Sleep type: $MODE_TYPE"
+echo "  Power   = Dim: $((POWER_DIM_DELAY)) min -> Timeout: $((POWER_BACKLIGHT)) min -> Sleep: $((POWER_DELAY)) min | Audio Detection: $AUDIO_DETECTION_POWER | Sleep type: $MODE_TYPE"
 echo "══════════════════════════════════════════════════════════════════════════════════════════"
 echo "${RESET}"
        
@@ -628,6 +628,27 @@ echo "${RESET}"
         ;;
     stop)
         stop_monitoring
+        ;;
+    type)
+        if [[ $# -eq 2 ]]; then
+            MODE_TYPE="$2"
+            if [[ "$MODE_TYPE" != "freeze" && "$MODE_TYPE" != "deep" ]]; then
+                echo "${RED}Invalid suspend type: $MODE_TYPE${RESET}"
+                echo "Valid suspend types: freeze, deep"
+                exit 1
+            fi
+
+            echo "$MODE_TYPE" | sudo tee /usr/share/power_manager/suspend_mode >/dev/null
+            sudo restart powerd
+
+            SUSPEND_MODE="$MODE_TYPE"
+            save_config
+
+            echo "${GREEN}Suspend mode set to: $SUSPEND_MODE${RESET}"
+        else
+            echo "Valid suspend types: freeze, deep"
+            echo "Current suspend mode: $(cat /usr/share/power_manager/suspend_mode)"
+        fi
         ;;
     *)
         show_help
