@@ -355,7 +355,7 @@ if [[ -z "${POWER_BACKLIGHT}" ]]; then POWER_BACKLIGHT=32; fi
 if [[ -z "${POWER_DIM_DELAY}" ]]; then POWER_DIM_DELAY=16; fi
 if [[ -z "${AUDIO_DETECTION_BATTERY}" ]]; then AUDIO_DETECTION_BATTERY=1; fi
 if [[ -z "${AUDIO_DETECTION_POWER}" ]]; then AUDIO_DETECTION_POWER=1; fi
-if [[ -z "${ORIGINAL_SUSPEND_MODE}" ]]; then ORIGINAL_GPU_MAX_FREQ=$SUSPEND_MODE; fi
+if [[ -z "${ORIGINAL_SUSPEND_MODE}" ]]; then ORIGINAL_SUSPEND_MODE=$SUSPEND_MODE; fi
 
 
 declare -A defaults=(
