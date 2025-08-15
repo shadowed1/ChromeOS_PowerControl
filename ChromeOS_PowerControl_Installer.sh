@@ -537,7 +537,7 @@ start_component_now() {
 
         if [[ "$component" == "BatteryControl" ]]; then
             declare -g SHOW_BATTERYCONTROL_NOTICE=1
-            read -rp "${BOLD}${GREEN}Do you want to set suspend mode from deep to freeze, allowing  BatteryControl to function while sleeping?${RESET}${BOLD} (Y/n): ${RESET} " set_freeze
+            read -rp "${BOLD}${GREEN}Do you want to set suspend mode from deep to freeze, allowing  BatteryControl to function while sleeping? Display will dim when enabling (powerd restarting)${RESET}${BOLD} (Y/n): ${RESET} " set_freeze
             if [[ -z "$set_freeze" || "$set_freeze" =~ ^[Yy]$ ]]; then
                 echo "freeze" | sudo tee /usr/share/power_manager/suspend_mode >/dev/null
                 sudo restart powerd >/dev/null
