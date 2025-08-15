@@ -137,7 +137,6 @@ validate_config() {
     fi
 
     if [[ -z "$SUSPEND_MODE" || ( "$SUSPEND_MODE" != "freeze" && "$SUSPEND_MODE" != "deep" ) ]]; then
-        # Default to current suspend mode from system if invalid or empty
         if [[ -f "/usr/share/power_manager/suspend_mode" ]]; then
             SUSPEND_MODE=$(cat /usr/share/power_manager/suspend_mode)
             if [[ "$SUSPEND_MODE" != "freeze" && "$SUSPEND_MODE" != "deep" ]]; then
