@@ -696,8 +696,10 @@ echo "${RESET}"
         if [[ $# -eq 2 ]]; then
             SUSPEND_MODE="$2"
             if [[ "$SUSPEND_MODE" != "freeze" && "$SUSPEND_MODE" != "deep" ]]; then
+                echo ""
                 echo "${RED}Invalid suspend type: ${SUSPEND_MODE}${RESET}"
-                echo "Valid suspend types: freeze, deep"
+                echo "${BLUE}Valid suspend types: freeze or deep${RESET}"
+                echo ""
                 exit 1
             fi
 
