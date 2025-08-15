@@ -61,6 +61,7 @@ DEFAULT_BATTERY_DIM_DELAY=3
 DEFAULT_POWER_DELAY=30
 DEFAULT_POWER_BACKLIGHT=15
 DEFAULT_POWER_DIM_DELAY=8
+DEFAULT_MODE_TYPE=deep
 
 AUDIO_DETECTION_BATTERY=
 AUDIO_DETECTION_POWER=
@@ -70,6 +71,7 @@ BATTERY_DIM_DELAY=
 POWER_DELAY=
 POWER_BACKLIGHT=
 POWER_DIM_DELAY=
+MODE_TYPE=
 audio_active=0
 saved_display_brightness=0
 
@@ -79,6 +81,7 @@ BATTERY_BACKLIGHT=$DEFAULT_BATTERY_BACKLIGHT
 POWER_BACKLIGHT=$DEFAULT_POWER_BACKLIGHT
 BATTERY_DIM_DELAY=$DEFAULT_BATTERY_DIM_DELAY
 POWER_DIM_DELAY=$DEFAULT_POWER_DIM_DELAY
+MODE_TYPE=$DEFAULT_MODE_TYPE
 
 load_config() {
     if [ -f "$CONFIG_FILE" ]; then
@@ -104,6 +107,7 @@ recalc_timers() {
 
 
 validate_config() {
+    # Numeric delay checks
     if [[ -z "$BATTERY_DELAY" || ! "$BATTERY_DELAY" =~ ^[0-9]+$ ]]; then
         BATTERY_DELAY=$DEFAULT_BATTERY_DELAY
     fi
@@ -116,22 +120,35 @@ validate_config() {
     if [[ -z "$POWER_BACKLIGHT" || ! "$POWER_BACKLIGHT" =~ ^[0-9]+$ ]]; then
         POWER_BACKLIGHT=$DEFAULT_POWER_BACKLIGHT
     fi
-
     if [[ -z "$BATTERY_DIM_DELAY" || ! "$BATTERY_DIM_DELAY" =~ ^[0-9]+$ ]]; then
         BATTERY_DIM_DELAY=$DEFAULT_BATTERY_DIM_DELAY
     fi
     if [[ -z "$POWER_DIM_DELAY" || ! "$POWER_DIM_DELAY" =~ ^[0-9]+$ ]]; then
         POWER_DIM_DELAY=$DEFAULT_POWER_DIM_DELAY
     fi
-    
+
     if [[ -z "$AUDIO_DETECTION_BATTERY" || ! "$AUDIO_DETECTION_BATTERY" =~ ^[01]$ ]]; then
         AUDIO_DETECTION_BATTERY=1
     fi
-    
     if [[ -z "$AUDIO_DETECTION_POWER" || ! "$AUDIO_DETECTION_POWER" =~ ^[01]$ ]]; then
         AUDIO_DETECTION_POWER=1
     fi
+
+    if [[ -z "$MODE_TYPE" || ( "$MODE_TYPE" != "freeze" && "$MODE_TYPE" != "deep" ) ]]; then
+        # Default to current suspend mode from system if invalid or empty
+        if [[ -f "/usr/share/power_manager/suspend_mode" ]]; then
+            MODE_TYPE=$(cat /usr/share/power_manager/suspend_mode)
+            if [[ "$MODE_TYPE" != "freeze" && "$MODE_TYPE" != "deep" ]]; then
+                MODE_TYPE="freeze"
+            fi
+        else
+            MODE_TYPE="freeze"
+        fi
+    fi
+
+    SUSPEND_MODE="$MODE_TYPE"
 }
+
 
 save_config() {
     validate_config
@@ -143,6 +160,8 @@ save_config() {
     sed -i "s/^POWER_DIM_DELAY=.*/POWER_DIM_DELAY=$POWER_DIM_DELAY/" "$CONFIG_FILE" || echo "POWER_DIM_DELAY=$POWER_DIM_DELAY" >> "$CONFIG_FILE"
     sed -i "s/^AUDIO_DETECTION_BATTERY=.*/AUDIO_DETECTION_BATTERY=$AUDIO_DETECTION_BATTERY/" "$CONFIG_FILE" || echo "AUDIO_DETECTION_BATTERY=$AUDIO_DETECTION_BATTERY" >> "$CONFIG_FILE"
     sed -i "s/^AUDIO_DETECTION_POWER=.*/AUDIO_DETECTION_POWER=$AUDIO_DETECTION_POWER/" "$CONFIG_FILE" || echo "AUDIO_DETECTION_POWER=$AUDIO_DETECTION_POWER" >> "$CONFIG_FILE"
+    sed -i "s/^MODE_TYPE=.*/MODE_TYPE=$SUSPEND_MODE/" "$CONFIG_FILE" || echo "MODE_TYPE=$SUSPEND_MODE" >> "$CONFIG_FILE"
+
 
 }
 
