@@ -123,7 +123,7 @@ __PowerControl commands with examples:__
   `sudo sleepcontrol power 5 15 30    # When idle, display dims in 5m -> timeout -> 15m -> sleeps in 30m on power`  
   `sudo sleepcontrol battery audio 0  # Disable audio detection on battery; sleep can occur during media playback`   
   `sudo sleepcontrol power audio 1    # Enable audio detection on power; delaying sleep until audio is stopped`
-  `sudo sleepcontrol mode freeze      # Change suspend mode to freeze, enabling batterycontrol to work asleep`
+  `sudo sleepcontrol mode freeze      # Suspend mode to freeze, enabling batterycontrol to work asleep`
   `sudo sleepcontrol startup          # Copy or Remove sleepcontrol.conf at: /etc/init/`     
 
 <br><br><br><br>
@@ -139,7 +139,8 @@ __How It Works:__
 - If $min_temp threshold is below a certain point, the CPU will be able to reach max_perf_pct of its speed.
 - The closer the CPU approaches $max_temp, the closer it is to min_perf_pct.
 - PowerControl will always be stringent regarding thermals and performance versus native behavior.
-
+- Editable clockspeed ramp-up and ramp-down feature; emulating modern AMD thermal behavior for Intel + ARM.
+- Alter the clockspeed-temperature curve to be more aggressive/passive using hotzone variable.
 <br>
 
 *BatteryControl:*
@@ -149,7 +150,7 @@ __How It Works:__
 - Recommend turning off adatpive charging in ChromeOS to avoid notification spam.
 - Check's BAT0/capacity to measure when to toggle ectool's chargecontrol.
 - ChromeOS reports slightly higher values than what BatteryControl sets the charge limit to.
-- Charge limit is preserved during sleep unless in deep sleep before reaching limit.
+- Charge limit is preserved during freeze sleep with SleepControl allowing to change sleep type. 
 
 <br>
 
@@ -161,6 +162,7 @@ __How It Works:__
 - Uses a kickstart mechanism when fan leaves 0% to enable zero RPM mode for any fan type.
 - Default FanControl behavior has aggressive fan ramp-up behavior with a graceful decrease.
 
+
 <br>
 
 *GPUControl:*
@@ -168,6 +170,8 @@ __How It Works:__
 - Identifies the GPU (AMD, Adreno, Mali, and Intel) based on the name of the device's path in /sys/class/
 - Limits control to only below the maximum clock speed for safety and with Chromebooks in mind.
 - Applies a 120s delay on boot if the user is applying a custom clock speed as a precaution.
+- ChromeOS has built-in overclock prevention, so these safety precautions are just extra guardrails.
+- Altering GPU clockspeed in real-time is a useful tool to debug performance. 
 - Intel GPU's maximum clock speed changed from: /sys/class/drm/card0/gt_max_freq_mhz
 - AMD GPU's maximum clockspeed changed from: /sys/class/drm/card0/pp_od_clk_voltage
 - Adreno GPU's maximum clockspeed changed from /sys/class/kgsl/kgsl-3d0/max_gpuclk
@@ -180,7 +184,7 @@ __How It Works:__
 
 - By reading powerd.LATEST log, SleepControl monitors when the powerd daemon reports 'User activity stopped'.
 - The file /usr/share/power_manager/send_feedback_if_undimmed (when set to 1) is what controls this behavior. 
-- Parsing strings like 'User activity started' or 'Audio activity started' tells SleepControl the user is active. to pause until  is reported.
+- Parsing strings like 'User activity started' or 'Audio activity started' tells SleepControl the user is active.
 - If 'User activity stopped' and 'Audio activity stopped' is parsed, SleepControl assumes the user is away and sleep timers begin.
 - Can turn on or off audio detection to customize sleep during multimedia playback.
 - ChromeOS will report 'User activity stopped' after around 20 seconds of inactivity, so the timers won't be exact.
