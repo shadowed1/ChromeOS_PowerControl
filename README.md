@@ -252,3 +252,9 @@ __Acknowledgements:__
 - Thanks to DennisLfromGA for showing me how to enable sudo on crosh, testing out PowerControl, finding bugs, implementing fixes, and providing  many great suggestions:
 https://github.com/DennisLfromGA
 
+<br>
+
+__Support:__
+
+- Feel free to post any issues or on the ChromeOS discord - there is a thread dedicated to ChromeOS_PowerControl: https://discord.gg/chromeos
+  
