@@ -99,9 +99,7 @@ recalc_timers() {
         backlight_delay=$((POWER_BACKLIGHT * 60))
         suspend_delay=$((POWER_DELAY * 60))
         AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_POWER
-    fi
-
-    echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Settings updated:Dim=$dim_delay -> Timeout=$backlight_delay -> Sleep=$suspend_delay${RESET}" >> "$LOG_FILE"
+    fi    
 }
 
 
