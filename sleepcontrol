@@ -169,7 +169,7 @@ save_current_brightness() {
             AUDIO_DETECTION_POWER=$value
         fi
         save_config
-        echo "${GREEN}Audio detection for $mode set to $value${RESET}"
+        echo "${BLUE}Audio detection for $mode set to $value${RESET}"
     else
         echo "Usage: $0 $mode audio <0|1>"
     fi
@@ -457,7 +457,7 @@ flock -n 200 || {
             echo "$(date '+%Y-%m-%d %H:%M:%S') - Truncated log file (exceeded 32KB)" | tee -a "$LOG_FILE"
         fi
         setsid "$0" __sleepcontrol_monitor__ >> "$LOG_FILE" 2>&1 &
-        echo "${GREEN}$(date '+%Y-%m-%d %H:%M:%S') - SleepControl Started. Output is logged to $LOG_FILE${RESET}" | tee -a "$LOG_FILE"
+        echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - SleepControl Started. Output is logged to $LOG_FILE${RESET}" | tee -a "$LOG_FILE"
         ;;
     stop)
         sudo ectool backlight 1 >/dev/null 2>&1
@@ -561,9 +561,9 @@ flock -n 200 || {
     else
         load_config
         if [[ "$MODE" == "battery" ]]; then
-            echo "${BLUE}Battery = Dim: $((BATTERY_DIM_DELAY)) min -> Timeout: $((BATTERY_BACKLIGHT)) min -> Sleep: $((BATTERY_DELAY)) min | Audio Detection: $AUDIO_DETECTION_BATTERY${RESET}"
+            echo "${BLUE}Battery = Dim: $((BATTERY_DIM_DELAY)) min -> Timeout: $((BATTERY_BACKLIGHT)) min -> Sleep: $((BATTERY_DELAY)) min | Audio Detection: $AUDIO_DETECTION_BATTERY | Suspend Mode: ${MODE_TYPE}${RESET}"
         else
-            echo "${BLUE}Power = Dim: $((POWER_DIM_DELAY)) min -> Timeout: $((POWER_BACKLIGHT)) min -> Sleep: $((POWER_DELAY)) min | Audio Detection: $AUDIO_DETECTION_POWER${RESET}"
+            echo "${BLUE}Power = Dim: $((POWER_DIM_DELAY)) min -> Timeout: $((POWER_BACKLIGHT)) min -> Sleep: $((POWER_DELAY)) min | Audio Detection: $AUDIO_DETECTION_POWER | Suspend Mode: ${MODE_TYPE}${RESET}"
         fi
     fi
     ;;
@@ -577,7 +577,7 @@ flock -n 200 || {
             if [ -f "$CONF_SOURCE" ]; then
                 echo "Copying sleepcontrol.conf to /etc/init/..."
                 sudo cp "$CONF_SOURCE" "$CONF_TARGET"
-                echo "${GREEN}sleepcontrol.conf copied.${RESET}"
+                echo "${BLUE}sleepcontrol.conf copied.${RESET}"
             else
                 echo "${RED}sleepcontrol.conf not found at $CONF_SOURCE${RESET}"
             fi
@@ -608,8 +608,8 @@ echo "${RED}"
 echo "══════════════════════════════════════════════════════════════════════════════R════════════"
 echo "                            SleepControl Status: STOPPED                                       "
         fi
-echo "  Battery = Dim: $((BATTERY_DIM_DELAY)) min -> Timeout: $((BATTERY_BACKLIGHT)) min -> Sleep: $((BATTERY_DELAY)) min | Audio Detection: $AUDIO_DETECTION_BATTERY | Sleep type: $MODE_TYPE"
-echo "  Power   = Dim: $((POWER_DIM_DELAY)) min -> Timeout: $((POWER_BACKLIGHT)) min -> Sleep: $((POWER_DELAY)) min | Audio Detection: $AUDIO_DETECTION_POWER | Sleep type: $MODE_TYPE"
+echo "  Battery = Dim: $((BATTERY_DIM_DELAY)) min -> Timeout: $((BATTERY_BACKLIGHT)) min -> Sleep: $((BATTERY_DELAY)) min | Audio Detection: $AUDIO_DETECTION_BATTERY | Suspend Mode: ${MODE_TYPE}"
+echo "  Power   = Dim: $((POWER_DIM_DELAY)) min -> Timeout: $((POWER_BACKLIGHT)) min -> Sleep: $((POWER_DELAY)) min | Audio Detection: $AUDIO_DETECTION_POWER | Suspend Mode: ${MODE_TYPE}"
 echo "══════════════════════════════════════════════════════════════════════════════════════════"
 echo "${RESET}"
        
@@ -629,7 +629,7 @@ echo "${RESET}"
     stop)
         stop_monitoring
         ;;
-    type)
+    mode)
         if [[ $# -eq 2 ]]; then
             MODE_TYPE="$2"
             if [[ "$MODE_TYPE" != "freeze" && "$MODE_TYPE" != "deep" ]]; then
@@ -644,7 +644,7 @@ echo "${RESET}"
             SUSPEND_MODE="$MODE_TYPE"
             save_config
 
-            echo "${GREEN}Suspend mode set to: $SUSPEND_MODE${RESET}"
+            echo "${BLUE}Suspend mode set to: $SUSPEND_MODE${RESET}"
         else
             echo "Valid suspend types: freeze, deep"
             echo "Current suspend mode: $(cat /usr/share/power_manager/suspend_mode)"
