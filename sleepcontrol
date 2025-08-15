@@ -608,9 +608,9 @@ flock -n 200 || {
     else
         load_config
         if [[ "$MODE" == "battery" ]]; then
-            echo "${BLUE}Battery = Dim: $((BATTERY_DIM_DELAY)) min -> Timeout: $((BATTERY_BACKLIGHT)) min -> Sleep: $((BATTERY_DELAY)) min | Audio Detection: $AUDIO_DETECTION_BATTERY | Suspend Mode: ${MODE_TYPE}${RESET}"
+            echo "${BLUE}Battery = Dim: $((BATTERY_DIM_DELAY)) min -> Timeout: $((BATTERY_BACKLIGHT)) min -> Sleep: $((BATTERY_DELAY)) min | Audio Detection: $AUDIO_DETECTION_BATTERY${RESET}"
         else
-            echo "${BLUE}Power = Dim: $((POWER_DIM_DELAY)) min -> Timeout: $((POWER_BACKLIGHT)) min -> Sleep: $((POWER_DELAY)) min | Audio Detection: $AUDIO_DETECTION_POWER | Suspend Mode: ${MODE_TYPE}${RESET}"
+            echo "${BLUE}Power = Dim: $((POWER_DIM_DELAY)) min -> Timeout: $((POWER_BACKLIGHT)) min -> Sleep: $((POWER_DELAY)) min | Audio Detection: $AUDIO_DETECTION_POWER${RESET}"
         fi
     fi
     ;;
@@ -655,8 +655,9 @@ echo "${RED}"
 echo "══════════════════════════════════════════════════════════════════════════════R════════════"
 echo "                            SleepControl Status: STOPPED                                       "
         fi
-echo "  Battery = Dim: $((BATTERY_DIM_DELAY)) min -> Timeout: $((BATTERY_BACKLIGHT)) min -> Sleep: $((BATTERY_DELAY)) min | Audio Detection: $AUDIO_DETECTION_BATTERY | Suspend Mode: ${MODE_TYPE}"
-echo "  Power   = Dim: $((POWER_DIM_DELAY)) min -> Timeout: $((POWER_BACKLIGHT)) min -> Sleep: $((POWER_DELAY)) min | Audio Detection: $AUDIO_DETECTION_POWER | Suspend Mode: ${MODE_TYPE}"
+echo "Suspend Mode: ${MODE_TYPE}
+echo "  Battery = Dim: $((BATTERY_DIM_DELAY)) min -> Timeout: $((BATTERY_BACKLIGHT)) min -> Sleep: $((BATTERY_DELAY)) min | Audio Detection: $AUDIO_DETECTION_BATTERY"
+echo "  Power   = Dim: $((POWER_DIM_DELAY)) min -> Timeout: $((POWER_BACKLIGHT)) min -> Sleep: $((POWER_DELAY)) min | Audio Detection: $AUDIO_DETECTION_POWER"
 echo "══════════════════════════════════════════════════════════════════════════════════════════"
 echo "${RESET}"
        
