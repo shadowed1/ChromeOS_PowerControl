@@ -252,7 +252,9 @@ send_fake_activity() {
 monitor_idle_activity() {
     exec 200>"$PID_FILE.lock"
     flock -n 200 || {
-        echo "Another instance is running - using flock"
+        echo "${BLUE}"
+        echo " SleepCoontrol is already running running."
+        echo "${RESET}"
         exit 1
     }
 
@@ -517,7 +519,9 @@ case "$1" in
     start)
         exec 200>"$PID_FILE.lock"
 flock -n 200 || {
-    echo "Another instance is running"
+    echo "${BLUE}"
+    echo "SleepControl is already running."
+    echo "${RESET}"
     exit 1
                 }
         sudo ectool backlight 1 >/dev/null 2>&1
