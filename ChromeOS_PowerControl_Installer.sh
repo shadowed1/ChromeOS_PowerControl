@@ -352,7 +352,7 @@ if [[ -z "${BATTERY_BACKLIGHT}" ]]; then BATTERY_BACKLIGHT=16; fi
 if [[ -z "${BATTERY_DIM_DELAY}" ]]; then BATTERY_DIM_DELAY=8; fi
 if [[ -z "${POWER_DELAY}" ]]; then POWER_DELAY=48; fi
 if [[ -z "${POWER_BACKLIGHT}" ]]; then POWER_BACKLIGHT=32; fi
-if [[ -z "${POWER_DIM_DELAY}" ]]; then POWER_DIM_DELAY=16; fi
+if [[ -z "${POWER_DIM_DELAY}" ]]; then POWER_DIM_DELAY=16    ; fi
 if [[ -z "${AUDIO_DETECTION_BATTERY}" ]]; then AUDIO_DETECTION_BATTERY=1; fi
 if [[ -z "${AUDIO_DETECTION_POWER}" ]]; then AUDIO_DETECTION_POWER=1; fi
 if [[ -z "${ORIGINAL_SUSPEND_MODE}" ]]; then ORIGINAL_SUSPEND_MODE=$SUSPEND_MODE; fi
@@ -537,7 +537,7 @@ start_component_now() {
 
         if [[ "$component" == "BatteryControl" ]]; then
             declare -g SHOW_BATTERYCONTROL_NOTICE=1
-            read -rp "${BOLD}${GREEN}Do you want to set suspend mode from deep to freeze, allowing  BatteryControl to function while sleeping? Display will dim when enabling (powerd restarting)${RESET}${BOLD} (Y/n): ${RESET} " set_freeze
+            read -rp "${BOLD}${GREEN}Do you want to set suspend mode from deep to freeze, allowing  BatteryControl to function while sleeping? Display will dim once when enabling (powerd restarting)${RESET}${BOLD} (Y/n): ${RESET} " set_freeze
             if [[ -z "$set_freeze" || "$set_freeze" =~ ^[Yy]$ ]]; then
                 echo "freeze" | sudo tee /usr/share/power_manager/suspend_mode >/dev/null
                 sudo restart powerd >/dev/null
