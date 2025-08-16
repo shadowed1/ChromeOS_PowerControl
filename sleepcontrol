@@ -91,6 +91,7 @@ SUSPEND_MODE=
 ORIGINAL_SUSPEND_MODE=
 audio_active=0
 saved_display_brightness=0
+was_dimmed=0
 
 BATTERY_DELAY=$DEFAULT_BATTERY_DELAY
 POWER_DELAY=$DEFAULT_POWER_DELAY
@@ -388,9 +389,12 @@ monitor_idle_activity() {
                 monitor_idle=0
                 active=1
                 stop_fake_activity
-                if [[ $saved_display_brightness -gt 0 ]]; then
-                    echo "$saved_display_brightness" | sudo tee "$BRIGHTNESS_PATH" >/dev/null
+               if (( was_dimmed == 1 )); then
+                    set_display_brightness "$saved_display_brightness"
+                    was_dimmed=0
+                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Restored brightness to $saved_display_brightness" >> "$LOG_FILE"
                 fi
+
 
                 current_kb_brightness=$(sudo ectool pwmgetkblight 2>/dev/null | awk '{print $NF}')
                 if [[ "$current_kb_brightness" =~ ^[0-9]+$ ]] && (( current_kb_brightness > 1 )); then
@@ -441,19 +445,22 @@ if (( monitor_idle == 1 )); then
     echo "Now -> $now | Last reported activity -> $last_ts" >> "$LOG_FILE"
 
     if (( now - last_ts >= dim_delay && now - last_ts < backlight_delay )); then
-        if [[ $saved_display_brightness -gt 0 ]]; then
-            max_brightness=$(cat "$MAX_BRIGHTNESS_PATH" 2>/dev/null || echo 255)
-            dim_value=$((saved_display_brightness / 8))
-            if (( dim_value < 1 )); then dim_value=1; fi
-            set_display_brightness "$dim_value"
-        fi
-    elif (( now - last_ts >= backlight_delay )); then
-        if [ "$backlight_off" -eq 0 ]; then
-            sudo ectool backlight 0 2>/dev/null
-            backlight_off=1
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - keyboard backlight off." >> "$LOG_FILE"
-        fi
+    if [[ $was_dimmed -eq 0 && $saved_display_brightness -gt 0 ]]; then
+        save_current_brightness
+        was_dimmed=1
+        dim_value=$((saved_display_brightness / 8))
+        (( dim_value < 1 )) && dim_value=1
+        set_display_brightness "$dim_value"
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - Display dimmed to $dim_value" >> "$LOG_FILE"
     fi
+elif (( now - last_ts >= backlight_delay )); then
+    if [ "$backlight_off" -eq 0 ]; then
+        sudo ectool backlight 0 2>/dev/null
+        backlight_off=1
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - Keyboard backlight off." >> "$LOG_FILE"
+    fi
+fi
+
 
     idle_elapsed=$(( now - idle_since ))
 
