@@ -406,7 +406,6 @@ monitor_idle_activity() {
                 saved_kb_brightness=$(sudo ectool pwmgetkblight 2>/dev/null | awk '{print $NF}')
                 sudo ectool pwmsetkblight 0 2>/dev/null
                 sudo powerd_dbus_suspend &
-                sleep 30
             else
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid closed detected, LIDSLEEP disabled for current power mode, ignoring..." >> "$LOG_FILE"
             fi
@@ -417,6 +416,7 @@ monitor_idle_activity() {
             else
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid opened detected, restoring brightness levels..." >> "$LOG_FILE"
                 sudo ectool backlight 1 2>/dev/null
+                kb_brightness_restored=1
                 sudo ectool pwmsetkblight "$saved_kb_brightness" 2>/dev/null
             fi
             ;;
