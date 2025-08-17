@@ -671,14 +671,14 @@ case "$1" in
     fi
 
     if pgrep -f "$0 __powercontrol_monitor__" >/dev/null; then
-        echo "${RED}$(date '+%Y-%m-%d %H:%M:%S') - Monitor is already running. Showing live output...${RESET}" | tee -a "$LOG_FILE"
-        tail -n 20 -f "$LOG_FILE"
+        echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') - PowerControl is already running.${RESET}" | tee -a "$LOG_FILE"
     else
         nohup "$0" __powercontrol_monitor__ >> "$LOG_FILE" 2>&1 &
         echo $! > "$PID_FILE"
         echo "${CYAN}$(date '+%Y-%m-%d %H:%M:%S') - Starting PowerControl - Output is logged to $LOG_FILE${RESET}" | tee -a "$LOG_FILE"
     fi
     ;;
+
     stop)
         stop_monitoring
     ;;
