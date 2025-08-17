@@ -436,7 +436,7 @@ monitor_idle_activity() {
             sudo ectool pwmsetkblight 0 2>/dev/null
             set_display_brightness 0
             sudo powerd_dbus_suspend &
-            sleep 30
+            sleep 3
         fi
         ;;
     *"On AC"*)
