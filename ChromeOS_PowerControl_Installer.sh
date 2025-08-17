@@ -306,6 +306,8 @@ declare -a ordered_keys=(
   "AUDIO_DETECTION_POWER"
   "SUSPEND_MODE"
   "ORIGINAL_SUSPEND_MODE"
+  "LIDSLEEP_BATTERY"
+  "LIDSLEEP_POWER"
   "PERF_PATH"
   "PERF_PATHS"
   "TURBO_PATH"
@@ -326,7 +328,7 @@ declare -A categories=(
   ["BatteryControl"]="CHARGE_MAX"
   ["FanControl"]="MIN_FAN MAX_FAN FAN_MIN_TEMP FAN_MAX_TEMP STEP_UP STEP_DOWN FAN_POLL"
   ["GPUControl"]="GPU_MAX_FREQ"
-  ["SleepControl"]="BATTERY_DELAY BATTERY_BACKLIGHT BATTERY_DIM_DELAY POWER_DELAY POWER_BACKLIGHT POWER_DIM_DELAY AUDIO_DETECTION_BATTERY AUDIO_DETECTION_POWER SUSPEND_MODE"
+  ["SleepControl"]="BATTERY_DELAY BATTERY_BACKLIGHT BATTERY_DIM_DELAY POWER_DELAY POWER_BACKLIGHT POWER_DIM_DELAY AUDIO_DETECTION_BATTERY AUDIO_DETECTION_POWER SUSPEND_MODE LIDSLEEP_BATTERY LIDSLEEP_POWER"
   ["Platform Configuration"]="IS_AMD IS_INTEL IS_ARM PERF_PATH PERF_PATHS TURBO_PATH GPU_TYPE GPU_FREQ_PATH ORIGINAL_GPU_MAX_FREQ PP_OD_FILE AMD_SELECTED_SCLK_INDEX BACKLIGHT_NAME BRIGHTNESS_PATH MAX_BRIGHTNESS_PATH ORIGINAL_SUSPEND_MODE"
 )
 
@@ -356,7 +358,8 @@ if [[ -z "${POWER_DIM_DELAY}" ]]; then POWER_DIM_DELAY=16    ; fi
 if [[ -z "${AUDIO_DETECTION_BATTERY}" ]]; then AUDIO_DETECTION_BATTERY=1; fi
 if [[ -z "${AUDIO_DETECTION_POWER}" ]]; then AUDIO_DETECTION_POWER=1; fi
 if [[ -z "${ORIGINAL_SUSPEND_MODE}" ]]; then ORIGINAL_SUSPEND_MODE=$SUSPEND_MODE; fi
-
+if [[ -z "${LIDSLEEP_BATTERY}" ]]; then LIDSLEEP_BATTERY=1; fi
+if [[ -z "${LIDSLEEP_POWER}" ]]; then LIDSLEEP_POWER=1; fi
 
 declare -A defaults=(
   [MAX_TEMP]=$MAX_TEMP
@@ -385,6 +388,8 @@ declare -A defaults=(
   [AUDIO_DETECTION_POWER]=$AUDIO_DETECTION_POWER
   [SUSPEND_MODE]=$SUSPEND_MODE
   [ORIGINAL_SUSPEND_MODE]=$SUSPEND_MODE
+  [LIDSLEEP_BATTERY]=$LIDSLEEP_BATTERY
+  [LIDSLEEP_POWER]=$LIDSLEEP_POWER
   [PERF_PATH]=$PERF_PATH
   [TURBO_PATH]=$TURBO_PATH
   [GPU_FREQ_PATH]=$GPU_FREQ_PATH
@@ -718,6 +723,7 @@ echo "║  sudo sleepcontrol battery 3 7 12   # When idle, display dims in 3m ->
 echo "║  sudo sleepcontrol power 5 15 30    # When idle, display dims in 5m -> timeout -> 15m -> sleeps in 30m plugged-in  ║"
 echo "║  sudo sleepcontrol battery audio 0  # Disable audio detection on battery; sleep can occur during media playback    ║"
 echo "║  sudo sleepcontrol power audio 1    # Enable audio detection on power; delaying sleep until audio is stopped       ║"
+echo "║  sudo sleepcontrol lid battery 1    # Enable sleep on closing the lid."
 echo "║  sudo sleepcontrol mode freeze      # Change suspend mode to freeze, enabling batterycontrol to work asleep        ║"
 echo "║  sudo sleepcontrol startup          # Copy or Remove sleepcontrol.conf at: /etc/init/                              ║"
 echo "║                                                                                                                    ║"
@@ -755,7 +761,8 @@ fi
 if [[ "$SHOW_SLEEPCONTROL_NOTICE" -eq 1 ]]; then
 echo "${BLUE}╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
 echo "║  ${RESET}${BLUE}${BOLD}SleepControl Notice:${RESET}${BLUE}                                                                                              ║"
-echo "║  Overrides default ChromeOS sleep behavior - Change sleepcontrol settings with commands listed above.              ║"
+echo "║  Overrides default ChromeOS sleep behavior except for lid control - Adjust settings above to preferenc                    ║"
+echo "║  Disable sleep on closing the lid if you want to have custom sleep lid closing logic.                                     ║"
 echo "╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝${RESET}"
 echo ""
 fi
