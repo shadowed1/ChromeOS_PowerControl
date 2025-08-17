@@ -733,7 +733,7 @@ flock -n 200 || {
     else
         load_config
         if [[ "$MODE" == "battery" ]]; then
-            echo "${BLUE}Battery = Dim: $((BATTERY_DIM_DELAY)) min -> Timeout: $((BATTERY_BACKLIGHT)) min -> Sleep: $((BATTERY_DELAY)) min  | Audio Detection: $AUDIO_DETECTION_BATTERY Lid Sleep: $LIDSLEEP_POWER ${RESET}"
+            echo "${BLUE}Battery = Dim: $((BATTERY_DIM_DELAY)) min -> Timeout: $((BATTERY_BACKLIGHT)) min -> Sleep: $((BATTERY_DELAY)) min | Audio Detection: $AUDIO_DETECTION_BATTERY Lid Sleep: $LIDSLEEP_POWER ${RESET}"
         else
             echo "${BLUE}Power = Dim: $((POWER_DIM_DELAY)) min -> Timeout: $((POWER_BACKLIGHT)) min -> Sleep: $((POWER_DELAY)) min | Audio Detection: $AUDIO_DETECTION_POWER | Lid Sleep: $LIDSLEEP_BATTERY ${RESET}"
         fi
@@ -781,7 +781,7 @@ echo "════════════════════════�
 echo "                              SleepControl Status: STOPPED                                       "
         fi
 echo "  Suspend Mode:${SUSPEND_MODE}"
-echo "  Battery = Dim: $((BATTERY_DIM_DELAY)) min -> Timeout: $((BATTERY_BACKLIGHT)) min -> Sleep: $((BATTERY_DELAY)) min  | Audio Detection: $AUDIO_DETECTION_BATTERY | Lid Sleep: $LIDSLEEP_BATTERY "
+echo "  Battery = Dim: $((BATTERY_DIM_DELAY)) min -> Timeout: $((BATTERY_BACKLIGHT)) min -> Sleep: $((BATTERY_DELAY)) min | Audio Detection: $AUDIO_DETECTION_BATTERY | Lid Sleep: $LIDSLEEP_BATTERY "
 echo "  Power   = Dim: $((POWER_DIM_DELAY)) min -> Timeout: $((POWER_BACKLIGHT)) min -> Sleep: $((POWER_DELAY)) min | Audio Detection: $AUDIO_DETECTION_POWER | Lid Sleep: $LIDSLEEP_POWER "
 echo "═════════════════════════════════════════════════════════════════════════════════════════════════"
 echo "${RESET}"
