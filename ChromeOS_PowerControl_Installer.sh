@@ -619,7 +619,7 @@ start_component_now "PowerControl" "$INSTALL_DIR/powercontrol"
 if [ "$SKIP_FANCONTROL" = false ]; then
     start_component_now "FanControl" "$INSTALL_DIR/fancontrol"
 else
-    echo "${YELLOW}FanControl start skipped - no fans detected.${RESET}"
+    echo "${YELLOW}FanControl start skipped - passively cooled device.${RESET}"
     echo ""
 fi
 start_component_now "SleepControl" "$INSTALL_DIR/sleepcontrol"
