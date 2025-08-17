@@ -1,3 +1,4 @@
+
 #!/bin/bash
 RED=$(tput setaf 1)
 GREEN=$(tput setaf 2)
@@ -311,28 +312,6 @@ monitor_idle_activity() {
         stop_fake_activity
     fi
 
-    apply_power_profile() {
-        local mode="$1"
-    
-        if [[ "$mode" == "battery" ]]; then
-            status="Discharging"
-            dim_delay=$((BATTERY_DIM_DELAY * 60))
-            backlight_delay=$((BATTERY_BACKLIGHT * 60))
-            suspend_delay=$((BATTERY_DELAY * 60))
-            AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_BATTERY
-            LIDSLEEP_ENABLED=$LIDSLEEP_BATTERY
-        else
-            status="Charging"
-            dim_delay=$((POWER_DIM_DELAY * 60))
-            backlight_delay=$((POWER_BACKLIGHT * 60))
-            suspend_delay=$((POWER_DELAY * 60))
-            AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_POWER
-            LIDSLEEP_ENABLED=$LIDSLEEP_POWER
-        fi
-    
-        echo "$(date '+%Y-%m-%d %H:%M:%S') - Profile -> $mode | lidSleep=$LIDSLEEP_ENABLED | audioDetect=$AUDIO_DETECTION_ENABLED" >> "$LOG_FILE"
-    }
-
     start_fake_activity() {
         if (( sending_fake_activity == 0 )); then
             (
@@ -391,7 +370,7 @@ monitor_idle_activity() {
         last_reload_time=$now
     fi
 
-case "$line" in
+    case "$line" in
     *"Chrome is using presentation display mode"*)
         PRESENTATION_MODE=1
         echo "$(date '+%Y-%m-%d %H:%M:%S') - External display detected, overriding lid sleep logic." >> "$LOG_FILE"
@@ -428,6 +407,7 @@ case "$line" in
             echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid closed, triggering suspend via powerd..." >> "$LOG_FILE"
             saved_kb_brightness=$(sudo ectool pwmgetkblight 2>/dev/null | awk '{print $NF}')
             sudo ectool pwmsetkblight 0 2>/dev/null
+            set_display_brightness 0
             sudo powerd_dbus_suspend &
             sleep 30
         else
@@ -439,38 +419,41 @@ case "$line" in
         if (( PRESENTATION_MODE == 1 )); then
             echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid open logic paused due to external display." >> "$LOG_FILE"
         else
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid opened (no brightness restore)." >> "$LOG_FILE"
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid opened, restoring display + keyboard brightness levels..." >> "$LOG_FILE"
+            sudo ectool backlight 1 2>/dev/null
+            sudo ectool pwmsetkblight "$saved_kb_brightness" 2>/dev/null
+            set_display_brightness "$saved_display_brightness"
         fi
         ;;
     *"On battery at"*)
-        apply_power_profile "battery"
-        echo "$(date '+%Y-%m-%d %H:%M:%S') - On Battery" >> "$LOG_FILE"
-        if (( lid_closed == 1 )); then
-            if (( LIDSLEEP_ENABLED == 1 )); then
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid closed & on battery -> triggering suspend." >> "$LOG_FILE"
+        if [[ "$status" != "Discharging" ]]; then
+            status="Discharging"
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - On Battery - changing power plan." >> "$LOG_FILE"
+            dim_delay=$((BATTERY_DIM_DELAY * 60))
+            backlight_delay=$((BATTERY_BACKLIGHT * 60))
+            suspend_delay=$((BATTERY_DELAY * 60))
+            
+            if (( lid_closed == 1 && LIDSLEEP_ENABLED == 1 )); then
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid already closed & on battery -> triggering suspend." >> "$LOG_FILE"
                 saved_kb_brightness=$(sudo ectool pwmgetkblight 2>/dev/null | awk '{print $NF}')
                 sudo ectool pwmsetkblight 0 2>/dev/null
                 set_display_brightness 0
                 sudo powerd_dbus_suspend &
                 sleep 30
-            else
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid closed & on battery, but lid sleep disabled." >> "$LOG_FILE"
             fi
         fi
         ;;
     *"On AC"*)
-        apply_power_profile "ac"
-        echo "$(date '+%Y-%m-%d %H:%M:%S') - On AC" >> "$LOG_FILE"
-        if (( lid_closed == 1 )); then
-            if (( LIDSLEEP_ENABLED == 1 )); then
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid closed & on AC -> triggering suspend." >> "$LOG_FILE"
-                saved_kb_brightness=$(sudo ectool pwmgetkblight 2>/dev/null | awk '{print $NF}')
-                sudo ectool pwmsetkblight 0 2>/dev/null
-                set_display_brightness 0
-                sudo powerd_dbus_suspend &
-                sleep 30
-            else
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid closed & on AC -> lid sleep disabled, not suspending." >> "$LOG_FILE"
+        if [[ "$status" != "Charging" ]]; then
+            status="Charging"
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - On AC - changing power plan." >> "$LOG_FILE"
+            dim_delay=$((POWER_DIM_DELAY * 60))
+            backlight_delay=$((POWER_BACKLIGHT * 60))
+            suspend_delay=$((POWER_DELAY * 60))
+            
+            if (( lid_closed == 1 )); then
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid already closed & on AC -> restoring brightness." >> "$LOG_FILE"
+                set_display_brightness "$saved_display_brightness"
             fi
         fi
         ;;
@@ -516,7 +499,6 @@ case "$line" in
     *)
         ;;
 esac
-
 
 
 if (( monitor_idle == 1 )); then
@@ -725,7 +707,7 @@ flock -n 200 || {
     else
         load_config
         if [[ "$MODE" == "battery" ]]; then
-            echo "${BLUE}Battery = Dim: $((BATTERY_DIM_DELAY)) min -> Timeout: $((BATTERY_BACKLIGHT)) min -> Sleep: $((BATTERY_DELAY)) min  | Audio Detection: $AUDIO_DETECTION_BATTERY Lid Sleep: $LIDSLEEP_POWER ${RESET}"
+            echo "${BLUE}Battery = Dim: $((BATTERY_DIM_DELAY)) min -> Timeout: $((BATTERY_BACKLIGHT)) min -> Sleep: $((BATTERY_DELAY)) min | Audio Detection: $AUDIO_DETECTION_BATTERY Lid Sleep: $LIDSLEEP_POWER ${RESET}"
         else
             echo "${BLUE}Power = Dim: $((POWER_DIM_DELAY)) min -> Timeout: $((POWER_BACKLIGHT)) min -> Sleep: $((POWER_DELAY)) min | Audio Detection: $AUDIO_DETECTION_POWER | Lid Sleep: $LIDSLEEP_BATTERY ${RESET}"
         fi
@@ -773,7 +755,7 @@ echo "════════════════════════�
 echo "                              SleepControl Status: STOPPED                                       "
         fi
 echo "  Suspend Mode:${SUSPEND_MODE}"
-echo "  Battery = Dim: $((BATTERY_DIM_DELAY)) min -> Timeout: $((BATTERY_BACKLIGHT)) min -> Sleep: $((BATTERY_DELAY)) min  | Audio Detection: $AUDIO_DETECTION_BATTERY | Lid Sleep: $LIDSLEEP_BATTERY "
+echo "  Battery = Dim: $((BATTERY_DIM_DELAY)) min -> Timeout: $((BATTERY_BACKLIGHT)) min -> Sleep: $((BATTERY_DELAY)) min | Audio Detection: $AUDIO_DETECTION_BATTERY | Lid Sleep: $LIDSLEEP_BATTERY "
 echo "  Power   = Dim: $((POWER_DIM_DELAY)) min -> Timeout: $((POWER_BACKLIGHT)) min -> Sleep: $((POWER_DELAY)) min | Audio Detection: $AUDIO_DETECTION_POWER | Lid Sleep: $LIDSLEEP_POWER "
 echo "═════════════════════════════════════════════════════════════════════════════════════════════════"
 echo "${RESET}"
