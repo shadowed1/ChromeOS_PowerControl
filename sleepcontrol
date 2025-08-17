@@ -505,7 +505,7 @@ if (( monitor_idle == 1 )); then
                 was_dimmed=1
                 dim_value=$((saved_display_brightness / 8))
                 (( dim_value < 1 )) && dim_value=1
-                set_display_brightness "$dim_value"
+              # set_display_brightness "$dim_value"
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Display dimmed to $dim_value" >> "$LOG_FILE"
             fi
         elif (( now - last_ts >= backlight_delay )); then
