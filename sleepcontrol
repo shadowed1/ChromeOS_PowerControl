@@ -307,9 +307,7 @@ monitor_idle_activity() {
         saved_display_brightness=$(cat "$BRIGHTNESS_PATH" 2>/dev/null || echo 0)
     fi
    
-    if (( idle_elapsed < suspend_delay - 10 )); then
-        stop_fake_activity
-    fi
+    
 
     start_fake_activity() {
         if (( sending_fake_activity == 0 )); then
@@ -334,6 +332,8 @@ monitor_idle_activity() {
             fake_activity_pid=0
         fi
     }
+
+
 
         now=$(date +%s)
         if (( now - last_reload_time >= 30 )); then
@@ -483,6 +483,10 @@ monitor_idle_activity() {
         *)
             ;;
 esac
+
+if (( idle_elapsed < suspend_delay - 10 )); then
+        stop_fake_activity
+    fi
 
 if (( monitor_idle == 1 )); then
     if [[ "$status" == "Discharging" ]]; then
