@@ -776,5 +776,3 @@ echo "                                      ${BLUE}║ ╚═══════�
 echo "                                      ${MAGENTA}╚═══════════════════════════════╝${RESET}"
 echo ""
 echo ""
-sleep 3
-sudo bash "$INSTALL_DIR/powercontrol" all
