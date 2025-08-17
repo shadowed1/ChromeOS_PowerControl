@@ -404,7 +404,7 @@ monitor_idle_activity() {
             elif (( LIDSLEEP_ENABLED == 1 )); then
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid closed detected, triggering suspend via powerd..." >> "$LOG_FILE"
                 sudo powerd_dbus_suspend &
-                sleep 10
+                sleep 60
             else
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid closed detected, LIDSLEEP disabled for current power mode, ignoring..." >> "$LOG_FILE"
             fi
