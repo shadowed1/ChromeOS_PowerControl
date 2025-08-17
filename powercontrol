@@ -583,7 +583,7 @@ echo "║  sudo powercontrol no_turbo 1    # 0 = Enable, 1 = Disable Turbo Boost
 echo "║  sudo powercontrol max 75        # Set max performance percentage                                   ║"
 echo "║  sudo powercontrol min 50        # Set minimum performance at max temp                              ║"
 echo "║  sudo powercontrol max_temp 86   # Max temperature threshold - Limit is 90°C                        ║"
-echo "║  sudo powercontrol min_temp 60   # Min temperature threshold                                        ║"
+echo "║  sudo powercontrol min_temp 60   # When below this temperature, CPU allowed to boost to maximum     ║"
 echo "║  sudo powercontrol hotzone 78    # Temperature threshold for aggressive thermal management          ║"
 echo "║  sudo powercontrol ramp_up 15    # % in steps CPU will increase in clockspeed per second            ║"
 echo "║  sudo powercontrol ramp_down 20  # % in steps CPU will decrease in clockspeed per second            ║"
