@@ -836,47 +836,33 @@ echo "${RESET}"
             echo "${RESET}"
         fi
         ;;
-    lidsleep | lid)
-            if [[ $# -eq 3 ]]; then
-                MODE=$2
-                VAL=$3
+       battery|power)
+        MODE=$1
+        FEATURE=$2
+        VAL=$3
     
-                if [[ "$MODE" != "battery" && "$MODE" != "power" ]]; then
-                    echo "${RED}Invalid mode: $MODE. Use 'battery' or 'power'.${RESET}"
-                    exit 1
-                fi
+        if [[ "$FEATURE" != "lid" && "$FEATURE" != "lidsleep" ]]; then
+            echo "${RED}Invalid feature: $FEATURE. Use 'lid' or 'lidsleep'.${RESET}"
+            exit 1
+        fi
     
-                if ! [[ "$VAL" =~ ^[0-1]$ ]]; then
-                    echo "${RED}Invalid value: $VAL. Must be 0 (disabled) or 1 (enabled).${RESET}"
-                    exit 1
-                fi
+        if ! [[ "$VAL" =~ ^[0-1]$ ]]; then
+            echo "${RED}Invalid value: $VAL. Must be 0 (disabled) or 1 (enabled).${RESET}"
+            exit 1
+        fi
     
-                if [[ "$MODE" == "battery" ]]; then
-                    LIDSLEEP_BATTERY=$VAL
-                else
-                    LIDSLEEP_POWER=$VAL
-                fi
-    
-                save_config
-                echo ""
-                echo "${BLUE}Lid sleep for $MODE set to: $VAL${RESET}"
-                echo ""
-                load_config
-    
-            elif [[ $# -eq 1 ]]; then
-                load_config
-                echo "${BLUE}"
-                echo "  Lid sleep settings:"
-                echo "  Battery: $LIDSLEEP_BATTERY"
-                echo "  Power  : $LIDSLEEP_POWER"
-                echo "${RESET}"
+        if [[ "$FEATURE" == "lid" || "$FEATURE" == "lidsleep" ]]; then
+            if [[ "$MODE" == "battery" ]]; then
+                LIDSLEEP_BATTERY=$VAL
             else
-                echo ""
-                echo "${RED}Usage: sleepcontrol lid battery 1${RESET}"
-                echo "${RED}Usage: sleepcontrol lid power 0${RESET}"
-                echo ""
-                exit 1
+                LIDSLEEP_POWER=$VAL
             fi
+            save_config
+            echo ""
+            echo "${BLUE}Lid sleep for $MODE set to: $VAL${RESET}"
+            echo ""
+            load_config
+        fi
         ;;
     *)
         show_help
