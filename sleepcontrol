@@ -397,7 +397,7 @@ monitor_idle_activity() {
                     sudo ectool pwmsetkblight 0 2>/dev/null
                     set_display_brightness 0
                     sudo powerd_dbus_suspend &
-                    sleep 30  # safety delay to prevent race loop
+                    sleep 30
                 else
                     echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid closed detected, LIDSLEEP disabled for current power mode, ignoring..." >> "$LOG_FILE"
                 fi
