@@ -545,6 +545,7 @@ start_component_now() {
             read -rp "${BOLD}${GREEN}Do you want to set suspend mode from deep to freeze, allowing  BatteryControl to function while sleeping? Display will dim once when enabling (powerd restarting)${RESET}${BOLD} (Y/n): ${RESET} " set_freeze
             if [[ -z "$set_freeze" || "$set_freeze" =~ ^[Yy]$ ]]; then
                 echo "freeze" | sudo tee /usr/share/power_manager/suspend_mode >/dev/null
+                echo "s2idle" | sudo tee /sys/power/mem_sleep
                 sudo restart powerd >/dev/null
                 echo "${GREEN}Suspend Mode set to freeze.${RESET}"
                 echo ""
