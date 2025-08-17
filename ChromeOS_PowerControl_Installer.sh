@@ -777,4 +777,4 @@ echo "                                      ${MAGENTA}╚═══════�
 echo ""
 echo ""
 sleep 3
-sudo $INSTALL_DIR/powercontrol all
+sudo bash "$INSTALL_DIR/powercontrol" all
