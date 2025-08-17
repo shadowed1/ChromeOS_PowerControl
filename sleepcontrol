@@ -425,37 +425,36 @@ monitor_idle_activity() {
         fi
         ;;
     *"On battery at"*)
-        if [[ "$status" != "Discharging" ]]; then
-            status="Discharging"
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - On Battery - changing power plan." >> "$LOG_FILE"
-            dim_delay=$((BATTERY_DIM_DELAY * 60))
-            backlight_delay=$((BATTERY_BACKLIGHT * 60))
-            suspend_delay=$((BATTERY_DELAY * 60))
-            
-            if (( lid_closed == 1 && LIDSLEEP_ENABLED == 1 )); then
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid already closed & on battery -> triggering suspend." >> "$LOG_FILE"
-                saved_kb_brightness=$(sudo ectool pwmgetkblight 2>/dev/null | awk '{print $NF}')
-                sudo ectool pwmsetkblight 0 2>/dev/null
-                set_display_brightness 0
-                sudo powerd_dbus_suspend &
-                sleep 30
-            fi
+        status="Discharging"
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - On Battery - changing power plan." >> "$LOG_FILE"
+        dim_delay=$((BATTERY_DIM_DELAY * 60))
+        backlight_delay=$((BATTERY_BACKLIGHT * 60))
+        suspend_delay=$((BATTERY_DELAY * 60))
+        AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_BATTERY
+    
+        if (( lid_closed == 1 && LIDSLEEP_ENABLED == 1 )); then
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid closed & on battery -> triggering suspend." >> "$LOG_FILE"
+            saved_kb_brightness=$(sudo ectool pwmgetkblight 2>/dev/null | awk '{print $NF}')
+            sudo ectool pwmsetkblight 0 2>/dev/null
+            set_display_brightness 0
+            sudo powerd_dbus_suspend &
+            sleep 30
         fi
         ;;
     *"On AC"*)
-        if [[ "$status" != "Charging" ]]; then
-            status="Charging"
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - On AC - changing power plan." >> "$LOG_FILE"
-            dim_delay=$((POWER_DIM_DELAY * 60))
-            backlight_delay=$((POWER_BACKLIGHT * 60))
-            suspend_delay=$((POWER_DELAY * 60))
-            
-            if (( lid_closed == 1 )); then
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid already closed & on AC -> restoring brightness." >> "$LOG_FILE"
-                set_display_brightness "$saved_display_brightness"
-            fi
+        status="Charging"
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - On AC - changing power plan." >> "$LOG_FILE"
+        dim_delay=$((POWER_DIM_DELAY * 60))
+        backlight_delay=$((POWER_BACKLIGHT * 60))
+        suspend_delay=$((POWER_DELAY * 60))
+        AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_POWER
+    
+        if (( lid_closed == 1 )); then
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid closed & on AC -> restoring brightness." >> "$LOG_FILE"
+            set_display_brightness "$saved_display_brightness"
         fi
         ;;
+
     *"User activity reported"*|*"User activity ongoing"*|*"Enabling wakeup for"*|*"User triggered wake"*|*"powerd_suspend returned 0"*|*"Configuring devices for mode"*|*"Chrome is using normal display mode"*)
         if (( monitor_idle == 1 )); then
             echo "$(date '+%Y-%m-%d %H:%M:%S') - User activity resumed." >> "$LOG_FILE"
