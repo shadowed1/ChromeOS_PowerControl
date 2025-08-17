@@ -311,6 +311,28 @@ monitor_idle_activity() {
         stop_fake_activity
     fi
 
+    apply_power_profile() {
+        local mode="$1"
+    
+        if [[ "$mode" == "battery" ]]; then
+            status="Discharging"
+            dim_delay=$((BATTERY_DIM_DELAY * 60))
+            backlight_delay=$((BATTERY_BACKLIGHT * 60))
+            suspend_delay=$((BATTERY_DELAY * 60))
+            AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_BATTERY
+            LIDSLEEP_ENABLED=$LIDSLEEP_BATTERY
+        else
+            status="Charging"
+            dim_delay=$((POWER_DIM_DELAY * 60))
+            backlight_delay=$((POWER_BACKLIGHT * 60))
+            suspend_delay=$((POWER_DELAY * 60))
+            AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_POWER
+            LIDSLEEP_ENABLED=$LIDSLEEP_POWER
+        fi
+    
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - Profile -> $mode | lidSleep=$LIDSLEEP_ENABLED | audioDetect=$AUDIO_DETECTION_ENABLED" >> "$LOG_FILE"
+    }
+
     start_fake_activity() {
         if (( sending_fake_activity == 0 )); then
             (
@@ -369,7 +391,7 @@ monitor_idle_activity() {
         last_reload_time=$now
     fi
 
-    case "$line" in
+case "$line" in
     *"Chrome is using presentation display mode"*)
         PRESENTATION_MODE=1
         echo "$(date '+%Y-%m-%d %H:%M:%S') - External display detected, overriding lid sleep logic." >> "$LOG_FILE"
@@ -418,20 +440,12 @@ monitor_idle_activity() {
         if (( PRESENTATION_MODE == 1 )); then
             echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid open logic paused due to external display." >> "$LOG_FILE"
         else
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid opened, restoring display + keyboard brightness levels..." >> "$LOG_FILE"
-            sudo ectool backlight 1 2>/dev/null
-            sudo ectool pwmsetkblight "$saved_kb_brightness" 2>/dev/null
-            set_display_brightness "$saved_display_brightness"
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid opened (no brightness restore)." >> "$LOG_FILE"
         fi
         ;;
     *"On battery at"*)
-        status="Discharging"
+        apply_power_profile "battery"
         echo "$(date '+%Y-%m-%d %H:%M:%S') - On Battery" >> "$LOG_FILE"
-        dim_delay=$((BATTERY_DIM_DELAY * 60))
-        backlight_delay=$((BATTERY_BACKLIGHT * 60))
-        suspend_delay=$((BATTERY_DELAY * 60))
-        AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_BATTERY
-    
         if (( lid_closed == 1 )); then
             if (( LIDSLEEP_ENABLED == 1 )); then
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid closed & on battery -> triggering suspend." >> "$LOG_FILE"
@@ -446,21 +460,21 @@ monitor_idle_activity() {
         fi
         ;;
     *"On AC"*)
-        status="Charging"
+        apply_power_profile "ac"
         echo "$(date '+%Y-%m-%d %H:%M:%S') - On AC" >> "$LOG_FILE"
-        dim_delay=$((POWER_DIM_DELAY * 60))
-        backlight_delay=$((POWER_BACKLIGHT * 60))
-        suspend_delay=$((POWER_DELAY * 60))
-        AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_POWER
-    
         if (( lid_closed == 1 )); then
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid closed & on AC -> restoring display & keyboard brightness." >> "$LOG_FILE"
-            sudo ectool backlight 1 2>/dev/null
-            sudo ectool pwmsetkblight "$saved_kb_brightness" 2>/dev/null
-            set_display_brightness "$saved_display_brightness"
+            if (( LIDSLEEP_ENABLED == 1 )); then
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid closed & on AC -> triggering suspend." >> "$LOG_FILE"
+                saved_kb_brightness=$(sudo ectool pwmgetkblight 2>/dev/null | awk '{print $NF}')
+                sudo ectool pwmsetkblight 0 2>/dev/null
+                set_display_brightness 0
+                sudo powerd_dbus_suspend &
+                sleep 30
+            else
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid closed & on AC -> lid sleep disabled, not suspending." >> "$LOG_FILE"
+            fi
         fi
         ;;
-
     *"User activity reported"*|*"User activity ongoing"*|*"Enabling wakeup for"*|*"User triggered wake"*|*"powerd_suspend returned 0"*|*"Configuring devices for mode"*|*"Chrome is using normal display mode"*)
         if (( monitor_idle == 1 )); then
             echo "$(date '+%Y-%m-%d %H:%M:%S') - User activity resumed." >> "$LOG_FILE"
@@ -503,6 +517,7 @@ monitor_idle_activity() {
     *)
         ;;
 esac
+
 
 
 if (( monitor_idle == 1 )); then
