@@ -243,7 +243,7 @@ Shortened arguments for PowerControl and FanControl. Fixed minor errors in Sleep
 - 0.34: `Added sleepcontrol mode command to alter suspend modes and apply on boot; preserving batterycontrol logic during sleep.
 Fixed config loading logic in sleepcontrol so settings update properly. Updated SleepControl battery detection using powerd.LATEST for better compatibility.
 Added prompt in installer to set suspend mode to freeze. ` <br><br>
-0.35: `Added lid sleep logic for independent sleep rules when closing lid on battery and power. Added external display awareness. Added support for mem_sleep to be changed to s2idle for improved ectool control.
+- 0.35: `Added lid sleep logic for independent sleep rules when closing lid on battery and power. Added external display awareness. Added support for mem_sleep to be changed to s2idle for improved ectool control.
 Fixed bug with SleepControl altering display brightness incorrectly. Fixed minor syntax issues.` <br><br>
   
 __Acknowledgements:__
