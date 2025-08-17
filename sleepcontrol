@@ -768,11 +768,15 @@ echo "${RESET}"
             fi
     
             save_config
+            echo ""
             echo "${BLUE}Suspend mode set to: $SUSPEND_MODE${RESET}"
+            echo ""
         else
+            echo "${BLUE}"
             echo "Valid suspend types: freeze, deep"
             echo "Current suspend mode: $(cat /usr/share/power_manager/suspend_mode)"
-            echo "Kernel mem_sleep: $(cat /sys/power/mem_sleep)"
+            echo "mem_sleep: $(cat /sys/power/mem_sleep)"
+            echo "${RESET}"
         fi
         ;;
     lidsleep | lid)
