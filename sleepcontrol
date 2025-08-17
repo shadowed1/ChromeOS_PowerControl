@@ -403,11 +403,8 @@ monitor_idle_activity() {
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid closed ignored due to presentation mode." >> "$LOG_FILE"
             elif (( LIDSLEEP_ENABLED == 1 )); then
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid closed detected, triggering suspend via powerd..." >> "$LOG_FILE"
-                saved_kb_brightness=$(sudo ectool pwmgetkblight 2>/dev/null | awk '{print $NF}')
-                sudo ectool pwmsetkblight 0 2>/dev/null
-                set_display_brightness 0
                 sudo powerd_dbus_suspend &
-                sleep 30
+                sleep 10
             else
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid closed detected, LIDSLEEP disabled for current power mode, ignoring..." >> "$LOG_FILE"
             fi
@@ -419,7 +416,6 @@ monitor_idle_activity() {
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid opened detected, restoring brightness levels..." >> "$LOG_FILE"
                 sudo ectool backlight 1 2>/dev/null
                 sudo ectool pwmsetkblight "$saved_kb_brightness" 2>/dev/null
-                set_display_brightness "$saved_display_brightness"
             fi
             ;;
         *"On battery at"*)
