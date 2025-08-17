@@ -106,6 +106,7 @@ LIDSLEEP_POWER=
 audio_active=0
 saved_display_brightness=0
 was_dimmed=0
+lid_closed=0
 
 BATTERY_DELAY=$DEFAULT_BATTERY_DELAY
 POWER_DELAY=$DEFAULT_POWER_DELAY
@@ -370,118 +371,137 @@ monitor_idle_activity() {
     fi
 
     case "$line" in
-        *"Chrome is using presentation display mode"*)
-            PRESENTATION_MODE=1
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - Presentation mode detected, overriding lidsleep logic." >> "$LOG_FILE"
-            ;;
-        *"Chrome is using normal display mode"*)
-            PRESENTATION_MODE=0
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - Normal display mode detected, restoring lidsleep logic." >> "$LOG_FILE"
-            ;;
-        *"Audio activity started"*|*"Audio activity ongoing"*)
-            if (( AUDIO_DETECTION_ENABLED == 1 )); then
-                audio_active=1
-            fi
-            ;;
-        *"Audio activity stopped"*)
-            if (( AUDIO_DETECTION_ENABLED == 1 )); then
-                audio_active=0
-            fi
-            ;;
-        *"User activity stopped"*)
-            if (( audio_active == 0 )); then
-                monitor_idle=1
-                active=0
-                kb_brightness_restored=0
-                idle_since=$now
-                last_ts=$now
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - User idle detected." >> "$LOG_FILE"
-            fi
-            ;;
-        *"Lid closed"*)
-            if (( PRESENTATION_MODE == 1 )); then
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid closed ignored due to presentation mode." >> "$LOG_FILE"
-            elif (( LIDSLEEP_ENABLED == 1 )); then
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid closed detected, triggering suspend via powerd..." >> "$LOG_FILE"
+    *"Chrome is using presentation display mode"*)
+        PRESENTATION_MODE=1
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - External display detected, overriding lid sleep logic." >> "$LOG_FILE"
+        ;;
+    *"Chrome is using normal display mode"*)
+        PRESENTATION_MODE=0
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - Normal display mode detected, restoring lidsleep logic." >> "$LOG_FILE"
+        ;;
+    *"Audio activity started"*|*"Audio activity ongoing"*)
+        if (( AUDIO_DETECTION_ENABLED == 1 )); then
+            audio_active=1
+        fi
+        ;;
+    *"Audio activity stopped"*)
+        if (( AUDIO_DETECTION_ENABLED == 1 )); then
+            audio_active=0
+        fi
+        ;;
+    *"User activity stopped"*)
+        if (( audio_active == 0 )); then
+            monitor_idle=1
+            active=0
+            kb_brightness_restored=0
+            idle_since=$now
+            last_ts=$now
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - User idle detected." >> "$LOG_FILE"
+        fi
+        ;;
+    *"Lid closed"*)
+        lid_closed=1
+        if (( PRESENTATION_MODE == 1 )); then
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid close logic paused due to external display." >> "$LOG_FILE"
+        elif (( LIDSLEEP_ENABLED == 1 )); then
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid closed, triggering suspend via powerd..." >> "$LOG_FILE"
+            saved_kb_brightness=$(sudo ectool pwmgetkblight 2>/dev/null | awk '{print $NF}')
+            sudo ectool pwmsetkblight 0 2>/dev/null
+            set_display_brightness 0
+            sudo powerd_dbus_suspend &
+            sleep 30
+        else
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid closed, but lid sleep is off." >> "$LOG_FILE"
+        fi
+        ;;
+    *"Lid opened"*)
+        lid_closed=0
+        if (( PRESENTATION_MODE == 1 )); then
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid open logic paused due to external display." >> "$LOG_FILE"
+        else
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid opened, restoring display + keyboard brightness levels..." >> "$LOG_FILE"
+            sudo ectool backlight 1 2>/dev/null
+            sudo ectool pwmsetkblight "$saved_kb_brightness" 2>/dev/null
+            set_display_brightness "$saved_display_brightness"
+        fi
+        ;;
+    *"On battery at"*)
+        if [[ "$status" != "Discharging" ]]; then
+            status="Discharging"
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - On Battery - changing power plan." >> "$LOG_FILE"
+            dim_delay=$((BATTERY_DIM_DELAY * 60))
+            backlight_delay=$((BATTERY_BACKLIGHT * 60))
+            suspend_delay=$((BATTERY_DELAY * 60))
+            
+            # NEW: if lid is already closed, trigger suspend
+            if (( lid_closed == 1 && LIDSLEEP_ENABLED == 1 )); then
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid already closed & on battery -> triggering suspend." >> "$LOG_FILE"
                 saved_kb_brightness=$(sudo ectool pwmgetkblight 2>/dev/null | awk '{print $NF}')
                 sudo ectool pwmsetkblight 0 2>/dev/null
                 set_display_brightness 0
                 sudo powerd_dbus_suspend &
                 sleep 30
-            else
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid closed detected, LIDSLEEP disabled for current power mode, ignoring..." >> "$LOG_FILE"
             fi
-            ;;
-        *"Lid opened"*)
-            if (( PRESENTATION_MODE == 1 )); then
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid opened ignored due to presentation mode." >> "$LOG_FILE"
-            else
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid opened detected, restoring brightness levels..." >> "$LOG_FILE"
-                sudo ectool backlight 1 2>/dev/null
-                sudo ectool pwmsetkblight "$saved_kb_brightness" 2>/dev/null
+        fi
+        ;;
+    *"On AC"*)
+        if [[ "$status" != "Charging" ]]; then
+            status="Charging"
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - On AC - changing power plan." >> "$LOG_FILE"
+            dim_delay=$((POWER_DIM_DELAY * 60))
+            backlight_delay=$((POWER_BACKLIGHT * 60))
+            suspend_delay=$((POWER_DELAY * 60))
+            
+            # Optional: if lid is closed on AC, maybe just restore brightness
+            if (( lid_closed == 1 )); then
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid already closed & on AC -> restoring brightness." >> "$LOG_FILE"
                 set_display_brightness "$saved_display_brightness"
             fi
-            ;;
-        *"On battery at"*)
-            if [[ "$status" != "Discharging" ]]; then
-                status="Discharging"
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - On Battery - changing power plan." >> "$LOG_FILE"
-                dim_delay=$((BATTERY_DIM_DELAY * 60))
-                backlight_delay=$((BATTERY_BACKLIGHT * 60))
-                suspend_delay=$((BATTERY_DELAY * 60))
-            fi
-            ;;
-        *"On AC"*)
-            if [[ "$status" != "Charging" ]]; then
-                status="Charging"
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - On AC - changing power plan." >> "$LOG_FILE"
-                dim_delay=$((POWER_DIM_DELAY * 60))
-                backlight_delay=$((POWER_BACKLIGHT * 60))
-                suspend_delay=$((POWER_DELAY * 60))
-            fi
-            ;;
-        *"User activity reported"*|*"User activity ongoing"*|*"Enabling wakeup for"*|*"User triggered wake"*|*"powerd_suspend returned 0"*|*"Configuring devices for mode"*|*"Chrome is using normal display mode"*)
-            if (( monitor_idle == 1 )); then
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - User activity resumed." >> "$LOG_FILE"
-                echo "Suspend delay is set to $((suspend_delay / 60)) minutes."
-            fi
-            monitor_idle=0
-            active=1
-            stop_fake_activity
-            if (( was_dimmed == 1 )); then
-                set_display_brightness "$saved_display_brightness"
-                was_dimmed=0
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Restored brightness to $saved_display_brightness" >> "$LOG_FILE"
-            fi
-    
-            current_kb_brightness=$(sudo ectool pwmgetkblight 2>/dev/null | awk '{print $NF}')
-            if [[ "$current_kb_brightness" =~ ^[0-9]+$ ]] && (( current_kb_brightness > 1 )); then
-                saved_kb_brightness=$current_kb_brightness
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Updated saved keyboard brightness: $saved_kb_brightness" >> "$LOG_FILE"
-            fi
-    
-            sudo ectool backlight 1 2>/dev/null
-            sudo ectool pwmsetkblight "$saved_kb_brightness" 2>/dev/null
-            backlight_off=0
-            kb_brightness_restored=1
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - powerd keyword triggered wake." >> "$LOG_FILE"
-            power_backlight_ts=$now
-            battery_backlight_ts=$now
-            ;;
-        *"Got user-triggered request to set brightness to "*)
-            brightness_percent=$(echo "$line" | sed -E 's/.*set brightness to ([0-9.]+)%/\1/')
-            if [[ -n "$brightness_percent" ]]; then
-                max_brightness=$(cat "$MAX_BRIGHTNESS_PATH" 2>/dev/null || echo 255)
-                brightness_percent=$(awk "BEGIN {print int(($brightness_percent + 0.5))}")
-                (( brightness_percent > 100 )) && brightness_percent=100
-                brightness_value=$((brightness_percent * max_brightness / 100))
-                saved_display_brightness="$brightness_value"
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Saved brightness to $brightness_percent% ($brightness_value)." >> "$LOG_FILE"
-            fi
-            ;;
-        *)
-            ;;
+        fi
+        ;;
+    *"User activity reported"*|*"User activity ongoing"*|*"Enabling wakeup for"*|*"User triggered wake"*|*"powerd_suspend returned 0"*|*"Configuring devices for mode"*|*"Chrome is using normal display mode"*)
+        if (( monitor_idle == 1 )); then
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - User activity resumed." >> "$LOG_FILE"
+            echo "Suspend delay is set to $((suspend_delay / 60)) minutes."
+        fi
+        monitor_idle=0
+        active=1
+        stop_fake_activity
+        if (( was_dimmed == 1 )); then
+            set_display_brightness "$saved_display_brightness"
+            was_dimmed=0
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - Restored brightness to $saved_display_brightness" >> "$LOG_FILE"
+        fi
+
+        current_kb_brightness=$(sudo ectool pwmgetkblight 2>/dev/null | awk '{print $NF}')
+        if [[ "$current_kb_brightness" =~ ^[0-9]+$ ]] && (( current_kb_brightness > 1 )); then
+            saved_kb_brightness=$current_kb_brightness
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - Updated saved keyboard brightness: $saved_kb_brightness" >> "$LOG_FILE"
+        fi
+
+        sudo ectool backlight 1 2>/dev/null
+        sudo ectool pwmsetkblight "$saved_kb_brightness" 2>/dev/null
+        backlight_off=0
+        kb_brightness_restored=1
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - powerd keyword triggered wake." >> "$LOG_FILE"
+        power_backlight_ts=$now
+        battery_backlight_ts=$now
+        ;;
+    *"Got user-triggered request to set brightness to "*)
+        brightness_percent=$(echo "$line" | sed -E 's/.*set brightness to ([0-9.]+)%/\1/')
+        if [[ -n "$brightness_percent" ]]; then
+            max_brightness=$(cat "$MAX_BRIGHTNESS_PATH" 2>/dev/null || echo 255)
+            brightness_percent=$(awk "BEGIN {print int(($brightness_percent + 0.5))}")
+            (( brightness_percent > 100 )) && brightness_percent=100
+            brightness_value=$((brightness_percent * max_brightness / 100))
+            saved_display_brightness="$brightness_value"
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - Saved brightness to $brightness_percent% ($brightness_value)." >> "$LOG_FILE"
+        fi
+        ;;
+    *)
+        ;;
 esac
+
 
 if (( monitor_idle == 1 )); then
     if [[ "$status" == "Discharging" ]]; then
