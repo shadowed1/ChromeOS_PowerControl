@@ -9,7 +9,7 @@ BOLD=$(tput bold)
 RESET=$(tput sgr0)
 INSTALL_DIR="@INSTALL_DIR@"
 CONFIG_FILE="$INSTALL_DIR/config.sh"
-PID_FILE="$INSTALL_DIR/.sleepcontrol_pid"
+PID_FILE="$INSTALL_DIR/.sleepcontrol_pid"Fsleep 
 RUN_FLAG="$INSTALL_DIR/.sleepcontrol_enabled"
 LOG_FILE="/var/log/sleepcontrol.log"
 BATTERY_STATUS_PATH="/var/log/power_manager/powerd.LATEST"
@@ -407,7 +407,7 @@ monitor_idle_activity() {
             saved_kb_brightness=$(sudo ectool pwmgetkblight 2>/dev/null | awk '{print $NF}')
             sudo ectool pwmsetkblight 0 2>/dev/null
             sudo powerd_dbus_suspend &
-            sleep 30
+            sleep 3
         else
             echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid closed, but lid sleep is off." >> "$LOG_FILE"
         fi
