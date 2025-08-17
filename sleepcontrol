@@ -29,6 +29,13 @@ if [[ ! -f "$SUSPEND_APPLIED_FLAG" ]]; then
         if [[ "$SUSPEND_MODE" == "freeze" || "$SUSPEND_MODE" == "deep" ]]; then
             echo "$SUSPEND_MODE" | sudo tee /usr/share/power_manager/suspend_mode >/dev/null
             sudo restart powerd >/dev/null
+
+            if [[ "$SUSPEND_MODE" == "freeze" ]]; then
+                echo s2idle | sudo tee /sys/power/mem_sleep >/dev/null
+            else
+                echo deep | sudo tee /sys/power/mem_sleep >/dev/null
+            fi
+
             touch "$SUSPEND_APPLIED_FLAG"
         fi
     fi
@@ -78,6 +85,11 @@ DEFAULT_POWER_DELAY=48
 DEFAULT_POWER_BACKLIGHT=32
 DEFAULT_POWER_DIM_DELAY=16
 DEFAULT_SUSPEND_MODE=deep
+DEFAULT_AUDIO_DETECTION_BATTERY=1
+DEFAULT_AUDIO_DETECTION_POWER=1
+DEFAULT_LIDSLEEP_BATTERY=1
+DEFAULT_LIDSLEEP_POWER=1
+
 
 AUDIO_DETECTION_BATTERY=
 AUDIO_DETECTION_POWER=
@@ -89,6 +101,8 @@ POWER_BACKLIGHT=
 POWER_DIM_DELAY=
 SUSPEND_MODE=
 ORIGINAL_SUSPEND_MODE=
+LIDSLEEP_BATTERY=
+LIDSLEEP_POWER=
 audio_active=0
 saved_display_brightness=0
 was_dimmed=0
@@ -116,14 +130,15 @@ recalc_timers() {
         backlight_delay=$((BATTERY_BACKLIGHT * 60))
         suspend_delay=$((BATTERY_DELAY * 60))
         AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_BATTERY
+        LIDSLEEP_ENABLED=$LIDSLEEP_BATTERY
     else
         dim_delay=$((POWER_DIM_DELAY * 60))
         backlight_delay=$((POWER_BACKLIGHT * 60))
         suspend_delay=$((POWER_DELAY * 60))
         AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_POWER
+        LIDSLEEP_ENABLED=$LIDSLEEP_POWER
     fi    
 }
-
 
 validate_config() {
     if [[ -z "$BATTERY_DELAY" || ! "$BATTERY_DELAY" =~ ^[0-9]+$ ]]; then
@@ -152,6 +167,14 @@ validate_config() {
         AUDIO_DETECTION_POWER=1
     fi
 
+    if [[ -z "$LIDSLEEP_BATTERY" || ! "$LIDSLEEP_BATTERY" =~ ^[01]$ ]]; then
+        LIDSLEEP_BATTERY=$DEFAULT_LIDSLEEP_BATTERY
+    fi
+    if [[ -z "$LIDSLEEP_POWER" || ! "$LIDSLEEP_POWER" =~ ^[01]$ ]]; then
+        LIDSLEEP_POWER=$DEFAULT_LIDSLEEP_POWER
+    fi
+
+
     if [[ -z "$SUSPEND_MODE" || ( "$SUSPEND_MODE" != "freeze" && "$SUSPEND_MODE" != "deep" ) ]]; then
         if [[ -f "/usr/share/power_manager/suspend_mode" ]]; then
             SUSPEND_MODE=$(cat /usr/share/power_manager/suspend_mode)
@@ -177,7 +200,8 @@ save_config() {
     sed -i "s/^AUDIO_DETECTION_POWER=.*/AUDIO_DETECTION_POWER=$AUDIO_DETECTION_POWER/" "$CONFIG_FILE" || echo "AUDIO_DETECTION_POWER=$AUDIO_DETECTION_POWER" >> "$CONFIG_FILE"
     sed -i "s/^SUSPEND_MODE=.*/SUSPEND_MODE=$SUSPEND_MODE/" "$CONFIG_FILE" || echo "SUSPEND_MODE=$SUSPEND_MODE" >> "$CONFIG_FILE"
     sed -i "s/^ORIGINAL_SUSPEND_MODE=.*/ORIGINAL_SUSPEND_MODE=$ORIGINAL_SUSPEND_MODE/" "$CONFIG_FILE" || echo "ORIGINAL_SUSPEND_MODE=$ORIGINAL_SUSPEND_MODE" >> "$CONFIG_FILE"
-
+    sed -i "s/^LIDSLEEP_BATTERY=.*/LIDSLEEP_BATTERY=$LIDSLEEP_BATTERY/" "$CONFIG_FILE" || echo "LIDSLEEP_BATTERY=$LIDSLEEP_BATTERY" >> "$CONFIG_FILE"
+    sed -i "s/^LIDSLEEP_POWER=.*/LIDSLEEP_POWER=$LIDSLEEP_POWER/" "$CONFIG_FILE" || echo "LIDSLEEP_POWER=$LIDSLEEP_POWER" >> "$CONFIG_FILE"
 
 }
 
@@ -189,7 +213,7 @@ echo "║                                          SleepControl commands with ex
 echo "║                                                                                                                    ║"
 echo "║  sleepcontrol                       # Show SleepControl status                                                     ║"
 echo "║  sleepcontrol help                  # Help menu                                                                    ║"
-echo "║  sleepcontrol monitor               # Monitor sleepcontrol's log in realtime (ctrl-c to exit)                      ║"
+echo "║  sleepcontrol monitor               # Monitor sleepcontrol activity in realtime (ctrl-c to exit)                   ║"
 echo "║  sleepcontrol powerd                # Monitor powerd.LATEST log in realtime (ctrl-c to exit)                       ║"
 echo "║  sudo sleepcontrol start            # Start SleepControl                                                           ║"
 echo "║  sudo sleepcontrol stop             # Stop SleepControl                                                            ║"
@@ -198,6 +222,8 @@ echo "║  sudo sleepcontrol power 5 15 30    # When idle, display dims in 5m ->
 echo "║  sudo sleepcontrol battery audio 0  # Disable audio detection on battery; sleep can occur during media playback    ║"
 echo "║  sudo sleepcontrol power audio 1    # Enable audio detection on power; delaying sleep until audio is stopped       ║"
 echo "║  sudo sleepcontrol mode freeze      # Change suspend mode to freeze, enabling batterycontrol to work asleep        ║"
+echo "║  sudo sleepcontrol lid power 0      # Prevent closing lid from putting system to sleep when on power               ║"
+echo "║  sudo sleepcontrol lid battery 0    # Prevent closing lid from putting system to sleep when on power               ║"
 echo "║  sudo sleepcontrol startup          # Copy or Remove sleepcontrol.conf at: /etc/init/                              ║"
 echo "║                                                                                                                    ║"
 echo "╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝"
@@ -363,6 +389,24 @@ monitor_idle_activity() {
                     last_ts=$now
                     echo "$(date '+%Y-%m-%d %H:%M:%S') - User idle detected." >> "$LOG_FILE"
                 fi
+                ;;
+           *"Lid closed"*)
+                if (( LIDSLEEP_ENABLED == 1 )); then
+                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid closed detected, triggering suspend via powerd..." >> "$LOG_FILE"
+                    saved_kb_brightness=$(sudo ectool pwmgetkblight 2>/dev/null | awk '{print $NF}')
+                    sudo ectool pwmsetkblight 0 2>/dev/null
+                    set_display_brightness 0
+                    sudo powerd_dbus_suspend &
+                    sleep 30  # safety delay to prevent race loop
+                else
+                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid closed detected, LIDSLEEP disabled for current power mode, ignoring..." >> "$LOG_FILE"
+                fi
+                ;;
+            *"Lid opened"*)
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid opened detected, restoring brightness levels..." >> "$LOG_FILE"
+                sudo ectool backlight 1 2>/dev/null
+                sudo ectool pwmsetkblight "$saved_kb_brightness" 2>/dev/null
+                set_display_brightness "$saved_display_brightness"
                 ;;
             *"On battery at"*)
                 if [[ "$status" != "Discharging" ]]; then
@@ -634,9 +678,9 @@ flock -n 200 || {
     else
         load_config
         if [[ "$MODE" == "battery" ]]; then
-            echo "${BLUE}Battery = Dim: $((BATTERY_DIM_DELAY)) min -> Timeout: $((BATTERY_BACKLIGHT)) min -> Sleep: $((BATTERY_DELAY)) min | Audio Detection: $AUDIO_DETECTION_BATTERY${RESET}"
+            echo "${BLUE}Battery = Dim: $((BATTERY_DIM_DELAY)) min -> Timeout: $((BATTERY_BACKLIGHT)) min -> Sleep: $((BATTERY_DELAY)) min | Audio Detection: $AUDIO_DETECTION_BATTERY Lid Sleep: $LIDSLEEP_POWER ${RESET}"
         else
-            echo "${BLUE}Power = Dim: $((POWER_DIM_DELAY)) min -> Timeout: $((POWER_BACKLIGHT)) min -> Sleep: $((POWER_DELAY)) min | Audio Detection: $AUDIO_DETECTION_POWER${RESET}"
+            echo "${BLUE}Power = Dim: $((POWER_DIM_DELAY)) min -> Timeout: $((POWER_BACKLIGHT)) min -> Sleep: $((POWER_DELAY)) min | Audio Detection: $AUDIO_DETECTION_POWER | Lid Sleep: $LIDSLEEP_BATTERY ${RESET}"
         fi
     fi
     ;;
@@ -682,8 +726,8 @@ echo "════════════════════════�
 echo "                            SleepControl Status: STOPPED                                       "
         fi
 echo "  Suspend Mode:${SUSPEND_MODE}"
-echo "  Battery = Dim: $((BATTERY_DIM_DELAY)) min -> Timeout: $((BATTERY_BACKLIGHT)) min -> Sleep: $((BATTERY_DELAY)) min | Audio Detection: $AUDIO_DETECTION_BATTERY"
-echo "  Power   = Dim: $((POWER_DIM_DELAY)) min -> Timeout: $((POWER_BACKLIGHT)) min -> Sleep: $((POWER_DELAY)) min | Audio Detection: $AUDIO_DETECTION_POWER"
+echo "  Battery = Dim: $((BATTERY_DIM_DELAY)) min -> Timeout: $((BATTERY_BACKLIGHT)) min -> Sleep: $((BATTERY_DELAY)) min | Audio Detection: $AUDIO_DETECTION_BATTERY | Lid Sleep: $LIDSLEEP_BATTERY "
+echo "  Power   = Dim: $((POWER_DIM_DELAY)) min -> Timeout: $((POWER_BACKLIGHT)) min -> Sleep: $((POWER_DELAY)) min | Audio Detection: $AUDIO_DETECTION_POWER | Lid Sleep: $LIDSLEEP_POWER "
 echo "══════════════════════════════════════════════════════════════════════════════════════════"
 echo "${RESET}"
        
@@ -713,18 +757,64 @@ echo "${RESET}"
                 echo ""
                 exit 1
             fi
-
+    
             echo "$SUSPEND_MODE" | sudo tee /usr/share/power_manager/suspend_mode >/dev/null
             sudo restart powerd >/dev/null
-
-            SUSPEND_MODE="$SUSPEND_MODE"
+    
+            if [[ "$SUSPEND_MODE" == "freeze" ]]; then
+                echo s2idle | sudo tee /sys/power/mem_sleep >/dev/null
+            else
+                echo deep | sudo tee /sys/power/mem_sleep >/dev/null
+            fi
+    
             save_config
-
             echo "${BLUE}Suspend mode set to: $SUSPEND_MODE${RESET}"
         else
             echo "Valid suspend types: freeze, deep"
             echo "Current suspend mode: $(cat /usr/share/power_manager/suspend_mode)"
+            echo "Kernel mem_sleep: $(cat /sys/power/mem_sleep)"
         fi
+        ;;
+    lidsleep | lid)
+            if [[ $# -eq 3 ]]; then
+                MODE=$2
+                VAL=$3
+    
+                if [[ "$MODE" != "battery" && "$MODE" != "power" ]]; then
+                    echo "${RED}Invalid mode: $MODE. Use 'battery' or 'power'.${RESET}"
+                    exit 1
+                fi
+    
+                if ! [[ "$VAL" =~ ^[0-1]$ ]]; then
+                    echo "${RED}Invalid value: $VAL. Must be 0 (disabled) or 1 (enabled).${RESET}"
+                    exit 1
+                fi
+    
+                if [[ "$MODE" == "battery" ]]; then
+                    LIDSLEEP_BATTERY=$VAL
+                else
+                    LIDSLEEP_POWER=$VAL
+                fi
+    
+                save_config
+                echo ""
+                echo "${BLUE}Lid sleep for $MODE set to: $VAL${RESET}"
+                echo ""
+                load_config
+    
+            elif [[ $# -eq 1 ]]; then
+                load_config
+                echo "${BLUE}"
+                echo "  Lid sleep settings:"
+                echo "  Battery: $LIDSLEEP_BATTERY"
+                echo "  Power  : $LIDSLEEP_POWER"
+                echo "${RESET}"
+            else
+                echo ""
+                echo "${RED}Usage: sleepcontrol lidsleep [battery|power] [0|1]${RESET}"
+                echo ""
+                exit 1
+            fi
         ;;
     *)
         show_help
