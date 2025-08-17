@@ -709,12 +709,12 @@ flock -n 200 || {
             PID=$(cat "$PID_FILE")
             if ps -p "$PID" > /dev/null 2>&1; then
 echo "${BLUE}"
-echo "══════════════════════════════════════════════════════════════════════════════════════════"
+echo "════════════════════════════════════════════════════════════════════════════════════════════════"
 echo "                        SleepControl Status: RUNNING (PID $PID)                                  "                                 
 echo ""
             else
 echo "${RED}"
-echo "══════════════════════════════════════════════════════════════════════════════════════════"
+echo "════════════════════════════════════════════════════════════════════════════════════════════════"
 echo " SleepControl Status: RUN FLAG PRESENT, but process not yet running (120s delay on boot)"
 echo ""
 
@@ -728,7 +728,7 @@ echo "                            SleepControl Status: STOPPED                  
 echo "  Suspend Mode:${SUSPEND_MODE}"
 echo "  Battery = Dim: $((BATTERY_DIM_DELAY)) min -> Timeout: $((BATTERY_BACKLIGHT)) min -> Sleep: $((BATTERY_DELAY)) min | Audio Detection: $AUDIO_DETECTION_BATTERY | Lid Sleep: $LIDSLEEP_BATTERY "
 echo "  Power   = Dim: $((POWER_DIM_DELAY)) min -> Timeout: $((POWER_BACKLIGHT)) min -> Sleep: $((POWER_DELAY)) min | Audio Detection: $AUDIO_DETECTION_POWER | Lid Sleep: $LIDSLEEP_POWER "
-echo "═══════════════════════════════════════════════════════════════════════════════════════════════"
+echo "════════════════════════════════════════════════════════════════════════════════════════════════"
 echo "${RESET}"
        
         ;;
@@ -817,7 +817,8 @@ echo "${RESET}"
                 echo "${RESET}"
             else
                 echo ""
-                echo "${RED}Usage: sleepcontrol lidsleep [battery|power] [0|1]${RESET}"
+                echo "${RED}Usage: sleepcontrol lid battery 1${RESET}"
+                echo "${RED}Usage: sleepcontrol lid power 0${RESET}"
                 echo ""
                 exit 1
             fi
