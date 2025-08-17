@@ -432,13 +432,17 @@ monitor_idle_activity() {
         suspend_delay=$((BATTERY_DELAY * 60))
         AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_BATTERY
     
-        if (( lid_closed == 1 && LIDSLEEP_ENABLED == 1 )); then
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid closed & on battery -> triggering suspend." >> "$LOG_FILE"
-            saved_kb_brightness=$(sudo ectool pwmgetkblight 2>/dev/null | awk '{print $NF}')
-            sudo ectool pwmsetkblight 0 2>/dev/null
-            set_display_brightness 0
-            sudo powerd_dbus_suspend &
-            sleep 30
+        if (( lid_closed == 1 )); then
+            if (( LIDSLEEP_ENABLED == 1 )); then
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid closed & on battery -> triggering suspend." >> "$LOG_FILE"
+                saved_kb_brightness=$(sudo ectool pwmgetkblight 2>/dev/null | awk '{print $NF}')
+                sudo ectool pwmsetkblight 0 2>/dev/null
+                set_display_brightness 0
+                sudo powerd_dbus_suspend &
+                sleep 30
+            else
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid closed & on battery, but lid sleep disabled." >> "$LOG_FILE"
+            fi
         fi
         ;;
     *"On AC"*)
@@ -450,7 +454,9 @@ monitor_idle_activity() {
         AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_POWER
     
         if (( lid_closed == 1 )); then
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid closed & on AC -> restoring brightness." >> "$LOG_FILE"
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid closed & on AC -> restoring display & keyboard brightness." >> "$LOG_FILE"
+            sudo ectool backlight 1 2>/dev/null
+            sudo ectool pwmsetkblight "$saved_kb_brightness" 2>/dev/null
             set_display_brightness "$saved_display_brightness"
         fi
         ;;
