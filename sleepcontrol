@@ -17,7 +17,6 @@ BACKLIGHT_NAME=""
 BRIGHTNESS_PATH=""
 MAX_BRIGHTNESS_PATH=""
 FAKE_ACTIVITY_INTERVAL=120
-SUSPEND_IGNORE_UNTIL=0
 
 SUSPEND_APPLIED_FLAG="/tmp/.sleepcontrol_suspend_applied"
 
@@ -347,12 +346,6 @@ monitor_idle_activity() {
     now=$(date +%s)
 
     now=$(date +%s)
-    if (( now < SUSPEND_IGNORE_UNTIL )); then
-        if [[ "$line" == *"powerd keyword triggered wake"* ]]; then
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - Ignoring wake during lid-close suspend..." >> "$LOG_FILE"
-            continue
-        fi
-    fi
 
     if (( now - last_power_check_time >= 30 )); then
         get_battery_info
@@ -407,20 +400,27 @@ monitor_idle_activity() {
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - User idle detected." >> "$LOG_FILE"
             fi
             ;;
-       *"Lid closed"*)
-        if (( PRESENTATION_MODE == 1 )); then
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid closed ignored due to presentation mode." >> "$LOG_FILE"
-            stop_fake_activity
-        elif (( LIDSLEEP_ENABLED == 1 )); then
-            stop_fake_activity
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid closed detected, triggering suspend via powerd..." >> "$LOG_FILE"
-            SUSPEND_IGNORE_UNTIL=$(( $(date +%s) + 10 ))
-            sudo powerd_dbus_suspend >> "$LOG_FILE" 2>&1
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - Suspend command sent successfully." >> "$LOG_FILE"
-        else
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid closed detected, but LIDSLEEP is disabled; ignoring..." >> "$LOG_FILE"
-        fi
-        ;;
+      *"Lid closed"*)
+            lid_closed=1
+            if (( PRESENTATION_MODE == 1 )); then
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid close logic paused due to external display." >> "$LOG_FILE"
+                stop_fake_activity
+        
+            elif (( LIDSLEEP_ENABLED == 1 )); then
+                if (( active == 0 )); then
+                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid closed, triggering suspend via powerd..." >> "$LOG_FILE"
+                    sudo powerd_dbus_suspend &
+                    sleep 15
+                    
+                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Suspend command sent successfully." >> "$LOG_FILE"
+                else
+                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid closed detected, but user is active; skipping suspend for safety." >> "$LOG_FILE"
+                fi
+        
+            else
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid closed detected, but lid sleep is off; ignoring..." >> "$LOG_FILE"
+            fi
+            ;;
         *"Lid opened"*)
             if (( PRESENTATION_MODE == 1 )); then
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid opened ignored due to presentation mode." >> "$LOG_FILE"
