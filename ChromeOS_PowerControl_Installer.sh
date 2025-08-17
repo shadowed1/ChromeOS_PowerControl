@@ -762,8 +762,8 @@ fi
 if [[ "$SHOW_SLEEPCONTROL_NOTICE" -eq 1 ]]; then
 echo "${BLUE}╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
 echo "║  ${RESET}${BLUE}${BOLD}SleepControl Notice:${RESET}${BLUE}                                                                                              ║"
-echo "║  Overrides default ChromeOS sleep behavior except for lid control - Adjust settings above to preference             ║"
-echo "║  Lid Sleep logic is available. Disable ChromeOS 'Sleep when lid is closed' option to customize.                     ║"
+echo "║  Overrides default ChromeOS sleep behavior except for lid control - Adjust settings above to preference            ║"
+echo "║  Lid Sleep logic is available. Disable ChromeOS 'Sleep when lid is closed' option to customize.                    ║"
 echo "╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝${RESET}"
 echo ""
 fi
