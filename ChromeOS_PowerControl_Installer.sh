@@ -607,10 +607,10 @@ start_component_now() {
 
 
 echo "${BLUE}Stopping any existing components of ChromeOS_PowerControl (in case of reinstall)${RESET}"
-sudo batterycontrol stop >/dev/null 2>&1
-sudo powercontrol stop >/dev/null 2>&1
-sudo fancontrol stop >/dev/null 2>&1
-sudo sleepcontrol stop >/dev/null 2>&1
+sudo bash "$INSTALL_DIR/batterycontrol" stop >/dev/null 2>&1
+sudo bash "$INSTALL_DIR/powercontrol" stop >/dev/null 2>&1
+sudo bash "$INSTALL_DIR/fancontrol" stop >/dev/null 2>&1
+sudo bash "$INSTALL_DIR/sleepcontrol" stop >/dev/null 2>&1
 sudo bash "$INSTALL_DIR/gpucontrol" restore >/dev/null 2>&1
 sudo ectool backlight 1 >/dev/null 2>&1
 echo ""
@@ -775,3 +775,6 @@ echo "                                      ${CYAN}║ ║ ╚══════
 echo "                                      ${BLUE}║ ╚═══════════════════════════╝ ║${RESET}"
 echo "                                      ${MAGENTA}╚═══════════════════════════════╝${RESET}"
 echo ""
+echo ""
+sleep 3
+sudo $INSTALL_DIR/powercontrol all
