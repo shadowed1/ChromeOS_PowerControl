@@ -499,7 +499,6 @@ if (( monitor_idle == 1 )); then
 
     echo "Now -> $now | Last reported activity -> $last_ts" >> "$LOG_FILE"
 
-    if (( PRESENTATION_MODE == 0 )); then
         if (( now - last_ts >= dim_delay && now - last_ts < backlight_delay )); then
             if [[ $was_dimmed -eq 0 && $saved_display_brightness -gt 0 ]]; then
                 save_current_brightness
@@ -516,7 +515,6 @@ if (( monitor_idle == 1 )); then
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Keyboard backlight off." >> "$LOG_FILE"
             fi
         fi
-    fi
 
     idle_elapsed=$(( now - idle_since ))
 
