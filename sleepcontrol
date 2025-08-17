@@ -582,8 +582,8 @@ flock -n 200 || {
                 }
         sudo ectool backlight 1 >/dev/null 2>&1
         stop_monitoring >/dev/null 2>&1
-        if [ -f "$LOG_FILE" ] && [ "$(stat -c%s "$LOG_FILE")" -gt 32768 ]; then
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - Truncated log file (exceeded 32KB)" | tee -a "$LOG_FILE"
+        if [ -f "$LOG_FILE" ] && [ "$(stat -c%s "$LOG_FILE")" -gt 131072 ]; then
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - Truncated log file (exceeded 128KB)" | tee -a "$LOG_FILE"
         fi
         setsid "$0" __sleepcontrol_monitor__ >> "$LOG_FILE" 2>&1 &
         echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - SleepControl Started. Output is logged to $LOG_FILE${RESET}" | tee -a "$LOG_FILE"
