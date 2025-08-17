@@ -727,6 +727,7 @@ echo "║  sudo sleepcontrol power audio 1    # Enable audio detection on power;
 echo "║  sudo sleepcontrol battery lid 1    # Enable sleep on closing the lid on battery.                                  ║"
 echo "║  sudo sleepcontrol power lid 0      # Disable sleep on closing the lid on power.                                   ║"
 echo "║  sudo sleepcontrol mode freeze      # Change suspend mode to freeze, enabling batterycontrol to work asleep        ║"
+echo "║  sudo sleepcontrol mode deep        # Change suspend mode to deep, but can disable ectool management               ║"
 echo "║  sudo sleepcontrol startup          # Copy or Remove sleepcontrol.conf at: /etc/init/                              ║"
 echo "║                                                                                                                    ║"
 echo "╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝"
