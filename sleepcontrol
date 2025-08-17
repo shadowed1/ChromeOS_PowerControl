@@ -420,17 +420,24 @@ case "$line" in
             echo "$(date '+%Y-%m-%d %H:%M:%S') - User idle detected." >> "$LOG_FILE"
         fi
         ;;
-    *"Lid closed"*)
+   *"Lid closed"*)
         lid_closed=1
         if (( PRESENTATION_MODE == 1 )); then
             echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid close logic paused due to external display." >> "$LOG_FILE"
         elif (( LIDSLEEP_ENABLED == 1 )); then
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid closed, triggering suspend via powerd..." >> "$LOG_FILE"
-            saved_kb_brightness=$(sudo ectool pwmgetkblight 2>/dev/null | awk '{print $NF}')
-            sudo ectool pwmsetkblight 0 2>/dev/null
-            set_display_brightness 0
-            sudo powerd_dbus_suspend &
-            sleep 30
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid closed, scheduling suspend in 5s..." >> "$LOG_FILE"
+            (
+                sleep 5
+                if (( lid_closed == 1 )); then
+                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid still closed after delay, suspending..." >> "$LOG_FILE"
+                    saved_kb_brightness=$(sudo ectool pwmgetkblight 2>/dev/null | awk '{print $NF}')
+                    sudo ectool pwmsetkblight 0 2>/dev/null
+                    set_display_brightness 0
+                    sudo powerd_dbus_suspend &
+                else
+                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid reopened before suspend, skipping." >> "$LOG_FILE"
+                fi
+            ) &
         else
             echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid closed, but lid sleep is off." >> "$LOG_FILE"
         fi
