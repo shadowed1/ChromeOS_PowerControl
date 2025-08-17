@@ -710,7 +710,7 @@ flock -n 200 || {
             if ps -p "$PID" > /dev/null 2>&1; then
 echo "${BLUE}"
 echo "════════════════════════════════════════════════════════════════════════════════════════════════"
-echo "                        SleepControl Status: RUNNING (PID $PID)                                  "                                 
+echo "                          SleepControl Status: RUNNING (PID $PID)                                  "                                 
 echo ""
             else
 echo "${RED}"
@@ -723,7 +723,7 @@ echo ""
          else
 echo "${RED}"
 echo "════════════════════════════════════════════════════════════════════════════════════════════════"
-echo "                            SleepControl Status: STOPPED                                       "
+echo "                              SleepControl Status: STOPPED                                       "
         fi
 echo "  Suspend Mode:${SUSPEND_MODE}"
 echo "  Battery = Dim: $((BATTERY_DIM_DELAY)) min -> Timeout: $((BATTERY_BACKLIGHT)) min -> Sleep: $((BATTERY_DELAY)) min | Audio Detection: $AUDIO_DETECTION_BATTERY | Lid Sleep: $LIDSLEEP_BATTERY "
