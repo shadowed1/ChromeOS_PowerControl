@@ -17,6 +17,7 @@ BACKLIGHT_NAME=""
 BRIGHTNESS_PATH=""
 MAX_BRIGHTNESS_PATH=""
 FAKE_ACTIVITY_INTERVAL=120
+SUSPENDING=0
 
 SUSPEND_APPLIED_FLAG="/tmp/.sleepcontrol_suspend_applied"
 
@@ -398,15 +399,28 @@ monitor_idle_activity() {
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - User idle detected." >> "$LOG_FILE"
             fi
             ;;
-        *"Lid closed"*)
+       *"Lid closed"*)
             if (( PRESENTATION_MODE == 1 )); then
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid closed ignored due to presentation mode." >> "$LOG_FILE"
+                stop_fake_activity
             elif (( LIDSLEEP_ENABLED == 1 )); then
+                stop_fake_activity
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid closed detected, triggering suspend via powerd..." >> "$LOG_FILE"
-                sudo powerd_dbus_suspend &
-                sleep 60
+                
+                # Only attempt suspend if not already suspending
+                if [[ -z "$SUSPENDING" ]]; then
+                    SUSPENDING=1
+                    if sudo powerd_dbus_suspend >> "$LOG_FILE" 2>&1; then
+                        echo "$(date '+%Y-%m-%d %H:%M:%S') - Suspend successful." >> "$LOG_FILE"
+                    else
+                        echo "$(date '+%Y-%m-%d %H:%M:%S') - Suspend failed!" >> "$LOG_FILE"
+                    fi
+                    unset SUSPENDING
+                else
+                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Suspend already in progress, skipping..." >> "$LOG_FILE"
+                fi
             else
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid closed detected, LIDSLEEP disabled for current power mode, ignoring..." >> "$LOG_FILE"
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid closed detected, but LIDSLEEP is disabled; ignoring..." >> "$LOG_FILE"
             fi
             ;;
         *"Lid opened"*)
