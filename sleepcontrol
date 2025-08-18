@@ -334,7 +334,10 @@ monitor_idle_activity() {
         fi
     }
 
-
+    if [[ -z "$saved_display_brightness" || "$saved_display_brightness" -eq 0 ]]; then
+        saved_display_brightness=$(cat "$BRIGHTNESS_PATH" 2>/dev/null || echo 255)
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - Initialized saved_display_brightness: $saved_display_brightness" >> "$LOG_FILE"
+    fi
 
         now=$(date +%s)
         if (( now - last_reload_time >= 30 )); then
