@@ -126,7 +126,7 @@ load_config() {
 }
 
 recalc_timers() {
-    if [[ "$status" == "Discharging" ]]; then
+    if [[ "$STATUS" == "Discharging" ]]; then
         dim_delay=$((BATTERY_DIM_DELAY * 60))
         backlight_delay=$((BATTERY_BACKLIGHT * 60))
         suspend_delay=$((BATTERY_DELAY * 60))
@@ -268,6 +268,8 @@ save_current_brightness() {
     fi
 }
 
+idle_elapsed=0
+
 send_fake_activity() {
     dbus-send --system --type=method_call \
         --dest=org.chromium.PowerManager \
@@ -360,7 +362,7 @@ monitor_idle_activity() {
         last_power_check_time=$now
     fi
 
-    if [[ "$status" == "Discharging" ]]; then
+    if [[ "$STATUS" == "Discharging" ]]; then
         AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_BATTERY
     else
         AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_POWER
@@ -439,7 +441,7 @@ monitor_idle_activity() {
             fi
             ;;
         *"On battery at"*)
-            if [[ "$status" != "Discharging" ]]; then
+            if [[ "$STATUS" != "Discharging" ]]; then
                 status="Discharging"
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - On Battery" >> "$LOG_FILE"
                 dim_delay=$((BATTERY_DIM_DELAY * 60))
@@ -448,7 +450,7 @@ monitor_idle_activity() {
             fi
             ;;
         *"On AC"*)
-            if [[ "$status" != "Charging" ]]; then
+            if [[ "$STATUS" != "Charging" ]]; then
                 status="Charging"
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - On AC" >> "$LOG_FILE"
                 dim_delay=$((POWER_DIM_DELAY * 60))
@@ -509,9 +511,8 @@ esac
 if (( idle_elapsed < suspend_delay - 10 )); then
         stop_fake_activity
     fi
-
 if (( monitor_idle == 1 )); then
-    if [[ "$status" == "Discharging" ]]; then
+    if [[ "$STATUS" == "Discharging" ]]; then
         dim_delay=$((BATTERY_DIM_DELAY * 60))
         backlight_delay=$((BATTERY_BACKLIGHT * 60))
         suspend_delay=$((BATTERY_DELAY * 60))
