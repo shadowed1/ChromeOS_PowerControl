@@ -107,8 +107,6 @@ LIDSLEEP_POWER=
 audio_active=0
 saved_display_brightness=0
 was_dimmed=0
-lid_closed=0
-last_power_state="$STATUS"
 
 BATTERY_DELAY=$DEFAULT_BATTERY_DELAY
 POWER_DELAY=$DEFAULT_POWER_DELAY
@@ -410,24 +408,30 @@ monitor_idle_activity() {
             ;;
       *"Lid closed"*)
             lid_closed=1
-            if (( PRESENTATION_MODE == 0 )); then
-        if (( (STATUS == "Discharging" && LIDSLEEP_BATTERY == 1) || (STATUS == "Charging" && LIDSLEEP_POWER == 1) )); then
-            now=$(date +%s)
-            if (( now < LID_SUSPEND_IGNORE_UNTIL )); then
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid close ignored, suspend recently triggered." >> "$LOG_FILE"
+        
+            if (( PRESENTATION_MODE == 1 )); then
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid close logic paused due to external display." >> "$LOG_FILE"
+                stop_fake_activity
+        
+            elif (( LIDSLEEP_ENABLED == 1 )); then
+                now=$(date +%s)
+    
+                if (( now < LID_SUSPEND_IGNORE_UNTIL )); then
+                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid close ignored, suspend recently triggered." >> "$LOG_FILE"
+                else
+                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid closed, triggering suspend via powerd..." >> "$LOG_FILE"
+                    sudo powerd_dbus_suspend &
+                    sleep 15
+                    LID_SUSPEND_IGNORE_UNTIL=$(( $(date +%s) + 15 ))
+        
+                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Suspend command sent successfully." >> "$LOG_FILE"
+                fi
+        
             else
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid closed, triggering suspend via powerd..." >> "$LOG_FILE"
-                sudo powerd_dbus_suspend &
-                sleep 15
-                LID_SUSPEND_IGNORE_UNTIL=$(( $(date +%s) + 15 ))
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid closed, but lid sleep is off; ignoring..." >> "$LOG_FILE"
             fi
-        else
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid closed, but lid sleep is off for this power state." >> "$LOG_FILE"
-        fi
-    fi
             ;;
         *"Lid opened"*)
-            lid_closed=0
             if (( PRESENTATION_MODE == 1 )); then
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid opened ignored due to presentation mode." >> "$LOG_FILE"
             else
@@ -443,7 +447,6 @@ monitor_idle_activity() {
                 dim_delay=$((BATTERY_DIM_DELAY * 60))
                 backlight_delay=$((BATTERY_BACKLIGHT * 60))
                 suspend_delay=$((BATTERY_DELAY * 60))
-                LIDSLEEP_ENABLED=$LIDSLEEP_BATTERY
             fi
             ;;
         *"On AC"*)
@@ -453,7 +456,6 @@ monitor_idle_activity() {
                 dim_delay=$((POWER_DIM_DELAY * 60))
                 backlight_delay=$((POWER_BACKLIGHT * 60))
                 suspend_delay=$((POWER_DELAY * 60))
-                LIDSLEEP_ENABLED=$LIDSLEEP_POWER
             fi
             ;;
         *"User activity reported"*|*"User activity ongoing"*|*"Enabling wakeup for"*|*"User triggered wake"*|*"powerd_suspend returned 0"*|*"Configuring devices for mode"*|*"Chrome is using normal display mode"*)
