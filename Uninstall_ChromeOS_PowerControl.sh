@@ -57,6 +57,7 @@ case "$choice" in
         sudo bash "$INSTALL_DIR/batterycontrol" stop 2>/dev/null
         sudo bash "$INSTALL_DIR/fancontrol" stop 2>/dev/null
         sudo bash "$INSTALL_DIR/gpucontrol" restore 2>/dev/null
+        sudo bash "$INSTALL_DIR/sleepcontrol" mode deep 2>/dev/null
         sudo bash "$INSTALL_DIR/sleepcontrol" stop 2>/dev/null
 
         remove_file_with_message "$INSTALL_DIR/no_turbo.conf"
