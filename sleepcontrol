@@ -467,9 +467,9 @@ monitor_idle_activity() {
             active=1
             stop_fake_activity
 
-            if [[ $saved_display_brightness -gt 0 ]]; then
-               echo "$saved_display_brightness" | sudo tee "$BRIGHTNESS_PATH" >/dev/null
-            fi
+            #if [[ $saved_display_brightness -gt 0 ]]; then
+            #   echo "$saved_display_brightness" | sudo tee "$BRIGHTNESS_PATH" >/dev/null
+            #fi
 
             #if (( was_dimmed == 1 )); then
             #    set_display_brightness "$saved_display_brightness"
@@ -537,10 +537,16 @@ if (( monitor_idle == 1 )); then
         elif (( now - last_ts >= backlight_delay )); then
             if [ "$backlight_off" -eq 0 ]; then
                 sudo ectool backlight 0 2>/dev/null
+        
+                if [[ -n "$BRIGHTNESS_PATH" ]]; then
+                    echo 0 | sudo tee "$BRIGHTNESS_PATH" >/dev/null
+                fi
+        
                 backlight_off=1
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Keyboard backlight off." >> "$LOG_FILE"
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Display and keyboard backlight off." >> "$LOG_FILE"
             fi
         fi
+
 
     idle_elapsed=$(( now - idle_since ))
 
