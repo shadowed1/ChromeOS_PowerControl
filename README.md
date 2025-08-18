@@ -245,6 +245,7 @@ Fixed config loading logic in sleepcontrol so settings update properly. Updated 
 Added prompt in installer to set suspend mode to freeze. ` <br><br>
 - 0.35: `Added lid sleep logic for independent sleep rules when closing lid on battery and power. Added external display awareness. Added support for mem_sleep to be changed to s2idle for improved ectool control.
 Fixed bug with SleepControl altering display brightness incorrectly. Fixed minor syntax issues.` <br><br>
+- 0.36: `Removed Installer prompts to enable freeze suspend. Fixed syntax errors.` <br><br>
   
 __Acknowledgements:__
 
