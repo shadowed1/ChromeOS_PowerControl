@@ -426,6 +426,7 @@ monitor_idle_activity() {
             kb_brightness_restored=1
             power_backlight_ts=$now
             battery_backlight_ts=$now
+            was_dimmed=0
             ;;
         *"Got user-triggered request to set brightness to "*)
             brightness_percent=$(echo "$line" | sed -E 's/.*set brightness to ([0-9.]+)%/\1/')
