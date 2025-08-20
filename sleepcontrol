@@ -457,15 +457,21 @@ monitor_idle_activity() {
         monitor_idle=0
         active=1
         stop_fake_activity
-
+    
         current_kb_brightness=$(sudo ectool pwmgetkblight 2>/dev/null | awk '{print $NF}')
         if [[ "$current_kb_brightness" =~ ^[0-9]+$ ]] && (( current_kb_brightness > 1 )); then
             saved_kb_brightness=$current_kb_brightness
             echo "$(date '+%Y-%m-%d %H:%M:%S') - Updated saved keyboard brightness: $saved_kb_brightness" >> "$LOG_FILE"
         fi
+    
+        if [[ -n "$BRIGHTNESS_PATH" && "$saved_display_brightness" -gt 0 ]]; then
+            set_display_brightness "$saved_display_brightness"
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - Restored display brightness: $saved_display_brightness" >> "$LOG_FILE"
+        fi
 
         sudo ectool backlight 1 2>/dev/null
         sudo ectool pwmsetkblight "$saved_kb_brightness" 2>/dev/null
+    
         backlight_off=0
         kb_brightness_restored=1
         echo "$(date '+%Y-%m-%d %H:%M:%S') - powerd triggered wake." >> "$LOG_FILE"
