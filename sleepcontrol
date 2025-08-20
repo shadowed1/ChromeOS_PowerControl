@@ -305,10 +305,7 @@ monitor_idle_activity() {
     local saved_kb_brightness=$(sudo ectool pwmgetkblight 2>/dev/null | awk '{print $NF}')
 
 
-    saved_display_brightness=0
-    if [[ -n "$BRIGHTNESS_PATH" ]]; then
-        saved_display_brightness=$(cat "$BRIGHTNESS_PATH" 2>/dev/null || echo 0)
-    fi
+    save_current_brightness
    
     
 
