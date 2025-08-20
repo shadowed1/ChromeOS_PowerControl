@@ -224,7 +224,7 @@ echo "║  sudo sleepcontrol battery audio 0  # Disable audio detection on batte
 echo "║  sudo sleepcontrol power audio 1    # Enable audio detection on power; delaying sleep until audio is stopped       ║"
 echo "║  sudo sleepcontrol mode freeze      # Change suspend mode to freeze, enabling batterycontrol to work asleep        ║"
 echo "║  sudo sleepcontrol lid power 0      # Prevent closing lid from putting system to sleep when on power               ║"
-echo "║  sudo sleepcontrol lid battery 0    # Prevent closing lid from putting system to sleep when on power               ║"
+echo "║  sudo sleepcontrol lid battery 0    # Prevent closing lid from putting system to sleep when on battery             ║"
 echo "║  sudo sleepcontrol startup          # Copy or Remove sleepcontrol.conf at: /etc/init/                              ║"
 echo "║                                                                                                                    ║"
 echo "╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝"
@@ -528,11 +528,11 @@ if (( monitor_idle == 1 )); then
         fi
 
 
-    idle_elapsed=$(( now - idle_since ))
+   idle_elapsed=$(( now - idle_since ))
 
-    if (( idle_elapsed >= suspend_delay )); then
+        if (( idle_elapsed >= suspend_delay )); then
             if (( PRESENTATION_MODE == 1 )); then
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Presentation mode active; suspend skipped." >> "$LOG_FILE"
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Presentation mode active, suspend skipped." >> "$LOG_FILE"
                 stop_fake_activity
             elif (( audio_active == 1 )); then
                 if (( sending_fake_activity == 0 )); then
@@ -541,12 +541,23 @@ if (( monitor_idle == 1 )); then
                 fi
             else
                 stop_fake_activity
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Sleep threshold elapsed; letting ChromeOS handle suspend." >> "$LOG_FILE"
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Sleep threshold elapsed; going to sleep!" >> "$LOG_FILE"
+    
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Sending suspend command..." >> "$LOG_FILE"
+                if sudo powerd_dbus_suspend >> "$LOG_FILE" 2>&1; then
+                    sleep 30
+                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Suspend successful." >> "$LOG_FILE"
+                    now=$(date +%s)
+                    idle_since=$now
+                    last_ts=$now
+                    echo "$(date '+%Y-%m-%d %H:%M:%S') - idle_since and last_ts reset after suspend." >> "$LOG_FILE"
+                else
+                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Suspend failed!" >> "$LOG_FILE"
+                fi
             fi
         fi
     fi
-fi
-
+    
     done
     
 
