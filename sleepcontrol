@@ -412,18 +412,29 @@ monitor_idle_activity() {
                 suspend_delay=$((POWER_DELAY*60))
             }
             ;;
-        *"User activity reported"*|*"Enabling wakeup for"*|*"User triggered wake"*|*"powerd_suspend returned 0"*|*"Configuring devices for mode"*|*"Chrome is using normal display mode"*)
+       *"User activity reported"*|*"Enabling wakeup for"*|*"User triggered wake"*|*"powerd_suspend returned 0"*|*"Configuring devices for mode"*|*"Chrome is using normal display mode"*)
             if (( monitor_idle == 1 )); then
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - User activity resumed." >> "$LOG_FILE"
             fi
+        
             monitor_idle=0
             active=1
             stop_fake_activity
+        
+            if (( kb_brightness_restored == 0 )); then
+                sudo ectool pwmsetkblight "$saved_kb_brightness" 2>/dev/null
+                kb_brightness_restored=1
+            fi
+        
+            if [[ -n "$BRIGHTNESS_PATH" && "$saved_display_brightness" -gt 0 ]]; then
+                set_display_brightness "$saved_display_brightness"
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Restored display brightness: $saved_display_brightness" >> "$LOG_FILE"
+            fi
+        
             backlight_off=0
-            kb_brightness_restored=1
+            was_dimmed=0
             power_backlight_ts=$now
             battery_backlight_ts=$now
-            was_dimmed=0
             ;;
         *"User activity ongoing"*)
             monitor_idle=0
