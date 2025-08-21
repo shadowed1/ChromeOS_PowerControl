@@ -237,7 +237,6 @@ set_display_brightness() {
     local value=$1
     if [[ -n "$BRIGHTNESS_PATH" ]]; then
         echo "$value" | sudo tee "$BRIGHTNESS_PATH" >/dev/null
-        echo "$(date '+%Y-%m-%d %H:%M:%S') - display -> $value" >> "$LOG_FILE"
     fi
     }
 
