@@ -5,7 +5,7 @@ YELLOW=$(tput setaf 3)
 BLUE=$(tput setaf 4)
 MAGENTA=$(tput setaf 5)
 CYAN=$(tput setaf 6)
-BOLD=$(tput bold)
+BOLD=$(tput bold)display ->
 RESET=$(tput sgr0)
 INSTALL_DIR="@INSTALL_DIR@"
 CONFIG_FILE="$INSTALL_DIR/config.sh"
@@ -370,7 +370,6 @@ monitor_idle_activity() {
                 kb_brightness_restored=0
                 idle_since=$now
                 last_ts=$now
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - User idle detected." >> "$LOG_FILE"
                 stop_fake_activity
             fi
             ;;
@@ -409,18 +408,23 @@ monitor_idle_activity() {
                 suspend_delay=$((POWER_DELAY*60))
             }
             ;;
-        *"User activity reported"*|*"User activity ongoing"*|*"Enabling wakeup for"*|*"User triggered wake"*|*"powerd_suspend returned 0"*|*"Configuring devices for mode"*|*"Chrome is using normal display mode"*)
+        *"User activity reported"*|*"Enabling wakeup for"*|*"User triggered wake"*|*"powerd_suspend returned 0"*|*"Configuring devices for mode"*|*"Chrome is using normal display mode"*)
             if (( monitor_idle == 1 )); then
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - User activity resumed." >> "$LOG_FILE"
             fi
             monitor_idle=0
             active=1
             stop_fake_activity
-            current_kb_brightness=$(sudo ectool pwmgetkblight 2>/dev/null | awk '{print $NF}')
-            (( current_kb_brightness > 1 )) && saved_kb_brightness=$current_kb_brightness
-            [[ -n "$BRIGHTNESS_PATH" && "$saved_display_brightness" -gt 0 ]] && set_display_brightness "$saved_display_brightness"
-            sudo ectool backlight 1 2>/dev/null
-            sudo ectool pwmsetkblight "$saved_kb_brightness" 2>/dev/null
+            backlight_off=0
+            kb_brightness_restored=1
+            power_backlight_ts=$now
+            battery_backlight_ts=$now
+            was_dimmed=0
+            ;;
+        *"User activity ongoing"*)
+            monitor_idle=0
+            active=1
+            stop_fake_activity
             backlight_off=0
             kb_brightness_restored=1
             power_backlight_ts=$now
@@ -443,7 +447,7 @@ monitor_idle_activity() {
             idle_elapsed=$(( now - last_ts ))
             (( STATUS == "Discharging" )) && AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_BATTERY || AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_POWER
 
-            echo "Now -> $now | Last activity -> $last_ts" >> "$LOG_FILE"
+            echo "Now -> $now | Idle -> $last_ts" >> "$LOG_FILE"
 
             if (( idle_elapsed >= dim_delay && idle_elapsed < backlight_delay )); then
                 if [[ $was_dimmed -eq 0 ]]; then
