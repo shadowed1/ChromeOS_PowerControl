@@ -654,9 +654,13 @@ reinstall() {
     fi
 
     echo "${GREEN}Choose an option:${RESET}"
+    echo ""
     echo "${CYAN}1) Quick reinstall -- download latest files to $INSTALL_DIR${RESET}"
+    echo ""
     echo "${BLUE}2) Full installer${RESET}"
+    echo ""
     echo "${MAGENTA}q) Quit${RESET}"
+    echo ""
     read -rp "Enter 1, 2, or q: " choice
 
     case "$choice" in
