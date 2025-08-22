@@ -644,6 +644,15 @@ max_perf_pct() {
 }
 
 reinstall() {
+
+    if [[ -z "$INSTALL_DIR" || "$INSTALL_DIR" == "@INSTALL_DIR@" ]]; then
+        if [[ -f "/usr/local/bin/ChromeOS_PowerControl/.install_path" ]]; then
+            INSTALL_DIR="$(cat /usr/local/bin/ChromeOS_PowerControl/.install_path)"
+        else
+            INSTALL_DIR="/usr/local/bin/ChromeOS_PowerControl"
+        fi
+    fi
+
     echo "${GREEN}Choose an option:${RESET}"
     echo "${CYAN}1) Quick reinstall -- download latest files to $INSTALL_DIR${RESET}"
     echo "${BLUE}2) Full installer${RESET}"
