@@ -307,6 +307,7 @@ monitor_idle_activity() {
     local last_power_check_time=0
     local saved_kb_brightness=$(sudo ectool pwmgetkblight 2>/dev/null | awk '{print $NF}')
     local suspend_triggered=0
+    local brightness_restored=0
 
     save_current_brightness
 
@@ -333,9 +334,6 @@ monitor_idle_activity() {
             fake_activity_pid=0
         fi
     }
-
-    [[ -z "$saved_display_brightness" || "$saved_display_brightness" -eq 0 ]] && \
-        saved_display_brightness=$(cat "$BRIGHTNESS_PATH" 2>/dev/null || echo 255)
 
     exec 3< <(tail -Fn0 /var/log/power_manager/powerd.LATEST)
     while read -r line <&3; do
@@ -377,6 +375,7 @@ monitor_idle_activity() {
                 last_ts=$now
                 stop_fake_activity
                 suspend_triggered=0 
+                brightness_restored=0
             fi
             ;;
         *"Lid closed"*)
@@ -429,9 +428,10 @@ monitor_idle_activity() {
                 kb_brightness_restored=1
             fi
         
-            if [[ -n "$BRIGHTNESS_PATH" && "$saved_display_brightness" -gt 0 ]]; then
+           if [[ $brightness_restored -eq 0 && -n "$BRIGHTNESS_PATH" && "$saved_display_brightness" -gt 0 ]]; then
                 set_display_brightness "$saved_display_brightness"
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Restored display brightness: $saved_display_brightness" >> "$LOG_FILE"
+                brightness_restored=1
             fi
             
             backlight_off=0
@@ -469,16 +469,16 @@ monitor_idle_activity() {
 
             if (( idle_elapsed >= dim_delay && idle_elapsed < backlight_delay )); then
                 if [[ $was_dimmed -eq 0 ]]; then
-                    save_current_brightness
+                    # Save only the original brightness, not the dimmed value
+                    [[ $brightness_restored -eq 0 ]] && save_current_brightness
                     was_dimmed=1
-            
-                    dim_value=$((saved_display_brightness / 8))
+                    dim_value=$((saved_display_brightness/8))
                     (( dim_value < 1 )) && dim_value=1
-            
                     set_display_brightness "$dim_value"
                     echo "$(date '+%Y-%m-%d %H:%M:%S') - Display dimmed to $dim_value" >> "$LOG_FILE"
                 fi
             fi
+
 
             if (( idle_elapsed >= backlight_delay )); then
                 if (( backlight_off == 0 )); then
