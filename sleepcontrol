@@ -409,7 +409,7 @@ monitor_idle_activity() {
                 suspend_delay=$((POWER_DELAY*60))
             }
             ;;
-      *"User activity reported"*|*"User activity ongoing"*|*"Enabling wakeup for"*|*"User triggered wake"*|*"powerd_suspend returned 0"*|*"Configuring devices for mode"*|*"Chrome is using normal display mode"*)
+     *"User activity reported"*|*"User activity ongoing"*|*"Enabling wakeup for"*|*"User triggered wake"*|*"powerd_suspend returned 0"*|*"Configuring devices for mode"*|*"Chrome is using normal display mode"*)
             if (( monitor_idle == 1 )); then
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - User activity resumed." >> "$LOG_FILE"
             fi
@@ -421,6 +421,13 @@ monitor_idle_activity() {
             if (( kb_brightness_restored == 0 )); then
                 sudo ectool pwmsetkblight "$saved_kb_brightness" 2>/dev/null
                 kb_brightness_restored=1
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Keyboard backlight set." >> "$LOG_FILE"
+            fi
+        
+            if (( backlight_off == 1 )); then
+                sudo ectool backlight 1 2>/dev/null
+                backlight_off=0
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Display backlight re-enabled." >> "$LOG_FILE"
             fi
         
             if [[ -n "$BRIGHTNESS_PATH" && "$saved_display_brightness" -gt 0 ]]; then
@@ -432,7 +439,6 @@ monitor_idle_activity() {
                 fi
             fi
         
-            backlight_off=0
             was_dimmed=0
             power_backlight_ts=$now
             battery_backlight_ts=$now
