@@ -451,7 +451,7 @@ monitor_idle_activity() {
                 (( brightness_percent > 100 )) && brightness_percent=100
                 brightness_value=$((brightness_percent * max_brightness / 100))
                 saved_display_brightness="$brightness_value"
-            fi
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Saved current brightness: $saved_display_brightness" >> "$LOG_FILE"            fi
             ;;
         esac
 
