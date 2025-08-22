@@ -424,9 +424,9 @@ monitor_idle_activity() {
             sudo ectool backlight 1 2>/dev/null
             ;;
         *"Got user-triggered request to set brightness to "*)
-            if echo "$line" | grep -q "Setting brightness to"; then
-                brightness_value=$(echo "$line" | grep -o "Setting brightness to [0-9]\+" | cut -d' ' -f4)
-    
+            if [[ "$line" =~ Setting\ brightness\ to\ ([0-9]+) ]]; then
+                brightness_value="${BASH_REMATCH[1]}"
+        
                 if [[ -n "$brightness_value" ]]; then
                     max_brightness=$(cat "$MAX_BRIGHTNESS_PATH")
                     (( brightness_value > max_brightness )) && brightness_value=$max_brightness
@@ -435,8 +435,6 @@ monitor_idle_activity() {
                 fi
             fi
             ;;
-        
-        
 
 
         esac
