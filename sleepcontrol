@@ -483,18 +483,19 @@ monitor_idle_activity() {
             fi
 
             if (( idle_elapsed >= suspend_delay )); then
-                if (( PRESENTATION_MODE == 1 )); then
-                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Presentation mode active, suspend skipped." >> "$LOG_FILE"
-                    stop_fake_activity
-                elif (( audio_active == 1 )); then
-                    (( sending_fake_activity == 0 )) && start_fake_activity
-                else
-                    stop_fake_activity
-                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Sleep threshold elapsed; going to sleep!" >> "$LOG_FILE"
+                if (( suspend_triggered == 0 )); then
+                    if (( PRESENTATION_MODE == 1 )); then
+                        echo "$(date '+%Y-%m-%d %H:%M:%S') - Presentation mode active, suspend skipped." >> "$LOG_FILE"
+                        stop_fake_activity
+                    elif (( audio_active == 1 )); then
+                        (( sending_fake_activity == 0 )) && start_fake_activity
+                    else
+                        stop_fake_activity
+                        echo "$(date '+%Y-%m-%d %H:%M:%S') - Sleep threshold elapsed; going to sleep!" >> "$LOG_FILE"
+                        suspend_triggered=1
+                    fi
                 fi
             fi
-        fi
-
     done
 
     stop_fake_activity
