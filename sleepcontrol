@@ -306,6 +306,7 @@ monitor_idle_activity() {
     local last_reload_time=0
     local last_power_check_time=0
     local saved_kb_brightness=$(sudo ectool pwmgetkblight 2>/dev/null | awk '{print $NF}')
+    local suspend_triggered=0
 
     save_current_brightness
 
@@ -375,6 +376,7 @@ monitor_idle_activity() {
                 idle_since=$now
                 last_ts=$now
                 stop_fake_activity
+                suspend_triggered=0 
             fi
             ;;
         *"Lid closed"*)
@@ -394,6 +396,7 @@ monitor_idle_activity() {
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid opened, restoring brightness." >> "$LOG_FILE"
                 sudo ectool backlight 1 2>/dev/null
                 sudo ectool pwmsetkblight "$saved_kb_brightness" 2>/dev/null
+                suspend_triggered=0
             fi
             ;;
         *"On battery at"*)
@@ -430,11 +433,12 @@ monitor_idle_activity() {
                 set_display_brightness "$saved_display_brightness"
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Restored display brightness: $saved_display_brightness" >> "$LOG_FILE"
             fi
-        
+            
             backlight_off=0
             was_dimmed=0
             power_backlight_ts=$now
             battery_backlight_ts=$now
+            suspend_triggered=0
             ;;
         *"User activity ongoing"*)
             monitor_idle=0
@@ -445,6 +449,7 @@ monitor_idle_activity() {
             power_backlight_ts=$now
             battery_backlight_ts=$now
             was_dimmed=0
+            suspend_triggered=0
             ;;
         *"Got user-triggered request to set brightness to "*)
             brightness_percent=$(echo "$line" | sed -E 's/.*set brightness to ([0-9.]+)%/\1/')
@@ -483,20 +488,20 @@ monitor_idle_activity() {
             fi
 
             if (( idle_elapsed >= suspend_delay )); then
-                if (( PRESENTATION_MODE == 1 )); then
-                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Presentation mode active, suspend skipped." >> "$LOG_FILE"
-                    stop_fake_activity
-                elif (( audio_active == 1 )); then
-                    (( sending_fake_activity == 0 )) && start_fake_activity
-                else
-                    stop_fake_activity
-                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Sleep threshold elapsed; going to sleep!" >> "$LOG_FILE"
+                if (( suspend_triggered == 0 )); then
+                    if (( PRESENTATION_MODE == 1 )); then
+                        echo "$(date '+%Y-%m-%d %H:%M:%S') - Presentation mode active, suspend skipped." >> "$LOG_FILE"
+                        stop_fake_activity
+                    elif (( audio_active == 1 )); then
+                        (( sending_fake_activity == 0 )) && start_fake_activity
+                    else
+                        stop_fake_activity
+                        echo "$(date '+%Y-%m-%d %H:%M:%S') - Sleep threshold elapsed; going to sleep!" >> "$LOG_FILE"
+                        suspend_triggered=1
+                    fi
                 fi
             fi
-        fi
-
     done
-
     stop_fake_activity
 }
 
