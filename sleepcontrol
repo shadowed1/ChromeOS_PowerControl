@@ -454,9 +454,9 @@ monitor_idle_activity() {
         if (( monitor_idle == 1 )); then
             idle_elapsed=$(( now - last_ts ))
             (( STATUS == "Discharging" )) && AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_BATTERY || AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_POWER
-            
+        
             echo "Now -> $now | Idle -> $last_ts" >> "$LOG_FILE"
-
+        
             if (( idle_elapsed >= dim_delay && idle_elapsed < backlight_delay )); then
                 if [[ $was_dimmed -eq 0 ]]; then
                     save_current_brightness
@@ -467,7 +467,7 @@ monitor_idle_activity() {
                     echo "$(date '+%Y-%m-%d %H:%M:%S') - Display dimmed to $dim_value" >> "$LOG_FILE"
                 fi
             fi
-
+        
             if (( idle_elapsed >= backlight_delay )); then
                 if (( backlight_off == 0 )); then
                     sudo ectool backlight 0 2>/dev/null
@@ -476,7 +476,7 @@ monitor_idle_activity() {
                     echo "$(date '+%Y-%m-%d %H:%M:%S') - Display and keyboard backlight off." >> "$LOG_FILE"
                 fi
             fi
-
+        
             if (( idle_elapsed >= suspend_delay )); then
                 if (( suspend_triggered == 0 )); then
                     if (( PRESENTATION_MODE == 1 )); then
@@ -491,10 +491,13 @@ monitor_idle_activity() {
                     fi
                 fi
             fi
-    done
-
-    stop_fake_activity
+        fi
+        
+        done
+        
+        stop_fake_activity
 }
+
 
 stop_monitoring() {
     if [ -f "$PID_FILE" ]; then
