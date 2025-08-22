@@ -54,7 +54,7 @@ curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/C
 echo "${CYAN}╔══════════════════════════════════════════════════════════════════════╗${RESET}"
 echo "${GREEN}║  Downloading to: /home/chronos/ChromeOS_PowerControl_Installer.sh    ║${RESET}"
 echo "${YELLOW}║  Run the installer with VT-2 or enable sudo in crosh.                ║${RESET}"
-echo "${MAGENTA}║  Move it to an executable location or run these commands with VT-2:  ║${RESET}"
+echo "${MAGENTA}║  ${RESET}${BOLD}${MAGENTA}Move it to an executable location or run these commands with VT-2:${RESET}${MAGENTA}  ║${RESET}"
 echo "${BLUE}╚══════════════════════════════════════════════════════════════════════╝${RESET}"
 echo "${BOLD}"
 echo "sudo mkdir -p /usr/local/bin"
