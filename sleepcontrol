@@ -1,4 +1,4 @@
-#!/bin/bash
+1#!/bin/bash
 RED=$(tput setaf 1)
 GREEN=$(tput setaf 2)
 YELLOW=$(tput setaf 3)
@@ -424,10 +424,10 @@ monitor_idle_activity() {
             sudo ectool backlight 1 2>/dev/null
             ;;
         *"Got user-triggered request to set brightness to "*)
-            brightness_value=$(echo "$line" | sed -E 's/.*Setting brightness to ([0-9]+) .*/\1/')
+            brightness_value=$(echo "$line" | sed -En 's/.*to ([0-9]+) \(.*/\1/p')
             if [[ -n "$brightness_value" ]]; then
                 max_brightness=$(cat "$MAX_BRIGHTNESS_PATH")
-                (( brightness_value > max_brightness )) && brightness_value=$max_brightness
+                (( 10#$brightness_value > max_brightness )) && brightness_value=$max_brightness
                 saved_display_brightness="$brightness_value"
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Saved current brightness: $saved_display_brightness" >> "$LOG_FILE"
             fi
