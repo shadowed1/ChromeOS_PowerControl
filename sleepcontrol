@@ -469,7 +469,6 @@ monitor_idle_activity() {
 
             if (( idle_elapsed >= dim_delay && idle_elapsed < backlight_delay )); then
                 if [[ $was_dimmed -eq 0 ]]; then
-                    save_current_brightness
                     was_dimmed=1
                     dim_value=$((saved_display_brightness/8))
                     (( dim_value < 1 )) && dim_value=1
