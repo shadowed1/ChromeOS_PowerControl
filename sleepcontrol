@@ -437,7 +437,7 @@ monitor_idle_activity() {
         *"Got user-triggered request to set brightness to "*)
             brightness_value=$(echo "$line" | grep -oP 'Setting brightness to \K[0-9]+(?=\s*\()')
             if [[ -n "$brightness_value" ]]; then
-                max_brightness=$(cat "$MAX_BRIGHTNESS_PATH" 2>/dev/null || echo 255)
+                max_brightness=$(cat "$MAX_BRIGHTNESS_PATH")
                 (( brightness_value > max_brightness )) && brightness_value=$max_brightness
                 saved_display_brightness="$brightness_value"
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Saved current brightness: $saved_display_brightness" >> "$LOG_FILE"
