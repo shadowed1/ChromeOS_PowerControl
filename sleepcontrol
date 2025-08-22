@@ -442,6 +442,10 @@ monitor_idle_activity() {
             power_backlight_ts=$now
             battery_backlight_ts=$now
             was_dimmed=0
+            if [[ -n "$BRIGHTNESS_PATH" && "$saved_display_brightness" -gt 0 ]]; then
+                set_display_brightness "$saved_display_brightness"
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Restored display brightness: $saved_display_brightness" >> "$LOG_FILE"
+            fi
             ;;
         *"Got user-triggered request to set brightness to "*)
             brightness_percent=$(echo "$line" | sed -E 's/.*set brightness to ([0-9.]+)%/\1/')
