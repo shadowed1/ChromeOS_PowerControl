@@ -701,13 +701,15 @@ reinstall() {
             sleep 1
 
             echo ""
-            echo "${RESET}Restarting ChromeOS_PowerControl...${GREEN}"
+            echo "${GREEN}Restarting ChromeOS_PowerControl...${RESET}"
             echo ""
 
             sudo bash "$INSTALL_DIR/batterycontrol" start >/dev/null 2>&1
             sudo bash "$INSTALL_DIR/powercontrol" start >/dev/null 2>&1
             sudo bash "$INSTALL_DIR/fancontrol" start >/dev/null 2>&1
             sudo bash "$INSTALL_DIR/sleepcontrol" start >/dev/null 2>&1
+            
+            sleep 1
             ;;
 
         2)
