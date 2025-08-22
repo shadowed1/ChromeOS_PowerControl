@@ -424,14 +424,18 @@ monitor_idle_activity() {
             sudo ectool backlight 1 2>/dev/null
             ;;
         *"Got user-triggered request to set brightness to "*)
-            brightness_value=$(echo "$line" | awk -F'to | \\(' '{print $2}')
-            if [[ -n "$brightness_value" ]]; then
-                max_brightness=$(cat "$MAX_BRIGHTNESS_PATH")
-                (( brightness_value > max_brightness )) && brightness_value=$max_brightness
-                saved_display_brightness="$brightness_value"
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Saved current brightness: $saved_display_brightness" >> "$LOG_FILE"
+            if echo "$line" | grep -q "Got user-triggered request to set brightness to"; then
+                brightness_value=$(echo "$line" | grep -o "to [0-9]\+" | cut -d' ' -f2)
+
+                if [[ -n "$brightness_value" ]]; then
+                    max_brightness=$(cat "$MAX_BRIGHTNESS_PATH")
+                    (( brightness_value > max_brightness )) && brightness_value=$max_brightness
+                    saved_display_brightness="$brightness_value"
+                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Saved current brightness: $saved_display_brightness" >> "$LOG_FILE"
+                fi
             fi
             ;;
+
 
         esac
 
