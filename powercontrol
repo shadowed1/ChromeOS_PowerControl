@@ -653,7 +653,6 @@ reinstall() {
     case "$choice" in
         1)
             echo "${BOLD}${CYAN}Quick reinstall: downloading latest scripts to ${INSTALL_DIR}${RESET}"
-            mkdir -p "$INSTALL_DIR"
             echo "${CYAN}"
             curl -L "$INSTALL_DIR/powercontrol" "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/powercontrol"
             echo "${RESET}${GREEN}"
