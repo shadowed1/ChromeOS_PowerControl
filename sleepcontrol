@@ -306,8 +306,6 @@ monitor_idle_activity() {
     local last_reload_time=0
     local last_power_check_time=0
     local saved_kb_brightness=$(sudo ectool pwmgetkblight 2>/dev/null | awk '{print $NF}')
-    local suspend_triggered=0
-    local brightness_restored=0
 
     save_current_brightness
 
@@ -374,8 +372,6 @@ monitor_idle_activity() {
                 idle_since=$now
                 last_ts=$now
                 stop_fake_activity
-                suspend_triggered=0 
-                brightness_restored=0
             fi
             ;;
         *"Lid closed"*)
@@ -395,7 +391,6 @@ monitor_idle_activity() {
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid opened, restoring brightness." >> "$LOG_FILE"
                 sudo ectool backlight 1 2>/dev/null
                 sudo ectool pwmsetkblight "$saved_kb_brightness" 2>/dev/null
-                suspend_triggered=0
             fi
             ;;
         *"On battery at"*)
@@ -428,17 +423,15 @@ monitor_idle_activity() {
                 kb_brightness_restored=1
             fi
         
-           if [[ $brightness_restored -eq 0 && -n "$BRIGHTNESS_PATH" && "$saved_display_brightness" -gt 0 ]]; then
+            if [[ -n "$BRIGHTNESS_PATH" && "$saved_display_brightness" -gt 0 ]]; then
                 set_display_brightness "$saved_display_brightness"
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Restored display brightness: $saved_display_brightness" >> "$LOG_FILE"
-                brightness_restored=1
             fi
-            
+        
             backlight_off=0
             was_dimmed=0
             power_backlight_ts=$now
             battery_backlight_ts=$now
-            suspend_triggered=0
             ;;
         *"User activity ongoing"*)
             monitor_idle=0
@@ -449,7 +442,6 @@ monitor_idle_activity() {
             power_backlight_ts=$now
             battery_backlight_ts=$now
             was_dimmed=0
-            suspend_triggered=0
             ;;
         *"Got user-triggered request to set brightness to "*)
             brightness_percent=$(echo "$line" | sed -E 's/.*set brightness to ([0-9.]+)%/\1/')
@@ -463,14 +455,13 @@ monitor_idle_activity() {
             ;;
         esac
 
-               if (( monitor_idle == 1 )); then
+        if (( monitor_idle == 1 )); then
             idle_elapsed=$(( now - last_ts ))
             (( STATUS == "Discharging" )) && AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_BATTERY || AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_POWER
 
             if (( idle_elapsed >= dim_delay && idle_elapsed < backlight_delay )); then
                 if [[ $was_dimmed -eq 0 ]]; then
-                    # Save only the original brightness, not the dimmed value
-                    [[ $brightness_restored -eq 0 ]] && save_current_brightness
+                    save_current_brightness
                     was_dimmed=1
                     dim_value=$((saved_display_brightness/8))
                     (( dim_value < 1 )) && dim_value=1
@@ -478,7 +469,6 @@ monitor_idle_activity() {
                     echo "$(date '+%Y-%m-%d %H:%M:%S') - Display dimmed to $dim_value" >> "$LOG_FILE"
                 fi
             fi
-
 
             if (( idle_elapsed >= backlight_delay )); then
                 if (( backlight_off == 0 )); then
@@ -498,7 +488,6 @@ monitor_idle_activity() {
                 else
                     stop_fake_activity
                     echo "$(date '+%Y-%m-%d %H:%M:%S') - Sleep threshold elapsed; going to sleep!" >> "$LOG_FILE"
-                    suspend_triggered=1
                 fi
             fi
         fi
