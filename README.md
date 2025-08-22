@@ -182,6 +182,7 @@ __How It Works:__
 
 *SleepControl:*
 
+- SleepControl does not send sleepcommands to the OS, but simulates activity when idle on a configurable timer. 
 - By reading powerd.LATEST log, SleepControl monitors when the powerd daemon reports 'User activity stopped'.
 - The file /usr/share/power_manager/send_feedback_if_undimmed (when set to 1) is what controls this behavior. 
 - Parsing strings like 'User activity started' or 'Audio activity started' tells SleepControl the user is active.
