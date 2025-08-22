@@ -435,15 +435,12 @@ monitor_idle_activity() {
             sudo ectool backlight 1 2>/dev/null
             ;;
         *"Got user-triggered request to set brightness to "*)
-            brightness_percent=$(echo "$line" | sed -E 's/.*set brightness to ([0-9.]+)%/\1/')
-            if [[ -n "$brightness_percent" ]]; then
+            brightness_value=$(echo "$line" | grep -oP 'Setting brightness to \K[0-9]+(?=\s*\()')
+            if [[ -n "$brightness_value" ]]; then
                 max_brightness=$(cat "$MAX_BRIGHTNESS_PATH" 2>/dev/null || echo 255)
-                brightness_percent=$(awk "BEGIN {print int(($brightness_percent + 0.5))}")
-                (( brightness_percent > 100 )) && brightness_percent=100
-                brightness_value=$((brightness_percent * max_brightness / 100))
+                (( brightness_value > max_brightness )) && brightness_value=$max_brightness
                 saved_display_brightness="$brightness_value"
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Saved current brightness: $saved_display_brightness" >> "$LOG_FILE"
-
             fi
             ;;
         esac
