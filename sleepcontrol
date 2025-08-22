@@ -463,6 +463,8 @@ monitor_idle_activity() {
         if (( monitor_idle == 1 )); then
             idle_elapsed=$(( now - last_ts ))
             (( STATUS == "Discharging" )) && AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_BATTERY || AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_POWER
+            
+            echo "Now -> $now | Idle -> $last_ts" >> "$LOG_FILE"
 
             if (( idle_elapsed >= dim_delay && idle_elapsed < backlight_delay )); then
                 if [[ $was_dimmed -eq 0 ]]; then
