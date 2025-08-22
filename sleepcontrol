@@ -423,7 +423,8 @@ monitor_idle_activity() {
             was_dimmed=0
             sudo ectool backlight 1 2>/dev/null
             ;;
-       *"Got user-triggered request to set brightness to "*)
+      *"Got user-triggered request to set brightness to "*)
+            line=$(grep "Setting brightness to" /var/log/power_manager/powerd.LATEST | tail -n1)
             brightness_value=$(echo "$line" | sed -n 's/.*Setting brightness to \([0-9]\+\) (.*/\1/p')
         
             if [[ -n "$brightness_value" ]]; then
