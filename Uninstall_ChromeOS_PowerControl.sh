@@ -98,7 +98,7 @@ case "$choice" in
         
         sudo rm -f "$INSTALL_DIR/.fan_curve_pid"
         sudo rm -f "$INSTALL_DIR/.fan_curve_running"
-
+        sudo rm -f "$INSTALL_DIR/.install_path"
         sudo rm -f "$INSTALL_DIR/.fancontrol_pid"
         sudo rm -f "$INSTALL_DIR/.powercontrol_pid"
         sudo rm -f "$INSTALL_DIR/.batterycontrol_pid"
