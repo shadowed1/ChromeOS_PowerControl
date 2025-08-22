@@ -657,6 +657,7 @@ reinstall() {
 
     case "$choice" in
         1)
+            echo ""
             echo "${BOLD}${CYAN}Quick reinstall: downloading latest scripts to ${INSTALL_DIR}${RESET}"
             echo "${CYAN}Downloading powercontrol${RESET}"
             curl -L -o "$INSTALL_DIR/powercontrol" "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/powercontrol"
@@ -706,6 +707,7 @@ reinstall() {
             sudo bash "$INSTALL_DIR/sleepcontrol" start >/dev/null 2>&1
             
             sleep 1
+            exit 0
             ;;
 
         2)
