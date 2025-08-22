@@ -647,7 +647,7 @@ reinstall() {
     echo "${GREEN}Choose an option:${RESET}"
     echo "${CYAN}1) Quick reinstall -- download latest files to $INSTALL_DIR${RESET}"
     echo "${BLUE}2) Full installer${RESET}"
-    echo "${MAGENTA}q) Quit${MAGENTA}"
+    echo "${MAGENTA}q) Quit${RESET}"
     read -rp "Enter 1, 2, or q: " choice
 
     case "$choice" in
@@ -684,12 +684,6 @@ reinstall() {
             echo ""
             echo "${YELLOW}Stopping background services...${RESET}"
             echo ""
-
-            sudo initctl stop no_turbo 2>/dev/null
-            sudo initctl stop batterycontrol 2>/dev/null
-            sudo initctl stop powercontrol 2>/dev/null
-            sudo initctl stop fancontrol 2>/dev/null
-            sudo initctl stop sleep_control 2>/dev/null
 
             sudo bash "$INSTALL_DIR/batterycontrol" stop >/dev/null 2>&1
             sudo bash "$INSTALL_DIR/powercontrol" stop >/dev/null 2>&1
