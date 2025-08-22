@@ -643,76 +643,6 @@ max_perf_pct() {
     echo ""
 }
 
-reinstall() {
-
-    echo "${GREEN}Choose an option:${RESET}"
-    echo ""
-    echo "${CYAN}1) Quick reinstall -- download latest files to $INSTALL_DIR${RESET}"
-    echo ""
-    echo "${BLUE}2) Full installer${RESET}"
-    echo ""
-    echo "${MAGENTA}q) Quit${RESET}"
-    echo ""
-    read -rp "Enter 1, 2, or q: " choice
-
-    case "$choice" in
-        1)
-        echo ""
-        echo "${BLUE}Stopping background services before reinstall...${RESET}"
-        sudo bash "$INSTALL_DIR/batterycontrol" stop >/dev/null 2>&1
-        sudo bash "$INSTALL_DIR/powercontrol" stop >/dev/null 2>&1
-        sudo bash "$INSTALL_DIR/fancontrol" stop >/dev/null 2>&1
-        sudo bash "$INSTALL_DIR/sleepcontrol" stop >/dev/null 2>&1
-        sleep 1
-
-        echo ""
-        echo "${BOLD}${CYAN}Quick reinstall: downloading latest scripts to ${INSTALL_DIR}${RESET}"
-
-        files=(powercontrol batterycontrol fancontrol gpucontrol sleepcontrol Uninstall_ChromeOS_PowerControl.sh LICENSE README.md VERSION)
-
-        for file in "${files[@]}"; do
-            echo "${CYAN}Downloading $file${RESET}"
-            curl -L --progress-bar -o "$INSTALL_DIR/$file" "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/$file"
-
-            case "$file" in
-                powercontrol|batterycontrol|fancontrol|gpucontrol|sleepcontrol|Uninstall_ChromeOS_PowerControl.sh)
-                    sed -i "s|@INSTALL_DIR@|$INSTALL_DIR|g" "$INSTALL_DIR/$file"
-                    chmod +x "$INSTALL_DIR/$file"
-                    ;;
-            esac
-        done
-
-        echo ""
-        echo "${GREEN}Restarting ChromeOS_PowerControl services...${RESET}"
-        sudo bash "$INSTALL_DIR/batterycontrol" start >/dev/null 2>&1
-        sudo bash "$INSTALL_DIR/powercontrol" start >/dev/null 2>&1
-        sudo bash "$INSTALL_DIR/fancontrol" start >/dev/null 2>&1
-        sudo bash "$INSTALL_DIR/sleepcontrol" start >/dev/null 2>&1
-
-        sleep 1
-        exit 0
-        ;;
-            ;;
-
-        2)
-            echo "Downloading to:${CYAN} /home/chronos/ChromeOS_PowerControl_Installer.sh $RESET"
-            bash <(curl -s "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/ChromeOS_PowerControl_Downloader.sh?$(date +%s)")
-            echo "Running commands:"
-            echo ""
-            sudo mkdir -p /usr/local/bin
-            echo "sudo mkdir -p /usr/local/bin"
-            sudo mv /home/chronos/ChromeOS_PowerControl_Installer.sh /usr/local/bin
-            echo "sudo mv /home/chronos/ChromeOS_PowerControl_Installer.sh /usr/local/bin"
-            echo "sudo bash /usr/local/bin/ChromeOS_PowerControl_Installer.sh"
-            sudo bash /usr/local/bin/ChromeOS_PowerControl_Installer.sh
-            ;;
-        q|Q|*)
-            echo "Exiting."
-            exit 0
-            ;;
-    esac
-}
-
 
 case "$1" in
    start)
@@ -903,7 +833,16 @@ case "$1" in
     fi
     ;;
     reinstall)
-    reinstall
+    echo "Downloading to:${CYAN} /home/chronos/ChromeOS_PowerControl_Installer.sh $RESET"
+    bash <(curl -s "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/ChromeOS_PowerControl_Downloader.sh?$(date +%s)")
+    echo "Running commands:"
+    echo ""
+    sudo mkdir -p /usr/local/bin
+    echo "sudo mkdir -p /usr/local/bin"
+    sudo mv /home/chronos/ChromeOS_PowerControl_Installer.sh /usr/local/bin
+    echo "sudo mv /home/chronos/ChromeOS_PowerControl_Installer.sh /usr/local/bin"
+    echo "sudo bash /usr/local/bin/ChromeOS_PowerControl_Installer.sh"
+    sudo bash /usr/local/bin/ChromeOS_PowerControl_Installer.sh
     ;;
     __powercontrol_monitor__)
     LOG_FILE="/var/log/powercontrol.log"
