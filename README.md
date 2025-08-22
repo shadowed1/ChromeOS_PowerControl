@@ -248,6 +248,7 @@ Fixed bug with SleepControl altering display brightness incorrectly. Fixed minor
 - 0.36: `Removed Installer prompts to enable freeze suspend. Fixed syntax errors.` <br><br>
 - 0.37: `Added brightness restore safeguard logic to reliably restore display brightness. Split up 'user activity ongoing'
 powerd keyword. Removed old code and repetitive log entries.` <br><br>
+- 0.38: `Fixed brightness scaling logic.  Removed turbo boost question from installer - PowerControl can handle the heat.` <br><br>
   
 __Acknowledgements:__
 
