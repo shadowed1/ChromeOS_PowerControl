@@ -244,7 +244,6 @@ save_current_brightness() {
     if [[ $was_dimmed -eq 0 ]]; then
         if [[ -f "$BRIGHTNESS_PATH" ]]; then
             saved_display_brightness=$(cat "$BRIGHTNESS_PATH")
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - Saved current brightness: $saved_display_brightness" >> "$LOG_FILE"
         else
             echo "$(date '+%Y-%m-%d %H:%M:%S') - Could not save brightness: $BRIGHTNESS_PATH not found" >> "$LOG_FILE"
         fi
