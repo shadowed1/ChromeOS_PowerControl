@@ -388,25 +388,28 @@ monitor_idle_activity() {
         *"Lid opened"*)
             if (( PRESENTATION_MODE == 0 )); then
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid opened, restoring brightness." >> "$LOG_FILE"
-                sudo ectool backlight 1 2>/dev/null
+                # Restore saved display brightness if it exists and >0
+                if [[ -n "$saved_display_brightness" && "$saved_display_brightness" -gt 0 ]]; then
+                    echo "$saved_display_brightness" | sudo tee "$BRIGHTNESS_PATH" >/dev/null
+                fi
                 # sudo ectool pwmsetkblight "$saved_kb_brightness" 2>/dev/null
             fi
             ;;
         *"On battery at"*)
-            [[ "$STATUS" != "Discharging" ]] && {
+            if [[ "$STATUS" != "Discharging" ]]; then
                 STATUS="Discharging"
                 dim_delay=$((BATTERY_DIM_DELAY*60))
                 backlight_delay=$((BATTERY_BACKLIGHT*60))
                 suspend_delay=$((BATTERY_DELAY*60))
-            }
+            fi
             ;;
         *"On AC"*)
-            [[ "$STATUS" != "Charging" ]] && {
+            if [[ "$STATUS" != "Charging" ]]; then
                 STATUS="Charging"
                 dim_delay=$((POWER_DIM_DELAY*60))
                 backlight_delay=$((POWER_BACKLIGHT*60))
                 suspend_delay=$((POWER_DELAY*60))
-            }
+            fi
             ;;
         *"User activity reported"*|*"Enabling wakeup for"*|*"User triggered wake"*|*"powerd_suspend returned 0"*|*"User activity ongoing"*|*"Configuring devices for mode"*|*"Chrome is using normal display mode"*)
             if (( monitor_idle == 1 )); then
@@ -420,62 +423,64 @@ monitor_idle_activity() {
             power_backlight_ts=$now
             battery_backlight_ts=$now
             was_dimmed=0
-            sudo ectool backlight 1 2>/dev/null
+            # Restore saved display brightness if it exists and >0
+            if [[ -n "$saved_display_brightness" && "$saved_display_brightness" -gt 0 ]]; then
+                echo "$saved_display_brightness" | sudo tee "$BRIGHTNESS_PATH" >/dev/null
+            fi
             ;;
-      *"Got user-triggered request to set brightness to "*)
+        *"Got user-triggered request to set brightness to "*)
             line=$(grep "Setting brightness to" /var/log/power_manager/powerd.LATEST | tail -n1)
             brightness_value=$(echo "$line" | sed -n 's/.*Setting brightness to \([0-9]\+\) (.*/\1/p')
-        
+    
             if [[ -n "$brightness_value" ]]; then
                 saved_display_brightness="$brightness_value"
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Saved current brightness: $saved_display_brightness" >> "$LOG_FILE"
             fi
             ;;
-         
-        esac
-
-        if (( monitor_idle == 1 )); then
-            idle_elapsed=$(( now - last_ts ))
-            (( STATUS == "Discharging" )) && AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_BATTERY || AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_POWER
-
-            echo "Now -> $now | Idle -> $last_ts" >> "$LOG_FILE"
-
-            if (( idle_elapsed >= dim_delay && idle_elapsed < backlight_delay )); then
-                if [[ $was_dimmed -eq 0 ]]; then
-                    save_current_brightness
-                    was_dimmed=1
-                    dim_value=$((saved_display_brightness/8))
-                    (( dim_value < 1 )) && dim_value=1
-                    set_display_brightness "$dim_value"
-                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Display dimmed to $dim_value" >> "$LOG_FILE"
-                fi
-            fi
-
-            if (( idle_elapsed >= backlight_delay )); then
-                if (( backlight_off == 0 )); then
-                    sudo ectool backlight 0 2>/dev/null
-                    [[ -n "$BRIGHTNESS_PATH" ]] && echo 0 | sudo tee "$BRIGHTNESS_PATH" >/dev/null
-                    backlight_off=1
-                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Display and keyboard backlight off." >> "$LOG_FILE"
-                fi
-            fi
-
-            if (( idle_elapsed >= suspend_delay )); then
-                if (( PRESENTATION_MODE == 1 )); then
-                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Presentation mode active, suspend skipped." >> "$LOG_FILE"
-                    stop_fake_activity
-                elif (( audio_active == 1 )); then
-                    (( sending_fake_activity == 0 )) && start_fake_activity
-                else
-                    stop_fake_activity
-                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Sleep threshold elapsed; going to sleep!" >> "$LOG_FILE"
-                fi
+    esac
+    
+    if (( monitor_idle == 1 )); then
+        idle_elapsed=$(( now - last_ts ))
+        (( STATUS == "Discharging" )) && AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_BATTERY || AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_POWER
+    
+        echo "Now -> $now | Idle -> $last_ts" >> "$LOG_FILE"
+    
+        if (( idle_elapsed >= dim_delay && idle_elapsed < backlight_delay )); then
+            if [[ $was_dimmed -eq 0 ]]; then
+                save_current_brightness
+                was_dimmed=1
+                dim_value=$((saved_display_brightness/8))
+                (( dim_value < 1 )) && dim_value=1
+                set_display_brightness "$dim_value"
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Display dimmed to $dim_value" >> "$LOG_FILE"
             fi
         fi
-
-    done
-
-    stop_fake_activity
+    
+        if (( idle_elapsed >= backlight_delay )); then
+            if (( backlight_off == 0 )); then
+                # Turn off display by setting brightness to 0
+                if [[ -n "$BRIGHTNESS_PATH" ]]; then
+                    echo 0 | sudo tee "$BRIGHTNESS_PATH" >/dev/null
+                fi
+                backlight_off=1
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Display and keyboard backlight off." >> "$LOG_FILE"
+            fi
+        fi
+    
+        if (( idle_elapsed >= suspend_delay )); then
+            if (( PRESENTATION_MODE == 1 )); then
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Presentation mode active, suspend skipped." >> "$LOG_FILE"
+                stop_fake_activity
+            elif (( audio_active == 1 )); then
+                (( sending_fake_activity == 0 )) && start_fake_activity
+            else
+                stop_fake_activity
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Sleep threshold elapsed; going to sleep!" >> "$LOG_FILE"
+            fi
+        fi
+    fi
+done
+stop_fake_activity
 }
 
 stop_monitoring() {
@@ -498,22 +503,47 @@ stop_monitoring() {
 case "$1" in
     start)
         exec 200>"$PID_FILE.lock"
-flock -n 200 || {
-    echo "${BLUE}"
-    echo "SleepControl is already running."
-    echo "${RESET}"
-    exit 1
-                }
-        sudo ectool backlight 1 >/dev/null 2>&1
+        flock -n 200 || {
+            echo "${BLUE}"
+            echo "SleepControl is already running."
+            echo "${RESET}"
+            exit 1
+        }
+
+        # Ensure display brightness is non-zero if we can restore a last-known value
+        if [[ -n "$BRIGHTNESS_PATH" ]]; then
+            current_brightness=$(cat "$BRIGHTNESS_PATH" 2>/dev/null)
+            if [[ -z "$current_brightness" || "$current_brightness" -eq 0 ]]; then
+                line=$(grep "Setting brightness to" /var/log/power_manager/powerd.LATEST | tail -n1)
+                last_brightness=$(echo "$line" | sed -n 's/.*Setting brightness to \([0-9]\+\) (.*/\1/p')
+                if [[ -n "$last_brightness" && "$last_brightness" -gt 0 ]]; then
+                    echo "$last_brightness" | sudo tee "$BRIGHTNESS_PATH" >/dev/null
+                fi
+            fi
+        fi
+
         stop_monitoring >/dev/null 2>&1
+
         if [ -f "$LOG_FILE" ] && [ "$(stat -c%s "$LOG_FILE")" -gt 131072 ]; then
             echo "$(date '+%Y-%m-%d %H:%M:%S') - Truncated log file (exceeded 128KB)" | tee -a "$LOG_FILE"
         fi
+
         setsid "$0" __sleepcontrol_monitor__ >> "$LOG_FILE" 2>&1 &
         echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - SleepControl Started. Output is logged to $LOG_FILE${RESET}" | tee -a "$LOG_FILE"
         ;;
     stop)
-        sudo ectool backlight 1 >/dev/null 2>&1
+        # When stopping, if brightness is 0, try to bring it back using the last known value
+        if [[ -n "$BRIGHTNESS_PATH" ]]; then
+            current_brightness=$(cat "$BRIGHTNESS_PATH" 2>/dev/null)
+            if [[ -z "$current_brightness" || "$current_brightness" -eq 0 ]]; then
+                line=$(grep "Setting brightness to" /var/log/power_manager/powerd.LATEST | tail -n1)
+                last_brightness=$(echo "$line" | sed -n 's/.*Setting brightness to \([0-9]\+\) (.*/\1/p')
+                if [[ -n "$last_brightness" && "$last_brightness" -gt 0 ]]; then
+                    echo "$last_brightness" | sudo tee "$BRIGHTNESS_PATH" >/dev/null
+                fi
+            fi
+        fi
+
         stop_monitoring >/dev/null 2>&1
         echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') - SleepControl Stopped (PID $PID)${RESET}"
         ;;
@@ -619,8 +649,7 @@ flock -n 200 || {
             echo "${BLUE}Power = Dim: $((POWER_DIM_DELAY)) min -> Timeout: $((POWER_BACKLIGHT)) min -> Sleep: $((POWER_DELAY)) min | Audio Detection: $AUDIO_DETECTION_POWER | Lid Sleep: $LIDSLEEP_BATTERY ${RESET}"
         fi
     fi
-    ;;
-
+        ;;
         startup)
         CONF_SOURCE="$INSTALL_DIR/sleepcontrol.conf"
         CONF_TARGET="/etc/init/sleepcontrol.conf"
