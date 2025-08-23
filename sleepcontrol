@@ -318,7 +318,7 @@ monitor_idle_activity() {
             ) &
             fake_activity_pid=$!
             sending_fake_activity=1
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - Starting simulated activity loop... (PID $fake_activity_pid)." >> "$LOG_FILE"
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - Sent fake activity! (PID $fake_activity_pid)." >> "$LOG_FILE"
         fi
     }
 
