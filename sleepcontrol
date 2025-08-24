@@ -526,7 +526,10 @@ case "$1" in
         setsid "$0" __sleepcontrol_monitor__ >> "$LOG_FILE" 2>&1 &
         echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - SleepControl Started. Output is logged to $LOG_FILE${RESET}" | tee -a "$LOG_FILE"
         ;;
-    stop)
+    start)
+        exec 200>"$PID_FILE.lock"
+        flock -n 200 || exit 1
+    
         if [[ -n "$BRIGHTNESS_PATH" ]]; then
             current_brightness=$(cat "$BRIGHTNESS_PATH" 2>/dev/null)
             if [[ -z "$current_brightness" || "$current_brightness" -eq 0 ]]; then
@@ -537,9 +540,20 @@ case "$1" in
                 fi
             fi
         fi
-
+    
         stop_monitoring >/dev/null 2>&1
-        echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') - SleepControl Stopped${RESET}"
+    
+        if [ -f "$LOG_FILE" ] && [ "$(stat -c%s "$LOG_FILE")" -gt 131072 ]; then
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - Truncated log file (exceeded 128KB)" > "$LOG_FILE"
+        fi
+    
+        if pgrep -f "$0 __sleepcontrol_monitor__" >/dev/null; then
+            echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - SleepControl is already running.${RESET}" | tee -a "$LOG_FILE"
+        else
+            nohup "$0" __sleepcontrol_monitor__ >> "$LOG_FILE" 2>&1 &
+            echo $! > "$PID_FILE"
+            echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - SleepControl Started. Output is logged to $LOG_FILE${RESET}" | tee -a "$LOG_FILE"
+        fi
         ;;
     battery|power)
     MODE=$1
