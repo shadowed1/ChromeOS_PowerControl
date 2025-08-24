@@ -281,13 +281,8 @@ send_fake_activity() {
 }
 
 monitor_idle_activity() {
-    exec 200>"$PID_FILE.lock"
-    flock -n 200 || {
-        echo "${BLUE}"
-        echo " SleepControl is already running."
-        echo "${RESET}"
-        exit 1
-    }
+   exec 200>"$PID_FILE.lock"
+    flock -n 200 || exit 1
 
     echo "$BASHPID" > "$PID_FILE"
     touch "$RUN_FLAG"
