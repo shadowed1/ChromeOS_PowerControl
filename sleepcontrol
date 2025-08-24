@@ -497,36 +497,7 @@ stop_monitoring() {
 }
 
 case "$1" in
-    start)
-        exec 200>"$PID_FILE.lock"
-        flock -n 200 || {
-            echo "${BLUE}"
-            echo "SleepControl is already running."
-            echo "${RESET}"
-            exit 1
-        }
-
-        if [[ -n "$BRIGHTNESS_PATH" ]]; then
-            current_brightness=$(cat "$BRIGHTNESS_PATH" 2>/dev/null)
-            if [[ -z "$current_brightness" || "$current_brightness" -eq 0 ]]; then
-                line=$(grep "Setting brightness to" /var/log/power_manager/powerd.LATEST | tail -n1)
-                last_brightness=$(echo "$line" | sed -n 's/.*Setting brightness to \([0-9]\+\) (.*/\1/p')
-                if [[ -n "$last_brightness" && "$last_brightness" -gt 0 ]]; then
-                    echo "$last_brightness" | sudo tee "$BRIGHTNESS_PATH" >/dev/null
-                fi
-            fi
-        fi
-
-        stop_monitoring >/dev/null 2>&1
-
-        if [ -f "$LOG_FILE" ] && [ "$(stat -c%s "$LOG_FILE")" -gt 131072 ]; then
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - Truncated log file (exceeded 128KB)" | tee -a "$LOG_FILE"
-        fi
-
-        setsid "$0" __sleepcontrol_monitor__ >> "$LOG_FILE" 2>&1 &
-        echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - SleepControl Started. Output is logged to $LOG_FILE${RESET}" | tee -a "$LOG_FILE"
-        ;;
-    start)
+     start)
         exec 200>"$PID_FILE.lock"
         flock -n 200 || exit 1
     
@@ -554,6 +525,21 @@ case "$1" in
             echo $! > "$PID_FILE"
             echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - SleepControl Started. Output is logged to $LOG_FILE${RESET}" | tee -a "$LOG_FILE"
         fi
+        ;;
+    stop)
+        if [[ -n "$BRIGHTNESS_PATH" ]]; then
+            current_brightness=$(cat "$BRIGHTNESS_PATH" 2>/dev/null)
+            if [[ -z "$current_brightness" || "$current_brightness" -eq 0 ]]; then
+                line=$(grep "Setting brightness to" /var/log/power_manager/powerd.LATEST | tail -n1)
+                last_brightness=$(echo "$line" | sed -n 's/.*Setting brightness to \([0-9]\+\) (.*/\1/p')
+                if [[ -n "$last_brightness" && "$last_brightness" -gt 0 ]]; then
+                    echo "$last_brightness" | sudo tee "$BRIGHTNESS_PATH" >/dev/null
+                fi
+            fi
+        fi
+
+        stop_monitoring >/dev/null 2>&1
+        echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') - SleepControl Stopped${RESET}"
         ;;
     battery|power)
     MODE=$1
