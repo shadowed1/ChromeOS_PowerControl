@@ -366,11 +366,7 @@ start_monitoring_loop() {
     cooldown_mode=false
     last_pct=0
 
-   while true; do
-    if [ ! -f "$RUN_FLAG" ]; then
-        echo "$(date '+%Y-%m-%d %H:%M:%S') - Warning: RUN_FLAG missing, continuing monitoring." >> "$LOG_FILE"
-    fi
-
+    while [ -f "$RUN_FLAG" ]; do
         now=$(date +%s)
         if (( now - last_reload_time >= 10 )); then
             load_config
