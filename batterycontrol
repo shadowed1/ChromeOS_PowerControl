@@ -184,13 +184,14 @@ echo "${RESET}"
 }
 
 start_monitoring_loop() {
-    echo $$ > "$PID_FILE"
+    echo "$$" > "$PID_FILE"
     touch "$RUN_FLAG"
-    
-
     echo "${GREEN}$(date '+%Y-%m-%d %H:%M:%S') - BatteryControl started. (PID $$).${RESET}"
 
-    local last_reload_time=0
+    if [[ -z "$PGID_SET" ]]; then
+        PGID=$(ps -o pgid= $$ | grep -o '[0-9]*')
+        PGID_SET=1
+    fi
 
     while true; do
         if [ ! -f "$RUN_FLAG" ]; then
@@ -247,14 +248,14 @@ stop_monitoring() {
     if [ -f "$PID_FILE" ]; then
         PID=$(cat "$PID_FILE")
         if ps -p "$PID" > /dev/null 2>&1; then
-            kill "$PID"
-            echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') - Stopping BatteryControl (PID $PID)${RESET}" | tee -a "$LOG_FILE"
+            PGID=$(ps -o pgid= "$PID" | grep -o '[0-9]*')
+            echo "${YELLOW}Stopping BatteryControl (PGID $PGID)${RESET}" | tee -a "$LOG_FILE"
+            kill -- -"$PGID" 2>/dev/null
+            sleep 1
         else
-            echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') - No running BatteryControl process found for PID $PID${RESET}" | tee -a "$LOG_FILE"
+            echo "${YELLOW}No running BatteryControl found for PID $PID${RESET}" | tee -a "$LOG_FILE"
         fi
         rm -f "$PID_FILE"
-    else
-        echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') - PID file not found.${RESET}" | tee -a "$LOG_FILE"
     fi
 
     if [ -f "$RUN_FLAG" ]; then
