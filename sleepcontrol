@@ -482,16 +482,12 @@ stop_fake_activity
 
 stop_monitoring() {
     if [ -f "$PID_FILE" ]; then
-        PID=$(cat "$PID_FILE")                # Read the monitor PID
+        PID=$(cat "$PID_FILE")
         if ps -p "$PID" > /dev/null 2>&1; then
-            PGID=$(ps -o pgid= "$PID" | grep -o '[0-9]*')  # Convert PID → PGID
+            PGID=$(ps -o pgid= "$PID" | grep -o '[0-9]*')
             echo "Stopping SleepControl (PGID: $PGID)..."
             kill -- -"$PGID" 2>/dev/null
             sleep 1
-            if ps -p "$PID" > /dev/null 2>&1; then
-                echo "Force killing SleepControl group..."
-                kill -9 -- -"$PGID" 2>/dev/null
-            fi
         else
             echo "No running SleepControl found for PID $PID."
         fi
@@ -500,7 +496,6 @@ stop_monitoring() {
         echo "SleepControl not running."
     fi
 }
-
 case "$1" in
        start)
         if [ -f "$PID_FILE" ]; then
