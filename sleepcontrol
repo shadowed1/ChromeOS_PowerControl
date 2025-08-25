@@ -284,7 +284,8 @@ monitor_idle_activity() {
    exec 200>"$PID_FILE.lock"
     flock -n 200 || exit 1
 
-    echo "$BASHPID" > "$PID_FILE"
+    PGID=$(ps -o pgid= $$ | tr -d ' ')
+    echo "$PGID" > "$PID_FILE"
     touch "$RUN_FLAG"
     echo "$(date '+%Y-%m-%d %H:%M:%S') - SleepControl started (PID $$)." > "$LOG_FILE"
 
@@ -480,19 +481,19 @@ stop_fake_activity
 
 stop_monitoring() {
     if [ -f "$PID_FILE" ]; then
-        PID=$(cat "$PID_FILE")
-        if ps -p "$PID" > /dev/null 2>&1; then
-            echo "Stopping SleepControl (PID: $PID)..."
-            kill "$PID" 2>/dev/null
+        PGID=$(cat "$PID_FILE")
+        if [ -n "$PGID" ] && ps -o pgid= -p "$PGID" >/dev/null 2>&1; then
+            echo "Stopping SleepControl (PGID: $PGID)..."
+            kill -- -"$PGID" 2>/dev/null
             sleep 1
-            if ps -p "$PID" > /dev/null 2>&1; then
-                echo "Force killing SleepControl..."
-                kill -9 "$PID" 2>/dev/null
+            if ps -o pgid= -p "$PGID" >/dev/null 2>&1; then
+                echo "Force killing SleepControl group..."
+                kill -9 -- -"$PGID" 2>/dev/null
             fi
         else
             echo "No running SleepControl found."
         fi
-        rm -f "$PID_FILE"
+        rm -f "$PID_FILE" "$RUN_FLAG"
     else
         echo "SleepControl not running."
     fi
@@ -528,8 +529,6 @@ stop_monitoring >/dev/null 2>&1
     fi
 
     nohup "$0" __sleepcontrol_monitor__ >> "$LOG_FILE" 2>&1 &
-    NEW_PID=$!
-    echo "$NEW_PID" > "$PID_FILE"
     echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - SleepControl Started (PID $NEW_PID). Output is logged to $LOG_FILE${RESET}" | tee -a "$LOG_FILE"
     ;;
 
