@@ -526,9 +526,9 @@ case "$1" in
         fi
     
         nohup "$0" __sleepcontrol_monitor__ >> "$LOG_FILE" 2>&1 &
-    
         NEW_PID=$!
         echo $NEW_PID > "$PID_FILE"
+        touch "$RUN_FLAG"
     
         echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - SleepControl Started - Output is logged to $LOG_FILE (PID $NEW_PID)${RESET}" | tee -a "$LOG_FILE"
         ;;
