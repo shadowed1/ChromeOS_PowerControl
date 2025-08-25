@@ -535,7 +535,6 @@ case "$1" in
 
         echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - SleepControl Started (PGID $NEW_PGID). Output is logged to $LOG_FILE${RESET}" | tee -a "$LOG_FILE"
         ;;
-
     stop)
         if [[ -n "$BRIGHTNESS_PATH" ]]; then
             current_brightness=$(cat "$BRIGHTNESS_PATH" 2>/dev/null)
@@ -672,34 +671,31 @@ case "$1" in
             sudo rm -f /etc/init/sleepcontrol.conf
         fi
         ;;
-        status|"")
+         status|"")
         load_config
-        if [ -f "$RUN_FLAG" ]; then
-            PID=$(cat "$PID_FILE")
-            if ps -p "$PID" > /dev/null 2>&1; then
-echo "${BLUE}"
-echo "═════════════════════════════════════════════════════════════════════════════════════════════════"
-echo "                          SleepControl Status: RUNNING (PID $PID)                                  "                                 
-echo ""
+        if [ -f "$PID_FILE" ]; then
+            PGID=$(cat "$PID_FILE")
+            if ps -o pgid= -p "$PGID" >/dev/null 2>&1; then
+                echo "${BLUE}"
+                echo "═════════════════════════════════════════════════════════════════════════════════════════════════"
+                echo "                         SleepControl Status: RUNNING (PGID $PGID)                                "
+                echo ""
             else
-echo "${RED}"
-echo "═════════════════════════════════════════════════════════════════════════════════════════════════"
-echo "                              SleepControl Status: STOPPED                                       "
-echo ""
-
+                echo "${RED}"
+                echo "═════════════════════════════════════════════════════════════════════════════════════════════════"
+                echo "                             SleepControl Status: STOPPED                                         "
+                echo ""
             fi
-
-         else
-echo "${RED}"
-echo "═════════════════════════════════════════════════════════════════════════════════════════════════"
-echo "                              SleepControl Status: STOPPED                                       "
+        else
+            echo "${RED}"
+            echo "═════════════════════════════════════════════════════════════════════════════════════════════════"
+            echo "                             SleepControl Status: STOPPED                                         "
         fi
-echo "  Battery = Dim: $((BATTERY_DIM_DELAY)) min -> Timeout: $((BATTERY_BACKLIGHT)) min -> Sleep: $((BATTERY_DELAY)) min | Audio Detection: $AUDIO_DETECTION_BATTERY | Lid Sleep: $LIDSLEEP_BATTERY "
-echo "  Power   = Dim: $((POWER_DIM_DELAY)) min -> Timeout: $((POWER_BACKLIGHT)) min -> Sleep: $((POWER_DELAY)) min | Audio Detection: $AUDIO_DETECTION_POWER | Lid Sleep: $LIDSLEEP_POWER "
-echo "  Suspend Mode:${SUSPEND_MODE}"
-echo "═════════════════════════════════════════════════════════════════════════════════════════════════"
-echo "${RESET}"
-       
+        echo "  Battery = Dim: $((BATTERY_DIM_DELAY)) min -> Timeout: $((BATTERY_BACKLIGHT)) min -> Sleep: $((BATTERY_DELAY)) min | Audio Detection: $AUDIO_DETECTION_BATTERY | Lid Sleep: $LIDSLEEP_BATTERY "
+        echo "  Power   = Dim: $((POWER_DIM_DELAY)) min -> Timeout: $((POWER_BACKLIGHT)) min -> Sleep: $((POWER_DELAY)) min | Audio Detection: $AUDIO_DETECTION_POWER | Lid Sleep: $LIDSLEEP_POWER "
+        echo "  Suspend Mode:${SUSPEND_MODE}"
+        echo "═════════════════════════════════════════════════════════════════════════════════════════════════"
+        echo "${RESET}"
         ;;
     __sleepcontrol_monitor__)
         monitor_idle_activity
