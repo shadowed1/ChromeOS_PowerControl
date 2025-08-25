@@ -251,19 +251,20 @@ start() {
 stop() {
     if [ -f "$PID_FILE" ]; then
         PID=$(cat "$PID_FILE")
-        echo "${RED}$(date '+%Y-%m-%d %H:%M:%S') - Stopping FanControl (PID $PID)...${RESET}" | tee -a "$LOG_FILE"
-        rm -f "$RUN_FLAG"
-        kill "$PID" 2>/dev/null
-        sleep 1
+        if ps -p "$PID" > /dev/null 2>&1; then
+            PGID=$(ps -o pgid= "$PID" | grep -o '[0-9]*')
+            echo "${RED}Stopping FanControl (PGID $PGID)...${RESET}" | tee -a "$LOG_FILE"
+            kill -- -"$PGID" 2>/dev/null
+            sleep 1
+        else
+            echo "${YELLOW}FanControl process not found.${RESET}" | tee -a "$LOG_FILE"
+        fi
+        rm -f "$PID_FILE"
     fi
-    sudo ectool fanduty 50 | grep -v "Fan duty cycle set for all fans." >> "$LOG_FILE"
-    sleep 1
-    echo "${YELLOW}"
-    echo "$(date '+%Y-%m-%d %H:%M:%S') - Restoring automatic fan control..." | tee -a "$LOG_FILE" | tee -a "$LOG_FILE"
+    rm -f "$RUN_FLAG"
     sudo ectool autofanctrl
-    echo "${RESET}"
-    rm -f "$RUN_FLAG" "$PID_FILE"
 }
+
 
 monitor() {
     if [ -f "$MONITOR_PID_FILE" ]; then
