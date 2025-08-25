@@ -184,6 +184,7 @@ echo "${RESET}"
 }
 
 start_monitoring_loop() {
+    last_reload_time=0
     echo "$$" > "$PID_FILE"
     touch "$RUN_FLAG"
     echo "${GREEN}$(date '+%Y-%m-%d %H:%M:%S') - BatteryControl started. (PID $$).${RESET}"
