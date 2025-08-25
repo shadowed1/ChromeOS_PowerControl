@@ -482,18 +482,23 @@ stop_monitoring() {
     if [ -f "$PID_FILE" ]; then
         PID=$(cat "$PID_FILE")
         if ps -p "$PID" > /dev/null 2>&1; then
-            echo "Stopping SleepControl (PGID: $PID)..."
-            kill -- -"$PID" 2>/dev/null
-            sleep 1
-            kill "$PID" 2>/dev/null
-            echo "${RED}$(date '+%Y-%m-%d %H:%M:%S') - SleepControl Stopped (PID $PID)${RESET}" | tee -a "$LOG_FILE"
+            kill "$PID"
+            echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') - Stopping SleepControl (PID $PID)${RESET}" | tee -a "$LOG_FILE"
+        else
+            echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') - No running SleepControl process found for PID $PID${RESET}" | tee -a "$LOG_FILE"
         fi
         rm -f "$PID_FILE"
     else
         echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') - PID file not found.${RESET}" | tee -a "$LOG_FILE"
     fi
-    rm -f "$RUN_FLAG" "$PID_FILE.lock"
+
+    if [ -f "$RUN_FLAG" ]; then
+        rm -f "$RUN_FLAG"
+    fi
+
+    rm -f "$PID_FILE.lock"
 }
+
 
 
 case "$1" in
