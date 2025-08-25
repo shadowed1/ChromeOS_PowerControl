@@ -371,7 +371,7 @@ set_stepup() {
         save_config
         echo "${YELLOW}"
         echo "$(date '+%Y-%m-%d %H:%M:%S') - Step-up size set to $STEP_UP%" | tee -a "$LOG_FILE"
-        echo "{RESET}"
+        echo "${RESET}"
     else
         echo "Usage: $0 step_up <step_size_percent (1-100)>"
     fi
