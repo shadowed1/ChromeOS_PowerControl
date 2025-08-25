@@ -501,36 +501,40 @@ stop_monitoring() {
 
 case "$1" in
     start)
-    exec 200>"$PID_FILE.lock"
-    flock -n 200 || exit 1
+        exec 200>"$PID_FILE.lock"
+        flock -n 200 || exit 1
 
-    if [[ -n "$BRIGHTNESS_PATH" ]]; then
-        current_brightness=$(cat "$BRIGHTNESS_PATH" 2>/dev/null)
-        if [[ -z "$current_brightness" || "$current_brightness" -eq 0 ]]; then
-            line=$(grep "Setting brightness to" /var/log/power_manager/powerd.LATEST | tail -n1)
-            last_brightness=$(echo "$line" | sed -n 's/.*Setting brightness to \([0-9]\+\) (.*/\1/p')
-            if [[ -n "$last_brightness" && "$last_brightness" -gt 0 ]]; then
-                echo "$last_brightness" | sudo tee "$BRIGHTNESS_PATH" >/dev/null
+        if [[ -n "$BRIGHTNESS_PATH" ]]; then
+            current_brightness=$(cat "$BRIGHTNESS_PATH" 2>/dev/null)
+            if [[ -z "$current_brightness" || "$current_brightness" -eq 0 ]]; then
+                line=$(grep "Setting brightness to" /var/log/power_manager/powerd.LATEST | tail -n1)
+                last_brightness=$(echo "$line" | sed -n 's/.*Setting brightness to \([0-9]\+\) (.*/\1/p')
+                if [[ -n "$last_brightness" && "$last_brightness" -gt 0 ]]; then
+                    echo "$last_brightness" | sudo tee "$BRIGHTNESS_PATH" >/dev/null
+                fi
             fi
         fi
-    fi
 
-stop_monitoring >/dev/null 2>&1
-    sleep 0.2
+        stop_monitoring >/dev/null 2>&1
+        sleep 0.2
 
-    if [ -f "$PID_FILE" ]; then
-        PID=$(cat "$PID_FILE")
-        if ps -p "$PID" > /dev/null 2>&1; then
-            echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - SleepControl is already running (PID $PID).${RESET}" | tee -a "$LOG_FILE"
-            exit 0
-        else
-            rm -f "$PID_FILE"
+        if [ -f "$PID_FILE" ]; then
+            PGID=$(cat "$PID_FILE")
+            if ps -o pgid= -p "$PGID" >/dev/null 2>&1; then
+                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - SleepControl is already running (PGID $PGID).${RESET}" | tee -a "$LOG_FILE"
+                exit 0
+            else
+                rm -f "$PID_FILE"
+            fi
         fi
-    fi
 
-    nohup "$0" __sleepcontrol_monitor__ >> "$LOG_FILE" 2>&1 &
-    echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - SleepControl Started (PID $NEW_PID). Output is logged to $LOG_FILE${RESET}" | tee -a "$LOG_FILE"
-    ;;
+        nohup setsid "$0" __sleepcontrol_monitor__ >> "$LOG_FILE" 2>&1 &
+        NEW_PID=$!
+        NEW_PGID=$(ps -o pgid= -p "$NEW_PID" | tr -d ' ')
+        echo "$NEW_PGID" > "$PID_FILE"
+
+        echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - SleepControl Started (PGID $NEW_PGID). Output is logged to $LOG_FILE${RESET}" | tee -a "$LOG_FILE"
+        ;;
 
     stop)
         if [[ -n "$BRIGHTNESS_PATH" ]]; then
