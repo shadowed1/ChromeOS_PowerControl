@@ -314,6 +314,7 @@ monitor_idle_activity() {
                 done
             ) &
             fake_activity_pid=$!
+            export FAKE_ACTIVITY_PID=$fake_activity_pid
             sending_fake_activity=1
             echo "$(date '+%Y-%m-%d %H:%M:%S') - Sent fake activity! (PID $fake_activity_pid)." >> "$LOG_FILE"
         fi
@@ -321,14 +322,15 @@ monitor_idle_activity() {
 
     stop_fake_activity() {
         if (( sending_fake_activity == 1 )); then
-            kill "$fake_activity_pid" 2>/dev/null
-            wait "$fake_activity_pid" 2>/dev/null
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - Stopping simulated activity loop... (PID $fake_activity_pid)." >> "$LOG_FILE"
+            if kill -0 "$fake_activity_pid" 2>/dev/null; then
+                kill "$fake_activity_pid" 2>/dev/null
+                wait "$fake_activity_pid" 2>/dev/null
+            fi
             sending_fake_activity=0
             fake_activity_pid=0
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - Stopped fake activity." >> "$LOG_FILE"
         fi
-    }
-
+}
     exec 3< <(tail -Fn0 /var/log/power_manager/powerd.LATEST)
     while read -r line <&3; do
         now=$(date +%s)
@@ -484,9 +486,11 @@ stop_monitoring() {
     if [ -f "$PID_FILE" ]; then
         PID=$(cat "$PID_FILE")
         if ps -p "$PID" > /dev/null 2>&1; then
+            echo "Stopping SleepControl (PID $PID)..."
+
             PGID=$(ps -o pgid= "$PID" | tr -d ' ')
-            echo "Stopping SleepControl (PGID: $PGID)..."
             kill -- -"$PGID" 2>/dev/null
+
             sleep 1
             if ps -p "$PID" > /dev/null 2>&1; then
                 echo "Force killing SleepControl group..."
@@ -495,6 +499,7 @@ stop_monitoring() {
         else
             echo "No running SleepControl found for PID $PID."
         fi
+
         rm -f "$PID_FILE" "$RUN_FLAG"
     else
         echo "SleepControl not running."
