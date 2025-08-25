@@ -280,10 +280,10 @@ send_fake_activity() {
     echo "$(date '+%Y-%m-%d %H:%M:%S') - Simulated user activity." >> "$LOG_FILE"
 }
 
+
 monitor_idle_activity() {
-    echo "$$" > "$PID_FILE"
-    touch "$RUN_FLAG"
-    echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - SleepControl started (PID $$).${RESET}" > "$LOG_FILE"
+    echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - SleepControl monitor started (PID $$).${RESET}" >> "$LOG_FILE"
+
 
     if [[ -z "$PGID_SET" ]]; then
         PGID=$(ps -o pgid= $$ | tr -d ' ')
@@ -484,10 +484,14 @@ stop_monitoring() {
     if [ -f "$PID_FILE" ]; then
         PID=$(cat "$PID_FILE")
         if ps -p "$PID" > /dev/null 2>&1; then
-            PGID=$(ps -o pgid= "$PID" | grep -o '[0-9]*')
+            PGID=$(ps -o pgid= "$PID" | tr -d ' ')
             echo "Stopping SleepControl (PGID: $PGID)..."
             kill -- -"$PGID" 2>/dev/null
             sleep 1
+            if ps -p "$PID" > /dev/null 2>&1; then
+                echo "Force killing SleepControl group..."
+                kill -9 -- -"$PGID" 2>/dev/null
+            fi
         else
             echo "No running SleepControl found for PID $PID."
         fi
@@ -496,6 +500,7 @@ stop_monitoring() {
         echo "SleepControl not running."
     fi
 }
+
 case "$1" in
        start)
         if [ -f "$PID_FILE" ]; then
@@ -508,31 +513,18 @@ case "$1" in
             fi
         fi
     
-        if [[ -n "$BRIGHTNESS_PATH" ]]; then
-            current_brightness=$(cat "$BRIGHTNESS_PATH" 2>/dev/null)
-            if [[ -z "$current_brightness" || "$current_brightness" -eq 0 ]]; then
-                line=$(grep "Setting brightness to" /var/log/power_manager/powerd.LATEST | tail -n1)
-                last_brightness=$(echo "$line" | sed -n 's/.*Setting brightness to \([0-9]\+\) (.*/\1/p')
-                if [[ -n "$last_brightness" && "$last_brightness" -gt 0 ]]; then
-                    echo "$last_brightness" | sudo tee "$BRIGHTNESS_PATH" >/dev/null
-                fi
-            fi
-        fi
-    
         LOG_FILE="/var/log/sleepcontrol.log"
-    
         if [ -f "$LOG_FILE" ] && [ "$(stat -c%s "$LOG_FILE")" -gt 32768 ]; then
             echo "$(date '+%Y-%m-%d %H:%M:%S') - Truncated log file (exceeded 32KB)" > "$LOG_FILE"
         fi
     
-        nohup "$0" __sleepcontrol_monitor__ >> "$LOG_FILE" 2>&1 &
+        "$0" __sleepcontrol_monitor__ >> "$LOG_FILE" 2>&1 &
         NEW_PID=$!
-        echo $NEW_PID > "$PID_FILE"
+        echo $NEW_PID > "$PID_FILE"   # Only write PID here
         touch "$RUN_FLAG"
     
-        echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - SleepControl Started - Output is logged to $LOG_FILE (PID $NEW_PID)${RESET}" | tee -a "$LOG_FILE"
+        echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - SleepControl Started - PID $NEW_PID${RESET}" | tee -a "$LOG_FILE"
         ;;
-
     stop)
         if [[ -n "$BRIGHTNESS_PATH" ]]; then
             current_brightness=$(cat "$BRIGHTNESS_PATH" 2>/dev/null)
