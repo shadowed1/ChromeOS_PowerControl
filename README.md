@@ -250,7 +250,7 @@ Fixed bug with SleepControl altering display brightness incorrectly. Fixed minor
 - 0.37: `Added brightness restore safeguard logic to reliably restore display brightness. Split up 'user activity ongoing'
 powerd keyword. Removed old code and repetitive log entries.` <br><br>
 - 0.38: `Fixed brightness scaling logic.  Removed turbo boost question from installer - PowerControl can handle the heat.` <br><br>
-- 0.39: `Added start_all, startup_all, and help_all commands. Fixing bugs`. 
+- 0.39: `Added startup_all, and help_all commands. Fixing bugs`. 
   
 __Acknowledgements:__
 
