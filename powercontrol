@@ -581,6 +581,7 @@ echo "║  sudo powercontrol hotzone 78    # Temperature threshold for aggressiv
 echo "║  sudo powercontrol poll 1        # PowerControl polling rate in seconds (0.1s - 5s)                 ║"
 echo "║  sudo powercontrol monitor       # Toggle live temperature monitoring                               ║"
 echo "║  sudo powercontrol startup       # Copy or Remove no_turbo.conf & powercontrol.conf at: /etc/init/  ║"
+echo "║  sudo powercontrol startup_all   # Copy or Remove all .conf files to: /etc/init/  ║"
 echo "║  sudo powercontrol reinstall     # Redownload and reinstall ChromeOS_PowerControl from Github       ║"
 echo "║  sudo powercontrol uninstall     # Uninstall ChromeOS_PowerControl                                  ║"
 echo "║  sudo powercontrol version       # Check PowerControl version                                       ║"
@@ -851,6 +852,8 @@ case "$1" in
     all)
     powercontrol && batterycontrol && fancontrol && gpucontrol && sleepcontrol
     ;;
+    startup_all)
+    sudo powercontrol startup && sudo batterycontrol startup && sudo fancontrol startup && sudo gpucontrol startup && sudo sleepcontrol startup
     *)
     echo "Unknown command: $1"
     show_help
