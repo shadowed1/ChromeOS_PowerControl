@@ -854,6 +854,7 @@ case "$1" in
     powercontrol && batterycontrol && fancontrol && gpucontrol && sleepcontrol
     ;;
     help_all)
+    echo ""
     echo "                                              Commands with examples:"
     echo "${CYAN}"
     echo "╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
