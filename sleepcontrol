@@ -476,6 +476,7 @@ monitor_idle_activity() {
                 (( sending_fake_activity == 0 )) && start_fake_activity
             else
                 stop_fake_activity
+                sleep 5
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Sleep threshold elapsed; going to sleep!" >> "$LOG_FILE"
             fi
         fi
