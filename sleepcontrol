@@ -288,6 +288,10 @@ monitor_idle_activity() {
         echo "${RESET}"
         exit 1
     }
+    
+    if pgrep -f "$0 __sleepcontrol_monitor__" | grep -v "^$$\$" > /dev/null; then
+        exit 0
+    fi
 
     echo "$BASHPID" > "$PID_FILE"
     touch "$RUN_FLAG"
@@ -422,7 +426,6 @@ monitor_idle_activity() {
             power_backlight_ts=$now
             battery_backlight_ts=$now
             was_dimmed=0
-            # Restore saved display brightness if it exists and >0
             if [[ -n "$saved_display_brightness" && "$saved_display_brightness" -gt 0 ]]; then
                 echo "$saved_display_brightness" | sudo tee "$BRIGHTNESS_PATH" >/dev/null
             fi
@@ -457,7 +460,6 @@ monitor_idle_activity() {
     
         if (( idle_elapsed >= backlight_delay )); then
             if (( backlight_off == 0 )); then
-                # Turn off display by setting brightness to 0
                 if [[ -n "$BRIGHTNESS_PATH" ]]; then
                     echo 0 | sudo tee "$BRIGHTNESS_PATH" >/dev/null
                 fi
@@ -509,7 +511,11 @@ case "$1" in
             exit 1
         }
 
-        # Ensure display brightness is non-zero if we can restore a last-known value
+        if pgrep -f "$0 __sleepcontrol_monitor__" > /dev/null; then
+            echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - SleepControl is already running. ${RESET}" | tee -a "$LOG_FILE"
+            exit 0
+        fi
+
         if [[ -n "$BRIGHTNESS_PATH" ]]; then
             current_brightness=$(cat "$BRIGHTNESS_PATH" 2>/dev/null)
             if [[ -z "$current_brightness" || "$current_brightness" -eq 0 ]]; then
@@ -531,7 +537,6 @@ case "$1" in
         echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - SleepControl Started. Output is logged to $LOG_FILE${RESET}" | tee -a "$LOG_FILE"
         ;;
     stop)
-        # When stopping, if brightness is 0, try to bring it back using the last known value
         if [[ -n "$BRIGHTNESS_PATH" ]]; then
             current_brightness=$(cat "$BRIGHTNESS_PATH" 2>/dev/null)
             if [[ -z "$current_brightness" || "$current_brightness" -eq 0 ]]; then
