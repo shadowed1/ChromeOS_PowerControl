@@ -666,7 +666,7 @@ case "$1" in
     if pgrep -f "$0 __powercontrol_monitor__" >/dev/null; then
         echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') - PowerControl is already running.${RESET}"
     else
-        nohup "$0" __powercontrol_monitor__ >> "$LOG_FILE" 2>&1 &
+        nohup "$0" __powercontrol_monitor__ >> "$LOG_FILE" 2>&1 </dev/null &
         echo $! > "$PID_FILE"
     fi
     ;;
