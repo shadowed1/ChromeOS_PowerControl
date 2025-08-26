@@ -483,39 +483,37 @@ stop_fake_activity
 }
 
 stop_monitoring() {
-    if [ -f "$PID_FILE" ]; then
-        PID=$(cat "$PID_FILE")
-        if ps -p "$PID" > /dev/null 2>&1; then
-            echo "Stopping SleepControl (PID $PID)..."
-
+    EXISTING_PIDS=$(pgrep -f "__sleepcontrol_monitor__")
+    if [[ -n "$EXISTING_PIDS" ]]; then
+        echo "Stopping SleepControl processes (PIDs: $EXISTING_PIDS)..."
+        # Kill each process group
+        for PID in $EXISTING_PIDS; do
             PGID=$(ps -o pgid= "$PID" | tr -d ' ')
             kill -- -"$PGID" 2>/dev/null
+        done
 
-            sleep 1
-            if ps -p "$PID" > /dev/null 2>&1; then
-                echo "Force killing SleepControl group..."
+        sleep 1
+        EXISTING_PIDS=$(pgrep -f "__sleepcontrol_monitor__")
+        if [[ -n "$EXISTING_PIDS" ]]; then
+            echo "Force killing remaining SleepControl processes (PIDs: $EXISTING_PIDS)..."
+            for PID in $EXISTING_PIDS; do
+                PGID=$(ps -o pgid= "$PID" | tr -d ' ')
                 kill -9 -- -"$PGID" 2>/dev/null
-            fi
-        else
-            echo "No running SleepControl found for PID $PID."
+            done
         fi
-
-        rm -f "$PID_FILE" "$RUN_FLAG"
     else
-        echo "SleepControl not running."
+        echo "No running SleepControl found."
     fi
+
+    rm -f "$PID_FILE" "$RUN_FLAG"
 }
 
 case "$1" in
-       start)
-        if [ -f "$PID_FILE" ]; then
-            PID=$(cat "$PID_FILE")
-            if ps -p "$PID" > /dev/null 2>&1; then
-                echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') - SleepControl already running (PID $PID).${RESET}" | tee -a "$LOG_FILE"
-                exit 0
-            else
-                rm -f "$PID_FILE"
-            fi
+      start)
+        if pgrep -f "__sleepcontrol_monitor__" >/dev/null; then
+            EXISTING_PIDS=$(pgrep -f "__sleepcontrol_monitor__")
+            echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') - SleepControl already running (PIDs: $EXISTING_PIDS).${RESET}" | tee -a "$LOG_FILE"
+            exit 0
         fi
     
         LOG_FILE="/var/log/sleepcontrol.log"
@@ -523,10 +521,10 @@ case "$1" in
             echo "$(date '+%Y-%m-%d %H:%M:%S') - Truncated log file (exceeded 32KB)" > "$LOG_FILE"
         fi
     
+        touch "$RUN_FLAG"
         "$0" __sleepcontrol_monitor__ >> "$LOG_FILE" 2>&1 &
         NEW_PID=$!
-        echo $NEW_PID > "$PID_FILE"   # Only write PID here
-        touch "$RUN_FLAG"
+        echo $NEW_PID > "$PID_FILE"
     
         echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - SleepControl Started - PID $NEW_PID${RESET}" | tee -a "$LOG_FILE"
         ;;
