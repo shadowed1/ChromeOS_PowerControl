@@ -410,10 +410,7 @@ echo "${RESET}"
 }
 
 case "$1" in
-    start) 
-        start
-        echo "${YELLOW} $(date '+%Y-%m-%d %H:%M:%S') - FanControl started.${RESET}" | tee -a "$LOG_FILE"
-        ;;
+    start) start ;;
     stop) stop ;;
     monitor) monitor ;;
     fan_min_temp|min_temp) fan_min_temp "$@" ;;
