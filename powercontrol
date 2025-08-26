@@ -854,6 +854,9 @@ case "$1" in
     all)
     powercontrol && batterycontrol && fancontrol && gpucontrol && sleepcontrol
     ;;
+    startup_all)
+    sudo powercontrol start && sudo batterycontrol start && sudo fancontrol start && sudo gpucontrol start && sudo sleepcontrol start
+    ;;
     help_all)
     echo ""
     echo "                                              Commands with examples:"
