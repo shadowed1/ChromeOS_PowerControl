@@ -876,7 +876,7 @@ case "$1" in
     echo "║  sudo powercontrol ramp_down 20     # % in steps CPU will decrease in clockspeed per second                        ║"
     echo "║  sudo powercontrol monitor          # Toggle on/off live monitoring in terminal                                    ║"
     echo "║  sudo powercontrol startup          # Copy or Remove no_turbo.conf & powercontrol.conf at: /etc/init/              ║"
-    echo "║  sudo powercontrol startup          # Copy or Remove all .conf files at: /etc/init/                                ║"
+    echo "║  sudo powercontrol startup_all      # Copy or Remove all .conf files at: /etc/init/                                ║"
     echo "║                                                                                                                    ║"
     echo "╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝"
     echo "${RESET}${GREEN}╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
