@@ -164,7 +164,7 @@ case "$1" in
     startup)
         CONF_SOURCE="$INSTALL_DIR/gpucontrol.conf"
         CONF_TARGET="/etc/init/gpucontrol.conf"
-        read -p "Enable GPUControl on startup with delay? (y/n): " choice
+        read -p "Enable GPUControl on startup? (y/n): " choice
         if [[ "$choice" =~ ^[Yy]$ ]]; then
             sudo cp "$CONF_SOURCE" "$CONF_TARGET" && echo "${MAGENTA}Startup enabled.${RESET}"
         else
