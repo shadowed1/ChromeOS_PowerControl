@@ -948,6 +948,7 @@ case "$1" in
     echo "╠════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣"
     echo "║                                                                                                                    ║"
     echo "║  powercontrol all               # Show status of all ChromeOS_PowerControl components                              ║"
+    echo "║  sudo powercontrol start_all    # Start all ChromeOS_PowerControl programs                                         ║"
     echo "║  sudo powercontrol version      # Check PowerControl version                                                       ║"
     echo "║  sudo powercontrol startup_all  # Copy or Remove all .conf files at: /etc/init/                                    ║"
     echo "║  sudo powercontrol reinstall    # Download and reinstall ChromeOS_PowerControl                                     ║"
@@ -960,6 +961,9 @@ case "$1" in
     ;;
     startup_all)
     sudo powercontrol startup && sudo batterycontrol startup && sudo fancontrol startup && sudo gpucontrol startup && sudo sleepcontrol startup
+    ;;
+    start_all)
+    sudo powercontrol start && sudo batterycontrol start && sudo fancontrol start && sudo sleepcontrol start
     ;;
     *)
     echo "Unknown command: $1"
