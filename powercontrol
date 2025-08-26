@@ -361,7 +361,7 @@ start_monitoring_loop() {
     load_config
     touch "$RUN_FLAG"
     echo $$ > "$PID_FILE"
-
+    echo "${CYAN}$(date '+%Y-%m-%d %H:%M:%S') - Starting PowerControl - Output is logged to $LOG_FILE${RESET}" | tee -a "$LOG_FILE"
     last_reload_time=0
     cooldown_mode=false
     last_pct=0
@@ -667,9 +667,6 @@ case "$1" in
     else
         nohup "$0" __powercontrol_monitor__ >> "$LOG_FILE" 2>&1 &
         echo $! > "$PID_FILE"
-        sleep 1
-        echo "${CYAN}$(date '+%Y-%m-%d %H:%M:%S') - Starting PowerControl - Output is logged to $LOG_FILE${RESET}" | tee -a "$LOG_FILE"
-        sleep 1
     fi
     ;;
 
