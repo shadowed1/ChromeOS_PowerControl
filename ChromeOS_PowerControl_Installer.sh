@@ -625,15 +625,6 @@ sudo bash "$INSTALL_DIR/sleepcontrol" stop >/dev/null 2>&1
 sudo bash "$INSTALL_DIR/gpucontrol" restore >/dev/null 2>&1
 sleep 1
 
-for monitor in _batterycontrol_monitor_ _powercontrol_monitor_ _fancontrol_monitor_ _sleepcontrol_monitor_; do
-    if ! pgrep -f "$INSTALL_DIR/$monitor" >/dev/null 2>&1; then
-        echo "${BLUE}Starting $monitor...${RESET}"
-        "$INSTALL_DIR/$monitor" &
-    else
-        echo "${BLUE}$monitor is already running. Skipping start.${RESET}"
-    fi
-done
-
 sudo ectool backlight 1 >/dev/null 2>&1
 echo ""
 start_component_now "BatteryControl" "$INSTALL_DIR/batterycontrol"
