@@ -241,7 +241,6 @@ start() {
     else
         nohup "$0" __fancontrol_monitor__ >> "$LOG_FILE" 2>&1 &
         echo $! > "$MONITOR_PID_FILE"
-        echo ""
         echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') - Starting FanControl - Output is logged to $LOG_FILE${RESET}" | tee -a "$LOG_FILE"
         echo ""
     fi
