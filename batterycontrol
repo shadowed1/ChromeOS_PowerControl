@@ -189,16 +189,10 @@ start_monitoring_loop() {
     touch "$RUN_FLAG"
     echo "${GREEN}$(date '+%Y-%m-%d %H:%M:%S') - BatteryControl started. (PID $$).${RESET}"
 
-    if [[ -z "$PGID_SET" ]]; then
-        PGID=$(ps -o pgid= $$ | grep -o '[0-9]*')
-        PGID_SET=1
-    fi
-
     while true; do
         if [ ! -f "$RUN_FLAG" ]; then
             echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') - Warning: RUN_FLAG missing, continuing monitoring.${RESET}" | tee -a "$LOG_FILE"
         fi
-
 
         now=$(date +%s)
         if (( now - last_reload_time >= 30 )); then
@@ -249,14 +243,20 @@ stop_monitoring() {
     if [ -f "$PID_FILE" ]; then
         PID=$(cat "$PID_FILE")
         if ps -p "$PID" > /dev/null 2>&1; then
-            PGID=$(ps -o pgid= "$PID" | grep -o '[0-9]*')
-            echo "${YELLOW}Stopping BatteryControl (PGID $PGID)${RESET}" | tee -a "$LOG_FILE"
-            kill -- -"$PGID" 2>/dev/null
+            if [ -f "$INSTALL_DIR/.batterycontrol_pgid" ]; then
+                PGID=$(cat "$INSTALL_DIR/.batterycontrol_pgid")
+                echo "${YELLOW}Stopping BatteryControl (PGID $PGID)${RESET}" | tee -a "$LOG_FILE"
+                kill -- -"$PGID" 2>/dev/null
+            else
+                echo "${YELLOW}Stopping BatteryControl (PID $PID)${RESET}" | tee -a "$LOG_FILE"
+                kill "$PID" 2>/dev/null
+            fi
             sleep 1
         else
-            echo "${YELLOW}No running BatteryControl found for PID $PID${RESET}" | tee -a "$LOG_FILE"
+            echo "${YELLOW}No BatteryControl PID $PID${RESET}" | tee -a "$LOG_FILE"
         fi
         rm -f "$PID_FILE"
+        rm -f "$INSTALL_DIR/.batterycontrol_pgid"
     fi
 
     if [ -f "$RUN_FLAG" ]; then
@@ -286,9 +286,12 @@ case "$1" in
         fi
     
         nohup "$0" __batterycontrol_monitor__ >> "$LOG_FILE" 2>&1 &
-    
+
         NEW_PID=$!
         echo $NEW_PID > "$PID_FILE"
+        
+        NEW_PGID=$(ps -o pgid= "$NEW_PID" | grep -o '[0-9]*')
+        echo $NEW_PGID > "$INSTALL_DIR/.batterycontrol_pgid"
     
         echo "${GREEN}$(date '+%Y-%m-%d %H:%M:%S') - Starting BatteryControl - Output is logged to $LOG_FILE (PID $NEW_PID)${RESET}" | tee -a "$LOG_FILE"
         ;;
