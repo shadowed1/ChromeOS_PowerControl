@@ -518,7 +518,7 @@ stop_monitoring() {
     if [ -f "$PID_FILE" ]; then
         PID=$(cat "$PID_FILE")
         if ps -p "$PID" > /dev/null 2>&1; then
-            echo "${RED}$(date '+%Y-%m-%d %H:%M:%S') - Stopping PowerControl (PGID $PID)...${RESET}" | tee -a "$LOG_FILE"
+            echo "${RED}$(date '+%Y-%m-%d %H:%M:%S') - Stopping PowerControl or initializing on boot... (PGID $PID)...${RESET}" | tee -a "$LOG_FILE"
             kill -- -"$PID" 2>/dev/null
             sleep 1
             if ps -p "$PID" > /dev/null 2>&1; then
