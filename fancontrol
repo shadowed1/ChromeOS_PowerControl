@@ -121,8 +121,6 @@ else
 fi
 
 sudo ectool fanduty "$initial_duty"
-
-    echo "${YELLOW} $(date '+%Y-%m-%d %H:%M:%S') - FanControl started.${RESET}" | tee -a "$LOG_FILE"
     prev_temp=$TEMP_C
     local last_duty=-1
     local last_reload_time=0
@@ -412,7 +410,10 @@ echo "${RESET}"
 }
 
 case "$1" in
-    start) start ;;
+    start) 
+        start
+        echo "${YELLOW} $(date '+%Y-%m-%d %H:%M:%S') - FanControl started.${RESET}" | tee -a "$LOG_FILE"
+        ;;
     stop) stop ;;
     monitor) monitor ;;
     fan_min_temp|min_temp) fan_min_temp "$@" ;;
