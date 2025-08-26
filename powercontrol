@@ -963,9 +963,6 @@ case "$1" in
     startup_all)
     sudo powercontrol startup && sudo batterycontrol startup && sudo fancontrol startup && sudo gpucontrol startup && sudo sleepcontrol startup
     ;;
-    start_all)
-    sudo powercontrol start && sudo batterycontrol start && sudo fancontrol start && sudo sleepcontrol start
-    ;;
     *)
     echo "Unknown command: $1"
     show_help
