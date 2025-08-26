@@ -780,6 +780,7 @@ echo "${BLUE}╔═════════════════════�
 echo "║  ${RESET}${BLUE}${BOLD}SleepControl Notice:${RESET}${BLUE}                                                                                              ║"
 echo "║  Relies on default ChromeOS sleep behavior - Keep Sleep enabled in ChromeOS settings for SleepControl to work.     ║"
 echo "║  Cannot override 'Sleep when lid is closed' setting if enabled. SleepControl supports its own lid sleep logic.     ║"
+echo "║  If reinstalling ChromeOS_PowerControl + using SleepControl, please restart to prevent a duplicate process bug.    ║"
 echo "╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝${RESET}"
 echo ""
 fi
