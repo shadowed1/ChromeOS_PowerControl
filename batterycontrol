@@ -245,10 +245,10 @@ stop_monitoring() {
         if ps -p "$PID" > /dev/null 2>&1; then
             if [ -f "$INSTALL_DIR/.batterycontrol_pgid" ]; then
                 PGID=$(cat "$INSTALL_DIR/.batterycontrol_pgid")
-                echo "${YELLOW}Stopping BatteryControl (PGID $PGID)${RESET}" | tee -a "$LOG_FILE"
+                echo "${YELLOW}Stopping BatteryControl or initializing on boot... (PGID $PGID)${RESET}" | tee -a "$LOG_FILE"
                 kill -- -"$PGID" 2>/dev/null
             else
-                echo "${YELLOW}Stopping BatteryControl (PID $PID)${RESET}" | tee -a "$LOG_FILE"
+                echo "${YELLOW}Stopping BatteryControl or initializing on boot... (PID $PID)${RESET}" | tee -a "$LOG_FILE"
                 kill "$PID" 2>/dev/null
             fi
             sleep 1
