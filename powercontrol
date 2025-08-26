@@ -649,332 +649,331 @@ max_perf_pct() {
 
 case "$1" in
    start)
-    if [ ! -f "$CONFIG_FILE" ]; then
-        echo "${CYAN}Initializing config file with default values...${RESET}"
-        detect_cpu_type
-        load_config
-    fi
-
-    stop_monitoring >/dev/null 2>&1
-
-    LOG_FILE="/var/log/powercontrol.log"
-
-    if [ -f "$LOG_FILE" ] && [ "$(stat -c%s "$LOG_FILE")" -gt 32768 ]; then
-        echo "$(date '+%Y-%m-%d %H:%M:%S') - Truncated log file (exceeded 32KB)" > "$LOG_FILE"
-    fi
-
-    if pgrep -f "$0 __powercontrol_monitor__" >/dev/null; then
-        echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') - PowerControl is already running.${RESET}" | tee -a "$LOG_FILE"
-    else
-        nohup "$0" __powercontrol_monitor__ >> "$LOG_FILE" 2>&1 &
-        echo $! > "$PID_FILE"
-        echo "${CYAN}$(date '+%Y-%m-%d %H:%M:%S') - Starting PowerControl - Output is logged to $LOG_FILE${RESET}" | tee -a "$LOG_FILE"
-    fi
-    ;;
-
+        if [ ! -f "$CONFIG_FILE" ]; then
+            echo "${CYAN}Initializing config file with default values...${RESET}"
+            detect_cpu_type
+            load_config
+        fi
+    
+        stop_monitoring >/dev/null 2>&1
+    
+        LOG_FILE="/var/log/powercontrol.log"
+    
+        if [ -f "$LOG_FILE" ] && [ "$(stat -c%s "$LOG_FILE")" -gt 32768 ]; then
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - Truncated log file (exceeded 32KB)" > "$LOG_FILE"
+        fi
+    
+        if pgrep -f "$0 __powercontrol_monitor__" >/dev/null; then
+            echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') - PowerControl is already running.${RESET}" | tee -a "$LOG_FILE"
+        else
+            nohup "$0" __powercontrol_monitor__ >> "$LOG_FILE" 2>&1 &
+            echo $! > "$PID_FILE"
+            echo "${CYAN}$(date '+%Y-%m-%d %H:%M:%S') - Starting PowerControl - Output is logged to $LOG_FILE${RESET}" | tee -a "$LOG_FILE"
+        fi
+        ;;
     stop)
         stop_monitoring
-    ;;
+        ;;
     max_temp)
         set_temp_threshold "$2"
-    ;;
+        ;;
     min_temp)
         set_min_temp "$2"
-    ;;
+        ;;
     min_perf_pct|min)
         set_min_perf_pct "$2"
-    ;;
+        ;;
     max_perf_pct|max)
         max_perf_pct "$@"
-    ;;
+        ;;
     no_turbo)
         set_no_turbo "$2"
-    ;;
+        ;;
     uninstall)
         uninstall_script
-    ;;
+        ;;
     --h|-h|h|--help|-help|help)
         show_help
-    ;;
+        ;;
     monitor)
-    LOG_FILE="/var/log/powercontrol.log"
-    MONITOR_PID_FILE="$INSTALL_DIR/.powercontrol_monitor.pid"
-
-    if [ -f "$MONITOR_PID_FILE" ]; then
-        MONITOR_PID=$(cat "$MONITOR_PID_FILE")
-        if ps -p "$MONITOR_PID" > /dev/null 2>&1; then
-            echo "Stopping monitor (PID $MONITOR_PID)..."
-            kill "$MONITOR_PID"
-            rm -f "$MONITOR_PID_FILE"
-            exit 0
-        else
-            rm -f "$MONITOR_PID_FILE"
-        fi
-    fi
-
-    tail -fn +1 "$LOG_FILE" &
-    echo $! > "$MONITOR_PID_FILE"
-    echo "Monitor started (PID $!)"
-    ;;
-    startup)
-    CONF_SOURCE="$INSTALL_DIR/powercontrol.conf"
-    CONF_TARGET="/etc/init/powercontrol.conf"
-    CONF_SOURCE_NO_TURBO="$INSTALL_DIR/no_turbo.conf"
+        LOG_FILE="/var/log/powercontrol.log"
+        MONITOR_PID_FILE="$INSTALL_DIR/.powercontrol_monitor.pid"
     
-    if [ "$IS_INTEL" -eq 1 ]; then
-        read -p "Do you want to disable Turbo Boost automatically on startup? (Y/n): " choice
-        if [[ "$choice" =~ ^[Yy]$ ]]; then
-            if [ -f "$CONF_SOURCE_NO_TURBO" ]; then
-                echo "Copying no_turbo.conf to /etc/init/..."
-                sudo cp "$CONF_SOURCE_NO_TURBO" "/etc/init/"
-                echo "${CYAN}no_turbo.conf copied.${RESET}"
+        if [ -f "$MONITOR_PID_FILE" ]; then
+            MONITOR_PID=$(cat "$MONITOR_PID_FILE")
+            if ps -p "$MONITOR_PID" > /dev/null 2>&1; then
+                echo "Stopping monitor (PID $MONITOR_PID)..."
+                kill "$MONITOR_PID"
+                rm -f "$MONITOR_PID_FILE"
+                exit 0
             else
-                echo "Intel Turbo Boost will start automatically."
-                sudo rm -f /etc/init/no_turbo.conf
+                rm -f "$MONITOR_PID_FILE"
+            fi
+        fi
+    
+        tail -fn +1 "$LOG_FILE" &
+        echo $! > "$MONITOR_PID_FILE"
+        echo "Monitor started (PID $!)"
+        ;;
+    startup)
+        CONF_SOURCE="$INSTALL_DIR/powercontrol.conf"
+        CONF_TARGET="/etc/init/powercontrol.conf"
+        CONF_SOURCE_NO_TURBO="$INSTALL_DIR/no_turbo.conf"
+        
+        if [ "$IS_INTEL" -eq 1 ]; then
+            read -p "Do you want to disable Turbo Boost automatically on startup? (Y/n): " choice
+            if [[ "$choice" =~ ^[Yy]$ ]]; then
+                if [ -f "$CONF_SOURCE_NO_TURBO" ]; then
+                    echo "Copying no_turbo.conf to /etc/init/..."
+                    sudo cp "$CONF_SOURCE_NO_TURBO" "/etc/init/"
+                    echo "${CYAN}no_turbo.conf copied.${RESET}"
+                else
+                    echo "Intel Turbo Boost will start automatically."
+                    sudo rm -f /etc/init/no_turbo.conf
+                fi
+            else
+                echo "Intel Turbo Boost enabled on startup."
+                sudo rm -r /etc/init/no_turbo.conf
+            fi
+        fi
+    
+        read -p "Do you want PowerControl to startup automatically on boot? (Y/n): " choice
+        if [[ "$choice" =~ ^[Yy]$ ]]; then
+            if [ -f "$CONF_SOURCE" ]; then
+                echo "Copying powercontrol.conf to /etc/init/..."
+                sudo cp "$CONF_SOURCE" "$CONF_TARGET"
+                echo "${CYAN}powercontrol.conf copied.${RESET}"
+            else
+                echo "${RED}powercontrol.conf not found at $CONF_SOURCE${RESET}"
             fi
         else
-            echo "Intel Turbo Boost enabled on startup."
-            sudo rm -r /etc/init/no_turbo.conf
+            echo "PowerControl will not startup automatically on boot."
+            sudo rm -f /etc/init/powercontrol.conf
         fi
-    fi
-
-    read -p "Do you want PowerControl to startup automatically on boot? (Y/n): " choice
-    if [[ "$choice" =~ ^[Yy]$ ]]; then
-        if [ -f "$CONF_SOURCE" ]; then
-            echo "Copying powercontrol.conf to /etc/init/..."
-            sudo cp "$CONF_SOURCE" "$CONF_TARGET"
-            echo "${CYAN}powercontrol.conf copied.${RESET}"
-        else
-            echo "${RED}powercontrol.conf not found at $CONF_SOURCE${RESET}"
-        fi
-    else
-        echo "PowerControl will not startup automatically on boot."
-        sudo rm -f /etc/init/powercontrol.conf
-    fi
-    ;;
+        ;;
     ramp_up)
-    if [[ "$2" =~ ^[0-9]+$ ]]; then
-        if (( $2 < 1 || $2 > 100 )); then
+        if [[ "$2" =~ ^[0-9]+$ ]]; then
+            if (( $2 < 1 || $2 > 100 )); then
+                echo "Error: ramp_up must be between 1 and 100"
+                exit 1
+            fi
+            sed -i "s/^RAMP_UP=.*/RAMP_UP=$2/" "$CONFIG_FILE"
+            echo "RAMP_UP set to $2%"
+        else
             echo "Error: ramp_up must be between 1 and 100"
             exit 1
         fi
-        sed -i "s/^RAMP_UP=.*/RAMP_UP=$2/" "$CONFIG_FILE"
-        echo "RAMP_UP set to $2%"
-    else
-        echo "Error: ramp_up must be between 1 and 100"
-        exit 1
-    fi
-    ;;
+        ;;
     ramp_down)
-    if [[ "$2" =~ ^[0-9]+$ ]]; then
-        if (( $2 < 1 || $2 > 100 )); then
+        if [[ "$2" =~ ^[0-9]+$ ]]; then
+            if (( $2 < 1 || $2 > 100 )); then
+                echo "Error: ramp_down must be between 1 and 100"
+                exit 1
+            fi
+            sed -i "s/^RAMP_DOWN=.*/RAMP_DOWN=$2/" "$CONFIG_FILE"
+            echo "RAMP_DOWN set to $2°C"
+        else
             echo "Error: ramp_down must be between 1 and 100"
             exit 1
         fi
-        sed -i "s/^RAMP_DOWN=.*/RAMP_DOWN=$2/" "$CONFIG_FILE"
-        echo "RAMP_DOWN set to $2°C"
-    else
-        echo "Error: ramp_down must be between 1 and 100"
-        exit 1
-    fi
-    ;;
+        ;;
     hotzone)
-    if [[ "$2" =~ ^[0-9]+$ ]]; then
-        if (( $2 < 60 || $2 > 90 )); then
+        if [[ "$2" =~ ^[0-9]+$ ]]; then
+            if (( $2 < 60 || $2 > 90 )); then
+                echo "Error: hotzone must be between 60°C and 90°C"
+                exit 1
+            fi
+            sed -i "s/^HOTZONE=.*/HOTZONE=$2/" "$CONFIG_FILE"
+            echo "${CYAN}"
+            echo "Hotzone set to $2°C"
+            echo "${RESET}"   
+        else
             echo "Error: hotzone must be between 60°C and 90°C"
             exit 1
         fi
-        sed -i "s/^HOTZONE=.*/HOTZONE=$2/" "$CONFIG_FILE"
-        echo "${CYAN}"
-        echo "Hotzone set to $2°C"
-        echo "${RESET}"   
-    else
-        echo "Error: hotzone must be between 60°C and 90°C"
-        exit 1
-    fi
-    ;;
+        ;;
     poll | cpu_poll)
-    if [[ "$2" =~ ^[0-9]+([.][0-9]+)?$ ]]; then
-        CPU_POLL=$(printf "%.2f" "$2")
-        if (( $(awk "BEGIN {print ($CPU_POLL < 0.1)}") )); then
-            echo "${RED}Warning: CPU_POLL below 0.1s, resetting to 0.1s${RESET}"
-            CPU_POLL=0.1
-        elif (( $(awk "BEGIN {print ($CPU_POLL > 5)}") )); then
-            echo "${RED}Warning: CPU_POLL above 5s, resetting to 5s${RESET}"
-            CPU_POLL=5
+        if [[ "$2" =~ ^[0-9]+([.][0-9]+)?$ ]]; then
+            CPU_POLL=$(printf "%.2f" "$2")
+            if (( $(awk "BEGIN {print ($CPU_POLL < 0.1)}") )); then
+                echo "${RED}Warning: CPU_POLL below 0.1s, resetting to 0.1s${RESET}"
+                CPU_POLL=0.1
+            elif (( $(awk "BEGIN {print ($CPU_POLL > 5)}") )); then
+                echo "${RED}Warning: CPU_POLL above 5s, resetting to 5s${RESET}"
+                CPU_POLL=5
+            fi
+            sed -i "s/^CPU_POLL=.*/CPU_POLL=$CPU_POLL/" "$CONFIG_FILE"
+            echo "${CYAN}PowerControl polling rate set to $CPU_POLL seconds${RESET}"
+        else
+            echo "Error: cpu_poll must be a number between 0.1 and 5 (0.5, 1.2, 2.0, etc)"
+            exit 1
         fi
-        sed -i "s/^CPU_POLL=.*/CPU_POLL=$CPU_POLL/" "$CONFIG_FILE"
-        echo "${CYAN}PowerControl polling rate set to $CPU_POLL seconds${RESET}"
-    else
-        echo "Error: cpu_poll must be a number between 0.1 and 5 (0.5, 1.2, 2.0, etc)"
-        exit 1
-    fi
-    ;;
+        ;;
     version)
-    if [[ -f "$VERSION_FILE" ]]; then
-        CURRENT_VER=$(cat "$INSTALL_DIR/version")
-        CURRENT_VER_NO=$(echo "$CURRENT_VER" | sed -e 's/VERSION=//' -e 's/"//g' -e 's/\.//g' -e 's/^0*//')
-
-        LATEST_VER=$(curl -Ls https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/version)
-        LATEST_VER_NO=$(echo "$LATEST_VER" | sed -e 's/VERSION=//' -e 's/"//g' -e 's/\.//g' -e 's/^0*//')
-
-        if (( 10#$CURRENT_VER_NO < 10#$LATEST_VER_NO )); then
-            echo "${CYAN}You're using $CURRENT_VER which is NOT the latest version.${RESET}"
-            read -rp "Would you like to 'reinstall' to get $LATEST_VER ? (Y/n): " choice
-            if [[ "$choice" =~ ^[Yy]$ ]]; then
-                echo "${CYAN}Reinstalling!${RESET}"
-                exec sudo powercontrol reinstall
+        if [[ -f "$VERSION_FILE" ]]; then
+            CURRENT_VER=$(cat "$INSTALL_DIR/version")
+            CURRENT_VER_NO=$(echo "$CURRENT_VER" | sed -e 's/VERSION=//' -e 's/"//g' -e 's/\.//g' -e 's/^0*//')
+    
+            LATEST_VER=$(curl -Ls https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/version)
+            LATEST_VER_NO=$(echo "$LATEST_VER" | sed -e 's/VERSION=//' -e 's/"//g' -e 's/\.//g' -e 's/^0*//')
+    
+            if (( 10#$CURRENT_VER_NO < 10#$LATEST_VER_NO )); then
+                echo "${CYAN}You're using $CURRENT_VER which is NOT the latest version.${RESET}"
+                read -rp "Would you like to 'reinstall' to get $LATEST_VER ? (Y/n): " choice
+                if [[ "$choice" =~ ^[Yy]$ ]]; then
+                    echo "${CYAN}Reinstalling!${RESET}"
+                    exec sudo powercontrol reinstall
+                else
+                    echo "${RED}Skipping reinstall.${RESET}"
+                fi
             else
-                echo "${RED}Skipping reinstall.${RESET}"
+                echo "${CYAN}You're using $CURRENT_VER which is up-to-date, so you're good.${RESET}"
             fi
         else
-            echo "${CYAN}You're using $CURRENT_VER which is up-to-date, so you're good.${RESET}"
+            echo "${RED}Version file not found.${RESET}"
+            exit 1
         fi
-    else
-        echo "${RED}Version file not found.${RESET}"
-        exit 1
-    fi
-    ;;
+        ;;
     reinstall)
-    echo "Downloading to:${CYAN} /home/chronos/ChromeOS_PowerControl_Installer.sh $RESET"
-    bash <(curl -s "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/ChromeOS_PowerControl_Downloader.sh?$(date +%s)")
-    echo "Running commands:"
-    echo ""
-    sudo mkdir -p /usr/local/bin
-    echo "sudo mkdir -p /usr/local/bin"
-    sudo mv /home/chronos/ChromeOS_PowerControl_Installer.sh /usr/local/bin
-    echo "sudo mv /home/chronos/ChromeOS_PowerControl_Installer.sh /usr/local/bin"
-    echo "sudo bash /usr/local/bin/ChromeOS_PowerControl_Installer.sh"
-    sudo bash /usr/local/bin/ChromeOS_PowerControl_Installer.sh
-    ;;
+        echo "Downloading to:${CYAN} /home/chronos/ChromeOS_PowerControl_Installer.sh $RESET"
+        bash <(curl -s "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/ChromeOS_PowerControl_Downloader.sh?$(date +%s)")
+        echo "Running commands:"
+        echo ""
+        sudo mkdir -p /usr/local/bin
+        echo "sudo mkdir -p /usr/local/bin"
+        sudo mv /home/chronos/ChromeOS_PowerControl_Installer.sh /usr/local/bin
+        echo "sudo mv /home/chronos/ChromeOS_PowerControl_Installer.sh /usr/local/bin"
+        echo "sudo bash /usr/local/bin/ChromeOS_PowerControl_Installer.sh"
+        sudo bash /usr/local/bin/ChromeOS_PowerControl_Installer.sh
+        ;;
     __powercontrol_monitor__)
-    LOG_FILE="/var/log/powercontrol.log"
-    start_monitoring_loop
-    ;;
+        LOG_FILE="/var/log/powercontrol.log"
+        start_monitoring_loop
+        ;;
     all)
-    powercontrol && batterycontrol && fancontrol && gpucontrol && sleepcontrol
-    ;;
+        powercontrol && batterycontrol && fancontrol && gpucontrol && sleepcontrol
+        ;;
     help_all)
-    echo ""
-    echo "                                              Commands with examples:"
-    echo "${CYAN}"
-    echo "╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
-    echo "║                                                  PowerControl:                                                     ║"
-    echo "╠════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣"
-    echo "║                                                                                                                    ║"
-    echo "║  powercontrol                       # Show status                                                                  ║"
-    echo "║  powercontrol help                  # Help menu                                                                    ║"
-    echo "║  powercontrol help_all              # Global Help menu                                                             ║"
-    echo "║  sudo powercontrol start            # Throttle CPU based on temperature curve                                      ║"
-    echo "║  sudo powercontrol stop             # Restore default CPU settings                                                 ║"
-    echo "║  sudo powercontrol no_turbo 1       # 0 = Enable, 1 = Disable Turbo Boost                                          ║"
-    echo "║  sudo powercontrol max 75           # Set max performance percentage                                               ║"
-    echo "║  sudo powercontrol min 20           # Set minimum performance at max temp                                          ║"
-    echo "║  sudo powercontrol max_temp 86      # Max temperature threshold - Limit is 90°C                                    ║"
-    echo "║  sudo powercontrol min_temp 60      # Min temperature threshold                                                    ║"
-    echo "║  sudo powercontrol hotzone 78       # Temperature threshold for aggressive thermal management                      ║"
-    echo "║  sudo powercontrol cpu_poll 1       # Interval in seconds PowerControl operates at (0.1s to 5s)                    ║"
-    echo "║  sudo powercontrol ramp_up 15       # % in steps CPU will increase in clockspeed per second                        ║"
-    echo "║  sudo powercontrol ramp_down 20     # % in steps CPU will decrease in clockspeed per second                        ║"
-    echo "║  sudo powercontrol monitor          # Toggle on/off live monitoring in terminal                                    ║"
-    echo "║  sudo powercontrol startup          # Copy or Remove no_turbo.conf & powercontrol.conf at: /etc/init/              ║"
-    echo "║                                                                                                                    ║"
-    echo "╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝"
-    echo "${RESET}${GREEN}╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
-    echo "║                                                 BatteryControl:                                                    ║"
-    echo "╠════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣"
-    echo "║                                                                                                                    ║"
-    echo "║  batterycontrol               # Check BatteryControl status                                                        ║"
-    echo "║  batterycontrol help          # Help menu                                                                          ║"
-    echo "║  sudo batterycontrol start    # Start BatteryControl                                                               ║"
-    echo "║  sudo batterycontrol stop     # Stop BatteryControl                                                                ║"
-    echo "║  sudo batterycontrol 77       # Charge limit set to 77% - minimum of 14% allowed                                   ║"
-    echo "║  sudo batterycontrol startup  # Copy or Remove batterycontrol.conf at: /etc/init/                                  ║"
-    echo "║                                                                                                                    ║"
-    echo "╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝"
-    echo "${RESET}${YELLOW}╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
-    echo "║                                                  FanControl:                                                       ║"
-    echo "╠════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣"
-    echo "║                                                                                                                    ║"
-    echo "║  fancontrol                       # Show FanControl status                                                         ║"
-    echo "║  fancontrol help                  # Help menu                                                                      ║"
-    echo "║  sudo fancontrol start            # Start FanControl                                                               ║"
-    echo "║  sudo fancontrol stop             # Stop FanControl                                                                ║"
-    echo "║  sudo fancontrol min_temp 48      # Min temp threshold                                                             ║"
-    echo "║  sudo fancontrol max_temp 81      # Max temp threshold - Limit is 90°C                                             ║"
-    echo "║  sudo fancontrol min 0            # Min fan speed %                                                                ║"
-    echo "║  sudo fancontrol max 100          # Max fan speed %                                                                ║"
-    echo "║  sudo fancontrol step_up 20       # Fan step-up %                                                                  ║"
-    echo "║  sudo fancontrol step_down 1      # Fan step-down %                                                                ║"
-    echo "║  sudo fancontrol poll 2           # FanControl polling rate in seconds (1 to 10s)                                  ║"
-    echo "║  sudo fancontrol monitor          # Toggle on/off live monitoring in terminal                                      ║"
-    echo "║  sudo fancontrol startup          # Copy or Remove fancontrol.conf at: /etc/init/                                  ║"
-    echo "║                                                                                                                    ║"
-    echo "╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝"
-    echo "${RESET}${MAGENTA}╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
-    echo "║                                                   GPUControl:                                                      ║"
-    echo "╠════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣"
-    echo "║                                                                                                                    ║"
-    echo "║  gpucontrol                     # Show current GPU info and frequency                                              ║"
-    echo "║  gpucontrol help                # Help menu                                                                        ║"
-    echo "║  sudo gpucontrol restore        # Restore GPU max frequency to original value                                      ║"
-    echo "║  sudo gpucontrol 700            # Set GPU max frequency to 700 MHz                                                 ║"
-    echo "║  sudo gpucontrol startup        # Copy or Remove gpucontrol.conf at: /etc/init/                                    ║"
-    echo "║                                                                                                                    ║"
-    echo "╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝"
-    echo "${RESET}${BLUE}╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
-    echo "║                                                  SleepControl                                                      ║"
-    echo "╠════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣"
-    echo "║                                                                                                                    ║"
-    echo "║  sleepcontrol                       # Show SleepControl status                                                     ║"
-    echo "║  sleepcontrol help                  # Help menu                                                                    ║"
-    echo "║  sleepcontrol monitor               # Monitor sleepcontrol's log in realtime (ctrl-c to exit)                      ║"
-    echo "║  sleepcontrol powerd                # Monitor powerd.LATEST log in realtime (ctrl-c to exit)                       ║"
-    echo "║  sudo sleepcontrol start            # Start SleepControl                                                           ║"
-    echo "║  sudo sleepcontrol stop             # Stop SleepControl                                                            ║"
-    echo "║  sudo sleepcontrol battery 3 7 12   # When idle, display dims in 3m -> timeout in 7m -> sleeps in 12m on battery   ║"
-    echo "║  sudo sleepcontrol power 5 15 30    # When idle, display dims in 5m -> timeout -> 15m -> sleeps in 30m plugged-in  ║"
-    echo "║  sudo sleepcontrol battery audio 0  # Disable audio detection on battery; sleep can occur during media playback    ║"
-    echo "║  sudo sleepcontrol power audio 1    # Enable audio detection on power; delaying sleep until audio is stopped       ║"
-    echo "║  sudo sleepcontrol lid battery 1    # Enable sleep on closing the lid on battery.                                  ║"
-    echo "║  sudo sleepcontrol lid power 0      # Disable sleep on closing the lid on power.                                   ║"
-    echo "║  sudo sleepcontrol mode freeze      # Change suspend mode to freeze.                                               ║"
-    echo "║  sudo sleepcontrol mode deep        # Change suspend mode to deep.                                                 ║"
-    echo "║  sudo sleepcontrol startup          # Copy or Remove sleepcontrol.conf at: /etc/init/                              ║"
-    echo "║                                                                                                                    ║"
-    echo "╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝"
-    echo "${RESET}${CYAN}${BOLD}╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
-    echo "║                                              ChromeOS_PowerControl                                                 ║"
-    echo "╠════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣"
-    echo "╠════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣"
-    echo "║                                                                                                                    ║"
-    echo "║  powercontrol all               # Show status of all ChromeOS_PowerControl components                              ║"
-    echo "║  sudo powercontrol start_all    # Start all ChromeOS_PowerControl programs                                         ║"
-    echo "║  sudo powercontrol version      # Check PowerControl version                                                       ║"
-    echo "║  sudo powercontrol startup_all  # Copy or Remove all .conf files at: /etc/init/                                    ║"
-    echo "║  sudo powercontrol reinstall    # Download and reinstall ChromeOS_PowerControl                                     ║"
-    echo "║  sudo powercontrol uninstall    # Run uninstaller                                                                  ║"
-    echo "║                                                                                                                    ║"
-    echo "╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝"
-    echo "   sudo bash "$INSTALL_DIR/Uninstall_ChromeOS_PowerControl.sh"  # Alternate uninstall method"
-    echo " ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════"
-    echo "${RESET}"
-    ;;
+        echo ""
+        echo "                                              Commands with examples:"
+        echo "${CYAN}"
+        echo "╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
+        echo "║                                                  PowerControl:                                                     ║"
+        echo "╠════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣"
+        echo "║                                                                                                                    ║"
+        echo "║  powercontrol                       # Show status                                                                  ║"
+        echo "║  powercontrol help                  # Help menu                                                                    ║"
+        echo "║  powercontrol help_all              # Global Help menu                                                             ║"
+        echo "║  sudo powercontrol start            # Throttle CPU based on temperature curve                                      ║"
+        echo "║  sudo powercontrol stop             # Restore default CPU settings                                                 ║"
+        echo "║  sudo powercontrol no_turbo 1       # 0 = Enable, 1 = Disable Turbo Boost                                          ║"
+        echo "║  sudo powercontrol max 75           # Set max performance percentage                                               ║"
+        echo "║  sudo powercontrol min 20           # Set minimum performance at max temp                                          ║"
+        echo "║  sudo powercontrol max_temp 86      # Max temperature threshold - Limit is 90°C                                    ║"
+        echo "║  sudo powercontrol min_temp 60      # Min temperature threshold                                                    ║"
+        echo "║  sudo powercontrol hotzone 78       # Temperature threshold for aggressive thermal management                      ║"
+        echo "║  sudo powercontrol cpu_poll 1       # Interval in seconds PowerControl operates at (0.1s to 5s)                    ║"
+        echo "║  sudo powercontrol ramp_up 15       # % in steps CPU will increase in clockspeed per second                        ║"
+        echo "║  sudo powercontrol ramp_down 20     # % in steps CPU will decrease in clockspeed per second                        ║"
+        echo "║  sudo powercontrol monitor          # Toggle on/off live monitoring in terminal                                    ║"
+        echo "║  sudo powercontrol startup          # Copy or Remove no_turbo.conf & powercontrol.conf at: /etc/init/              ║"
+        echo "║                                                                                                                    ║"
+        echo "╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝"
+        echo "${RESET}${GREEN}╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
+        echo "║                                                 BatteryControl:                                                    ║"
+        echo "╠════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣"
+        echo "║                                                                                                                    ║"
+        echo "║  batterycontrol               # Check BatteryControl status                                                        ║"
+        echo "║  batterycontrol help          # Help menu                                                                          ║"
+        echo "║  sudo batterycontrol start    # Start BatteryControl                                                               ║"
+        echo "║  sudo batterycontrol stop     # Stop BatteryControl                                                                ║"
+        echo "║  sudo batterycontrol 77       # Charge limit set to 77% - minimum of 14% allowed                                   ║"
+        echo "║  sudo batterycontrol startup  # Copy or Remove batterycontrol.conf at: /etc/init/                                  ║"
+        echo "║                                                                                                                    ║"
+        echo "╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝"
+        echo "${RESET}${YELLOW}╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
+        echo "║                                                  FanControl:                                                       ║"
+        echo "╠════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣"
+        echo "║                                                                                                                    ║"
+        echo "║  fancontrol                       # Show FanControl status                                                         ║"
+        echo "║  fancontrol help                  # Help menu                                                                      ║"
+        echo "║  sudo fancontrol start            # Start FanControl                                                               ║"
+        echo "║  sudo fancontrol stop             # Stop FanControl                                                                ║"
+        echo "║  sudo fancontrol min_temp 48      # Min temp threshold                                                             ║"
+        echo "║  sudo fancontrol max_temp 81      # Max temp threshold - Limit is 90°C                                             ║"
+        echo "║  sudo fancontrol min 0            # Min fan speed %                                                                ║"
+        echo "║  sudo fancontrol max 100          # Max fan speed %                                                                ║"
+        echo "║  sudo fancontrol step_up 20       # Fan step-up %                                                                  ║"
+        echo "║  sudo fancontrol step_down 1      # Fan step-down %                                                                ║"
+        echo "║  sudo fancontrol poll 2           # FanControl polling rate in seconds (1 to 10s)                                  ║"
+        echo "║  sudo fancontrol monitor          # Toggle on/off live monitoring in terminal                                      ║"
+        echo "║  sudo fancontrol startup          # Copy or Remove fancontrol.conf at: /etc/init/                                  ║"
+        echo "║                                                                                                                    ║"
+        echo "╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝"
+        echo "${RESET}${MAGENTA}╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
+        echo "║                                                   GPUControl:                                                      ║"
+        echo "╠════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣"
+        echo "║                                                                                                                    ║"
+        echo "║  gpucontrol                     # Show current GPU info and frequency                                              ║"
+        echo "║  gpucontrol help                # Help menu                                                                        ║"
+        echo "║  sudo gpucontrol restore        # Restore GPU max frequency to original value                                      ║"
+        echo "║  sudo gpucontrol 700            # Set GPU max frequency to 700 MHz                                                 ║"
+        echo "║  sudo gpucontrol startup        # Copy or Remove gpucontrol.conf at: /etc/init/                                    ║"
+        echo "║                                                                                                                    ║"
+        echo "╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝"
+        echo "${RESET}${BLUE}╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
+        echo "║                                                  SleepControl                                                      ║"
+        echo "╠════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣"
+        echo "║                                                                                                                    ║"
+        echo "║  sleepcontrol                       # Show SleepControl status                                                     ║"
+        echo "║  sleepcontrol help                  # Help menu                                                                    ║"
+        echo "║  sleepcontrol monitor               # Monitor sleepcontrol's log in realtime (ctrl-c to exit)                      ║"
+        echo "║  sleepcontrol powerd                # Monitor powerd.LATEST log in realtime (ctrl-c to exit)                       ║"
+        echo "║  sudo sleepcontrol start            # Start SleepControl                                                           ║"
+        echo "║  sudo sleepcontrol stop             # Stop SleepControl                                                            ║"
+        echo "║  sudo sleepcontrol battery 3 7 12   # When idle, display dims in 3m -> timeout in 7m -> sleeps in 12m on battery   ║"
+        echo "║  sudo sleepcontrol power 5 15 30    # When idle, display dims in 5m -> timeout -> 15m -> sleeps in 30m plugged-in  ║"
+        echo "║  sudo sleepcontrol battery audio 0  # Disable audio detection on battery; sleep can occur during media playback    ║"
+        echo "║  sudo sleepcontrol power audio 1    # Enable audio detection on power; delaying sleep until audio is stopped       ║"
+        echo "║  sudo sleepcontrol lid battery 1    # Enable sleep on closing the lid on battery.                                  ║"
+        echo "║  sudo sleepcontrol lid power 0      # Disable sleep on closing the lid on power.                                   ║"
+        echo "║  sudo sleepcontrol mode freeze      # Change suspend mode to freeze.                                               ║"
+        echo "║  sudo sleepcontrol mode deep        # Change suspend mode to deep.                                                 ║"
+        echo "║  sudo sleepcontrol startup          # Copy or Remove sleepcontrol.conf at: /etc/init/                              ║"
+        echo "║                                                                                                                    ║"
+        echo "╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝"
+        echo "${RESET}${CYAN}${BOLD}╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
+        echo "║                                              ChromeOS_PowerControl                                                 ║"
+        echo "╠════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣"
+        echo "╠════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣"
+        echo "║                                                                                                                    ║"
+        echo "║  powercontrol all               # Show status of all ChromeOS_PowerControl components                              ║"
+        echo "║  sudo powercontrol start_all    # Start all ChromeOS_PowerControl programs                                         ║"
+        echo "║  sudo powercontrol version      # Check PowerControl version                                                       ║"
+        echo "║  sudo powercontrol startup_all  # Copy or Remove all .conf files at: /etc/init/                                    ║"
+        echo "║  sudo powercontrol reinstall    # Download and reinstall ChromeOS_PowerControl                                     ║"
+        echo "║  sudo powercontrol uninstall    # Run uninstaller                                                                  ║"
+        echo "║                                                                                                                    ║"
+        echo "╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝"
+        echo "   sudo bash "$INSTALL_DIR/Uninstall_ChromeOS_PowerControl.sh"  # Alternate uninstall method"
+        echo " ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════"
+        echo "${RESET}"
+        ;;
     startup_all)
-    sudo "$INSTALL_DIR/powercontrol" startup && \
-    sudo "$INSTALL_DIR/batterycontrol" startup && \
-    sudo "$INSTALL_DIR/fancontrol" startup && \
-    sudo "$INSTALL_DIR/gpucontrol" startup && \
-    sudo "$INSTALL_DIR/sleepcontrol" startup
-    ;;
+        sudo "$INSTALL_DIR/powercontrol" startup && \
+        sudo "$INSTALL_DIR/batterycontrol" startup && \
+        sudo "$INSTALL_DIR/fancontrol" startup && \
+        sudo "$INSTALL_DIR/gpucontrol" startup && \
+        sudo "$INSTALL_DIR/sleepcontrol" startup
+        ;;
     start_all)
-    sudo "$INSTALL_DIR/powercontrol" start && \
-    sudo "$INSTALL_DIR/batterycontrol" start && \
-    sudo "$INSTALL_DIR/fancontrol" start && \
-    sudo "$INSTALL_DIR/sleepcontrol" start
-    ;;
+        sudo "$INSTALL_DIR/powercontrol" start && \
+        sudo "$INSTALL_DIR/batterycontrol" start && \
+        sudo "$INSTALL_DIR/fancontrol" start && \
+        sudo "$INSTALL_DIR/sleepcontrol" start
+        ;;
     *)
-    echo "Unknown command: $1"
-    show_help
-    ;;
+        echo "Unknown command: $1"
+        show_help
+        ;;
 esac
