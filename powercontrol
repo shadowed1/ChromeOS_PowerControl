@@ -861,7 +861,7 @@ case "$1" in
     sudo "$INSTALL_DIR/powercontrol" start && sudo "$INSTALL_DIR/batterycontrol" start && sudo "$INSTALL_DIR/fancontrol" start && sudo "$INSTALL_DIR/sleepcontrol" start
     ;;
     help_all)
-    "$INSTALL_DIR/powercontrol" help && "$INSTALL_DIR/batterycontrol" help && "$INSTALL_DIR/fancontrol" help && "$INSTALL_DIR/gpuontrol" help && "$INSTALL_DIR/sleepcontrol" help
+    "$INSTALL_DIR/powercontrol" help && "$INSTALL_DIR/batterycontrol" help && "$INSTALL_DIR/fancontrol" help && "$INSTALL_DIR/gpucontrol" help && "$INSTALL_DIR/sleepcontrol" help
     ;;
     *)
     echo "Unknown command: $1"
