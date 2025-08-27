@@ -540,20 +540,20 @@ start_component_now() {
         sudo "$command" start
         echo ""
 
-       # if [[ "$component" == "BatteryControl" ]]; then
-       #     declare -g SHOW_BATTERYCONTROL_NOTICE=1
-       #     read -rp "${BOLD}${GREEN}Do you want to set suspend mode from deep to freeze, allowing BatteryControl to function while sleeping? Display will dim once when enabling (powerd restarting)${RESET}${BOLD} (Y/n): ${RESET} " set_freeze
-       #     if [[ -z "$set_freeze" || "$set_freeze" =~ ^[Yy]$ ]]; then
-       #         echo "freeze" | sudo tee /usr/share/power_manager/suspend_mode >/dev/null
-       #         echo "s2idle" | sudo tee /sys/power/mem_sleep >/dev/null
-       #         sudo restart powerd >/dev/null
-       #         echo "${GREEN}Suspend Mode set to freeze.${RESET}"
-       #         echo ""
-       #     else
-       #         echo "${YELLOW}Suspend Mode unchanged.${RESET}"
-       #         echo ""
-       #     fi
-       # fi
+        if [[ "$component" == "BatteryControl" ]]; then
+            declare -g SHOW_BATTERYCONTROL_NOTICE=1
+            read -rp "${BOLD}${GREEN}Do you want to set suspend mode from deep to freeze, allowing BatteryControl to function while sleeping when charging? Display will dim once when enabling (powerd restarts)${RESET}${BOLD} (Y/n): ${RESET} " set_freeze
+            if [[ -z "$set_freeze" || "$set_freeze" =~ ^[Yy]$ ]]; then
+                echo "freeze" | sudo tee /usr/share/power_manager/suspend_mode >/dev/null
+                echo "s2idle" | sudo tee /sys/power/mem_sleep >/dev/null
+                sudo restart powerd >/dev/null
+                echo "${GREEN}Suspend Mode set to freeze.${RESET}"
+                echo ""
+            else
+                echo "${YELLOW}Suspend Mode unchanged.${RESET}"
+                echo ""
+            fi
+        fi
 
         if [[ "$component" == "GPUControl" ]]; then
             declare -g SHOW_GPUCONTROL_NOTICE=1
