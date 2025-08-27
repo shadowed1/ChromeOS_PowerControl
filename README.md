@@ -251,7 +251,8 @@ Fixed bug with SleepControl altering display brightness incorrectly. Fixed minor
 powerd keyword. Removed old code and repetitive log entries.` <br><br>
 - 0.38: `Fixed brightness scaling logic.  Removed turbo boost question from installer - PowerControl can handle the heat.` <br><br>
 - 0.39: `Added startup_all, start_all commands. Fixed PID cleanup.` <br><br>
-- 0.40: `Implemented deep sleep enforcement logic, enabling Chromebook to dynamically switch between s2idle and deep sleep depending on power states.` <br><br>
+- 0.40: `Implemented deep sleep enforcement logic; enabling Chromebook to dynamically switch between s2idle and deep sleep depending on power states.
+This enables BatteryControl logic to remain active while plugged in.` <br><br>
   
 __Acknowledgements:__
 
