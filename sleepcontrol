@@ -786,9 +786,10 @@ echo "${RESET}"
             echo "${BLUE}"
             echo "Valid suspend types: freeze | deep"
             echo "Current suspend mode:"
-            echo "$(cat /usr/share/power_manager/suspend_mode)"
-            echo "$(cat /sys/power/mem_sleep)"
-            echo "Note: s2idle is equivalent to freeze!"
+            echo ""
+            echo "${RESET}${BOLD}${BLUE$}$(cat /sys/power/mem_sleep)${RESET}${BLUE}"
+            echo ""
+            echo "Note: freeze = s2idle"
             echo "${RESET}"
         fi
         ;;
