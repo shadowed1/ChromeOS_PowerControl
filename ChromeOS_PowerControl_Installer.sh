@@ -166,7 +166,7 @@ detect_suspend_mode() {
     else
         SUSPEND_MODE="deep"
     fi
-    echo "Detected suspend mode: $SUSPEND_MODE"
+    echo "${BLUE}Detected suspend mode: $SUSPEND_MODE ${RESET}"
 }
 
 INSTALL_DIR="/usr/local/bin/ChromeOS_PowerControl"
@@ -547,7 +547,7 @@ start_component_now() {
                 echo "deep" | sudo tee /usr/share/power_manager/suspend_mode >/dev/null
                 echo "deep" | sudo tee /sys/power/mem_sleep >/dev/null
                 sudo restart powerd >/dev/null
-                echo "${RESET}${BOLD}${BLUE$}Suspend mode set to:"
+                echo "${RESET}${BOLD}${BLUE}Suspend mode set to:"
                 cat /sys/power/mem_sleep
                 echo "${RESET}"
             else
