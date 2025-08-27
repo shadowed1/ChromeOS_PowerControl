@@ -270,6 +270,32 @@ save_current_brightness() {
     fi
 }
 
+start_mem_sleep_watcher() {
+    if [[ "$STATUS" != "Discharging" ]]; then
+        (
+            while [ -f "$RUN_FLAG" ] && [[ "$STATUS" != "Discharging" ]]; do
+                if [[ "$SUSPEND_MODE" == "deep" ]]; then
+                    echo deep | sudo tee /sys/power/mem_sleep >/dev/null
+                else
+                    echo s2idle | sudo tee /sys/power/mem_sleep >/dev/null
+                fi
+                sleep 5
+            done
+        ) &
+        echo $! > "$INSTALL_DIR/.mem_sleep_watcher_pid"
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - Mem_sleep watcher started (AC power)." >> "$LOG_FILE"
+    fi
+}
+
+stop_mem_sleep_watcher() {
+    if [[ -f "$INSTALL_DIR/.mem_sleep_watcher_pid" ]]; then
+        kill "$(cat "$INSTALL_DIR/.mem_sleep_watcher_pid")" 2>/dev/null
+        rm -f "$INSTALL_DIR/.mem_sleep_watcher_pid"
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - Mem_sleep watcher stopped." >> "$LOG_FILE"
+    fi
+}
+
+
 idle_elapsed=0
 
 send_fake_activity() {
@@ -346,7 +372,14 @@ monitor_idle_activity() {
             get_battery_info
             [[ -z "$STATUS" ]] && { STATUS="Unknown"; CHARGE=""; }
             last_power_check_time=$now
+        
+            if [[ "$STATUS" != "Discharging" ]]; then
+                start_mem_sleep_watcher
+            else
+                stop_mem_sleep_watcher
+            fi
         fi
+
 
         AUDIO_DETECTION_ENABLED=$(( STATUS == "Discharging" ? AUDIO_DETECTION_BATTERY : AUDIO_DETECTION_POWER ))
         (( AUDIO_DETECTION_ENABLED == 0 )) && audio_active=0
@@ -499,6 +532,7 @@ stop_monitoring() {
     rm -f "$RUN_FLAG"
     rm -f "$PID_FILE"
     rm -f "$PID_FILE.lock"
+    stop_mem_sleep_watcher
 }
 
 
