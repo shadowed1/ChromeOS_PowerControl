@@ -373,9 +373,9 @@ monitor_idle_activity() {
     while read -r line <&3; do
         now=$(date +%s)
 
-        (( now - last_reload_time >= 30 )) && { load_config; last_reload_time=$now; }
+        (( now - last_reload_time >= 10 )) && { load_config; last_reload_time=$now; }
 
-        if (( now - last_power_check_time >= 30 )); then
+        if (( now - last_power_check_time >= 10 )); then
             get_battery_info
             [[ -z "$STATUS" ]] && { STATUS="Unknown"; CHARGE=""; }
             last_power_check_time=$now
