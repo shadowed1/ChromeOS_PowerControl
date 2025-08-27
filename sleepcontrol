@@ -274,11 +274,17 @@ start_mem_sleep_watcher() {
     if [[ "$STATUS" != "Discharging" ]]; then
         (
             while [ -f "$RUN_FLAG" ] && [[ "$STATUS" != "Discharging" ]]; do
-                if [[ "$SUSPEND_MODE" == "deep" ]]; then
-                    echo deep | sudo tee /sys/power/mem_sleep >/dev/null
+                if [[ -f /usr/share/power_manager/suspend_mode ]]; then
+                    desired_mode=$(cat /usr/share/power_manager/suspend_mode)
+                    if [[ "$desired_mode" != "deep" && "$desired_mode" != "s2idle" ]]; then
+                        desired_mode="s2idle"  # fallback
+                    fi
                 else
-                    echo s2idle | sudo tee /sys/power/mem_sleep >/dev/null
+                    desired_mode="s2idle"  # fallback
                 fi
+
+                echo "$desired_mode" | sudo tee /sys/power/mem_sleep >/dev/null
+
                 sleep 5
             done
         ) &
@@ -294,6 +300,7 @@ stop_mem_sleep_watcher() {
         echo "$(date '+%Y-%m-%d %H:%M:%S') - Mem_sleep watcher stopped." >> "$LOG_FILE"
     fi
 }
+
 
 
 idle_elapsed=0
