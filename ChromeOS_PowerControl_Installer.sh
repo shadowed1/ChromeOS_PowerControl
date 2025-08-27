@@ -207,13 +207,13 @@ echo "$INSTALL_DIR" | sudo tee "$INSTALL_DIR/.install_path" >/dev/null
 declare -a files=(
   "powercontrol" "batterycontrol" "fancontrol" "gpucontrol" "Uninstall_ChromeOS_PowerControl.sh" "LICENSE" 
   "README.md" "no_turbo.conf" "batterycontrol.conf" "powercontrol.conf" "fancontrol.conf" "gpucontrol.conf" 
-  "sleepcontrol" "sleepcontrol.conf" "config.sh" "version"
+  "sleepcontrol" "sleepcontrol.conf" "version" "config.sh"
 )
 
 for file in "${files[@]}"; do
     dest="$INSTALL_DIR/$file"
     if [[ "$file" == "config.sh" && -f "$dest" ]]; then
-        echo "${GREEN}Skipping existing config: $dest ${RESET}"
+        echo "${GREEN}${BOLD}Skipping existing config: $dest ${RESET}"
         echo ""
         continue
     fi
