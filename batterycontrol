@@ -286,8 +286,11 @@ case "$1" in
         fi
     
         nohup "$0" __batterycontrol_monitor__ >> "$LOG_FILE" 2>&1 &
-
         NEW_PID=$!
+        sleep 1
+        if [ -f "$PID_FILE" ]; then
+            NEW_PID=$(cat "$PID_FILE")
+        fi
         echo $NEW_PID > "$PID_FILE"
         
         NEW_PGID=$(ps -o pgid= "$NEW_PID" | grep -o '[0-9]*')
