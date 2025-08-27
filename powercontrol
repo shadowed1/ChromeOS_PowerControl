@@ -21,7 +21,7 @@ IS_AMD=0
 IS_INTEL=0
 IS_ARM=0
 
-if ! ( [[ -z "$1" ]] || [[ "$1" == "--h" || "$1" == "-h" || "$1" == "h" || "$1" == "--help" || "$1" == "-help" || "$1" == "all" || "$1" == "help" || "$1" == "status" ]] ) && [[ "$(id -u)" -ne 0 ]]; then
+if ! ( [[ -z "$1" ]] || [[ "$1" == "--h" || "$1" == "-h" || "$1" == "help_all" || "$1" == "h" || "$1" == "--help" || "$1" == "-help" || "$1" == "all" || "$1" == "help" || "$1" == "status" ]] ) && [[ "$(id -u)" -ne 0 ]]; then
     echo "${RED}PowerControl requires sudo to run.${RESET}"
     echo "  Try: sudo powercontrol $*  or  sudo $0 $*"
     exit 1
@@ -567,6 +567,7 @@ echo "║                                                                       
 echo "║  powercontrol                    # Show status                                                      ║"
 echo "║  powercontrol all                # Show status of all ChromeOS_PowerControl components              ║"
 echo "║  powercontrol help               # Help menu                                                        ║"
+echo "║  powercontrol help_all           # Global help menu                                                 ║"
 echo "║  sudo powercontrol start         # Throttle CPU based on temperature curve                          ║"
 echo "║  sudo powercontrol stop          # Restore default CPU settings                                     ║"
 echo "║  sudo powercontrol no_turbo 1    # 0 = Enable, 1 = Disable Turbo Boost                              ║"
@@ -851,13 +852,16 @@ case "$1" in
     start_monitoring_loop
     ;;
     all)
-    powercontrol && batterycontrol && fancontrol && gpucontrol && sleepcontrol
+    "$INSTALL_DIR/powercontrol" && "$INSTALL_DIR/batterycontrol" && "$INSTALL_DIR/fancontrol" && "$INSTALL_DIR/gpucontrol" && "$INSTALL_DIR/sleepcontrol"
     ;;
     startup_all)
     sudo "$INSTALL_DIR/powercontrol" startup && sudo "$INSTALL_DIR/batterycontrol" startup && sudo "$INSTALL_DIR/fancontrol" startup && sudo "$INSTALL_DIR/gpuontrol" startup && sudo "$INSTALL_DIR/sleepcontrol" startup
     ;;
     start_all)
     sudo "$INSTALL_DIR/powercontrol" start && sudo "$INSTALL_DIR/batterycontrol" start && sudo "$INSTALL_DIR/fancontrol" start && sudo "$INSTALL_DIR/sleepcontrol" start
+    ;;
+    help_all)
+    "$INSTALL_DIR/powercontrol" help && "$INSTALL_DIR/batterycontrol" help && "$INSTALL_DIR/fancontrol" help && "$INSTALL_DIR/gpuontrol" help && "$INSTALL_DIR/sleepcontrol" help
     ;;
     *)
     echo "Unknown command: $1"
