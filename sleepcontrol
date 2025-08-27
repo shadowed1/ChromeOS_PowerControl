@@ -277,10 +277,10 @@ start_mem_sleep_watcher() {
                 if [[ -f /usr/share/power_manager/suspend_mode ]]; then
                     desired_mode=$(cat /usr/share/power_manager/suspend_mode)
                     if [[ "$desired_mode" != "deep" && "$desired_mode" != "s2idle" ]]; then
-                        desired_mode="s2idle"  # fallback
+                        desired_mode="s2idle"
                     fi
                 else
-                    desired_mode="s2idle"  # fallback
+                    desired_mode="s2idle"
                 fi
 
                 echo "$desired_mode" | sudo tee /sys/power/mem_sleep >/dev/null
