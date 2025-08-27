@@ -234,6 +234,7 @@ FAN_COUNT=$(sudo ectool pwmgetnumfans | awk -F= '{print $2}' | sed -e 's/ //g')
 
 if [ "$FAN_COUNT" -eq 0 ]; then
     echo "${GREEN}Passively cooled device detected, skipping FanControl setup.${RESET}"
+    echo ""
     SKIP_FANCONTROL=true
     sed -i '/^STARTUP_FANCONTROL=/d' "$CONFIG_FILE" 2>/dev/null
     echo "STARTUP_FANCONTROL=0" >> "$CONFIG_FILE"
