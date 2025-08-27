@@ -21,7 +21,7 @@ IS_AMD=0
 IS_INTEL=0
 IS_ARM=0
 
-if ! ( [[ -z "$1" ]] || [[ "$1" == "--h" || "$1" == "-h" || "$1" == "h" || "$1" == "--help" || "$1" == "-help" || "$1" == "all" || "$1" == "help" || "$1" == "help_all" || "$1" == "status" ]] ) && [[ "$(id -u)" -ne 0 ]]; then
+if ! ( [[ -z "$1" ]] || [[ "$1" == "--h" || "$1" == "-h" || "$1" == "h" || "$1" == "--help" || "$1" == "-help" || "$1" == "all" || "$1" == "help" || "$1" == "status" ]] ) && [[ "$(id -u)" -ne 0 ]]; then
     echo "${RED}PowerControl requires sudo to run.${RESET}"
     echo "  Try: sudo powercontrol $*  or  sudo $0 $*"
     exit 1
@@ -528,7 +528,7 @@ stop_monitoring() {
             if ps -p "$PID" > /dev/null 2>&1; then
                 kill -9 "$PID" 2>/dev/null
             fi
-            echo "${RED}$(date '+%Y-%m-%d %H:%M:%S') - PowerControl Stopped or is initializing on boot...(PID $PID)${RESET}" | tee -a "$LOG_FILE"
+            echo "${RED}$(date '+%Y-%m-%d %H:%M:%S') - PowerControl Stopped (PID $PID)${RESET}" | tee -a "$LOG_FILE"
         fi
     fi
     rm -f "$RUN_FLAG" "$PID_FILE"
