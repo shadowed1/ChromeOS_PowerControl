@@ -796,6 +796,8 @@ echo "${RESET}"
             echo "${RESET}${BOLD}${BLUE$}$(cat /sys/power/mem_sleep)${RESET}${BLUE}"
             echo ""
             echo "Note: freeze is s2idle - use freeze to apply correct value."
+            echo "If set to deep, ChromeOS_PowerControl logic will continue to function when plugged in."
+            echo "This logic is overridden on battery - with s2idle being auto-applied and then reverted when back on power."
             echo "${RESET}"
         fi
         ;;
