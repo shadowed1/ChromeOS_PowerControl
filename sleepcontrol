@@ -777,7 +777,15 @@ echo "${RESET}"
                 echo ""
                 exit 1
             fi
-    
+
+            if [[ "$SUSPEND_MODE" == "deep" ]]; then
+                for f in /var/lib/power_manager/disable_dark_resume \
+                         /usr/share/power_manager/disable_dark_resume \
+                         /mnt/stateful_partition/encrypted/var/lib/power_manager/disable_dark_resume; do
+                    [[ -f "$f" ]] && echo 0 | sudo tee "$f" >/dev/null
+                done
+            fi
+        
             echo "$SUSPEND_MODE" | sudo tee /usr/share/power_manager/suspend_mode >/dev/null
             sudo restart powerd >/dev/null
     
