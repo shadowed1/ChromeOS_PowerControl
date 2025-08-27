@@ -271,9 +271,15 @@ save_current_brightness() {
 }
 
 start_mem_sleep_watcher() {
-    if [[ "$STATUS" != "Discharging" ]]; then
+    if [[ "$STATUS" != "Discharging" && "$SUSPEND_MODE" == "deep" ]]; then
         (
             while [ -f "$RUN_FLAG" ] && [[ "$STATUS" != "Discharging" ]]; do
+                source "$CONFIG_FILE" >/dev/null 2>&1
+
+                if [[ "$SUSPEND_MODE" != "deep" ]]; then
+                    break
+                fi
+
                 if [[ -f /usr/share/power_manager/suspend_mode ]]; then
                     desired_mode=$(cat /usr/share/power_manager/suspend_mode)
                     if [[ "$desired_mode" != "deep" && "$desired_mode" != "s2idle" ]]; then
@@ -284,7 +290,7 @@ start_mem_sleep_watcher() {
                 fi
 
                 echo "$desired_mode" | sudo tee /sys/power/mem_sleep >/dev/null
-
+                get_battery_info
                 sleep 5
             done
         ) &
@@ -789,7 +795,7 @@ echo "${RESET}"
             echo ""
             echo "${RESET}${BOLD}${BLUE$}$(cat /sys/power/mem_sleep)${RESET}${BLUE}"
             echo ""
-            echo "Note: freeze = s2idle"
+            echo "Note: freeze is s2idle - use freeze to apply correct value."
             echo "${RESET}"
         fi
         ;;
