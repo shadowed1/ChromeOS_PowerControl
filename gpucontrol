@@ -128,7 +128,7 @@ help() {
     echo "║                                         GPUControl commands with examples:                                       ║"
     echo "║                                                                                                                  ║"
     echo "║  gpucontrol                     # Show current GPU info and frequency                                            ║"
-    echo "║  gpucontrol help                # Show this help menu                                                            ║"
+    echo "║  gpucontrol help                # Show help menu                                                            ║"
     echo "║  sudo gpucontrol restore        # Restore GPU max frequency to original value                                    ║"
     echo "║  sudo gpucontrol 800            # Set GPU max frequency to 800 MHz                                               ║"
     echo "║  sudo gpucontrol startup        # Enable or disable GPUControl on startup                                        ║"
