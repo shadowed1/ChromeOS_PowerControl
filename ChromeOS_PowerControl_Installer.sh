@@ -547,10 +547,10 @@ start_component_now() {
                 echo "deep" | sudo tee /usr/share/power_manager/suspend_mode >/dev/null
                 echo "deep" | sudo tee /sys/power/mem_sleep >/dev/null
                 sudo restart powerd >/dev/null
-                echo "${GREEN}Suspend Mode set to freeze.${RESET}"
+                echo "${RESET}${BOLD}${BLUE$}Suspend mode set to: $(cat /sys/power/mem_sleep)${RESET}"
                 echo ""
             else
-                echo "${YELLOW}Suspend Mode unchanged.${RESET}"
+                echo "${BLUE}Suspend Mode unchanged.${RESET}"
                 echo ""
             fi
         fi
