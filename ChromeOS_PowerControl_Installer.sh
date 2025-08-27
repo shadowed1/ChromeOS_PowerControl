@@ -749,7 +749,7 @@ echo "║                                              ChromeOS_PowerControl    
 echo "╠════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣"
 echo "║                                                                                                                    ║"
 echo "║  powercontrol all               # Show status of all ChromeOS_PowerControl components                              ║"
-echo "║  powercontrol help_all          # Global Help menu                                                                 ║"
+echo "║  powercontrol help_all          # Global help menu                                                                 ║"
 echo "║  sudo powercontrol version      # Check PowerControl version                                                       ║"
 echo "║  sudo powercontrol startup_all  # Copy or Remove all .conf files at: /etc/init/                                    ║"
 echo "║  sudo powercontrol reinstall    # Download and reinstall ChromeOS_PowerControl                                     ║"
