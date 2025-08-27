@@ -765,6 +765,7 @@ echo "${GREEN}"
 echo "╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
 echo "║   ${RESET}${GREEN}${BOLD}BatteryControl Notice:${RESET}${GREEN}                                                                                           ║"
 echo "║   Disable Adaptive Charging in Settings → System Preferences → Power to avoid notification spam.                   ║"
+echo "║   SleepControl is required to prevent s2idle when charging; which causes battery to top up when asleep.            ║"
 echo "╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝${RESET}"
 fi
 
