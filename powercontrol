@@ -428,9 +428,9 @@ start_monitoring_loop() {
             pct=$last_pct
         fi
 
-        if [[ "$last_pct" != "$pct" ]]; then
-            echo "${CYAN}$(date '+%Y-%m-%d %H:%M:%S') - CPU ${temp_c}°C -> Clockspeed ${pct}%${RESET}" >> "$LOG_FILE"
-        fi
+        # if [[ "$last_pct" != "$pct" ]]; then
+        #    echo "${CYAN}$(date '+%Y-%m-%d %H:%M:%S') - CPU ${temp_c}°C -> Clockspeed ${pct}%${RESET}" >> "$LOG_FILE"
+        # fi
         
         set_max_perf_pct "$pct"
         last_pct=$pct
