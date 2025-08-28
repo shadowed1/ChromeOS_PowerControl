@@ -169,42 +169,6 @@ detect_suspend_mode() {
     echo "${BLUE}Detected suspend mode: $SUSPEND_MODE ${RESET}"
 }
 
-detect_battery_type() {
-    BATTERY_PATH=""
-    CAPACITY=""
-    BATTERY_PATHS=()
-    CAPACITIES=()
-
-    for d in /sys/class/power_supply/*; do
-        if [ -f "$d/capacity" ] && [ -f "$d/status" ]; then
-            local status
-            status=$(cat "$d/status")
-            if [ "$status" != "Unknown" ]; then
-                BATTERY_PATHS+=("$d")
-                CAPACITIES+=("$(cat "$d/capacity")")
-
-                if [ -z "$BATTERY_PATH" ]; then
-                    BATTERY_PATH="$d"
-                    CAPACITY="$(cat "$d/capacity")"
-                fi
-            fi
-        fi
-    done
-
-    if [ ${#BATTERY_PATHS[@]} -gt 0 ]; then
-        echo "Detected ${#BATTERY_PATHS[@]} battery(ies):"
-        for i in "${!BATTERY_PATHS[@]}"; do
-            echo "  Battery[$i]: ${BATTERY_PATHS[$i]}"
-            echo "    Capacity path: ${BATTERY_PATHS[$i]}/capacity"
-            echo "    Status path:   ${BATTERY_PATHS[$i]}/status"
-            echo "    Current value: ${CAPACITIES[$i]}% / $(cat "${BATTERY_PATHS[$i]}/status")"
-        done
-    else
-        echo "No valid batteries detected under /sys/class/power_supply/"
-    fi
-}
-
-
 INSTALL_DIR="/usr/local/bin/ChromeOS_PowerControl"
 echo ""
 echo "${RESET}${RED}╔${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}╗"
@@ -278,7 +242,6 @@ else
     SKIP_FANCONTROL=false
 fi
 
-detect_battery_type
 detect_suspend_mode
 detect_backlight_path
 detect_cpu_type
@@ -324,10 +287,6 @@ declare -a ordered_keys=(
   "RAMP_UP"
   "RAMP_DOWN"
   "CHARGE_MAX"
-  "BATTERY_PATH"
-  "BATTERY_PATHS"
-  "CAPACITY"
-  "CAPACITIES"
   "FAN_MIN_TEMP"
   "FAN_MAX_TEMP"
   "MIN_FAN"
@@ -371,7 +330,7 @@ declare -A categories=(
   ["FanControl"]="MIN_FAN MAX_FAN FAN_MIN_TEMP FAN_MAX_TEMP STEP_UP STEP_DOWN FAN_POLL"
   ["GPUControl"]="GPU_MAX_FREQ"
   ["SleepControl"]="BATTERY_DELAY BATTERY_BACKLIGHT BATTERY_DIM_DELAY POWER_DELAY POWER_BACKLIGHT POWER_DIM_DELAY AUDIO_DETECTION_BATTERY AUDIO_DETECTION_POWER SUSPEND_MODE LIDSLEEP_BATTERY LIDSLEEP_POWER"
-  ["Platform Configuration"]="IS_AMD IS_INTEL IS_ARM PERF_PATH PERF_PATHS TURBO_PATH BATTERY_PATH BATTERY_PATHS CAPACITY CAPACITIES GPU_TYPE GPU_FREQ_PATH ORIGINAL_GPU_MAX_FREQ PP_OD_FILE AMD_SELECTED_SCLK_INDEX BACKLIGHT_NAME BRIGHTNESS_PATH MAX_BRIGHTNESS_PATH ORIGINAL_SUSPEND_MODE"
+  ["Platform Configuration"]="IS_AMD IS_INTEL IS_ARM PERF_PATH PERF_PATHS TURBO_PATH GPU_TYPE GPU_FREQ_PATH ORIGINAL_GPU_MAX_FREQ PP_OD_FILE AMD_SELECTED_SCLK_INDEX BACKLIGHT_NAME BRIGHTNESS_PATH MAX_BRIGHTNESS_PATH ORIGINAL_SUSPEND_MODE"
 )
 
 if [[ -z "${ORIGINAL_GPU_MAX_FREQ}" ]]; then ORIGINAL_GPU_MAX_FREQ=$GPU_MAX_FREQ; fi
@@ -433,8 +392,6 @@ declare -A defaults=(
   [LIDSLEEP_BATTERY]=$LIDSLEEP_BATTERY
   [LIDSLEEP_POWER]=$LIDSLEEP_POWER
   [PERF_PATH]=$PERF_PATH
-  [BATTERY_PATH]=$BATTERY_PATH
-  [CAPACITY]=$CAPACITY
   [TURBO_PATH]=$TURBO_PATH
   [GPU_FREQ_PATH]=$GPU_FREQ_PATH
   [ORIGINAL_GPU_MAX_FREQ]=$GPU_MAX_FREQ
