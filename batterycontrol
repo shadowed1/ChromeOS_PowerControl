@@ -31,12 +31,6 @@ detect_battery() {
             if [ "$status" != "Unknown" ]; then
                 BATTERY_PATH="$d/capacity"
                 STATUS_PATH="$d/status"
-                echo "${RESET}${GREEN}"
-                echo "Detected battery: $d"
-                echo "  Capacity path: $BATTERY_PATH"
-                echo "  Status path:   $STATUS_PATH"
-                echo "  $(cat "$BATTERY_PATH")% -> $status"
-                echo "${RESET}"
                 return 0
             fi
         fi
@@ -151,6 +145,9 @@ echo "                       BatteryControl is: STOPPED"
     fi
 echo ""
 echo "Charge Limit: $CHARGE_MAX"
+echo ""
+echo "Capacity: $BATTERY_PATH"
+echo "State:   $STATUS_PATH"
 echo ""
         local active_port
         active_port=$(detect_active_usbpd_port)
