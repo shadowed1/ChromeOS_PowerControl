@@ -541,28 +541,28 @@ start_component_now() {
         sudo "$command" start
         echo ""
 
-        if [[ "$component" == "BatteryControl" ]]; then
-            declare -g SHOW_BATTERYCONTROL_NOTICE=1
-            read -rp "${BOLD}${GREEN}Do you want to set suspend mode from deep to freeze, allowing BatteryControl to function while sleeping when charging? Display will dim once when enabling (powerd restarts)${RESET}${BOLD} (Y/n): ${RESET} " set_deep
-            if [[ -z "$set_deep" || "$set_deep" =~ ^[Yy]$ ]]; then
-                echo "deep" | sudo tee /usr/share/power_manager/suspend_mode >/dev/null
-                echo "deep" | sudo tee /sys/power/mem_sleep >/dev/null
-                
-                for file in \
-                    /var/lib/power_manager/disable_dark_resume \
-                    /usr/share/power_manager/disable_dark_resume \
-                    /mnt/stateful_partition/encrypted/var/lib/power_manager/disable_dark_resume; do
-                    [[ -f "$file" ]] && echo 0 | sudo tee "$file" >/dev/null
-                done
-                
-                sudo restart powerd >/dev/null
-                echo "${RESET}${BOLD}${BLUE}Suspend mode set to: $(cat /usr/share/power_manager/suspend_mode) ${RESET}"
-                echo ""
-            else
-                echo "${BLUE}Suspend Mode unchanged.${RESET}"
-                echo ""
-            fi
-        fi
+        #if [[ "$component" == "BatteryControl" ]]; then
+        #    declare -g SHOW_BATTERYCONTROL_NOTICE=1
+        #    read -rp "${BOLD}${GREEN}Do you want to set suspend mode from deep to freeze, allowing BatteryControl to function while sleeping when charging? Display will dim once when enabling (powerd restarts)${RESET}${BOLD} (Y/n): ${RESET} " set_deep
+        #    if [[ -z "$set_deep" || "$set_deep" =~ ^[Yy]$ ]]; then
+        #        echo "deep" | sudo tee /usr/share/power_manager/suspend_mode >/dev/null
+        #        echo "deep" | sudo tee /sys/power/mem_sleep >/dev/null
+        #        
+        #        for file in \
+        #            /var/lib/power_manager/disable_dark_resume \
+        #            /usr/share/power_manager/disable_dark_resume \
+        #            /mnt/stateful_partition/encrypted/var/lib/power_manager/disable_dark_resume; do
+        #            [[ -f "$file" ]] && echo 0 | sudo tee "$file" >/dev/null
+        #        done
+        #        
+        #        sudo restart powerd >/dev/null
+        #        echo "${RESET}${BOLD}${BLUE}Suspend mode set to: $(cat /usr/share/power_manager/suspend_mode) ${RESET}"
+        #        echo ""
+        #    else
+        #        echo "${BLUE}Suspend Mode unchanged.${RESET}"
+        #        echo ""
+        #    fi
+        #fi
 
         if [[ "$component" == "GPUControl" ]]; then
             declare -g SHOW_GPUCONTROL_NOTICE=1
