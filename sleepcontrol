@@ -408,7 +408,7 @@ monitor_idle_activity() {
             ;;
         *"Chrome is using normal display mode"*)
             PRESENTATION_MODE=0
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - Normal display mode detected." >> "$LOG_FILE"
+            # echo "$(date '+%Y-%m-%d %H:%M:%S') - Normal display mode detected." >> "$LOG_FILE"
             ;;
         *"Audio activity started"*|*"Audio activity ongoing"*)
             (( AUDIO_DETECTION_ENABLED == 1 )) && audio_active=1
@@ -494,7 +494,7 @@ monitor_idle_activity() {
         idle_elapsed=$(( now - last_ts ))
         (( STATUS == "Discharging" )) && AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_BATTERY || AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_POWER
     
-        echo "Now -> $now | Idle -> $last_ts" >> "$LOG_FILE"
+       # echo "Now -> $now | Idle -> $last_ts" >> "$LOG_FILE"
     
         if (( idle_elapsed >= dim_delay && idle_elapsed < backlight_delay )); then
             if [[ $was_dimmed -eq 0 ]]; then
