@@ -278,6 +278,7 @@ else
     SKIP_FANCONTROL=false
 fi
 
+detect_battery_type
 detect_suspend_mode
 detect_backlight_path
 detect_cpu_type
