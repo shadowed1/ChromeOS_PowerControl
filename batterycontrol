@@ -11,34 +11,29 @@ INSTALL_DIR="@INSTALL_DIR@"
 CONFIG_FILE="$INSTALL_DIR/config.sh"
 BATTERY_STATUS_PATH="/var/log/power_manager/powerd.LATEST"
 
-get_battery_info() {
-    local line
-    line=$(grep -E "On (battery|AC)|line_power (connected|online)" "$BATTERY_STATUS_PATH" | tail -n1)
+get_all_battery_info() {
+    BATTERY_CHARGES=()
+    BATTERY_STATUSES=()
 
-    if [[ "$line" =~ On\ battery\ at\ ([0-9]+)% ]]; then
-        CHARGE="${BASH_REMATCH[1]}"
-        STATUS="Discharging"
+    for i in "${!BATTERY_PATHS[@]}"; do
+        cap_file="${BATTERY_PATHS[$i]}/capacity"
+        status_file="${BATTERY_PATHS[$i]}/status"
 
-    elif [[ "$line" =~ On\ AC ]]; then
-        if [[ "$line" =~ battery\ at\ ([0-9]+)% ]]; then
-            CHARGE="${BASH_REMATCH[1]}"
+        if [ -f "$cap_file" ]; then
+            BATTERY_CHARGES+=("$(cat "$cap_file")")
         else
-            CHARGE=""
+            BATTERY_CHARGES+=("")
         fi
-        STATUS="Charging"
 
-    elif [[ "$line" == *"line_power connected"* || "$line" == *"line_power online"* ]]; then
-        if [[ "$line" =~ at\ ([0-9]+)% ]]; then
-            CHARGE="${BASH_REMATCH[1]}"
+        if [ -f "$status_file" ]; then
+            BATTERY_STATUSES+=("$(cat "$status_file")")
         else
-            CHARGE=""
+            BATTERY_STATUSES+=("Unknown")
         fi
-        STATUS="Charging"
+    done
 
-    else
-        CHARGE=""
-        STATUS="Unknown"
-    fi
+    CHARGE="${BATTERY_CHARGES[0]}"
+    STATUS="${BATTERY_STATUSES[0]}"
 }
 
 
@@ -136,6 +131,7 @@ detect_active_usbpd_port() {
 }
 
 battery_status() {
+    get_all_battery_info
     if [ -f "$RUN_FLAG" ]; then
         if [ -f "$PID_FILE" ]; then
             PID=$(cat "$PID_FILE")
@@ -204,7 +200,7 @@ start_monitoring_loop() {
             last_reload_time=$now
         fi
 
-                get_battery_info
+                get_all_battery_info
         if [[ -z "$CHARGE" ]]; then
             sleep 10
             continue
