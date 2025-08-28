@@ -260,7 +260,7 @@ case "$1" in
             echo "$(date '+%Y-%m-%d %H:%M:%S') - Truncated log file (exceeded 32KB)" | tee -a "$LOG_FILE"
         fi
 
-        nohup "$0" __monitor__ >> "$LOG_FILE" 2>&1 &
+        nohup "$0" __batterycontrol_monitor__ >> "$LOG_FILE" 2>&1 &
         echo "${GREEN}$(date '+%Y-%m-%d %H:%M:%S') - Starting BatteryControl - Output is logged to $LOG_FILE${RESET}" | tee -a "$LOG_FILE"
         ;;
     stop)
@@ -290,7 +290,7 @@ case "$1" in
    --h|-h|h|--help|-help|help)
         show_help
         ;;
-    __monitor__)
+    __batterycontrol_monitor__)
         start_monitoring_loop
         ;;
     monitor)
