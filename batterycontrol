@@ -10,87 +10,43 @@ RESET=$(tput sgr0)
 INSTALL_DIR="@INSTALL_DIR@"
 CONFIG_FILE="$INSTALL_DIR/config.sh"
 BATTERY_PATH=""
-BATTERY_PATHS=()
-CAPACITY=""
-CAPACITIES=()
-
-detect_battery_type() {
-    BATTERY_PATH=""
-    CAPACITY=""
-    BATTERY_PATHS=()
-    CAPACITIES=()
-
-    for d in /sys/class/power_supply/*; do
-        if [ -f "$d/capacity" ] && [ -f "$d/status" ]; then
-            local status
-            status=$(cat "$d/status")
-            if [ "$status" != "Unknown" ]; then
-                BATTERY_PATHS+=("$d")
-                CAPACITIES+=("$(cat "$d/capacity")")
-
-                if [ -z "$BATTERY_PATH" ]; then
-                    BATTERY_PATH="$d"
-                    CAPACITY="$(cat "$d/capacity")"
-                fi
-            fi
-        fi
-    done
-
-    if [ ${#BATTERY_PATHS[@]} -gt 0 ]; then
-        echo "Detected ${#BATTERY_PATHS[@]} battery(ies):"
-        for i in "${!BATTERY_PATHS[@]}"; do
-            echo "  Battery[$i]: ${BATTERY_PATHS[$i]}"
-            echo "    Capacity path: ${BATTERY_PATHS[$i]}/capacity"
-            echo "    Status path:   ${BATTERY_PATHS[$i]}/status"
-            echo "    Current value: ${CAPACITIES[$i]}% / $(cat "${BATTERY_PATHS[$i]}/status")"
-        done
-    else
-        echo "No valid batteries detected under /sys/class/power_supply/"
-    fi
-}
-
-
-get_all_battery_info() {
-    BATTERY_CHARGES=()
-    BATTERY_STATUSES=()
-
-    for i in "${!BATTERY_PATHS[@]}"; do
-        cap_file="${BATTERY_PATHS[$i]}/capacity"
-        status_file="${BATTERY_PATHS[$i]}/status"
-
-        if [ -f "$cap_file" ]; then
-            BATTERY_CHARGES+=("$(cat "$cap_file")")
-        else
-            BATTERY_CHARGES+=("")
-        fi
-
-        if [ -f "$status_file" ]; then
-            BATTERY_STATUSES+=("$(cat "$status_file")")
-        else
-            BATTERY_STATUSES+=("Unknown")
-        fi
-    done
-
-    CHARGE="${BATTERY_CHARGES[0]}"
-    STATUS="${BATTERY_STATUSES[0]}"
-}
-
-
+STATUS_PATH=""
 RUN_FLAG="$INSTALL_DIR/.batterycontrol_enabled"
 PID_FILE="$INSTALL_DIR/.batterycontrol_pid"
 LOG_FILE="/var/log/batterycontrol.log"
 
-
-if ! ( [[ -z "$1" ]] || [[ "$1" == "--h" || "$1" == "-h" || "$1" == "h" || "$1" == "--help" || "$1" == "-help" || "$1" == "help" || "$1" == "status" ]] ) && [[ "$(id -u)" -ne 0 ]]; then    echo "${RED}BatteryControl requires sudo to run.${RESET}"
+if ! ( [[ -z "$1" ]] || [[ "$1" == "--h" || "$1" == "-h" || "$1" == "h" || "$1" == "--help" || "$1" == "-help" || "$1" == "help" || "$1" == "status" ]] ) && [[ "$(id -u)" -ne 0 ]]; then    
+    echo "${RED}BatteryControl requires sudo to run.${RESET}"
     echo "  Try: sudo batterycontrol $*  or  sudo $0 $*"
     exit 1
 fi
 
-
-
 DEFAULT_CHARGE_MAX=77
-
 CHARGE_MAX=
+
+detect_battery() {
+    for d in /sys/class/power_supply/*; do
+        if [ -f "$d/capacity" ] && [ -f "$d/status" ]; then
+            status=$(cat "$d/status")
+            if [ "$status" != "Unknown" ]; then
+                BATTERY_PATH="$d/capacity"
+                STATUS_PATH="$d/status"
+                echo "${RESET}${GREEN}"
+                echo "Detected battery: $d"
+                echo "  Capacity path: $BATTERY_PATH"
+                echo "  Status path:   $STATUS_PATH"
+                echo "  $(cat "$BATTERY_PATH")% -> $status"
+                echo "${RESET}"
+                return 0
+            fi
+        fi
+    done
+
+    echo "No usable battery detected!"
+    BATTERY_PATH=""
+    STATUS_PATH=""
+    return 1
+}
 
 load_config() {
     if [ -f "$CONFIG_FILE" ]; then
@@ -129,12 +85,10 @@ set_threshold() {
 
     CHARGE_MAX=$1
     save_config
-    echo "${GREEN}"
-    echo "$(date '+%Y-%m-%d %H:%M:%S') - Charge Limit: ${CHARGE_MAX}%" | tee -a "$LOG_FILE"
-    echo "${RESET}"
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - Charge Limit: $CHARGE_MAX" | tee -a "$LOG_FILE"
 }
 
-    load_config
+load_config
 
 show_help() {
 echo "${GREEN}"
@@ -143,11 +97,11 @@ echo "║                                                                       
 echo "║                       BatteryControl commands with examples:                       ║"
 echo "║                                                                                    ║"
 echo "║  batterycontrol               # Check BatteryControl status                        ║"
-echo "║  batterycontrol help          # Help menu                                          ║"
 echo "║  sudo batterycontrol start    # Start BatteryControl                               ║"
 echo "║  sudo batterycontrol stop     # Stop BatteryControl                                ║"
 echo "║  sudo batterycontrol 77       # Charge limit set to 77% - Minimum allowed is 14%   ║"
 echo "║  sudo batterycontrol startup  # Copy or Remove batterycontrol.conf at: /etc/init/  ║"
+echo "║  sudo batterycontrol help     # Help menu                                          ║"
 echo "║                                                                                    ║"
 echo "╚════════════════════════════════════════════════════════════════════════════════════╝"
 echo "${RESET}"
@@ -170,7 +124,8 @@ detect_active_usbpd_port() {
 }
 
 battery_status() {
-    get_all_battery_info
+    detect_battery || return 1
+
     if [ -f "$RUN_FLAG" ]; then
         if [ -f "$PID_FILE" ]; then
             PID=$(cat "$PID_FILE")
@@ -219,6 +174,7 @@ echo "${RESET}"
 }
 
 start_monitoring_loop() {
+    detect_battery || exit 1
     touch "$RUN_FLAG"
     echo $$ > "$PID_FILE"
 
@@ -239,12 +195,14 @@ start_monitoring_loop() {
             last_reload_time=$now
         fi
 
-                get_all_battery_info
-        if [[ -z "$CHARGE" ]]; then
+        if [ -f "$BATTERY_PATH" ]; then
+            CHARGE=$(cat "$BATTERY_PATH" 2>/dev/null)
+        else
             sleep 10
             continue
         fi
 
+        STATUS=$(cat "$STATUS_PATH" 2>/dev/null)
         if [[ "$STATUS" == "Charging" ]]; then
             ACTIVE_PORT=$(detect_active_usbpd_port)
         else
@@ -303,12 +261,11 @@ case "$1" in
             echo "$(date '+%Y-%m-%d %H:%M:%S') - Truncated log file (exceeded 32KB)" | tee -a "$LOG_FILE"
         fi
 
-        nohup "$0" __batterycontrol_monitor__ >> "$LOG_FILE" 2>&1 &
+        nohup "$0" __monitor__ >> "$LOG_FILE" 2>&1 &
         echo "${GREEN}$(date '+%Y-%m-%d %H:%M:%S') - Starting BatteryControl - Output is logged to $LOG_FILE${RESET}" | tee -a "$LOG_FILE"
         ;;
     stop)
         stop_monitoring
-        sudo ectool chargecontrol normal
         ;;
     ""|status)
         battery_status
@@ -334,7 +291,7 @@ case "$1" in
    --h|-h|h|--help|-help|help)
         show_help
         ;;
-    __batterycontrol_monitor__)
+    __monitor__)
         start_monitoring_loop
         ;;
     ''|*[!0-9]*)
