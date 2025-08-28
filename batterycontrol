@@ -293,13 +293,13 @@ case "$1" in
     __monitor__)
         start_monitoring_loop
         ;;
+    monitor)
+        tail -f /var/log/batterycontrol.log
+        ;;
     ''|*[!0-9]*)
         echo "Unknown command or value is too low: $1"
         echo "Use '$0 help' to see available commands."
         exit 1
-        ;;
-    monitor)
-        tail -f /var/log/batterycontrol.log
         ;;
     *)
         if [[ "$1" =~ ^[0-9]+$ ]] && (( $1 >= 14 && $1 <= 100 )); then
