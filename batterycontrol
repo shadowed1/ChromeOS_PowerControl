@@ -9,7 +9,46 @@ BOLD=$(tput bold)
 RESET=$(tput sgr0)
 INSTALL_DIR="@INSTALL_DIR@"
 CONFIG_FILE="$INSTALL_DIR/config.sh"
-BATTERY_STATUS_PATH="/var/log/power_manager/powerd.LATEST"
+BATTERY_PATH=""
+BATTERY_PATHS=()
+CAPACITY=""
+CAPACITIES=()
+
+detect_battery_type() {
+    BATTERY_PATH=""
+    CAPACITY=""
+    BATTERY_PATHS=()
+    CAPACITIES=()
+
+    for d in /sys/class/power_supply/*; do
+        if [ -f "$d/capacity" ] && [ -f "$d/status" ]; then
+            local status
+            status=$(cat "$d/status")
+            if [ "$status" != "Unknown" ]; then
+                BATTERY_PATHS+=("$d")
+                CAPACITIES+=("$(cat "$d/capacity")")
+
+                if [ -z "$BATTERY_PATH" ]; then
+                    BATTERY_PATH="$d"
+                    CAPACITY="$(cat "$d/capacity")"
+                fi
+            fi
+        fi
+    done
+
+    if [ ${#BATTERY_PATHS[@]} -gt 0 ]; then
+        echo "Detected ${#BATTERY_PATHS[@]} battery(ies):"
+        for i in "${!BATTERY_PATHS[@]}"; do
+            echo "  Battery[$i]: ${BATTERY_PATHS[$i]}"
+            echo "    Capacity path: ${BATTERY_PATHS[$i]}/capacity"
+            echo "    Status path:   ${BATTERY_PATHS[$i]}/status"
+            echo "    Current value: ${CAPACITIES[$i]}% / $(cat "${BATTERY_PATHS[$i]}/status")"
+        done
+    else
+        echo "No valid batteries detected under /sys/class/power_supply/"
+    fi
+}
+
 
 get_all_battery_info() {
     BATTERY_CHARGES=()
