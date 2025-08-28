@@ -198,7 +198,7 @@ start_monitoring_loop() {
         if [ -f "$BATTERY_PATH" ]; then
             CHARGE=$(cat "$BATTERY_PATH" 2>/dev/null)
         else
-            sleep 10
+            sleep 5
             continue
         fi
 
