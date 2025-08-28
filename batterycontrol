@@ -191,7 +191,7 @@ start_monitoring_loop() {
         if (( now - last_reload_time >= 30 )); then
             load_config
             last_reload_time=$now
-            echo "${GREEN}$(cat "$BATTERY_PATH") -> $(cat "$STATUS_PATH")${RESET}" >> "$LOG_FILE"
+            echo "${GREEN}$(date '+%Y-%m-%d %H:%M:%S')$(cat "${BATTERY_PATH}%") -> $(cat "$STATUS_PATH")${RESET}" >> "$LOG_FILE"
         fi
 
         if [ -f "$BATTERY_PATH" ]; then
