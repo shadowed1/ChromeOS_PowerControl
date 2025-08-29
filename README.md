@@ -255,7 +255,7 @@ powerd keyword. Removed old code and repetitive log entries.` <br><br>
 This enables BatteryControl logic to remain active while plugged in.` <br><br>
 - 0.41: `Rewrote BatteryControl with dynamic battery path detection. Added monitor command to BatteryControl. Rewrote monitor commands for PowerControl and FanControl.
 FanControl kick start is a bit more graceful.` <br><br>
-- 0.42: `Replaced cat logic with read for lower cpu usage on monitoring loops. Thanks to Denny and Saragon for great ideas.` 
+- 0.42: `Replaced cat logic with read for lower cpu usage on monitoring loops. Thanks to Denny and Saragon for great ideas.` <br><br> 
   
 __Acknowledgements:__
 
