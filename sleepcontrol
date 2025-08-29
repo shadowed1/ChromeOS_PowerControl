@@ -302,11 +302,10 @@ start_mem_sleep_watcher() {
                 done
 
                 get_battery_info
-                sleep 10
+                sleep 60
             done
         ) &
         echo $! > "$INSTALL_DIR/.mem_sleep_watcher_pid"
-        echo "$(date '+%Y-%m-%d %H:%M:%S') - Mem_sleep watcher started (AC power)." >> "$LOG_FILE"
     fi
 }
 
