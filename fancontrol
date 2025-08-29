@@ -41,7 +41,6 @@ load_config() {
 get_temp() {
     if [[ -r "$ZONE_PATH" ]]; then
         local raw_temp
-        # Read temperature directly from the file
         if read -r raw_temp < "$ZONE_PATH"; then
             # Ensure it's a valid number
             if (( raw_temp >= 0 )); then
@@ -200,7 +199,7 @@ sudo ectool fanduty "$initial_duty"
 
 
 
-       # echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') CPU: ${TEMP_C}°C -> Fan: ${target_duty}%${RESET}" >> "$LOG_FILE"
+       echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') CPU: ${TEMP_C}°C -> Fan: ${target_duty}%${RESET}" >> "$LOG_FILE"
 
        if (( last_duty > 0 && target_duty == 0 )); then
             echo "Applying kickstart ramp-up before setting to 0%" >> "$LOG_FILE"
