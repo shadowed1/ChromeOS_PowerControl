@@ -43,13 +43,6 @@ case "$choice" in
         ;;
     2)
         echo "Stopping background services..."
-
-        sudo initctl stop no_turbo 2>/dev/null
-        sudo initctl stop batterycontrol 2>/dev/null
-        sudo initctl stop powercontrol 2>/dev/null
-        sudo initctl stop fancontrol 2>/dev/null
-        sudo initctl stop gpu_control 2>/dev/null
-        sudo initctl stop sleep_control 2>/dev/null
         sudo ectool backlight 1 2>/dev/null
         sudo bash "$INSTALL_DIR/powercontrol" stop 2>/dev/null
         sudo bash "$INSTALL_DIR/powercontrol" max_perf_pct 100 2>/dev/null
