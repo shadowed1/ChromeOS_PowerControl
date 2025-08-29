@@ -265,6 +265,8 @@ __Acknowledgements:__
 - Thanks to DennisLfromGA for showing me how to enable sudo on crosh, testing out PowerControl, finding bugs, implementing fixes, and providing  many great suggestions:
 https://github.com/DennisLfromGA
 
+- Saragon making great suggestions:
+https://github.com/Saragon4005
 <br>
 
 __Support:__
