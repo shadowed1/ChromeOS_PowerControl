@@ -201,16 +201,17 @@ load_config
 
  get_temp() {
     local temp_celsius
-    temp_celsius=$(cat /sys/class/thermal/thermal_zone0/temp 2>/dev/null)
-
-    if [[ -n "$temp_celsius" && "$temp_celsius" =~ ^[0-9]+$ ]]; then
-        temp_c=$((temp_celsius / 1000))
-        echo "$temp_c"
-    else
-        echo "Failed to get temperature." >&2
-        return 1
+    if read -r temp_celsius < /sys/class/thermal/thermal_zone0/temp; then
+        if (( temp_celsius >= 0 )); then
+            temp_c=$(( temp_celsius / 1000 ))
+            echo "$temp_c"
+            return 0
+        fi
     fi
+    echo "Failed to get temperature." >&2
+    return 1
 }
+
 
 set_max_perf_pct() {
     local pct=$1
