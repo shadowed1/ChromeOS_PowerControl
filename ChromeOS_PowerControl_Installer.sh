@@ -627,11 +627,15 @@ done
 for service in no_turbo batterycontrol powercontrol fancontrol gpu_control; do
     sudo initctl stop "$service" 2>/dev/null
 done
-sudo bash "$INSTALL_DIR/batterycontrol" stop >/dev/null 2>&1
-sudo bash "$INSTALL_DIR/powercontrol" stop >/dev/null 2>&1
-sudo bash "$INSTALL_DIR/fancontrol" stop >/dev/null 2>&1
-sudo bash "$INSTALL_DIR/sleepcontrol" stop >/dev/null 2>&1
-sudo bash "$INSTALL_DIR/gpucontrol" restore >/dev/null 2>&1
+sudo ectool backlight 1 2>/dev/null
+sudo bash "$INSTALL_DIR/powercontrol" stop 2>/dev/null
+sudo bash "$INSTALL_DIR/powercontrol" max_perf_pct 100 2>/dev/null
+sudo bash "$INSTALL_DIR/powercontrol" no_turbo 0 2>/dev/null
+sudo bash "$INSTALL_DIR/batterycontrol" stop 2>/dev/null
+sudo bash "$INSTALL_DIR/fancontrol" stop 2>/dev/null
+sudo bash "$INSTALL_DIR/gpucontrol" restore 2>/dev/null
+sudo bash "$INSTALL_DIR/sleepcontrol" mode freeze 2>/dev/null
+sudo bash "$INSTALL_DIR/sleepcontrol" stop 2>/dev/null
 sleep 1
 
 sudo ectool backlight 1 >/dev/null 2>&1
