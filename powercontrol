@@ -245,20 +245,24 @@ set_max_perf_pct() {
                 chosen_freq=""
 
                 if [[ -f "$policy_dir/scaling_available_frequencies" ]]; then
-                    read -a available_freqs < "$policy_dir/scaling_available_frequencies"
-                    for freq in "${available_freqs[@]}"; do
-                        if (( freq >= target_freq )); then
-                            chosen_freq=$freq
-                            break
-                        fi
-                    done
-                    [[ -z "$chosen_freq" ]] && chosen_freq=${available_freqs[-1]}
-                    [[ -z "$chosen_freq" ]] && chosen_freq=$target_freq
-                    target_freq=$chosen_freq
-                    echo "[$(date)] $policy_dir: pct=$pct% min=$min_freq max=$max_freq avail=(${available_freqs[*]}) chosen=$target_freq" >> /tmp/powercontrol_debug.log
+                    if read -r -a available_freqs < "$policy_dir/scaling_available_frequencies"; then
+                        for freq in "${available_freqs[@]}"; do
+                            if (( freq >= target_freq )); then
+                                chosen_freq=$freq
+                                break
+                            fi
+                        done
+                        [[ -z "$chosen_freq" ]] && chosen_freq=${available_freqs[-1]}
+                        [[ -z "$chosen_freq" ]] && chosen_freq=$target_freq
+                        target_freq=$chosen_freq
+                        echo "[$(date)] $policy_dir: pct=$pct% min=$min_freq max=$max_freq avail=(${available_freqs[*]}) chosen=$target_freq" >> /tmp/powercontrol_debug.log
+                    else
+                        echo "[$(date)] $policy_dir: pct=$pct% min=$min_freq max=$max_freq target=$target_freq (failed to read avail freqs)" >> /tmp/powercontrol_debug.log
+                    fi
                 else
                     echo "[$(date)] $policy_dir: pct=$pct% min=$min_freq max=$max_freq target=$target_freq (no avail freqs)" >> /tmp/powercontrol_debug.log
                 fi
+
 
                 if [ -w "$path" ]; then
                     echo "$target_freq" | sudo tee "$path" > /dev/null
@@ -429,9 +433,9 @@ start_monitoring_loop() {
             pct=$last_pct
         fi
 
-       # if [[ "$last_pct" != "$pct" ]]; then
-       #     echo "${CYAN}$(date '+%Y-%m-%d %H:%M:%S') - CPU ${temp_c}°C -> Clockspeed ${pct}%${RESET}" >> "$LOG_FILE"
-       # fi
+        # if [[ "$last_pct" != "$pct" ]]; then
+        #    echo "${CYAN}$(date '+%Y-%m-%d %H:%M:%S') - CPU ${temp_c}°C -> Clockspeed ${pct}%${RESET}" >> "$LOG_FILE"
+        # fi
         
         set_max_perf_pct "$pct"
         last_pct=$pct
@@ -603,28 +607,25 @@ max_perf_pct() {
 
     if [[ -z "$2" ]]; then
         if [[ -f "$intel_path" ]]; then
-            if read -r val < "$intel_path"; then
-                echo "  intel_pstate: $val%"
-            fi
+            val=$(cat "$intel_path")
+            echo "  intel_pstate: $val%"
         fi
 
         if [[ ${#policy_paths[@]} -gt 0 ]]; then
             echo "  Per-policy max_perf_pct:"
             for path in "${policy_paths[@]}"; do
-                if read -r val < "$path"; then
-                    policy=$(basename "$(dirname "$path")")
-                    echo "  $policy: $val%"
-                fi
+                val=$(cat "$path")
+                policy=$(basename "$(dirname "$path")")
+                echo "  $policy: $val%"
             done
         elif [[ "$IS_ARM" -eq 1 ]]; then
             echo "  Per-policy scaling_max_freq:"
             for path in /sys/devices/system/cpu/cpufreq/policy*/scaling_max_freq; do
                 [[ -f "$path" ]] || continue
-                if read -r freq_khz < "$path"; then
-                    freq_mhz=$((freq_khz / 1000))
-                    policy=$(basename "$(dirname "$path")")
-                    echo "  $policy: ${freq_mhz} MHz"
-                fi
+                freq_khz=$(cat "$path")
+                freq_mhz=$((freq_khz / 1000))
+                policy=$(basename "$(dirname "$path")")
+                echo "  $policy: ${freq_mhz} MHz"
             done
         else
             echo "${RED}No max_perf_pct or scaling_max_freq paths found.${RESET}"
