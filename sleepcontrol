@@ -279,9 +279,8 @@ start_mem_sleep_watcher() {
     if [[ "$STATUS" != "Discharging" && "$SUSPEND_MODE" == "deep" ]]; then
         (
             exec 200>"$INSTALL_DIR/.mem_sleep_watcher.lock"
-            flock -n 200 || exit 0  # exit immediately if already locked
+            flock -n 200 || exit 0
 
-            # record PID for stop_mem_sleep_watcher
             echo $$ > "$INSTALL_DIR/.mem_sleep_watcher_pid"
 
             while [ -f "$RUN_FLAG" ] && [[ "$STATUS" != "Discharging" ]]; do
