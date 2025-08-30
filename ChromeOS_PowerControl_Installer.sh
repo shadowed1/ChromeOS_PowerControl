@@ -541,28 +541,28 @@ start_component_now() {
         sudo "$command" start
         echo ""
 
-        #if [[ "$component" == "BatteryControl" ]]; then
-        #    declare -g SHOW_BATTERYCONTROL_NOTICE=1
-        #    read -rp "${BOLD}${GREEN}Do you want to set suspend mode from deep to freeze, allowing BatteryControl to function while sleeping when charging? Display will dim once when enabling (powerd restarts)${RESET}${BOLD} (Y/n): ${RESET} " set_deep
-        #    if [[ -z "$set_deep" || "$set_deep" =~ ^[Yy]$ ]]; then
-        #        echo "deep" | sudo tee /usr/share/power_manager/suspend_mode >/dev/null
-        #        echo "deep" | sudo tee /sys/power/mem_sleep >/dev/null
-        #        
-        #        for file in \
-        #            /var/lib/power_manager/disable_dark_resume \
-        #            /usr/share/power_manager/disable_dark_resume \
-        #            /mnt/stateful_partition/encrypted/var/lib/power_manager/disable_dark_resume; do
-        #            [[ -f "$file" ]] && echo 0 | sudo tee "$file" >/dev/null
-        #        done
-        #        
-        #        sudo restart powerd >/dev/null
-        #        echo "${RESET}${BOLD}${BLUE}Suspend mode set to: $(cat /usr/share/power_manager/suspend_mode) ${RESET}"
-        #        echo ""
-        #    else
-        #        echo "${BLUE}Suspend Mode unchanged.${RESET}"
-        #        echo ""
-        #    fi
-        #fi
+        if [[ "$component" == "BatteryControl" ]]; then
+            declare -g SHOW_BATTERYCONTROL_NOTICE=1
+            read -rp "${BOLD}${GREEN}Do you want to set suspend mode from deep to freeze, allowing BatteryControl to function while sleeping when charging? Display will dim once when enabling (powerd restarts)${RESET}${BOLD} (Y/n): ${RESET} " set_deep
+            if [[ -z "$set_deep" || "$set_deep" =~ ^[Yy]$ ]]; then
+                echo "deep" | sudo tee /usr/share/power_manager/suspend_mode >/dev/null
+                echo "deep" | sudo tee /sys/power/mem_sleep >/dev/null
+                
+                for file in \
+                    /var/lib/power_manager/disable_dark_resume \
+                    /usr/share/power_manager/disable_dark_resume \
+                    /mnt/stateful_partition/encrypted/var/lib/power_manager/disable_dark_resume; do
+                    [[ -f "$file" ]] && echo 0 | sudo tee "$file" >/dev/null
+                done
+                
+                sudo restart powerd >/dev/null
+                echo "${RESET}${BOLD}${BLUE}Suspend mode set to: $(cat /usr/share/power_manager/suspend_mode) ${RESET}"
+                echo ""
+            else
+                echo "${BLUE}Suspend Mode unchanged.${RESET}"
+                echo ""
+            fi
+        fi
 
         if [[ "$component" == "GPUControl" ]]; then
             declare -g SHOW_GPUCONTROL_NOTICE=1
@@ -572,40 +572,40 @@ start_component_now() {
             declare -g SHOW_SLEEPCONTROL_NOTICE=1
         fi
 
-       # if [[ "$component" == "PowerControl" ]]; then
-       #     declare -g SHOW_POWERCONTROL_NOTICE=1
+        if [[ "$component" == "PowerControl" ]]; then
+            declare -g SHOW_POWERCONTROL_NOTICE=1
 
-       #     if [[ -e /sys/devices/system/cpu/intel_pstate/no_turbo ]]; then
-       #         read -rp "${BOLD}${CYAN}Do you want Intel Turbo Boost ${RESET}${BOLD}${BLUE}disabled on boot${RESET}${BOLD}${CYAN}?${RESET}${BOLD} (Y/n):$RESET " move_no_turbo
-       #         if [[ -z "$move_no_turbo" || "$move_no_turbo" =~ ^[Yy]$ ]]; then
-       #             sudo cp "$INSTALL_DIR/no_turbo.conf" /etc/init/
-       #             echo "Turbo Boost will be disabled on restart."
-       #             echo "${CYAN}sudo powercontrol startup${RESET}     # To re-enable Turbo Boost on boot."
-       #             echo ""
-       #         else
-       #             sudo rm -f /etc/init/no_turbo.conf
-       #             echo "Turbo Boost will remain enabled."
-       #             echo "${CYAN}sudo powercontrol startup${RESET}     # To disable Intel Turbo Boost on boot."
-       #             echo ""
-       #         fi
+            if [[ -e /sys/devices/system/cpu/intel_pstate/no_turbo ]]; then
+                read -rp "${BOLD}${CYAN}Do you want Intel Turbo Boost ${RESET}${BOLD}${BLUE}disabled on boot${RESET}${BOLD}${CYAN}?${RESET}${BOLD} (Y/n):$RESET " move_no_turbo
+                if [[ -z "$move_no_turbo" || "$move_no_turbo" =~ ^[Yy]$ ]]; then
+                    sudo cp "$INSTALL_DIR/no_turbo.conf" /etc/init/
+                    echo "Turbo Boost will be disabled on restart."
+                    echo "${CYAN}sudo powercontrol startup${RESET}     # To re-enable Turbo Boost on boot."
+                    echo ""
+                else
+                    sudo rm -f /etc/init/no_turbo.conf
+                    echo "Turbo Boost will remain enabled."
+                    echo "${CYAN}sudo powercontrol startup${RESET}     # To disable Intel Turbo Boost on boot."
+                    echo ""
+                fi
 
-       #         read -rp "${BOLD}${CYAN}Do you want to ${RESET}${BOLD}${BLUE}disable${RESET}${CYAN}${BOLD} Intel Turbo Boost ${RESET}${BOLD}${BLUE}now${RESET}${BOLD}${CYAN}?${RESET}${BOLD} (Y/n):$RESET " run_no_turbo
-       #         if [[ -z "$run_no_turbo" || "$run_no_turbo" =~ ^[Yy]$ ]]; then
-       #             echo 1 | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo > /dev/null
-       #             echo "Turbo Boost disabled immediately."
-       #             echo "${CYAN}sudo powercontrol no_turbo 0${RESET}     # To re-enable Intel Turbo Boost"
-       #             echo ""
-       #         else
-       #             echo 0 | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo > /dev/null
-       #             echo "Turbo Boost remains enabled."
-       #             echo "${CYAN}sudo powercontrol no_turbo 1${RESET}    # To disable Intel Turbo Boost"
-       #             echo ""
-       #         fi
-       #     else
-       #         echo "${CYAN}This is not an Intel CPU, skipping Turbo Boost options.${RESET}"
-       #         echo ""
-       #     fi
-       # fi
+                read -rp "${BOLD}${CYAN}Do you want to ${RESET}${BOLD}${BLUE}disable${RESET}${CYAN}${BOLD} Intel Turbo Boost ${RESET}${BOLD}${BLUE}now${RESET}${BOLD}${CYAN}?${RESET}${BOLD} (Y/n):$RESET " run_no_turbo
+                if [[ -z "$run_no_turbo" || "$run_no_turbo" =~ ^[Yy]$ ]]; then
+                    echo 1 | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo > /dev/null
+                    echo "Turbo Boost disabled immediately."
+                    echo "${CYAN}sudo powercontrol no_turbo 0${RESET}     # To re-enable Intel Turbo Boost"
+                    echo ""
+                else
+                    echo 0 | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo > /dev/null
+                    echo "Turbo Boost remains enabled."
+                    echo "${CYAN}sudo powercontrol no_turbo 1${RESET}    # To disable Intel Turbo Boost"
+                    echo ""
+                fi
+            else
+                echo "${CYAN}This is not an Intel CPU, skipping Turbo Boost options.${RESET}"
+                echo ""
+            fi
+        fi
 
     else
         echo "You can run it later with: sudo $command start"
