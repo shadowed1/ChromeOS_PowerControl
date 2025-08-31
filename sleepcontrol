@@ -318,28 +318,35 @@ monitor_idle_activity() {
     save_current_brightness
 
     start_fake_activity() {
-        if (( sending_fake_activity == 0 )); then
-            (
-                while [ -f "$RUN_FLAG" ]; do
-                    sleep "$FAKE_ACTIVITY_INTERVAL"
-                    send_fake_activity
-                done
-            ) &
-            fake_activity_pid=$!
-            sending_fake_activity=1
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - Starting simulated activity loop... (PID $fake_activity_pid)." >> "$LOG_FILE"
-        fi
-    }
+    if (( sending_fake_activity == 0 )); then
+        (
+            while [ -f "$RUN_FLAG" ]; do
+                sleep "$FAKE_ACTIVITY_INTERVAL"
+                if send_fake_activity; then
+                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Fake activity sent." >> "$LOG_FILE"
+                else
+                    echo "$(date '+%Y-%m-%d %H:%M:%S') - ERROR: Failed to send fake activity." >> "$LOG_FILE"
+                fi
+            done
+        ) &
+        fake_activity_pid=$!
+        sending_fake_activity=1
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - Starting simulated activity loop (PID $fake_activity_pid)." >> "$LOG_FILE"
+    fi
+}
 
-    stop_fake_activity() {
-        if (( sending_fake_activity == 1 )); then
+
+   stop_fake_activity() {
+    if (( sending_fake_activity == 1 )); then
+        if kill -0 "$fake_activity_pid" 2>/dev/null; then
             kill "$fake_activity_pid" 2>/dev/null
             wait "$fake_activity_pid" 2>/dev/null
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - Stopping simulated activity loop... (PID $fake_activity_pid)." >> "$LOG_FILE"
-            sending_fake_activity=0
-            fake_activity_pid=0
         fi
-    }
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - Stopping simulated activity loop (PID $fake_activity_pid)." >> "$LOG_FILE"
+        sending_fake_activity=0
+        fake_activity_pid=0
+    fi
+}
 
     while [ -f "$RUN_FLAG" ] && [[ "$STATUS" != "Discharging" ]]; do
                     source "$CONFIG_FILE" >/dev/null 2>&1
@@ -487,18 +494,23 @@ monitor_idle_activity() {
        echo "Current Timestamp -> $now | Timestamp since Idle -> $last_ts" >> "$LOG_FILE"
     
         if (( idle_elapsed >= dim_delay && idle_elapsed < backlight_delay )); then
-            if [[ $was_dimmed -eq 0 ]]; then
-                save_current_brightness
-                sleep 1
-                was_dimmed=1
-                dim_value=$((saved_display_brightness/8))
-                (( dim_value < 1 )) && dim_value=1
-                set_display_brightness "$dim_value"
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Display dimmed to $dim_value" >> "$LOG_FILE"
+            if (( audio_active == 1 )); then
+                (( sending_fake_activity == 0 )) && start_fake_activity
+            else
+                if [[ $was_dimmed -eq 0 ]]; then
+                    save_current_brightness
+                    sleep 1
+                    was_dimmed=1
+                    dim_value=$((saved_display_brightness/8))
+                    (( dim_value < 1 )) && dim_value=1
+                    set_display_brightness "$dim_value"
+                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Display dimmed to $dim_value" >> "$LOG_FILE"
+                fi
+                (( sending_fake_activity == 0 )) && start_fake_activity
             fi
         fi
-    
-        if (( idle_elapsed >= backlight_delay )); then
+        
+        if (( idle_elapsed >= backlight_delay && idle_elapsed < suspend_delay )); then
             if (( backlight_off == 0 )); then
                 if [[ -n "$BRIGHTNESS_PATH" ]]; then
                     echo 0 | sudo tee "$BRIGHTNESS_PATH" >/dev/null
@@ -506,13 +518,15 @@ monitor_idle_activity() {
                 backlight_off=1
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Display and keyboard backlight off." >> "$LOG_FILE"
             fi
+            (( audio_active == 1 || sending_fake_activity == 0 )) && start_fake_activity
         fi
-    
-        if (( idle_elapsed >= suspend_delay )); then
+
+            
+       if (( idle_elapsed >= suspend_delay )); then
             if (( PRESENTATION_MODE == 1 )); then
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Presentation mode active, suspend skipped." >> "$LOG_FILE"
                 stop_fake_activity
-            elif (( audio_active == 1 )); then
+            elif (( audio_active == 1 || kb_brightness_restored == 0 )); then
                 (( sending_fake_activity == 0 )) && start_fake_activity
             else
                 stop_fake_activity
