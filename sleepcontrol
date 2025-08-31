@@ -547,7 +547,6 @@ stop_monitoring() {
     rm -f "$RUN_FLAG"
     rm -f "$PID_FILE"
     rm -f "$PID_FILE.lock"
-    stop_mem_sleep_watcher
 }
 
 
