@@ -385,12 +385,6 @@ monitor_idle_activity() {
             get_battery_info
             [[ -z "$STATUS" ]] && { STATUS="Unknown"; CHARGE=""; }
             last_power_check_time=$now
-        
-            if [[ "$STATUS" != "Discharging" ]]; then
-                start_mem_sleep_watcher
-            else
-                stop_mem_sleep_watcher
-            fi
         fi
 
 
