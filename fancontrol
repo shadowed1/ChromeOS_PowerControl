@@ -227,8 +227,6 @@ sudo ectool fanduty "$initial_duty"
 
         sleep "$FAN_POLL"
     done
-
-    cleanup
 }
 
 start() {
