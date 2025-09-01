@@ -348,33 +348,6 @@ monitor_idle_activity() {
     fi
 }
 
-    while [ -f "$RUN_FLAG" ] && [[ "$STATUS" != "Discharging" ]]; do
-                    source "$CONFIG_FILE" >/dev/null 2>&1
-                    [[ "$SUSPEND_MODE" != "deep" ]] && break
-    
-                    if [[ -f /usr/share/power_manager/suspend_mode ]]; then
-                        if read -r desired_mode < /usr/share/power_manager/suspend_mode; then
-                            [[ "$desired_mode" != "deep" && "$desired_mode" != "s2idle" ]] && desired_mode="s2idle"
-                        else
-                            desired_mode="s2idle"
-                        fi
-                    else
-                        desired_mode="s2idle"
-                    fi
-    
-                    echo "$desired_mode" | sudo tee /sys/power/mem_sleep >/dev/null
-    
-                    for file in \
-                        /var/lib/power_manager/disable_dark_resume \
-                        /usr/share/power_manager/disable_dark_resume \
-                        /mnt/stateful_partition/encrypted/var/lib/power_manager/disable_dark_resume; do
-                        [[ -f "$file" ]] && echo 0 | sudo tee "$file" >/dev/null
-                    done
-    
-                    get_battery_info
-                    sleep 10
-                done
-
     exec 3< <(tail -Fn0 /var/log/power_manager/powerd.LATEST)
     while read -r line <&3; do
         now=$(date +%s)
@@ -384,6 +357,17 @@ monitor_idle_activity() {
         if (( now - last_power_check_time >= 10 )); then
             get_battery_info
             [[ -z "$STATUS" ]] && { STATUS="Unknown"; CHARGE=""; }
+        
+            # Only act if discharging
+            if [[ "$STATUS" == "Discharging" ]]; then
+                for file in \
+                    /var/lib/power_manager/disable_dark_resume \
+                    /usr/share/power_manager/disable_dark_resume \
+                    /mnt/stateful_partition/encrypted/var/lib/power_manager/disable_dark_resume; do
+                    [[ -f "$file" ]] && echo 0 | sudo tee "$file" >/dev/null
+                done
+            fi
+        
             last_power_check_time=$now
         fi
 
