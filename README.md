@@ -256,7 +256,8 @@ This enables BatteryControl logic to remain active while plugged in.` <br><br>
 - 0.41: `Rewrote BatteryControl with dynamic battery path detection. Added monitor command to BatteryControl. Rewrote monitor commands for PowerControl and FanControl.
 FanControl kick start is a bit more graceful.` <br><br>
 - 0.42: `Replaced cat logic with read for lower cpu usage on monitoring loops. Thanks to Denny and Saragon for great ideas.` <br><br>
-- 0.43: `Fixed fancontrol poll rates from not updating properly. Fixed sleepcontrol audio detection and simulated activity.` <br><br>
+- 0.43: `Fixed fancontrol poll rates from not updating properly. Fixed sleepcontrol audio detection and simulated activity.
+Moved disable_dark_suspend=0 logic into read section. Cleaned up sending fake activity script to be bit more aggressive. ` <br><br>
   
 __Acknowledgements:__
 
