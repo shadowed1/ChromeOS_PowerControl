@@ -27,7 +27,7 @@ CHARGE_MAX=
 detect_battery() {
     for d in /sys/class/power_supply/*; do
         if [ -f "$d/capacity" ] && [ -f "$d/status" ]; then
-            status=$(cat "$d/status")
+            read -r status < "$d/status"
             if [ "$status" != "Unknown" ]; then
                 BATTERY_PATH="$d/capacity"
                 STATUS_PATH="$d/status"
