@@ -192,8 +192,9 @@ start_monitoring_loop() {
         if (( now - last_reload_time >= 30 )); then
             load_config
             last_reload_time=$now
-            #if read -r BATTERY_CHARGE < "$BATTERY_PATH"; then
-            echo "${GREEN}$(date '+%Y-%m-%d %H:%M:%S') - Battery: ${BATTERY_CHARGE}% - Charge Limit: ${CHARGE_MAX}% - State: $(cat ${STATUS_PATH})${RESET}" >> "$LOG_FILE"
+            if read -r BATTERY_CHARGE < "$BATTERY_PATH"; then
+                read -r STATE < "$STATUS_PATH"
+                echo "${GREEN}$(date '+%Y-%m-%d %H:%M:%S') - Battery: ${BATTERY_CHARGE}% - Charge Limit: ${CHARGE_MAX}% - State: $STATE${RESET}" >> "$LOG_FILE"
             else
                 echo "Failed to read $BATTERY_PATH" >&2
             fi
