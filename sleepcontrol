@@ -371,30 +371,21 @@ monitor_idle_activity() {
             get_battery_info
             [[ -z "$STATUS" ]] && { STATUS="Unknown"; CHARGE=""; }
     
-            if [[ "$STATUS" != "Discharging" ]]; then
-                if [[ -f /usr/share/power_manager/suspend_mode ]]; then
-                    if read -r desired_mode < /usr/share/power_manager/suspend_mode; then
-                        [[ "$desired_mode" != "deep" && "$desired_mode" != "s2idle" ]] && desired_mode="s2idle"
-                    else
-                        desired_mode="s2idle"
-                    fi
-                else
-                    desired_mode="s2idle"
+            if (( now - last_power_check_time >= 10 )); then
+                get_battery_info
+                [[ -z "$STATUS" ]] && { STATUS="Unknown"; CHARGE=""; }
+            
+                if [[ "$STATUS" != "Discharging" ]]; then
+                    for file in \
+                        /var/lib/power_manager/disable_dark_resume \
+                        /usr/share/power_manager/disable_dark_resume \
+                        /mnt/stateful_partition/encrypted/var/lib/power_manager/disable_dark_resume; do
+                        [[ -f "$file" ]] && echo 0 | sudo tee "$file" >/dev/null
+                    done
                 fi
-    
-                echo "$desired_mode" | sudo tee /sys/power/mem_sleep >/dev/null
-    
-                for file in \
-                    /var/lib/power_manager/disable_dark_resume \
-                    /usr/share/power_manager/disable_dark_resume \
-                    /mnt/stateful_partition/encrypted/var/lib/power_manager/disable_dark_resume; do
-                    [[ -f "$file" ]] && echo 0 | sudo tee "$file" >/dev/null
-                done
+            
+                last_power_check_time=$now
             fi
-    
-            last_power_check_time=$now
-        fi
-
 
         AUDIO_DETECTION_ENABLED=$(( STATUS == "Discharging" ? AUDIO_DETECTION_BATTERY : AUDIO_DETECTION_POWER ))
         (( AUDIO_DETECTION_ENABLED == 0 )) && audio_active=0
