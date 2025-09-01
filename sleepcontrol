@@ -493,8 +493,11 @@ monitor_idle_activity() {
         idle_elapsed=$(( now - last_ts ))
         (( STATUS == "Discharging" )) && AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_BATTERY || AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_POWER
     
-       echo "Current Timestamp -> $now | $last_ts <- Timestamp since Idle" >> "$LOG_FILE"
-    
+        if (( now - last_log_ts >= 10 )); then
+            echo "Current Timestamp -> $now | $last_ts <- Timestamp since Idle" >> "$LOG_FILE"
+            last_log_ts=$now
+        fi  
+
         if (( idle_elapsed >= dim_delay && idle_elapsed < backlight_delay )); then
             if (( audio_active == 1 )); then
                 (( sending_fake_activity == 0 )) && start_fake_activity
