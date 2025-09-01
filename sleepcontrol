@@ -16,7 +16,7 @@ BATTERY_STATUS_PATH="/var/log/power_manager/powerd.LATEST"
 BACKLIGHT_NAME=""
 BRIGHTNESS_PATH=""
 MAX_BRIGHTNESS_PATH=""
-FAKE_ACTIVITY_INTERVAL=30
+FAKE_ACTIVITY_INTERVAL=15
 LID_SUSPEND_IGNORE_UNTIL=0
 
 SUSPEND_APPLIED_FLAG="/tmp/.sleepcontrol_suspend_applied"
@@ -317,8 +317,14 @@ monitor_idle_activity() {
 
     save_current_brightness
 
-    start_fake_activity() {
+   start_fake_activity() {
     if (( sending_fake_activity == 0 )); then
+        # Send first fake activity immediately
+        if send_fake_activity; then
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - Fake activity sent immediately." >> "$LOG_FILE"
+        else
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - ERROR: Failed to send immediate fake activity." >> "$LOG_FILE"
+        fi
         (
             while [ -f "$RUN_FLAG" ]; do
                 sleep "$FAKE_ACTIVITY_INTERVAL"
@@ -336,6 +342,7 @@ monitor_idle_activity() {
 }
 
 
+
    stop_fake_activity() {
     if (( sending_fake_activity == 1 )); then
         if kill -0 "$fake_activity_pid" 2>/dev/null; then
@@ -348,42 +355,43 @@ monitor_idle_activity() {
     fi
 }
 
-    while [ -f "$RUN_FLAG" ] && [[ "$STATUS" != "Discharging" ]]; do
-                    source "$CONFIG_FILE" >/dev/null 2>&1
-                    [[ "$SUSPEND_MODE" != "deep" ]] && break
-    
-                    if [[ -f /usr/share/power_manager/suspend_mode ]]; then
-                        if read -r desired_mode < /usr/share/power_manager/suspend_mode; then
-                            [[ "$desired_mode" != "deep" && "$desired_mode" != "s2idle" ]] && desired_mode="s2idle"
-                        else
-                            desired_mode="s2idle"
-                        fi
-                    else
-                        desired_mode="s2idle"
-                    fi
-    
-                    echo "$desired_mode" | sudo tee /sys/power/mem_sleep >/dev/null
-    
-                    for file in \
-                        /var/lib/power_manager/disable_dark_resume \
-                        /usr/share/power_manager/disable_dark_resume \
-                        /mnt/stateful_partition/encrypted/var/lib/power_manager/disable_dark_resume; do
-                        [[ -f "$file" ]] && echo 0 | sudo tee "$file" >/dev/null
-                    done
-    
-                    get_battery_info
-                    sleep 10
-                done
 
     exec 3< <(tail -Fn0 /var/log/power_manager/powerd.LATEST)
+    
+
     while read -r line <&3; do
         now=$(date +%s)
-
-        (( now - last_reload_time >= 10 )) && { load_config; last_reload_time=$now; }
-
+    
+        if (( now - last_reload_time >= 10 )); then
+            load_config
+            last_reload_time=$now
+        fi
+    
         if (( now - last_power_check_time >= 10 )); then
             get_battery_info
             [[ -z "$STATUS" ]] && { STATUS="Unknown"; CHARGE=""; }
+    
+            if [[ "$STATUS" != "Discharging" ]]; then
+                if [[ -f /usr/share/power_manager/suspend_mode ]]; then
+                    if read -r desired_mode < /usr/share/power_manager/suspend_mode; then
+                        [[ "$desired_mode" != "deep" && "$desired_mode" != "s2idle" ]] && desired_mode="s2idle"
+                    else
+                        desired_mode="s2idle"
+                    fi
+                else
+                    desired_mode="s2idle"
+                fi
+    
+                echo "$desired_mode" | sudo tee /sys/power/mem_sleep >/dev/null
+    
+                for file in \
+                    /var/lib/power_manager/disable_dark_resume \
+                    /usr/share/power_manager/disable_dark_resume \
+                    /mnt/stateful_partition/encrypted/var/lib/power_manager/disable_dark_resume; do
+                    [[ -f "$file" ]] && echo 0 | sudo tee "$file" >/dev/null
+                done
+            fi
+    
             last_power_check_time=$now
         fi
 
