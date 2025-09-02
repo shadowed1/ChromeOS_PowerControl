@@ -169,7 +169,6 @@ __How It Works:__
 
 - Identifies the GPU (AMD, Adreno, Mali, and Intel) based on the name of the device's path in /sys/class/
 - Limits control to only below the maximum clock speed for safety and with Chromebooks in mind.
-- Applies a 120s delay on boot if the user is applying a custom clock speed as a precaution.
 - ChromeOS has built-in overclock prevention, so these safety precautions are just extra guardrails.
 - Altering GPU clockspeed in real-time is a useful tool to debug performance. 
 - Intel GPU's maximum clock speed changed from: /sys/class/drm/card0/gt_max_freq_mhz
