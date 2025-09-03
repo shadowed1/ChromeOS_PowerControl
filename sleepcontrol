@@ -91,7 +91,6 @@ DEFAULT_AUDIO_DETECTION_POWER=1
 DEFAULT_LIDSLEEP_BATTERY=1
 DEFAULT_LIDSLEEP_POWER=1
 
-
 AUDIO_DETECTION_BATTERY=
 AUDIO_DETECTION_POWER=
 BATTERY_DELAY=
@@ -188,7 +187,6 @@ validate_config() {
     fi
 }
 
-
 save_config() {
     validate_config
     sed -i "s/^BATTERY_DELAY=.*/BATTERY_DELAY=$BATTERY_DELAY/" "$CONFIG_FILE" || echo "BATTERY_DELAY=$BATTERY_DELAY" >> "$CONFIG_FILE"
@@ -203,7 +201,6 @@ save_config() {
     sed -i "s/^ORIGINAL_SUSPEND_MODE=.*/ORIGINAL_SUSPEND_MODE=$ORIGINAL_SUSPEND_MODE/" "$CONFIG_FILE" || echo "ORIGINAL_SUSPEND_MODE=$ORIGINAL_SUSPEND_MODE" >> "$CONFIG_FILE"
     sed -i "s/^LIDSLEEP_BATTERY=.*/LIDSLEEP_BATTERY=$LIDSLEEP_BATTERY/" "$CONFIG_FILE" || echo "LIDSLEEP_BATTERY=$LIDSLEEP_BATTERY" >> "$CONFIG_FILE"
     sed -i "s/^LIDSLEEP_POWER=.*/LIDSLEEP_POWER=$LIDSLEEP_POWER/" "$CONFIG_FILE" || echo "LIDSLEEP_POWER=$LIDSLEEP_POWER" >> "$CONFIG_FILE"
-
 }
 
 show_help() {
@@ -255,8 +252,6 @@ save_current_brightness() {
         echo "$(date '+%Y-%m-%d %H:%M:%S') - Skipping because display is dimmed." >> "$LOG_FILE"
     fi
 }
-
-
 
    set_audio_detection() {
     local mode=$1
@@ -335,7 +330,6 @@ monitor_idle_activity() {
     fi
 }
 
-
    stop_fake_activity() {
     if (( sending_fake_activity == 1 )); then
         if kill -0 "$fake_activity_pid" 2>/dev/null; then
@@ -347,7 +341,6 @@ monitor_idle_activity() {
         fake_activity_pid=0
     fi
 }
-
     exec 3< <(tail -Fn0 /var/log/power_manager/powerd.LATEST)
     while read -r line <&3; do
         now=$(date +%s)
@@ -369,7 +362,6 @@ monitor_idle_activity() {
         
             last_power_check_time=$now
         fi
-
 
         AUDIO_DETECTION_ENABLED=$(( STATUS == "Discharging" ? AUDIO_DETECTION_BATTERY : AUDIO_DETECTION_POWER ))
         (( AUDIO_DETECTION_ENABLED == 0 )) && audio_active=0
@@ -497,7 +489,6 @@ monitor_idle_activity() {
             fi
             (( audio_active == 1 || sending_fake_activity == 0 )) && start_fake_activity
         fi
-
             
        if (( idle_elapsed >= suspend_delay )); then
             if (( PRESENTATION_MODE == 1 )); then
@@ -531,7 +522,6 @@ stop_monitoring() {
     rm -f "$PID_FILE"
     rm -f "$PID_FILE.lock"
 }
-
 
 case "$1" in
     start)
@@ -657,7 +647,6 @@ case "$1" in
         save_config
         echo "${BLUE}${BOLD}${MODE^}${RESET}${BLUE} = Timeout: $((POWER_BACKLIGHT)) min -> Sleep: $((POWER_DELAY)) min${RESET}"
         load_config
-
 
     elif [[ $# -eq 2 ]]; then
         VAL=$2
