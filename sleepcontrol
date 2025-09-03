@@ -18,6 +18,10 @@ BRIGHTNESS_PATH=""
 MAX_BRIGHTNESS_PATH=""
 FAKE_ACTIVITY_INTERVAL=120
 LID_SUSPEND_IGNORE_UNTIL=0
+SLEEP_DIR="$INSTALL_DIR/sleep"
+mkdir -p "$SLEEP_DIR"
+REAL_TS_FILE="$SLEEP_DIR/last_real_activity_ts"
+FAKE_TS_FILE="$SLEEP_DIR/last_fake_activity_ts"
 
 SUSPEND_APPLIED_FLAG="/tmp/.sleepcontrol_suspend_applied"
 
@@ -432,18 +436,14 @@ start_fake_activity() {
                 suspend_delay=$((POWER_DELAY*60))
             fi
             ;;
-        *"User activity reported"*|*"User triggered wake"*|*"User activity ongoing"*)
+       *"User activity reported"*|*"User triggered wake"*|*"User activity ongoing"*)
             now=$(date +%s)
-            [[ -f /tmp/last_real_activity_ts ]] || echo 0 > /tmp/last_real_activity_ts
-            read -r last_real_ts < /tmp/last_real_activity_ts
+            read -r last_fake_ts < "$FAKE_TS_FILE" 2>/dev/null || last_fake_ts=0
+            read -r last_real_ts < "$REAL_TS_FILE" 2>/dev/null || last_real_ts=0
         
-            if (( now - last_real_ts > 1 )); then
-                last_real_ts=$now
-                echo "$last_real_ts" > /tmp/last_real_activity_ts
-        
-                if (( monitor_idle == 1 )); then
-                    echo "$(date '+%Y-%m-%d %H:%M:%S') - User activity resumed." >> "$LOG_FILE"
-                fi
+            if (( now - last_real_ts > 1 )) && (( now > last_fake_ts )); then
+                echo "$now" > "$REAL_TS_FILE"
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Real user activity detected." >> "$LOG_FILE"
         
                 monitor_idle=0
                 active=1
