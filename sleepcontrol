@@ -325,7 +325,6 @@ start_fake_activity() {
             if (( monitor_idle == 1 && (now - last_real_ts) >= 5 )); then
                 send_fake_activity
                 last_ts=$now
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Fake activity sent." >> "$LOG_FILE"
             fi
         done
         ) &
