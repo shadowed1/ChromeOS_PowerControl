@@ -417,7 +417,7 @@ start_fake_activity() {
                 kb_brightness_restored=0
                 idle_since=$now
                 last_ts=$now
-                (( sending_fake_activity == 0 )) && start_fake_activity   # START immediately on idle
+                (( sending_fake_activity == 0 )) && start_fake_activity
             fi
             ;;
         *"Lid closed"*)
