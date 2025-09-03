@@ -312,24 +312,24 @@ monitor_idle_activity() {
 
     save_current_brightness
 
-    start_fake_activity() {
+start_fake_activity() {
     if (( sending_fake_activity == 0 )); then
         (
-            while [ -f "$RUN_FLAG" ]; do
-                sleep "$FAKE_ACTIVITY_INTERVAL"
-                if send_fake_activity; then
-                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Fake activity sent." >> "$LOG_FILE"
-                else
-                    echo "$(date '+%Y-%m-%d %H:%M:%S') - ERROR: Failed to send fake activity." >> "$LOG_FILE"
-                fi
-            done
+        while [ -f "$RUN_FLAG" ]; do
+            sleep "$FAKE_ACTIVITY_INTERVAL"
+            now=$(date +%s)
+            if (( monitor_idle == 1 && (now - last_real_ts) >= 5 )); then
+                send_fake_activity
+                last_ts=$now
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Fake activity sent." >> "$LOG_FILE"
+            fi
+        done
         ) &
         fake_activity_pid=$!
         sending_fake_activity=1
         echo "$(date '+%Y-%m-%d %H:%M:%S') - Starting simulated activity loop (PID $fake_activity_pid)." >> "$LOG_FILE"
     fi
 }
-
    stop_fake_activity() {
     if (( sending_fake_activity == 1 )); then
         if kill -0 "$fake_activity_pid" 2>/dev/null; then
@@ -344,7 +344,7 @@ monitor_idle_activity() {
     exec 3< <(tail -Fn0 /var/log/power_manager/powerd.LATEST)
     while read -r line <&3; do
         now=$(date +%s)
-
+        last_real_ts=$now
         (( now - last_reload_time >= 10 )) && { load_config; last_reload_time=$now; }
 
         if (( now - last_power_check_time >= 10 )); then
