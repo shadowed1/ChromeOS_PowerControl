@@ -325,6 +325,7 @@ start_fake_activity() {
             if (( monitor_idle == 1 && (now - last_real_ts) >= 5 )); then
                 send_fake_activity
                 last_ts=$now
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Fake activity sent." >> "$LOG_FILE"
             fi
         done
         ) &
@@ -431,19 +432,19 @@ start_fake_activity() {
                 suspend_delay=$((POWER_DELAY*60))
             fi
             ;;
-       *"User activity reported"*|*"User triggered wake"*|*"User activity ongoing"*)
-            last_fake=0
-            [[ -f /tmp/last_fake_activity_ts ]] && read -r last_fake < /tmp/last_fake_activity_ts
+        *"User activity reported"*|*"User triggered wake"*|*"User activity ongoing"*)
+            now=$(date +%s)
             [[ -f /tmp/last_real_activity_ts ]] || echo 0 > /tmp/last_real_activity_ts
             read -r last_real_ts < /tmp/last_real_activity_ts
-            read -r last_fake_ts < /tmp/last_fake_activity_ts
-            
-            if (( now - last_fake_ts > 2 )); then
+        
+            if (( now - last_real_ts > 1 )); then
                 last_real_ts=$now
                 echo "$last_real_ts" > /tmp/last_real_activity_ts
+        
                 if (( monitor_idle == 1 )); then
                     echo "$(date '+%Y-%m-%d %H:%M:%S') - User activity resumed." >> "$LOG_FILE"
                 fi
+        
                 monitor_idle=0
                 active=1
                 stop_fake_activity
@@ -452,10 +453,9 @@ start_fake_activity() {
                 power_backlight_ts=$now
                 battery_backlight_ts=$now
                 was_dimmed=0
+        
                 [[ -n "$saved_display_brightness" && "$saved_display_brightness" -gt 0 ]] && \
                     echo "$saved_display_brightness" | sudo tee "$BRIGHTNESS_PATH" >/dev/null
-            else
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Skipped simulated activity as real." >> "$LOG_FILE"
             fi
             ;;
         *"Got user-triggered request to set brightness to "*)
