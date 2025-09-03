@@ -21,6 +21,14 @@ LID_SUSPEND_IGNORE_UNTIL=0
 REAL_TS_FILE="$INSTALL_DIR/last_real_activity_ts"
 FAKE_TS_FILE="$INSTALL_DIR/last_fake_activity_ts"
 
+if [[ ! -f "$REAL_TS_FILE" ]]; then
+    echo 0 > "$REAL_TS_FILE"
+fi
+
+if [[ ! -f "$FAKE_TS_FILE" ]]; then
+    echo 0 > "$FAKE_TS_FILE"
+fi
+
 SUSPEND_APPLIED_FLAG="/tmp/.sleepcontrol_suspend_applied"
 
 if [[ ! -f "$SUSPEND_APPLIED_FLAG" ]]; then
