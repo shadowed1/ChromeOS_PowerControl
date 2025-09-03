@@ -277,9 +277,11 @@ send_fake_activity() {
         --dest=org.chromium.PowerManager \
         /org/chromium/PowerManager \
         org.chromium.PowerManager.HandleUserActivity int32:0 int32:0
+    now=$(date +%s)
+    echo "$now" > /tmp/last_fake_activity_ts
     echo "$(date '+%Y-%m-%d %H:%M:%S') - Simulated user activity." >> "$LOG_FILE"
-    echo "$(date '+%s')" > /tmp/last_fake_activity_ts
 }
+
 
 
 monitor_idle_activity() {
@@ -383,14 +385,14 @@ start_fake_activity() {
         *"Audio activity stopped"*)
             (( AUDIO_DETECTION_ENABLED == 1 )) && audio_active=0
             ;;
-        *"User activity stopped"*)
+       *"User activity stopped"*)
             if (( audio_active == 0 )); then
                 monitor_idle=1
                 active=0
                 kb_brightness_restored=0
                 idle_since=$now
                 last_ts=$now
-                stop_fake_activity
+                (( sending_fake_activity == 0 )) && start_fake_activity   # START immediately on idle
             fi
             ;;
         *"Lid closed"*)
@@ -430,15 +432,14 @@ start_fake_activity() {
                 suspend_delay=$((POWER_DELAY*60))
             fi
             ;;
-       *"User activity reported"*|*"Enabling wakeup for"*|*"User triggered wake"*|*"powerd_suspend returned 0"*|*"User activity ongoing"*|*"Configuring devices for mode"*)
-            if (( monitor_idle == 1 )); then
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - User activity resumed." >> "$LOG_FILE"
-            fi
+       *"User activity reported"*|*"User triggered wake"*|*"User activity ongoing"*)
             last_fake=0
-                if [[ -f /tmp/last_fake_activity_ts ]]; then
-                    read -r last_fake < /tmp/last_fake_activity_ts
+            [[ -f /tmp/last_fake_activity_ts ]] && read -r last_fake < /tmp/last_fake_activity_ts
+            if (( now - last_fake > 2 )); then
+                # REAL activity
+                if (( monitor_idle == 1 )); then
+                    echo "$(date '+%Y-%m-%d %H:%M:%S') - User activity resumed." >> "$LOG_FILE"
                 fi
-            if (( now - last_fake >= 2 )); then
                 monitor_idle=0
                 last_real_ts=$now
                 active=1
