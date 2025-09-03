@@ -358,8 +358,7 @@ monitor_idle_activity() {
             get_battery_info
             [[ -z "$STATUS" ]] && { STATUS="Unknown"; CHARGE=""; }
         
-            # Only act if discharging
-            if [[ "$STATUS" == "Discharging" ]]; then
+            if [[ "$STATUS" == "Charging" ]]; then
                 for file in \
                     /var/lib/power_manager/disable_dark_resume \
                     /usr/share/power_manager/disable_dark_resume \
