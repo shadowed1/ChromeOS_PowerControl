@@ -344,7 +344,6 @@ start_fake_activity() {
     exec 3< <(tail -Fn0 /var/log/power_manager/powerd.LATEST)
     while read -r line <&3; do
         now=$(date +%s)
-        last_real_ts=$now
         (( now - last_reload_time >= 10 )) && { load_config; last_reload_time=$now; }
 
         if (( now - last_power_check_time >= 10 )); then
@@ -434,6 +433,7 @@ start_fake_activity() {
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - User activity resumed." >> "$LOG_FILE"
             fi
             monitor_idle=0
+            last_real_ts=$now
             active=1
             stop_fake_activity
             backlight_off=0
