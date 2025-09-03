@@ -435,13 +435,17 @@ start_fake_activity() {
        *"User activity reported"*|*"User triggered wake"*|*"User activity ongoing"*)
             last_fake=0
             [[ -f /tmp/last_fake_activity_ts ]] && read -r last_fake < /tmp/last_fake_activity_ts
-            if (( now - last_fake > 2 )); then
-                # REAL activity
+            [[ -f /tmp/last_real_activity_ts ]] || echo 0 > /tmp/last_real_activity_ts
+            read -r last_real_ts < /tmp/last_real_activity_ts
+            read -r last_fake_ts < /tmp/last_fake_activity_ts
+            
+            if (( now - last_fake_ts > 2 )); then
+                last_real_ts=$now
+                echo "$last_real_ts" > /tmp/last_real_activity_ts
                 if (( monitor_idle == 1 )); then
                     echo "$(date '+%Y-%m-%d %H:%M:%S') - User activity resumed." >> "$LOG_FILE"
                 fi
                 monitor_idle=0
-                last_real_ts=$now
                 active=1
                 stop_fake_activity
                 backlight_off=0
@@ -449,9 +453,8 @@ start_fake_activity() {
                 power_backlight_ts=$now
                 battery_backlight_ts=$now
                 was_dimmed=0
-                if [[ -n "$saved_display_brightness" && "$saved_display_brightness" -gt 0 ]]; then
+                [[ -n "$saved_display_brightness" && "$saved_display_brightness" -gt 0 ]] && \
                     echo "$saved_display_brightness" | sudo tee "$BRIGHTNESS_PATH" >/dev/null
-                fi
             else
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Skipped simulated activity as real." >> "$LOG_FILE"
             fi
