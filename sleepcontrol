@@ -150,6 +150,11 @@ recalc_timers() {
     fi    
 }
 
+if [[ -f "$BRIGHTNESS_PATH" ]]; then
+    read -r original_display_brightness < "$BRIGHTNESS_PATH"
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - Original brightness saved: $original_display_brightness" >> "$LOG_FILE"
+fi
+
 validate_config() {
     if [[ -z "$BATTERY_DELAY" || ! "$BATTERY_DELAY" =~ ^[0-9]+$ ]]; then
         BATTERY_DELAY=$DEFAULT_BATTERY_DELAY
@@ -240,6 +245,16 @@ echo "${RESET}"
 
 load_config
 
+save_original_brightness() {
+    if [[ -f "$BRIGHTNESS_PATH" ]]; then
+        if read -r original_display_brightness < "$BRIGHTNESS_PATH"; then
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - Original brightness saved: $original_display_brightness" >> "$LOG_FILE"
+        else
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - Could not read brightness from $BRIGHTNESS_PATH" >> "$LOG_FILE"
+        fi
+    fi
+}
+
 set_display_brightness() {
     local value=$1
     if [[ -n "$BRIGHTNESS_PATH" ]]; then
@@ -292,7 +307,7 @@ send_fake_activity() {
     echo "$(date '+%Y-%m-%d %H:%M:%S') - Simulated user activity." >> "$LOG_FILE"
 }
 
-
+save_original_brightness
 
 monitor_idle_activity() {
     exec 200>"$PID_FILE.lock"
@@ -420,10 +435,10 @@ start_fake_activity() {
         *"Lid opened"*)
             if (( PRESENTATION_MODE == 0 )); then
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid opened, restoring brightness." >> "$LOG_FILE"
-                if [[ -n "$saved_display_brightness" && "$saved_display_brightness" -gt 0 ]]; then
-                    echo "$saved_display_brightness" | sudo tee "$BRIGHTNESS_PATH" >/dev/null
+                if [[ -n "$original_display_brightness" && "$original_display_brightness" -gt 0 ]]; then
+                    set_display_brightness "$original_display_brightness"
                 fi
-                # sudo ectool pwmsetkblight "$saved_kb_brightness" 2>/dev/null
+                kb_brightness_restored=1
             fi
             ;;
         *"On battery at"*)
