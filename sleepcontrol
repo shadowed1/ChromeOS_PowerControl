@@ -440,24 +440,22 @@ monitor_idle_activity() {
                 suspend_delay=$((POWER_DELAY*60))
             fi
             ;;
-        *"User activity reported"*|*"Enabling wakeup for"*|*"User triggered wake"*|*"powerd_suspend returned 0"*|*"User activity ongoing"*|*"Configuring devices for mode"*)
+       *"User activity reported"*|*"Enabling wakeup for"*|*"User triggered wake"*|*"powerd_suspend returned 0"*|*"User activity ongoing"*|*"Configuring devices for mode"*)
             if (( monitor_idle == 1 )); then
                 if (( now - last_fake_ts > 3 )); then
                     echo "$(date '+%Y-%m-%d %H:%M:%S') - User activity resumed." >> "$LOG_FILE"
                 fi
             fi
-            if (( now - last_fake_ts > 3 )); then
-                monitor_idle=0
-                active=1
-                stop_fake_activity
-                backlight_off=0
-                kb_brightness_restored=1
-                power_backlight_ts=$now
-                battery_backlight_ts=$now
-                was_dimmed=0
-                if [[ -n "$saved_display_brightness" && "$saved_display_brightness" -gt 0 ]]; then
-                    echo "$saved_display_brightness" | sudo tee "$BRIGHTNESS_PATH" >/dev/null
-                fi
+            monitor_idle=0
+            active=1
+            stop_fake_activity
+            backlight_off=0
+            kb_brightness_restored=1
+            power_backlight_ts=$now
+            battery_backlight_ts=$now
+            was_dimmed=0
+            if [[ -n "$saved_display_brightness" && "$saved_display_brightness" -gt 0 ]]; then
+                echo "$saved_display_brightness" | sudo tee "$BRIGHTNESS_PATH" >/dev/null
             fi
             ;;
         *"Got user-triggered request to set brightness to "*)
