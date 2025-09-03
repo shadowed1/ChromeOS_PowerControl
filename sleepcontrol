@@ -323,6 +323,7 @@ monitor_idle_activity() {
             while [ -f "$RUN_FLAG" ]; do
                 sleep "$FAKE_ACTIVITY_INTERVAL"
                 if send_fake_activity; then
+                    last_fake_ts=$(date +%s)
                     echo "$(date '+%Y-%m-%d %H:%M:%S') - Fake activity sent." >> "$LOG_FILE"
                 else
                     echo "$(date '+%Y-%m-%d %H:%M:%S') - ERROR: Failed to send fake activity." >> "$LOG_FILE"
@@ -334,6 +335,7 @@ monitor_idle_activity() {
         echo "$(date '+%Y-%m-%d %H:%M:%S') - Starting simulated activity loop (PID $fake_activity_pid)." >> "$LOG_FILE"
     fi
 }
+
 
 
    stop_fake_activity() {
@@ -440,18 +442,22 @@ monitor_idle_activity() {
             ;;
         *"User activity reported"*|*"Enabling wakeup for"*|*"User triggered wake"*|*"powerd_suspend returned 0"*|*"User activity ongoing"*|*"Configuring devices for mode"*)
             if (( monitor_idle == 1 )); then
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - User activity resumed." >> "$LOG_FILE"
+                if (( now - last_fake_ts > 2 )); then
+                    echo "$(date '+%Y-%m-%d %H:%M:%S') - User activity resumed." >> "$LOG_FILE"
+                fi
             fi
-            monitor_idle=0
-            active=1
-            stop_fake_activity
-            backlight_off=0
-            kb_brightness_restored=1
-            power_backlight_ts=$now
-            battery_backlight_ts=$now
-            was_dimmed=0
-            if [[ -n "$saved_display_brightness" && "$saved_display_brightness" -gt 0 ]]; then
-                echo "$saved_display_brightness" | sudo tee "$BRIGHTNESS_PATH" >/dev/null
+            if (( now - last_fake_ts > 2 )); then
+                monitor_idle=0
+                active=1
+                stop_fake_activity
+                backlight_off=0
+                kb_brightness_restored=1
+                power_backlight_ts=$now
+                battery_backlight_ts=$now
+                was_dimmed=0
+                if [[ -n "$saved_display_brightness" && "$saved_display_brightness" -gt 0 ]]; then
+                    echo "$saved_display_brightness" | sudo tee "$BRIGHTNESS_PATH" >/dev/null
+                fi
             fi
             ;;
         *"Got user-triggered request to set brightness to "*)
