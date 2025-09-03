@@ -278,7 +278,9 @@ send_fake_activity() {
         /org/chromium/PowerManager \
         org.chromium.PowerManager.HandleUserActivity int32:0 int32:0
     echo "$(date '+%Y-%m-%d %H:%M:%S') - Simulated user activity." >> "$LOG_FILE"
+    echo "$(date '+%s')" > /tmp/last_fake_activity_ts
 }
+
 
 monitor_idle_activity() {
     exec 200>"$PID_FILE.lock"
@@ -428,21 +430,29 @@ start_fake_activity() {
                 suspend_delay=$((POWER_DELAY*60))
             fi
             ;;
-        *"User activity reported"*|*"Enabling wakeup for"*|*"User triggered wake"*|*"powerd_suspend returned 0"*|*"User activity ongoing"*|*"Configuring devices for mode"*)
+       *"User activity reported"*|*"Enabling wakeup for"*|*"User triggered wake"*|*"powerd_suspend returned 0"*|*"User activity ongoing"*|*"Configuring devices for mode"*)
             if (( monitor_idle == 1 )); then
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - User activity resumed." >> "$LOG_FILE"
             fi
-            monitor_idle=0
-            last_real_ts=$now
-            active=1
-            stop_fake_activity
-            backlight_off=0
-            kb_brightness_restored=1
-            power_backlight_ts=$now
-            battery_backlight_ts=$now
-            was_dimmed=0
-            if [[ -n "$saved_display_brightness" && "$saved_display_brightness" -gt 0 ]]; then
-                echo "$saved_display_brightness" | sudo tee "$BRIGHTNESS_PATH" >/dev/null
+            last_fake=0
+                if [[ -f /tmp/last_fake_activity_ts ]]; then
+                    read -r last_fake < /tmp/last_fake_activity_ts
+                fi
+            if (( now - last_fake >= 2 )); then
+                monitor_idle=0
+                last_real_ts=$now
+                active=1
+                stop_fake_activity
+                backlight_off=0
+                kb_brightness_restored=1
+                power_backlight_ts=$now
+                battery_backlight_ts=$now
+                was_dimmed=0
+                if [[ -n "$saved_display_brightness" && "$saved_display_brightness" -gt 0 ]]; then
+                    echo "$saved_display_brightness" | sudo tee "$BRIGHTNESS_PATH" >/dev/null
+                fi
+            else
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Skipped simulated activity as real." >> "$LOG_FILE"
             fi
             ;;
         *"Got user-triggered request to set brightness to "*)
