@@ -435,7 +435,9 @@ start_fake_activity() {
         *"Lid opened"*)
             if (( PRESENTATION_MODE == 0 )); then
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid opened, restoring brightness." >> "$LOG_FILE"
-                if [[ -n "$original_display_brightness" && "$original_display_brightness" -gt 0 ]]; then
+                if [[ -n "$saved_display_brightness" && "$saved_display_brightness" -gt 0 ]]; then
+                    set_display_brightness "$saved_display_brightness"
+                elif [[ -n "$original_display_brightness" && "$original_display_brightness" -gt 0 ]]; then
                     set_display_brightness "$original_display_brightness"
                 fi
                 kb_brightness_restored=1
