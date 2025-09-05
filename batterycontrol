@@ -192,47 +192,30 @@ start_monitoring_loop() {
         if (( now - last_reload_time >= 30 )); then
             load_config
             last_reload_time=$now
+
             if read -r BATTERY_CHARGE < "$BATTERY_PATH"; then
-                read -r STATE < "$STATUS_PATH"
+                read -r STATE < "$STATUS_PATH" || STATE="Unknown"
                 echo "${GREEN}$(date '+%Y-%m-%d %H:%M:%S') - Battery: ${BATTERY_CHARGE}% - Charge Limit: ${CHARGE_MAX}% - State: $STATE${RESET}" >> "$LOG_FILE"
             else
                 echo "Failed to read $BATTERY_PATH" >&2
             fi
         fi
 
-       if [ -f "$BATTERY_PATH" ]; then
-            if read -r CHARGE < "$BATTERY_PATH"; then
-                :
-            else
-                echo "Failed to read $BATTERY_PATH" >&2
-                sleep 5
-                continue
-            fi
-        else
+        if ! read -r CHARGE < "$BATTERY_PATH"; then
+            echo "Failed to read $BATTERY_PATH" >&2
             sleep 5
             continue
         fi
 
-        if read -r STATUS < "$STATUS_PATH"; then
-            :
-        else
-            STATUS=""
+        if ! read -r STATUS < "$STATUS_PATH"; then
+            STATUS="Unknown"
         fi
-        
-        if [[ "$STATUS" == "Charging" ]]; then
-            ACTIVE_PORT=$(detect_active_usbpd_port)
-        else
-            ACTIVE_PORT="-1"
-        fi
-        
+
+        ACTIVE_PORT=$(detect_active_usbpd_port)
         if [ "$ACTIVE_PORT" != "-1" ]; then
             CHARGER_PATH="/sys/class/power_supply/CROS_USBPD_CHARGER${ACTIVE_PORT}/online"
             if [ -f "$CHARGER_PATH" ]; then
-                if read -r AC_ON < "$CHARGER_PATH"; then
-                    :
-                else
-                    AC_ON=0
-                fi
+                read -r AC_ON < "$CHARGER_PATH" || AC_ON=0
             else
                 AC_ON=0
             fi
@@ -240,13 +223,12 @@ start_monitoring_loop() {
             AC_ON=0
         fi
 
+        CHARGE_MIN=$((CHARGE_MAX - 4))
 
-        CHARGE_MIN=$((CHARGE_MAX-4))
-
-         if [ "$AC_ON" -eq 1 ]; then
-            if [ "$CHARGE" -ge "$CHARGE_MAX" ]; then
+        if [ "$AC_ON" -eq 1 ]; then
+            if (( CHARGE >= CHARGE_MAX )); then
                 sudo ectool chargecontrol idle >/dev/null 2>&1
-            elif [ "$CHARGE" -le "$CHARGE_MIN" ]; then
+            elif (( CHARGE <= CHARGE_MIN )); then
                 sudo ectool chargecontrol normal >/dev/null 2>&1
             fi
         else
