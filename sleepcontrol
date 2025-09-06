@@ -426,8 +426,9 @@ start_fake_activity() {
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid close ignored (presentation mode)." >> "$LOG_FILE"
                 stop_fake_activity
             elif (( LIDSLEEP_ENABLED == 1 )); then
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid closed; relying on ChromeOS suspend." >> "$LOG_FILE"
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid closed; forcing suspend (mem)." >> "$LOG_FILE"
                 stop_fake_activity
+                echo mem | sudo tee /sys/power/state >/dev/null
             else
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid closed, lid sleep off." >> "$LOG_FILE"
             fi
@@ -534,12 +535,13 @@ start_fake_activity() {
             if (( PRESENTATION_MODE == 1 )); then
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Presentation mode active, suspend skipped." >> "$LOG_FILE"
                 stop_fake_activity
-            elif (( audio_active == 1 || kb_brightness_restored == 0 )); then
+           elif (( audio_active == 1 || kb_brightness_restored == 0 )); then
                 (( sending_fake_activity == 0 )) && start_fake_activity
             else
                 stop_fake_activity
-                sleep 5
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Sleep threshold elapsed; going to sleep!" >> "$LOG_FILE"
+                sleep 1
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Sleep threshold elapsed (mem)." >> "$LOG_FILE"
+                echo mem | sudo tee /sys/power/state >/dev/null
             fi
         fi
     fi
