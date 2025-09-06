@@ -264,7 +264,7 @@ echo "${RESET}"
 load_config
 
 check_lid_state_loop() {
-    echo $$ > "$PID_FILE.lid"   # save lid monitor PID for cleanup
+    echo $$ > "$PID_FILE.lid"
 
     while [ -f "$RUN_FLAG" ]; do
         state=$(get_lid_state)
