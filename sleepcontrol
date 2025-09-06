@@ -426,9 +426,13 @@ start_fake_activity() {
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid close ignored (presentation mode)." >> "$LOG_FILE"
                 stop_fake_activity
             elif (( LIDSLEEP_ENABLED == 1 )); then
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid closed; forcing suspend (mem)." >> "$LOG_FILE"
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid closed; enforcing mem sleep." >> "$LOG_FILE"
                 stop_fake_activity
-                echo mem | sudo tee /sys/power/state >/dev/null
+                while (( LIDSLEEP_ENABLED == 1 )) && (( lid_closed == 1 )); do
+                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Suspending (lid closed)..." >> "$LOG_FILE"
+                    echo mem | sudo tee /sys/power/state >/dev/null
+                    sleep 5
+                done
             else
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid closed, lid sleep off." >> "$LOG_FILE"
             fi
