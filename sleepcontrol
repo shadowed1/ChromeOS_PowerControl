@@ -419,14 +419,13 @@ start_fake_activity() {
             fi
             ;;
        *"Lid closed"*)
-            lid_closed=1
             if (( PRESENTATION_MODE == 1 )); then
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid close ignored (presentation mode)." >> "$LOG_FILE"
                 stop_fake_activity
             elif (( LIDSLEEP_ENABLED == 1 )); then
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid closed; enforcing mem sleep." >> "$LOG_FILE"
                 stop_fake_activity
-                while (( LIDSLEEP_ENABLED == 1 )) && (( lid_closed == 1 )); do
+                while (( LIDSLEEP_ENABLED == 1 )) && [[ "$(get_lid_state)" == "closed" ]]; do
                     echo "$(date '+%Y-%m-%d %H:%M:%S') - Suspending (lid closed)..." >> "$LOG_FILE"
                     echo mem | sudo tee /sys/power/state >/dev/null
                     sleep 5
@@ -435,8 +434,7 @@ start_fake_activity() {
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid closed, lid sleep off." >> "$LOG_FILE"
             fi
             ;;
-       *"Lid opened"*)
-            lid_closed=0
+        *"Lid opened"*)
             if (( PRESENTATION_MODE == 0 )); then
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid opened, restoring brightness." >> "$LOG_FILE"
                 if [[ -n "$saved_display_brightness" && "$saved_display_brightness" -gt 0 ]]; then
@@ -466,7 +464,6 @@ start_fake_activity() {
        *"User activity reported"*|*"User triggered wake"*|*"Enabling wakeup for"*|*"Configuring devices for mode"*|*"User activity ongoing"*)
             now=$(date +%s)
             last_ts=$now
-            lid_closed=0
             read -r last_fake_ts < "$FAKE_TS_FILE" 2>/dev/null || last_fake_ts=0
             read -r last_real_ts < "$REAL_TS_FILE" 2>/dev/null || last_real_ts=0
         
@@ -488,7 +485,6 @@ start_fake_activity() {
             fi
             ;;
         *"Got user-triggered request to set brightness to "*)
-            lid_closed=0
             line=$(grep "Setting brightness to" /var/log/power_manager/powerd.LATEST | tail -n1)
             brightness_value=$(echo "$line" | sed -n 's/.*Setting brightness to \([0-9]\+\) (.*/\1/p')
     
