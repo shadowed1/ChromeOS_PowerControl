@@ -260,7 +260,7 @@ Moved disable_dark_suspend=0 logic into read section. Cleaned up sending fake ac
 Added back verbose logging (To do: Plan on implementing log levels recommend by Saragon).` <br><br>
 - 0.44: `Reworked SleepControl simulated activity timestamp comparison logic to work reliably` <br><br>
 - 0.45: `Cleaned up FanControl loop logic. Fixed logic loophole in batterycontrol to misreport charge status. Added not-charging description in battery control monitor.
-Implemented mem sleep logic in sleepcontrol to avoid s2idle. Fixed fancontrol.conf file from respawning.` <br><br>
+Implemented mem sleep logic in sleepcontrol to avoid s2idle. Fixed fancontrol.conf file from respawning. Added lid state detection with loop logic to re-suspend machine upon wakeup from power changes while lid sleep is on.` <br><br>
   
 __Acknowledgements:__
 
