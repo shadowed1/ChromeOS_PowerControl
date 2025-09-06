@@ -247,11 +247,9 @@ load_config
 
 save_original_brightness() {
     if [[ -f "$BRIGHTNESS_PATH" ]]; then
-        if read -r original_display_brightness < "$BRIGHTNESS_PATH"; then
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - Original brightness saved: $original_display_brightness" >> "$LOG_FILE"
-        else
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - Could not read brightness from $BRIGHTNESS_PATH" >> "$LOG_FILE"
-        fi
+        read -r original_display_brightness < "$BRIGHTNESS_PATH" || original_display_brightness=""
+    else
+        original_display_brightness=""
     fi
 }
 
