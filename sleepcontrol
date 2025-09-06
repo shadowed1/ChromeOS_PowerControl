@@ -384,6 +384,20 @@ start_fake_activity() {
         fake_activity_pid=0
     fi
 }
+
+check_lid_sleep() {
+    local lid
+    lid=$(get_lid_state)
+    if [[ "$lid" == "closed" ]]; then
+        if (( PRESENTATION_MODE == 1 )); then
+            stop_fake_activity
+        elif (( LIDSLEEP_ENABLED == 1 )); then
+            stop_fake_activity
+            echo mem | sudo tee /sys/power/state >/dev/null
+        fi
+    fi
+}
+
     exec 3< <(tail -Fn0 /var/log/power_manager/powerd.LATEST)
     while read -r line <&3; do
         now=$(date +%s)
@@ -432,33 +446,6 @@ start_fake_activity() {
                 idle_since=$now
                 last_ts=$now
                 (( sending_fake_activity == 0 )) && start_fake_activity
-            fi
-            ;;
-       *"Lid closed"*)
-            if (( PRESENTATION_MODE == 1 )); then
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid close ignored (presentation mode)." >> "$LOG_FILE"
-                stop_fake_activity
-            elif (( LIDSLEEP_ENABLED == 1 )); then
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid closed; enforcing mem sleep." >> "$LOG_FILE"
-                stop_fake_activity
-                while (( LIDSLEEP_ENABLED == 1 )) && [[ "$(get_lid_state)" == "closed" ]]; do
-                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Suspending (lid closed)..." >> "$LOG_FILE"
-                    echo mem | sudo tee /sys/power/state >/dev/null
-                    sleep 5
-                done
-            else
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid closed, lid sleep off." >> "$LOG_FILE"
-            fi
-            ;;
-        *"Lid opened"*)
-            if (( PRESENTATION_MODE == 0 )); then
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid opened, restoring brightness." >> "$LOG_FILE"
-                if [[ -n "$saved_display_brightness" && "$saved_display_brightness" -gt 0 ]]; then
-                    set_display_brightness "$saved_display_brightness"
-                elif [[ -n "$original_display_brightness" && "$original_display_brightness" -gt 0 ]]; then
-                    set_display_brightness "$original_display_brightness"
-                fi
-                kb_brightness_restored=1
             fi
             ;;
         *"On battery at"*)
@@ -510,6 +497,8 @@ start_fake_activity() {
             fi
             ;;
     esac
+
+check_lid_sleep
     
     if (( monitor_idle == 1 )); then
         idle_elapsed=$(( now - last_ts ))
