@@ -259,6 +259,8 @@ FanControl kick start is a bit more graceful.` <br><br>
 Moved disable_dark_suspend=0 logic into read section. Cleaned up sending fake activity script to be bit more aggressive. Relaxed zero rpm kickstart.
 Added back verbose logging (To do: Plan on implementing log levels recommend by Saragon).` <br><br>
 - 0.44: `Reworked SleepControl simulated activity timestamp comparison logic to work reliably` <br><br>
+- 0.45: `Cleaned up FanControl loop logic. Fixed logic loophole in batterycontrol to misreport charge status. Added not-charging description in battery control monitor.
+Implemented mem sleep logic in sleepcontrol to avoid s2idle.` <br><br>
   
 __Acknowledgements:__
 
