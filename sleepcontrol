@@ -52,6 +52,22 @@ if [[ ! -f "$SUSPEND_APPLIED_FLAG" ]]; then
     fi
 fi
 
+get_lid_state() {
+    local state_file="/proc/acpi/button/lid/LID0/state"
+    if [[ -f $state_file ]]; then
+        if read -r line < "$state_file"; then
+            case "$line" in
+                *open*) echo "open" ;;
+                *closed*) echo "closed" ;;
+                *) echo "unknown" ;;
+            esac
+        else
+            echo "unknown"
+        fi
+    else
+        echo "unknown"
+    fi
+}
 
 get_battery_info() {
     local line
