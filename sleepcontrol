@@ -470,7 +470,7 @@ echo "${RESET}"
                 read -r last_fake_ts < "$FAKE_TS_FILE" 2>/dev/null || last_fake_ts=0
                 read -r last_real_ts < "$REAL_TS_FILE" 2>/dev/null || last_real_ts=0
             
-                if (( now - last_real_ts > 2 )) && (( now > last_fake_ts )); then
+                if (( now - last_real_ts > 4 )) && (( now > last_fake_ts )); then
                     echo "$now" > "$REAL_TS_FILE"
                     echo "$(date '+%Y-%m-%d %H:%M:%S') - Real user activity detected." >> "$LOG_FILE"
             
