@@ -178,31 +178,42 @@ echo "${RESET}${YELLOW}║             VT-2 (or enabling sudo in crosh) is requi
 echo "${RESET}${RED}║               ${RESET}${YELLOW}Must be installed in a location without the noexec mount.${RED}                       ║"
 echo "${RESET}${YELLOW}╚${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}╝"
 echo "${RESET}"
+
+DEFAULT_INSTALL_DIR="/usr/local/bin/ChromeOS_PowerControl"
+
+if [ -f "$DEFAULT_INSTALL_DIR/.install_path" ]; then
+    INSTALL_DIR=$(sudo cat "$DEFAULT_INSTALL_DIR/.install_path")
+    echo -e "${CYAN}Found existing install path: ${BOLD}$INSTALL_DIR${RESET}"
+else
+    INSTALL_DIR="$DEFAULT_INSTALL_DIR"
+fi
+
 while true; do
     read -rp "${GREEN}Enter desired Install Path - ${RESET}${GREEN}${BOLD}leave blank for default: $INSTALL_DIR:$RESET " choice
     if [ -n "$choice" ]; then
-        INSTALL_DIR="${choice:-/usr/local/bin/ChromeOS_PowerControl}"
+        INSTALL_DIR="${choice}"
     fi
     INSTALL_DIR="${INSTALL_DIR%/}"
 
     echo -e "\n${CYAN}You entered: ${BOLD}$INSTALL_DIR${RESET}"
     read -rp "${YELLOW}${BOLD}Confirm this install path? Enter key counts as yes!${RESET}${BOLD} (Y/n): ${RESET}" confirm
     case "$confirm" in
-        [Yy]* | "")  
+        [Yy]* | "")
             sudo mkdir -p "$INSTALL_DIR"
             echo ""
             break
             ;;
-        [Nn]*) 
+        [Nn]*)
             echo -e "${BLUE}Cancelled.${RESET}\n"
             ;;
-        *) 
+        *)
             echo -e "${RED}Please answer Y/n.${RESET}"
             ;;
     esac
 done
 
 echo "$INSTALL_DIR" | sudo tee "$INSTALL_DIR/.install_path" >/dev/null
+
 
 declare -a files=(
   "powercontrol" "batterycontrol" "fancontrol" "gpucontrol" "Uninstall_ChromeOS_PowerControl.sh" "LICENSE" 
