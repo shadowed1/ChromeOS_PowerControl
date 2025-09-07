@@ -502,7 +502,7 @@ echo "${RESET}"
     check_lid_sleep
         
         if (( monitor_idle == 1 )); then
-            idle_elapsed=$(( now - last_ts ))
+            idle_elapsed=$(( now - idle_since )) 
             (( STATUS == "Discharging" )) && AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_BATTERY || AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_POWER
         
             if (( now - last_log_ts >= 10 )); then
