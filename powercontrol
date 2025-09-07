@@ -562,65 +562,6 @@ uninstall_script() {
     fi
 }
 
-reinstall() {
-    echo ""
-    echo "Choose Install:"
-    echo "  1) Quick Reinstall - Update scripts only"
-    echo "  2) Full Reinstall - Redownload installer and run full setup"
-    read -rp "Enter 1 or 2: " REINSTALL_CHOICE
-
-    case "$REINSTALL_CHOICE" in
-        1)
-            echo "${RESET}Starting Quick Reinstall"
-            sudo "$INSTALL_DIR/powercontrol" stop
-            sudo "$INSTALL_DIR/batterycontrol" stop
-            sudo "$INSTALL_DIR/fancontrol" stop
-            sudo "$INSTALL_DIR/sleepcontrol" stop
-
-            sudo curl -fsSL https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/powercontrol -o "$INSTALL_DIR/powercontrol"
-            sudo curl -fsSL https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/batterycontrol -o "$INSTALL_DIR/batterycontrol"
-            sudo curl -fsSL https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/fancontrol -o "$INSTALL_DIR/fancontrol"
-            sudo curl -fsSL https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/gpucontrol -o "$INSTALL_DIR/gpucontrol"
-            sudo curl -fsSL https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/sleepcontrol -o "$INSTALL_DIR/sleepcontrol"
-
-            sudo chmod +x "$INSTALL_DIR/"{powercontrol,batterycontrol,fancontrol,gpucontrol,sleepcontrol}
-            echo "Quick reinstall complete."
-
-            read -rp "Enable global commands for PowerControl, BatteryControl, FanControl, GPUControl, SleepControl? (Y/n): " LINK_CMD
-            if [[ -z "$LINK_CMD" || "$LINK_CMD" =~ ^[Yy]$ ]]; then
-                for cmd in powercontrol batterycontrol fancontrol gpucontrol sleepcontrol; do
-                    sudo ln -sf "$INSTALL_DIR/$cmd" /usr/local/bin/$cmd
-                done
-                echo "Symbolic links created."
-            else
-                echo "Skipped creating global commands."
-            fi
-
-            read -rp "Start ChromeOS_PowerControl modules now? (Y/n): " START_MODULES
-            if [[ -z "$START_MODULES" || "$START_MODULES" =~ ^[Yy]$ ]]; then
-                sudo "$INSTALL_DIR/powercontrol" start
-                sudo "$INSTALL_DIR/batterycontrol" start
-                sudo "$INSTALL_DIR/fancontrol" start
-                sudo "$INSTALL_DIR/sleepcontrol" start
-                echo "Modules started."
-            else
-                echo "Skipped starting modules."
-            fi
-            ;;
-        2)
-            echo "Starting Full Reinstall..."
-            echo "Downloading installer..."
-            bash <(curl -s "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/ChromeOS_PowerControl_Downloader.sh?$(date +%s)")
-            echo "Running installer..."
-            sudo mkdir -p /usr/local/bin
-            sudo mv /home/chronos/ChromeOS_PowerControl_Installer.sh /usr/local/bin
-            sudo bash /usr/local/bin/ChromeOS_PowerControl_Installer.sh
-            ;;
-        *)
-            echo "Invalid choice. Aborting reinstall."
-            ;;
-    esac
-}
 
 show_help() {
 echo "${CYAN}"
@@ -883,7 +824,16 @@ case "$1" in
     fi
     ;;
     reinstall)
-    reinstall
+    echo "Downloading to:${CYAN} /home/chronos/ChromeOS_PowerControl_Installer.sh $RESET"
+    bash <(curl -s "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/ChromeOS_PowerControl_Downloader.sh?$(date +%s)")
+    echo "Running commands:"
+    echo ""
+    sudo mkdir -p /usr/local/bin
+    echo "sudo mkdir -p /usr/local/bin"
+    sudo mv /home/chronos/ChromeOS_PowerControl_Installer.sh /usr/local/bin
+    echo "sudo mv /home/chronos/ChromeOS_PowerControl_Installer.sh /usr/local/bin"
+    echo "sudo bash /usr/local/bin/ChromeOS_PowerControl_Installer.sh"
+    sudo bash /usr/local/bin/ChromeOS_PowerControl_Installer.sh
     ;;
     __powercontrol_monitor__)
     LOG_FILE="/var/log/powercontrol.log"
