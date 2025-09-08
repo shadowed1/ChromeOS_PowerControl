@@ -69,6 +69,8 @@ get_lid_state() {
     fi
 }
 
+
+
 get_battery_info() {
     local line
     line=$(grep -E "On (battery|AC)|line_power (connected|online)" "$BATTERY_STATUS_PATH" | tail -n1)
@@ -493,7 +495,6 @@ echo "${RESET}"
                     [[ -n "$saved_display_brightness" && "$saved_display_brightness" -gt 0 ]] && \
                         echo "$saved_display_brightness" | sudo tee "$BRIGHTNESS_PATH" >/dev/null
                 fi
-                saved_display_brightness=""
                 ;;
             *"Got user-triggered request to set brightness to "*)
                 line=$(grep "Setting brightness to" /var/log/power_manager/powerd.LATEST | tail -n1)
@@ -534,7 +535,7 @@ echo "${RESET}"
                 fi
             fi
             
-            if (( idle_elapsed >= backlight_delay && idle_elapsed < suspend_delay )); then
+           if (( idle_elapsed >= backlight_delay && idle_elapsed < suspend_delay )); then
                 if (( backlight_off == 0 )); then
                     if [[ $was_dimmed -eq 0 ]]; then
                         if [[ -f "$BRIGHTNESS_PATH" ]] && read -r tmp_brightness < "$BRIGHTNESS_PATH"; then
@@ -547,15 +548,22 @@ echo "${RESET}"
                         echo "$(date '+%Y-%m-%d %H:%M:%S') - Skipped saving brightness because display is already dimmed." >> "$LOG_FILE"
                     fi
             
-                    echo 0 | sudo tee "$BRIGHTNESS_PATH" >/dev/null
+                    set_display_brightness 0
+            
+                    if [[ $kb_brightness_restored -eq 1 ]]; then
+                        saved_kb_brightness=$(sudo ectool pwmgetkblight 2>/dev/null | awk '{print $NF}')
+                        kb_brightness_restored=0
+                    fi
+                    sudo ectool pwmsetkblight 0
             
                     backlight_off=1
                     was_dimmed=1
-                    kb_brightness_restored=0
                     echo "$(date '+%Y-%m-%d %H:%M:%S') - Display and keyboard backlight off. saved_display_brightness=$saved_display_brightness" >> "$LOG_FILE"
                 fi
+            
                 (( audio_active == 1 || sending_fake_activity == 0 )) && start_fake_activity
             fi
+
 
                 
            if (( idle_elapsed >= suspend_delay )); then
