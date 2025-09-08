@@ -277,18 +277,20 @@ echo "${RESET}"
         }
     
     save_current_brightness() {
-        if [[ $was_dimmed -eq 0 ]]; then
+        if [[ -z "$saved_display_brightness" ]]; then
             if [[ -f "$BRIGHTNESS_PATH" ]]; then
                 if read -r saved_display_brightness < "$BRIGHTNESS_PATH"; then
                     :
                 else
-                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Could not read brightness from $BRIGHTNESS_PATH" >> "$LOG_FILE"
+                    saved_display_brightness=$original_display_brightness
+                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Could not read brightness, using original $saved_display_brightness" >> "$LOG_FILE"
                 fi
             else
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Could not save brightness: $BRIGHTNESS_PATH not found" >> "$LOG_FILE"
+                saved_display_brightness=$original_display_brightness
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Brightness path missing, using fallback $saved_display_brightness" >> "$LOG_FILE"
             fi
         else
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - Skipping because display is dimmed." >> "$LOG_FILE"
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - Brightness already saved; skipping." >> "$LOG_FILE"
         fi
     }
     
@@ -491,6 +493,7 @@ echo "${RESET}"
                     [[ -n "$saved_display_brightness" && "$saved_display_brightness" -gt 0 ]] && \
                         echo "$saved_display_brightness" | sudo tee "$BRIGHTNESS_PATH" >/dev/null
                 fi
+                saved_display_brightness=""
                 ;;
             *"Got user-triggered request to set brightness to "*)
                 line=$(grep "Setting brightness to" /var/log/power_manager/powerd.LATEST | tail -n1)
