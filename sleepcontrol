@@ -530,7 +530,7 @@ echo "${RESET}"
                 if (( backlight_off == 0 )); then
                     echo 0 | sudo tee "$BRIGHTNESS_PATH" >/dev/null
                     backlight_off=1
-                    kb_brightness_restored=0   # mark it only during backlight off
+                    kb_brightness_restored=0
                     echo "$(date '+%Y-%m-%d %H:%M:%S') - Display and keyboard backlight off." >> "$LOG_FILE"
                 fi
                 (( audio_active == 1 || sending_fake_activity == 0 )) && start_fake_activity
