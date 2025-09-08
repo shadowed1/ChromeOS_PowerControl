@@ -316,10 +316,10 @@ echo "${RESET}"
             --dest=org.chromium.PowerManager \
             /org/chromium/PowerManager \
             org.chromium.PowerManager.HandleUserActivity int32:0 int32:0
+    
         now=$(date +%s)
         echo "$now" > "$FAKE_TS_FILE"
-        echo "$(date '+%Y-%m-%d %H:%M:%S') - Simulated user activity." >> "$LOG_FILE"
-        last_ts_fake=$now
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - Simulated user activity. (fake_ts=$now)" >> "$LOG_FILE"
     }
     
     save_original_brightness
@@ -362,6 +362,9 @@ echo "${RESET}"
             while [ -f "$RUN_FLAG" ]; do
                 sleep "$FAKE_ACTIVITY_INTERVAL"
                 now=$(date +%s)
+    
+                read -r last_real_ts < "$REAL_TS_FILE" 2>/dev/null || last_real_ts=0
+    
                 if (( monitor_idle == 1 && (now - last_real_ts) >= 5 )); then
                     send_fake_activity
                     echo "$(date '+%Y-%m-%d %H:%M:%S') - Fake activity sent." >> "$LOG_FILE"
@@ -373,6 +376,7 @@ echo "${RESET}"
             echo "$(date '+%Y-%m-%d %H:%M:%S') - Starting simulated activity loop (PID $fake_activity_pid)." >> "$LOG_FILE"
         fi
     }
+
        stop_fake_activity() {
         if (( sending_fake_activity == 1 )); then
             if kill -0 "$fake_activity_pid" 2>/dev/null; then
@@ -506,7 +510,7 @@ echo "${RESET}"
             (( STATUS == "Discharging" )) && AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_BATTERY || AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_POWER
         
             if (( now - last_log_ts >= 10 )); then
-                echo "Current Timestamp -> $now | $last_ts <- Timestamp since Idle" >> "$LOG_FILE"
+                echo "Current Timestamp -> $now | $idle_since <- Timestamp since Idle" >> "$LOG_FILE"
                 last_log_ts=$now
             fi
     
@@ -529,13 +533,23 @@ echo "${RESET}"
             
             if (( idle_elapsed >= backlight_delay && idle_elapsed < suspend_delay )); then
                 if (( backlight_off == 0 )); then
+                    if [[ -f "$BRIGHTNESS_PATH" ]] && read -r tmp_brightness < "$BRIGHTNESS_PATH"; then
+                        saved_display_brightness="$tmp_brightness"
+                    else
+                        saved_display_brightness=${saved_display_brightness:-50}
+                        echo "$(date '+%Y-%m-%d %H:%M:%S') - Could not read current brightness; using fallback $saved_display_brightness" >> "$LOG_FILE"
+                    fi
+            
                     echo 0 | sudo tee "$BRIGHTNESS_PATH" >/dev/null
+            
                     backlight_off=1
-                    kb_brightness_restored=0   # mark it only during backlight off
-                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Display and keyboard backlight off." >> "$LOG_FILE"
+                    was_dimmed=1
+                    kb_brightness_restored=0
+                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Display and keyboard backlight off. saved_display_brightness=$saved_display_brightness" >> "$LOG_FILE"
                 fi
                 (( audio_active == 1 || sending_fake_activity == 0 )) && start_fake_activity
             fi
+
                 
            if (( idle_elapsed >= suspend_delay )); then
                 if (( PRESENTATION_MODE == 1 )); then
