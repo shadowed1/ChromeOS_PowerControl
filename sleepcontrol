@@ -533,11 +533,15 @@ echo "${RESET}"
             
             if (( idle_elapsed >= backlight_delay && idle_elapsed < suspend_delay )); then
                 if (( backlight_off == 0 )); then
-                    if [[ -f "$BRIGHTNESS_PATH" ]] && read -r tmp_brightness < "$BRIGHTNESS_PATH"; then
-                        saved_display_brightness="$tmp_brightness"
+                    if [[ $was_dimmed -eq 0 ]]; then
+                        if [[ -f "$BRIGHTNESS_PATH" ]] && read -r tmp_brightness < "$BRIGHTNESS_PATH"; then
+                            saved_display_brightness="$tmp_brightness"
+                        else
+                            saved_display_brightness=${saved_display_brightness:-50}
+                            echo "$(date '+%Y-%m-%d %H:%M:%S') - Could not read current brightness; using fallback $saved_display_brightness" >> "$LOG_FILE"
+                        fi
                     else
-                        saved_display_brightness=${saved_display_brightness:-50}
-                        echo "$(date '+%Y-%m-%d %H:%M:%S') - Could not read current brightness; using fallback $saved_display_brightness" >> "$LOG_FILE"
+                        echo "$(date '+%Y-%m-%d %H:%M:%S') - Skipped saving brightness because display is already dimmed." >> "$LOG_FILE"
                     fi
             
                     echo 0 | sudo tee "$BRIGHTNESS_PATH" >/dev/null
