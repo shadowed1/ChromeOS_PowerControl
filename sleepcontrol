@@ -554,7 +554,6 @@ echo "${RESET}"
                         saved_kb_brightness=$(sudo ectool pwmgetkblight 2>/dev/null | awk '{print $NF}')
                         kb_brightness_restored=0
                     fi
-                    sudo ectool pwmsetkblight 0
             
                     backlight_off=1
                     was_dimmed=1
