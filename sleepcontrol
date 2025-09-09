@@ -292,55 +292,6 @@ save_current_brightness() {
     fi
 }
 
-start_mem_sleep_watcher() {
-    if [[ "$STATUS" != "Discharging" && "$SUSPEND_MODE" == "deep" ]]; then
-        (
-            exec 200>"$INSTALL_DIR/.mem_sleep_watcher.lock"
-            flock -n 200 || exit 0
-
-            echo $$ > "$INSTALL_DIR/.mem_sleep_watcher_pid"
-
-            while [ -f "$RUN_FLAG" ] && [[ "$STATUS" != "Discharging" ]]; do
-                source "$CONFIG_FILE" >/dev/null 2>&1
-                [[ "$SUSPEND_MODE" != "deep" ]] && break
-
-                if [[ -f /usr/share/power_manager/suspend_mode ]]; then
-                    if read -r desired_mode < /usr/share/power_manager/suspend_mode; then
-                        [[ "$desired_mode" != "deep" && "$desired_mode" != "s2idle" ]] && desired_mode="s2idle"
-                    else
-                        desired_mode="s2idle"
-                    fi
-                else
-                    desired_mode="s2idle"
-                fi
-
-                echo "$desired_mode" | sudo tee /sys/power/mem_sleep >/dev/null
-
-                for file in \
-                    /var/lib/power_manager/disable_dark_resume \
-                    /usr/share/power_manager/disable_dark_resume \
-                    /mnt/stateful_partition/encrypted/var/lib/power_manager/disable_dark_resume; do
-                    [[ -f "$file" ]] && echo 0 | sudo tee "$file" >/dev/null
-                done
-
-                get_battery_info
-                sleep 10
-            done
-        ) &
-    fi
-}
-
-
-stop_mem_sleep_watcher() {
-    if [[ -f "$INSTALL_DIR/.mem_sleep_watcher_pid" ]]; then
-        kill "$(cat "$INSTALL_DIR/.mem_sleep_watcher_pid")" 2>/dev/null
-        rm -f "$INSTALL_DIR/.mem_sleep_watcher_pid"
-        echo "$(date '+%Y-%m-%d %H:%M:%S') - Mem_sleep watcher stopped." >> "$LOG_FILE"
-    fi
-}
-
-
-
 idle_elapsed=0
 
 send_fake_activity() {
@@ -438,16 +389,33 @@ monitor_idle_activity() {
         (( now - last_reload_time >= 10 )) && { load_config; last_reload_time=$now; }
 
         if (( now - last_power_check_time >= 10 )); then
-            get_battery_info
-            [[ -z "$STATUS" ]] && { STATUS="Unknown"; CHARGE=""; }
-            last_power_check_time=$now
-        
-            if [[ "$STATUS" != "Discharging" ]]; then
-                start_mem_sleep_watcher
+    get_battery_info
+    [[ -z "$STATUS" ]] && { STATUS="Unknown"; CHARGE=""; }
+    last_power_check_time=$now
+
+    # --- MEM_SLEEP logic integrated ---
+    if [[ "$STATUS" != "Discharging" && "$SUSPEND_MODE" == "deep" ]]; then
+        if [[ -f /usr/share/power_manager/suspend_mode ]]; then
+            if read -r desired_mode < /usr/share/power_manager/suspend_mode; then
+                [[ "$desired_mode" != "deep" && "$desired_mode" != "s2idle" ]] && desired_mode="s2idle"
             else
-                stop_mem_sleep_watcher
+                desired_mode="s2idle"
             fi
+        else
+            desired_mode="s2idle"
         fi
+
+        echo "$desired_mode" | sudo tee /sys/power/mem_sleep >/dev/null
+
+        for file in \
+            /var/lib/power_manager/disable_dark_resume \
+            /usr/share/power_manager/disable_dark_resume \
+            /mnt/stateful_partition/encrypted/var/lib/power_manager/disable_dark_resume; do
+            [[ -f "$file" ]] && echo 0 | sudo tee "$file" >/dev/null
+        done
+    fi
+fi
+
 
 
         AUDIO_DETECTION_ENABLED=$(( STATUS == "Discharging" ? AUDIO_DETECTION_BATTERY : AUDIO_DETECTION_POWER ))
@@ -621,7 +589,6 @@ stop_monitoring() {
     rm -f "$RUN_FLAG"
     rm -f "$PID_FILE"
     rm -f "$PID_FILE.lock"
-    stop_mem_sleep_watcher
 }
 
 
