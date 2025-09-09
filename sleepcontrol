@@ -486,6 +486,7 @@ monitor_idle_activity() {
                 stop_fake_activity
             elif (( LIDSLEEP_ENABLED == 1 )); then
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid closed, lid sleep on!" >> "$LOG_FILE"
+                stop_fake_activity
             else
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid closed, lid sleep off." >> "$LOG_FILE"
             fi
