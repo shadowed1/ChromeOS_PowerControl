@@ -221,15 +221,13 @@ set_max_perf_pct() {
     (( pct > 100 )) && pct=100
     (( pct < 10 )) && pct=10
 
-   if (( IS_INTEL == 1 )) && [[ "$PERF_PATH" == *intel_pstate/max_perf_pct ]] && [[ -f "$PERF_PATH" ]]; then
+    if (( IS_INTEL == 1 )) && [[ "$PERF_PATH" == *intel_pstate/max_perf_pct ]] && [[ -f "$PERF_PATH" ]]; then
         if [ -w "$PERF_PATH" ]; then
             echo "$pct" | sudo tee "$PERF_PATH" > /dev/null
         else
             echo "${RED}Permission denied: Cannot write to $PERF_PATH${RESET}" >&2
             exit 1
         fi
-    fi
-
 
     elif (( IS_AMD == 1 || IS_ARM == 1 )) && [[ ${#PERF_PATHS[@]} -gt 0 ]]; then
         for path in "${PERF_PATHS[@]}"; do
@@ -242,7 +240,7 @@ set_max_perf_pct() {
                 target_freq=$(( min_freq + (max_freq - min_freq) * pct / 100 ))
                 chosen_freq=""
 
-               if [[ -f "$policy_dir/scaling_available_frequencies" ]]; then
+                if [[ -f "$policy_dir/scaling_available_frequencies" ]]; then
                     if read -r -a available_freqs < "$policy_dir/scaling_available_frequencies"; then
                         for freq in "${available_freqs[@]}"; do
                             if (( freq >= target_freq )); then
@@ -253,9 +251,12 @@ set_max_perf_pct() {
                         [[ -z "$chosen_freq" ]] && chosen_freq=${available_freqs[-1]}
                         [[ -z "$chosen_freq" ]] && chosen_freq=$target_freq
                         target_freq=$chosen_freq
+                    else
+                        echo "[$(date)] $policy_dir: pct=$pct% min=$min_freq max=$max_freq target=$target_freq (failed to read avail freqs)" >> /tmp/powercontrol_debug.log
                     fi
+                else
+                    echo "[$(date)] $policy_dir: pct=$pct% min=$min_freq max=$max_freq target=$target_freq (no avail freqs)" >> /tmp/powercontrol_debug.log
                 fi
-
 
 
                 if [ -w "$path" ]; then
