@@ -221,15 +221,11 @@ set_max_perf_pct() {
     (( pct > 100 )) && pct=100
     (( pct < 10 )) && pct=10
 
-    echo "[$(date)] Requested perf_pct=$pct" >> /tmp/powercontrol_debug.log
-
     if (( IS_INTEL == 1 )) && [[ "$PERF_PATH" == *intel_pstate/max_perf_pct ]] && [[ -f "$PERF_PATH" ]]; then
         if [ -w "$PERF_PATH" ]; then
             echo "$pct" | sudo tee "$PERF_PATH" > /dev/null
-            echo "[$(date)] Set $PERF_PATH to $pct%" >> /tmp/powercontrol_debug.log
         else
             echo "${RED}Permission denied: Cannot write to $PERF_PATH${RESET}" >&2
-            echo "[$(date)] ERROR: Cannot write to $PERF_PATH" >> /tmp/powercontrol_debug.log
             exit 1
         fi
 
@@ -255,25 +251,16 @@ set_max_perf_pct() {
                         [[ -z "$chosen_freq" ]] && chosen_freq=${available_freqs[-1]}
                         [[ -z "$chosen_freq" ]] && chosen_freq=$target_freq
                         target_freq=$chosen_freq
-                        echo "[$(date)] $policy_dir: pct=$pct% min=$min_freq max=$max_freq avail=(${available_freqs[*]}) chosen=$target_freq" >> /tmp/powercontrol_debug.log
-                    else
-                        echo "[$(date)] $policy_dir: pct=$pct% min=$min_freq max=$max_freq target=$target_freq (failed to read avail freqs)" >> /tmp/powercontrol_debug.log
-                    fi
-                else
-                    echo "[$(date)] $policy_dir: pct=$pct% min=$min_freq max=$max_freq target=$target_freq (no avail freqs)" >> /tmp/powercontrol_debug.log
                 fi
 
 
                 if [ -w "$path" ]; then
                     echo "$target_freq" | sudo tee "$path" > /dev/null
-                    echo "[$(date)] Wrote $target_freq to $path (pct=$pct%)" >> /tmp/powercontrol_debug.log
                 else
                     echo "${RED}Warning: Cannot write to $path; skipping.${RESET}" >&2
-                    echo "[$(date)] WARNING: Permission denied for $path" >> /tmp/powercontrol_debug.log
                 fi
             else
                 echo "${RED}Warning: Missing cpuinfo_*_freq for $path; skipping.${RESET}" >&2
-                echo "[$(date)] WARNING: Missing cpuinfo values for $policy_dir" >> /tmp/powercontrol_debug.log
             fi
         done
 
@@ -281,7 +268,6 @@ set_max_perf_pct() {
 
     else
         echo "${RED}Unsupported CPU or PERF_PATH not set correctly.${RESET}" >&2
-        echo "[$(date)] ERROR: Unsupported CPU or PERF_PATH logic failed." >> /tmp/powercontrol_debug.log
         exit 1
     fi
 }
