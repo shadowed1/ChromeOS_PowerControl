@@ -587,6 +587,11 @@ monitor_idle_activity() {
                 sleep 2
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Sleep threshold elapsed; going to sleep!" >> "$LOG_FILE"
                 echo mem | sudo tee /sys/power/state >/dev/null
+                sleep 1
+                monitor_idle=0
+                idle_since=$now
+                last_ts=$now
+                idle_elapsed=0
             fi
         fi
     fi
