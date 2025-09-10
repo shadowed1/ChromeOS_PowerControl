@@ -16,7 +16,7 @@ BATTERY_STATUS_PATH="/var/log/power_manager/powerd.LATEST"
 BACKLIGHT_NAME=""
 BRIGHTNESS_PATH=""
 MAX_BRIGHTNESS_PATH=""
-FAKE_ACTIVITY_INTERVAL=120
+FAKE_ACTIVITY_INTERVAL=60
 LID_SUSPEND_IGNORE_UNTIL=0
 
 SUSPEND_APPLIED_FLAG="/tmp/.sleepcontrol_suspend_applied"
@@ -313,7 +313,6 @@ monitor_idle_activity() {
             --dest=org.chromium.PowerManager \
             /org/chromium/PowerManager \
             org.chromium.PowerManager.HandleUserActivity int32:0 int32:0
-        sleep "$FAKE_ACTIVITY_INTERVAL
         echo "$(date '+%Y-%m-%d %H:%M:%S') - Simulated user activity." >> "$LOG_FILE"
     }
 
