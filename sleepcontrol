@@ -107,7 +107,7 @@ audio_active=0
 saved_display_brightness=0
 was_dimmed=0
 PRESENTATION_MODE=0 
-
+LAST_FAKE_ACTIVITY_TS=0
 BATTERY_DELAY=$DEFAULT_BATTERY_DELAY
 POWER_DELAY=$DEFAULT_POWER_DELAY
 BATTERY_BACKLIGHT=$DEFAULT_BATTERY_BACKLIGHT
@@ -283,8 +283,8 @@ send_fake_activity() {
         /org/chromium/PowerManager \
         org.chromium.PowerManager.HandleUserActivity int32:0 int32:0
 
-    last_fake_activity_ts=$(date +%s)
-    echo "$(date '+%Y-%m-%d %H:%M:%S') - Simulated user activity. (fake ts: $last_fake_activity_ts)" >> "$LOG_FILE"
+    LAST_FAKE_ACTIVITY_TS=$(date +%s)
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - Simulated user activity. (fake ts: $LAST_FAKE_ACTIVITY_TS)" >> "$LOG_FILE"
 }
 
 monitor_idle_activity() {
@@ -317,7 +317,7 @@ monitor_idle_activity() {
     local last_power_check_time=0
     local saved_kb_brightness=$(sudo ectool pwmgetkblight 2>/dev/null | awk '{print $NF}')
     local lid_closed=0
-    local last_fake_activity_ts=0
+
 
 
     save_current_brightness
@@ -487,7 +487,7 @@ fi
     
         if (( now - last_ts >= 10 )); then
             idle_seconds=$(( now - last_real_activity_ts ))
-            echo "Idle for: ${idle_seconds}s Since: $idle_since $last_fake_activity_ts" >> "$LOG_FILE"
+            echo "Idle for: ${idle_seconds}s Since: $idle_since $LAST_FAKE_ACTIVITY_TS" >> "$LOG_FILE"
             last_ts=$now
         fi
     
