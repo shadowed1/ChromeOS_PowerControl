@@ -416,7 +416,7 @@ fi
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid closed, lid sleep on!" >> "$LOG_FILE"
                 sleep 2
                 stop_fake_activity
-                echo mem | sudo tee /sys/power/state >/dev/null
+                # echo mem | sudo tee /sys/power/state >/dev/null
             else
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid closed, lid sleep off." >> "$LOG_FILE"
             fi
@@ -522,8 +522,7 @@ fi
                 stop_fake_activity
                 sleep 2
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Sleep threshold elapsed; going to sleep!" >> "$LOG_FILE"
-                echo mem | sudo tee /sys/power/state >/dev/null
-                sleep 1
+                # echo mem | sudo tee /sys/power/state >/dev/null
                 monitor_idle=0
                 idle_since=$now
                 last_ts=$now
