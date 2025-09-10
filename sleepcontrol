@@ -108,8 +108,8 @@ saved_display_brightness=0
 was_dimmed=0
 PRESENTATION_MODE=0 
 LAST_FAKE_ACTIVITY_TS=0
-SIMULATING_FAKE_ACTIVITY=0
-SIMULATED_GRACE_WINDOW=5
+
+IGNORE_NEXT_USER_ACTIVITY=0
 BATTERY_DELAY=$DEFAULT_BATTERY_DELAY
 POWER_DELAY=$DEFAULT_POWER_DELAY
 BATTERY_BACKLIGHT=$DEFAULT_BATTERY_BACKLIGHT
@@ -317,15 +317,10 @@ send_fake_activity() {
         /org/chromium/PowerManager \
         org.chromium.PowerManager.HandleUserActivity int32:0 int32:0
 
-    now=$(date +%s)
-    LAST_FAKE_ACTIVITY_TS=$now
-    SIMULATED_GRACE_START=$now
-    SIMULATED_GRACE_END=$((now + SIMULATED_GRACE_WINDOW))
-    SIMULATING_FAKE_ACTIVITY=1
-
+    LAST_FAKE_ACTIVITY_TS=$(date +%s)
+    IGNORE_NEXT_USER_ACTIVITY=1   # Flag to ignore the very next activity report
     echo "$(date '+%Y-%m-%d %H:%M:%S') - Simulated user activity." >> "$LOG_FILE"
 }
-
    start_fake_activity() {
         if (( sending_fake_activity == 0 )); then
             (
@@ -333,7 +328,7 @@ send_fake_activity() {
                     sleep "$FAKE_ACTIVITY_INTERVAL"
                     now=$(date +%s)
     
-                    if (( now - idle_since > FAKE_ACTIVITY_INTERVAL )); then
+                    if (( now - LAST_FAKE_ACTIVITY_TS >= FAKE_ACTIVITY_INTERVAL )); then
                         send_fake_activity
                     else
                         echo "$(date '+%Y-%m-%d %H:%M:%S') - Skipping fake activity (real activity detected recently)." >> "$LOG_FILE"
@@ -354,9 +349,7 @@ send_fake_activity() {
             sending_fake_activity=0
             fake_activity_pid=0
         fi
-        SIMULATING_FAKE_ACTIVITY=0
-        SIMULATED_GRACE_START=0
-        SIMULATED_GRACE_END=0
+        IGNORE_NEXT_USER_ACTIVITY=0
     }
 
     exec 3< <(tail -Fn0 /var/log/power_manager/powerd.LATEST)
@@ -459,8 +452,13 @@ fi
                 suspend_delay=$((POWER_DELAY*60))
             fi
             ;;
-        *"User activity reported"*|*"Enabling wakeup for"*|*"User triggered wake"*|*"User activity ongoing"*|*"Configuring devices for mode"*)
-            if (( SIMULATING_FAKE_ACTIVITY == 0 || now > SIMULATED_GRACE_END )); then
+       *"User activity reported"*|*"Enabling wakeup for"*|*"User triggered wake"*|*"User activity ongoing"*)
+            if (( IGNORE_NEXT_USER_ACTIVITY == 1 )); then
+                # This report is from our fake activity — ignore it
+                IGNORE_NEXT_USER_ACTIVITY=0
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Ignored simulated activity report." >> "$LOG_FILE"
+            else
+                # Real user activity detected
                 if (( monitor_idle == 1 )); then
                     echo "$(date '+%Y-%m-%d %H:%M:%S') - User activity resumed." >> "$LOG_FILE"
                 fi
@@ -475,8 +473,6 @@ fi
                 if [[ -n "$saved_display_brightness" && "$saved_display_brightness" -gt 0 ]]; then
                     echo "$saved_display_brightness" | sudo tee "$BRIGHTNESS_PATH" >/dev/null
                 fi
-            else
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Ignoring resume due to simulated activity grace period." >> "$LOG_FILE"
             fi
             ;;
         *"Got user-triggered request to set brightness to "*)
