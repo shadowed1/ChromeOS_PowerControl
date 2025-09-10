@@ -108,7 +108,7 @@ saved_display_brightness=0
 was_dimmed=0
 PRESENTATION_MODE=0 
 LAST_FAKE_ACTIVITY_TS=0
-
+SIMULATED_GRACE_UNTIL=0
 BATTERY_DELAY=$DEFAULT_BATTERY_DELAY
 POWER_DELAY=$DEFAULT_POWER_DELAY
 BATTERY_BACKLIGHT=$DEFAULT_BATTERY_BACKLIGHT
@@ -310,13 +310,14 @@ monitor_idle_activity() {
     save_current_brightness
 
     send_fake_activity() {
-        dbus-send --system --type=method_call \
-            --dest=org.chromium.PowerManager \
-            /org/chromium/PowerManager \
-            org.chromium.PowerManager.HandleUserActivity int32:0 int32:0
-        LAST_FAKE_ACTIVITY_TS=$(date +%s)
-        echo "$(date '+%Y-%m-%d %H:%M:%S') - Simulated user activity." >> "$LOG_FILE"
-    }
+    dbus-send --system --type=method_call \
+        --dest=org.chromium.PowerManager \
+        /org/chromium/PowerManager \
+        org.chromium.PowerManager.HandleUserActivity int32:0 int32:0
+    LAST_FAKE_ACTIVITY_TS=$(date +%s)
+    SIMULATED_GRACE_UNTIL=$((LAST_FAKE_ACTIVITY_TS + 5))  # 5-second grace
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - Simulated user activity." >> "$LOG_FILE"
+}
 
    start_fake_activity() {
     if (( sending_fake_activity == 0 )); then
@@ -447,7 +448,7 @@ fi
             fi
             ;;
        *"User activity reported"*|*"Enabling wakeup for"*|*"User triggered wake"*|*"powerd_suspend returned 0"*|*"User activity ongoing"*|*"Configuring devices for mode"*)
-            if (( now - LAST_FAKE_ACTIVITY_TS >= FAKE_ACTIVITY_INTERVAL )); then
+            if (( now >= SIMULATED_GRACE_UNTIL )); then
                 if (( monitor_idle == 1 )); then
                     echo "$(date '+%Y-%m-%d %H:%M:%S') - User activity resumed." >> "$LOG_FILE"
                 fi
@@ -463,7 +464,7 @@ fi
                     echo "$saved_display_brightness" | sudo tee "$BRIGHTNESS_PATH" >/dev/null
                 fi
             else
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Skipping resume due to recent simulated activity." >> "$LOG_FILE"
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Ignoring resume due to simulated activity grace period." >> "$LOG_FILE"
             fi
             ;;
         *"Got user-triggered request to set brightness to "*)
