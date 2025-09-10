@@ -451,8 +451,8 @@ fi
             fi
             ;;
       *"User activity reported"*|*"Enabling wakeup for"*|*"User triggered wake"*|*"User activity ongoing"*)
-            log_ts=$(date +%s)
-            if (( log_ts > LAST_FAKE_ACTIVITY_TS )); then
+            read log_date log_time _ <<< "$line"; log_ts=$(date -d "$log_date $log_time" +%s)
+            if (( log_ts > LAST_FAKE_ACTIVITY_TS + GRACE_PERIOD )); then
                 LAST_REAL_ACTIVITY_TS=$log_ts
                 if (( monitor_idle == 1 )); then
                     echo "$(date '+%Y-%m-%d %H:%M:%S') - User activity resumed." >> "$LOG_FILE"
