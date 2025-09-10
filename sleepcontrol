@@ -317,6 +317,8 @@ monitor_idle_activity() {
     local last_power_check_time=0
     local saved_kb_brightness=$(sudo ectool pwmgetkblight 2>/dev/null | awk '{print $NF}')
     local lid_closed=0
+    local last_fake_activity_ts=0
+
 
     save_current_brightness
 
@@ -479,16 +481,6 @@ fi
             ;;
     esac
 
-   send_fake_activity() {
-    dbus-send --system --type=method_call \
-        --dest=org.chromium.PowerManager \
-        /org/chromium/PowerManager \
-        org.chromium.PowerManager.HandleUserActivity int32:0 int32:0
-
-    last_fake_activity_ts=$(date +%s)   # track when we sent fake activity
-    echo "$(date '+%Y-%m-%d %H:%M:%S') - Simulated user activity. (fake ts: $last_fake_activity_ts)" >> "$LOG_FILE"
-}
-
     if (( monitor_idle == 1 )); then
     
         (( STATUS == "Discharging" )) && AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_BATTERY || AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_POWER
@@ -509,7 +501,9 @@ fi
         fi
     
         idle_elapsed=$(( now - last_real_activity_ts ))
-    
+            if (( idle_elapsed < 2 && idle_elapsed > -2 )); then
+                idle_elapsed=0
+            fi
         if (( idle_elapsed >= dim_delay && idle_elapsed < backlight_delay )); then
             if [[ $was_dimmed -eq 0 ]]; then
                 save_current_brightness
