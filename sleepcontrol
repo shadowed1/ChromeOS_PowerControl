@@ -108,7 +108,8 @@ saved_display_brightness=0
 was_dimmed=0
 PRESENTATION_MODE=0 
 LAST_FAKE_ACTIVITY_TS=0
-SIMULATED_GRACE_UNTIL=0
+SIMULATED_GRACE_START=0
+SIMULATED_GRACE_END=0
 BATTERY_DELAY=$DEFAULT_BATTERY_DELAY
 POWER_DELAY=$DEFAULT_POWER_DELAY
 BATTERY_BACKLIGHT=$DEFAULT_BATTERY_BACKLIGHT
@@ -314,8 +315,10 @@ monitor_idle_activity() {
         --dest=org.chromium.PowerManager \
         /org/chromium/PowerManager \
         org.chromium.PowerManager.HandleUserActivity int32:0 int32:0
-    LAST_FAKE_ACTIVITY_TS=$(date +%s)
-    SIMULATED_GRACE_UNTIL=$((LAST_FAKE_ACTIVITY_TS + 5))  # 5-second grace
+    now=$(date +%s)
+    LAST_FAKE_ACTIVITY_TS=$now
+    SIMULATED_GRACE_START=$(( now - 5 < SIMULATED_GRACE_START ? SIMULATED_GRACE_START : now - 5 ))
+    SIMULATED_GRACE_END=$(( now + 5 > SIMULATED_GRACE_END ? now + 5 : now + 5 ))
     echo "$(date '+%Y-%m-%d %H:%M:%S') - Simulated user activity." >> "$LOG_FILE"
 }
 
@@ -448,7 +451,7 @@ fi
             fi
             ;;
        *"User activity reported"*|*"Enabling wakeup for"*|*"User triggered wake"*|*"powerd_suspend returned 0"*|*"User activity ongoing"*|*"Configuring devices for mode"*)
-            if (( now >= SIMULATED_GRACE_UNTIL )); then
+            if (( now < SIMULATED_GRACE_START || now > SIMULATED_GRACE_END )); then
                 if (( monitor_idle == 1 )); then
                     echo "$(date '+%Y-%m-%d %H:%M:%S') - User activity resumed." >> "$LOG_FILE"
                 fi
