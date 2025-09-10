@@ -478,11 +478,16 @@ fi
         idle_elapsed=$(( now - last_ts ))
         (( STATUS == "Discharging" )) && AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_BATTERY || AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_POWER
     
-      if (( now - last_log_ts >= 10 )); then
+        if (( now - LAST_FAKE_ACTIVITY_TS < FAKE_ACTIVITY_INTERVAL )); then
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - Ignoring simulated activity" >> "$LOG_FILE"
+            continue
+        fi
+    
+        if (( now - last_log_ts >= 10 )); then
             echo "Current Timestamp -> $now | $idle_since <- Timestamp since Idle" >> "$LOG_FILE"
             last_log_ts=$now
         fi
-
+    
         if (( AUDIO_DETECTION_ENABLED == 1 && audio_active == 1 )); then
             idle_since=$now
             last_ts=$now
