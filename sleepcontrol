@@ -256,8 +256,6 @@ save_current_brightness() {
     fi
 }
 
-
-
    set_audio_detection() {
     local mode=$1
     local value=$2
@@ -276,14 +274,6 @@ save_current_brightness() {
 }
 
 idle_elapsed=0
-
-send_fake_activity() {
-    dbus-send --system --type=method_call \
-        --dest=org.chromium.PowerManager \
-        /org/chromium/PowerManager \
-        org.chromium.PowerManager.HandleUserActivity int32:0 int32:0
-    echo "$(date '+%Y-%m-%d %H:%M:%S') - Simulated user activity." >> "$LOG_FILE"
-}
 
 monitor_idle_activity() {
     exec 200>"$PID_FILE.lock"
@@ -318,20 +308,33 @@ monitor_idle_activity() {
 
     save_current_brightness
 
-    start_fake_activity() {
-        if (( sending_fake_activity == 0 )); then
-            (
-                while [ -f "$RUN_FLAG" ]; do
-                    sleep "$FAKE_ACTIVITY_INTERVAL"
-                    send_fake_activity
-                done
-            ) &
-            fake_activity_pid=$!
-            sending_fake_activity=1
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - Starting simulated activity loop... (PID $fake_activity_pid)." >> "$LOG_FILE"
-        fi
+    send_fake_activity() {
+        dbus-send --system --type=method_call \
+            --dest=org.chromium.PowerManager \
+            /org/chromium/PowerManager \
+            org.chromium.PowerManager.HandleUserActivity int32:0 int32:0
+        sleep "$FAKE_ACTIVITY_INTERVAL
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - Simulated user activity." >> "$LOG_FILE"
     }
 
+   start_fake_activity() {
+    if (( sending_fake_activity == 0 )); then
+        (
+            while [ -f "$RUN_FLAG" ]; do
+                sleep "$FAKE_ACTIVITY_INTERVAL"
+                now=$(date +%s)
+                if (( now - last_ts > 2 )) && (( now - idle_since > 2 )); then
+                    send_fake_activity
+                else
+                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Skipping fake activity (real activity detected recently)." >> "$LOG_FILE"
+                fi
+            done
+        ) &
+        fake_activity_pid=$!
+        sending_fake_activity=1
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - Starting simulated activity loop... (PID $fake_activity_pid)." >> "$LOG_FILE"
+    fi
+}
     stop_fake_activity() {
         if (( sending_fake_activity == 1 )); then
             kill "$fake_activity_pid" 2>/dev/null
@@ -341,8 +344,6 @@ monitor_idle_activity() {
             fake_activity_pid=0
         fi
     }
-
-
 
     exec 3< <(tail -Fn0 /var/log/power_manager/powerd.LATEST)
     while read -r line <&3; do
@@ -389,7 +390,6 @@ fi
             ;;
         *"Chrome is using normal display mode"*)
             PRESENTATION_MODE=0
-            # echo "$(date '+%Y-%m-%d %H:%M:%S') - Normal display mode detected." >> "$LOG_FILE"
             ;;
         *"Audio activity started"*|*"Audio activity ongoing"*)
             (( AUDIO_DETECTION_ENABLED == 1 )) && audio_active=1
@@ -397,14 +397,14 @@ fi
         *"Audio activity stopped"*)
             (( AUDIO_DETECTION_ENABLED == 1 )) && audio_active=0
             ;;
-        *"User activity stopped"*)
-            if (( audio_active == 0 )); then
+       *"User activity stopped"*)
+            if (( audio_active == 0 )) && (( now - last_ts > 2 )) && (( now - idle_since > 2 )); then
                 monitor_idle=1
                 active=0
                 kb_brightness_restored=0
                 idle_since=$now
                 last_ts=$now
-                stop_fake_activity
+                start_fake_activity
             fi
             ;;
         *"Lid closed"*)
@@ -427,7 +427,6 @@ fi
                 if [[ -n "$saved_display_brightness" && "$saved_display_brightness" -gt 0 ]]; then
                     echo "$saved_display_brightness" | sudo tee "$BRIGHTNESS_PATH" >/dev/null
                 fi
-                # sudo ectool pwmsetkblight "$saved_kb_brightness" 2>/dev/null
             fi
             ;;
         *"On battery at"*)
@@ -447,19 +446,21 @@ fi
             fi
             ;;
         *"User activity reported"*|*"Enabling wakeup for"*|*"User triggered wake"*|*"powerd_suspend returned 0"*|*"User activity ongoing"*|*"Configuring devices for mode"*)
-            if (( monitor_idle == 1 )); then
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - User activity resumed." >> "$LOG_FILE"
-            fi
-            monitor_idle=0
-            active=1
-            stop_fake_activity
-            backlight_off=0
-            kb_brightness_restored=1
-            power_backlight_ts=$now
-            battery_backlight_ts=$now
-            was_dimmed=0
-            if [[ -n "$saved_display_brightness" && "$saved_display_brightness" -gt 0 ]]; then
-                echo "$saved_display_brightness" | sudo tee "$BRIGHTNESS_PATH" >/dev/null
+            if (( now - last_ts > 2 )) && (( now - idle_since > 2 )); then
+                if (( monitor_idle == 1 )); then
+                    echo "$(date '+%Y-%m-%d %H:%M:%S') - User activity resumed." >> "$LOG_FILE"
+                fi
+                monitor_idle=0
+                active=1
+                stop_fake_activity
+                backlight_off=0
+                kb_brightness_restored=1
+                power_backlight_ts=$now
+                battery_backlight_ts=$now
+                was_dimmed=0
+                if [[ -n "$saved_display_brightness" && "$saved_display_brightness" -gt 0 ]]; then
+                    echo "$saved_display_brightness" | sudo tee "$BRIGHTNESS_PATH" >/dev/null
+                fi
             fi
             ;;
         *"Got user-triggered request to set brightness to "*)
@@ -547,7 +548,6 @@ stop_monitoring() {
     rm -f "$PID_FILE"
     rm -f "$PID_FILE.lock"
 }
-
 
 case "$1" in
     start)
