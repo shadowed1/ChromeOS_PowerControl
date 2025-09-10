@@ -287,6 +287,13 @@ send_fake_activity() {
     echo "$(date '+%Y-%m-%d %H:%M:%S') - Simulated user activity. (fake ts: $LAST_FAKE_ACTIVITY_TS)" >> "$LOG_FILE"
 }
 
+fake_activity_loop() {
+    while [ -f "$RUN_FLAG" ]; do
+        sleep "$FAKE_ACTIVITY_INTERVAL"
+        send_fake_activity
+    done
+}
+
 monitor_idle_activity() {
     exec 200>"$PID_FILE.lock"
     flock -n 200 || {
@@ -322,14 +329,10 @@ monitor_idle_activity() {
 
     save_current_brightness
 
+   
     start_fake_activity() {
         if (( sending_fake_activity == 0 )); then
-            (
-                while [ -f "$RUN_FLAG" ]; do
-                    sleep "$FAKE_ACTIVITY_INTERVAL"
-                    send_fake_activity
-                done
-            ) &
+            fake_activity_loop &
             fake_activity_pid=$!
             sending_fake_activity=1
             echo "$(date '+%Y-%m-%d %H:%M:%S') - Starting simulated activity loop... (PID $fake_activity_pid)." >> "$LOG_FILE"
@@ -345,8 +348,6 @@ monitor_idle_activity() {
             fake_activity_pid=0
         fi
     }
-
-
 
     exec 3< <(tail -Fn0 /var/log/power_manager/powerd.LATEST)
     while read -r line <&3; do
@@ -381,7 +382,6 @@ monitor_idle_activity() {
     fi
 fi
 
-
         AUDIO_DETECTION_ENABLED=$(( STATUS == "Discharging" ? AUDIO_DETECTION_BATTERY : AUDIO_DETECTION_POWER ))
         (( AUDIO_DETECTION_ENABLED == 0 )) && audio_active=0
 
@@ -393,7 +393,6 @@ fi
             ;;
         *"Chrome is using normal display mode"*)
             PRESENTATION_MODE=0
-            # echo "$(date '+%Y-%m-%d %H:%M:%S') - Normal display mode detected." >> "$LOG_FILE"
             ;;
         *"Audio activity started"*|*"Audio activity ongoing"*)
             (( AUDIO_DETECTION_ENABLED == 1 )) && audio_active=1
