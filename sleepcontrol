@@ -108,8 +108,8 @@ saved_display_brightness=0
 was_dimmed=0
 PRESENTATION_MODE=0 
 LAST_FAKE_ACTIVITY_TS=0
-SIMULATED_GRACE_START=0
-SIMULATED_GRACE_END=0
+SIMULATING_FAKE_ACTIVITY=0
+SIMULATED_GRACE_WINDOW=5
 BATTERY_DELAY=$DEFAULT_BATTERY_DELAY
 POWER_DELAY=$DEFAULT_POWER_DELAY
 BATTERY_BACKLIGHT=$DEFAULT_BATTERY_BACKLIGHT
@@ -310,36 +310,42 @@ monitor_idle_activity() {
 
     save_current_brightness
 
-    send_fake_activity() {
+   
+send_fake_activity() {
     dbus-send --system --type=method_call \
         --dest=org.chromium.PowerManager \
         /org/chromium/PowerManager \
         org.chromium.PowerManager.HandleUserActivity int32:0 int32:0
+
     now=$(date +%s)
     LAST_FAKE_ACTIVITY_TS=$now
-    SIMULATED_GRACE_START=$(( now - 5 < SIMULATED_GRACE_START ? SIMULATED_GRACE_START : now - 5 ))
-    SIMULATED_GRACE_END=$(( now + 5 > SIMULATED_GRACE_END ? now + 5 : now + 5 ))
+    SIMULATED_GRACE_START=$now
+    SIMULATED_GRACE_END=$((now + SIMULATED_GRACE_WINDOW))
+    SIMULATING_FAKE_ACTIVITY=1
+
     echo "$(date '+%Y-%m-%d %H:%M:%S') - Simulated user activity." >> "$LOG_FILE"
 }
 
    start_fake_activity() {
-    if (( sending_fake_activity == 0 )); then
-        (
-            while [ -f "$RUN_FLAG" ]; do
-                sleep "$FAKE_ACTIVITY_INTERVAL"
-                now=$(date +%s)
-                if (( now - last_ts > 5 )) && (( now - idle_since > 5 )); then
-                    send_fake_activity
-                else
-                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Skipping fake activity (real activity detected recently)." >> "$LOG_FILE"
-                fi
-            done
-        ) &
-        fake_activity_pid=$!
-        sending_fake_activity=1
-        echo "$(date '+%Y-%m-%d %H:%M:%S') - Starting simulated activity loop... (PID $fake_activity_pid)." >> "$LOG_FILE"
-    fi
-}
+        if (( sending_fake_activity == 0 )); then
+            (
+                while [ -f "$RUN_FLAG" ]; do
+                    sleep "$FAKE_ACTIVITY_INTERVAL"
+                    now=$(date +%s)
+    
+                    if (( now - idle_since > FAKE_ACTIVITY_INTERVAL )); then
+                        send_fake_activity
+                    else
+                        echo "$(date '+%Y-%m-%d %H:%M:%S') - Skipping fake activity (real activity detected recently)." >> "$LOG_FILE"
+                    fi
+                done
+            ) &
+            fake_activity_pid=$!
+            sending_fake_activity=1
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - Starting simulated activity loop... (PID $fake_activity_pid)." >> "$LOG_FILE"
+        fi
+    }
+
     stop_fake_activity() {
         if (( sending_fake_activity == 1 )); then
             kill "$fake_activity_pid" 2>/dev/null
@@ -348,6 +354,9 @@ monitor_idle_activity() {
             sending_fake_activity=0
             fake_activity_pid=0
         fi
+        SIMULATING_FAKE_ACTIVITY=0
+        SIMULATED_GRACE_START=0
+        SIMULATED_GRACE_END=0
     }
 
     exec 3< <(tail -Fn0 /var/log/power_manager/powerd.LATEST)
@@ -450,8 +459,8 @@ fi
                 suspend_delay=$((POWER_DELAY*60))
             fi
             ;;
-       *"User activity reported"*|*"Enabling wakeup for"*|*"User triggered wake"*|*"powerd_suspend returned 0"*|*"User activity ongoing"*|*"Configuring devices for mode"*)
-            if (( now < SIMULATED_GRACE_START || now > SIMULATED_GRACE_END )); then
+        *"User activity reported"*|*"Enabling wakeup for"*|*"User triggered wake"*|*"User activity ongoing"*|*"Configuring devices for mode"*)
+            if (( SIMULATING_FAKE_ACTIVITY == 0 || now > SIMULATED_GRACE_END )); then
                 if (( monitor_idle == 1 )); then
                     echo "$(date '+%Y-%m-%d %H:%M:%S') - User activity resumed." >> "$LOG_FILE"
                 fi
