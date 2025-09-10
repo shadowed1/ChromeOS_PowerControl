@@ -283,7 +283,7 @@ send_fake_activity() {
         /org/chromium/PowerManager \
         org.chromium.PowerManager.HandleUserActivity int32:0 int32:0
 
-    last_fake_activity_ts=$(date +%s)   # track when we sent fake activity
+    last_fake_activity_ts=$(date +%s)
     echo "$(date '+%Y-%m-%d %H:%M:%S') - Simulated user activity. (fake ts: $last_fake_activity_ts)" >> "$LOG_FILE"
 }
 
@@ -479,13 +479,23 @@ fi
             ;;
     esac
 
-   if (( monitor_idle == 1 )); then
+   send_fake_activity() {
+    dbus-send --system --type=method_call \
+        --dest=org.chromium.PowerManager \
+        /org/chromium/PowerManager \
+        org.chromium.PowerManager.HandleUserActivity int32:0 int32:0
 
+    last_fake_activity_ts=$(date +%s)   # track when we sent fake activity
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - Simulated user activity. (fake ts: $last_fake_activity_ts)" >> "$LOG_FILE"
+}
+
+    if (( monitor_idle == 1 )); then
+    
         (( STATUS == "Discharging" )) && AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_BATTERY || AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_POWER
     
-       if (( now - last_ts >= 10 )); then
+        if (( now - last_ts >= 10 )); then
             idle_seconds=$(( now - last_real_activity_ts ))
-            echo "${idle_seconds}s | Idle since -> $idle_since | Last fake activity -> $last_fake_activity_ts" >> "$LOG_FILE"
+            echo "${idle_seconds}s $idle_since | $last_fake_activity_ts" >> "$LOG_FILE"
             last_ts=$now
         fi
     
@@ -494,6 +504,7 @@ fi
             last_real_activity_ts=$now
             was_dimmed=0
             backlight_off=0
+            stop_fake_activity
             continue
         fi
     
@@ -512,9 +523,7 @@ fi
     
         if (( idle_elapsed >= backlight_delay )); then
             if (( backlight_off == 0 )); then
-                if [[ -n "$BRIGHTNESS_PATH" ]]; then
-                    echo 0 | sudo tee "$BRIGHTNESS_PATH" >/dev/null
-                fi
+                [[ -n "$BRIGHTNESS_PATH" ]] && echo 0 | sudo tee "$BRIGHTNESS_PATH" >/dev/null
                 backlight_off=1
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Display and keyboard backlight off." >> "$LOG_FILE"
             fi
