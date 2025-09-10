@@ -324,7 +324,7 @@ monitor_idle_activity() {
             while [ -f "$RUN_FLAG" ]; do
                 sleep "$FAKE_ACTIVITY_INTERVAL"
                 now=$(date +%s)
-                if (( now - last_ts > 2 )) && (( now - idle_since > 2 )); then
+                if (( now - last_ts > 5 )) && (( now - idle_since > 5 )); then
                     send_fake_activity
                 else
                     echo "$(date '+%Y-%m-%d %H:%M:%S') - Skipping fake activity (real activity detected recently)." >> "$LOG_FILE"
@@ -399,7 +399,7 @@ fi
             (( AUDIO_DETECTION_ENABLED == 1 )) && audio_active=0
             ;;
        *"User activity stopped"*)
-            if (( audio_active == 0 )) && (( now - last_ts > 2 )) && (( now - idle_since > 2 )); then
+            if (( audio_active == 0 )) && (( now - last_ts > 5 )) && (( now - idle_since > 5 )); then
                 monitor_idle=1
                 active=0
                 kb_brightness_restored=0
@@ -447,11 +447,7 @@ fi
             fi
             ;;
         *"User activity reported"*|*"Enabling wakeup for"*|*"User triggered wake"*|*"powerd_suspend returned 0"*|*"User activity ongoing"*|*"Configuring devices for mode"*)
-            if (( now - LAST_FAKE_ACTIVITY_TS < FAKE_ACTIVITY_INTERVAL )); then
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Ignoring simulated activity" >> "$LOG_FILE"
-                continue
-            fi
-        
+
             if (( monitor_idle == 1 )); then
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - User activity resumed." >> "$LOG_FILE"
             fi
