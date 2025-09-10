@@ -1,3 +1,4 @@
+
 #!/bin/bash
 RED=$(tput setaf 1)
 GREEN=$(tput setaf 2)
@@ -107,7 +108,7 @@ audio_active=0
 saved_display_brightness=0
 was_dimmed=0
 PRESENTATION_MODE=0 
-LAST_FAKE_ACTIVITY_TS=0
+
 BATTERY_DELAY=$DEFAULT_BATTERY_DELAY
 POWER_DELAY=$DEFAULT_POWER_DELAY
 BATTERY_BACKLIGHT=$DEFAULT_BATTERY_BACKLIGHT
@@ -282,16 +283,7 @@ send_fake_activity() {
         --dest=org.chromium.PowerManager \
         /org/chromium/PowerManager \
         org.chromium.PowerManager.HandleUserActivity int32:0 int32:0
-
-    LAST_FAKE_ACTIVITY_TS=$(date +%s)
-    echo "$(date '+%Y-%m-%d %H:%M:%S') - Simulated user activity. (fake ts: $LAST_FAKE_ACTIVITY_TS)" >> "$LOG_FILE"
-}
-
-fake_activity_loop() {
-    while [ -f "$RUN_FLAG" ]; do
-        sleep "$FAKE_ACTIVITY_INTERVAL"
-        send_fake_activity
-    done
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - Simulated user activity." >> "$LOG_FILE"
 }
 
 monitor_idle_activity() {
@@ -325,14 +317,16 @@ monitor_idle_activity() {
     local saved_kb_brightness=$(sudo ectool pwmgetkblight 2>/dev/null | awk '{print $NF}')
     local lid_closed=0
 
-
-
     save_current_brightness
 
-   
     start_fake_activity() {
         if (( sending_fake_activity == 0 )); then
-            fake_activity_loop &
+            (
+                while [ -f "$RUN_FLAG" ]; do
+                    sleep "$FAKE_ACTIVITY_INTERVAL"
+                    send_fake_activity
+                done
+            ) &
             fake_activity_pid=$!
             sending_fake_activity=1
             echo "$(date '+%Y-%m-%d %H:%M:%S') - Starting simulated activity loop... (PID $fake_activity_pid)." >> "$LOG_FILE"
@@ -348,6 +342,8 @@ monitor_idle_activity() {
             fake_activity_pid=0
         fi
     }
+
+
 
     exec 3< <(tail -Fn0 /var/log/power_manager/powerd.LATEST)
     while read -r line <&3; do
@@ -382,6 +378,7 @@ monitor_idle_activity() {
     fi
 fi
 
+
         AUDIO_DETECTION_ENABLED=$(( STATUS == "Discharging" ? AUDIO_DETECTION_BATTERY : AUDIO_DETECTION_POWER ))
         (( AUDIO_DETECTION_ENABLED == 0 )) && audio_active=0
 
@@ -393,6 +390,7 @@ fi
             ;;
         *"Chrome is using normal display mode"*)
             PRESENTATION_MODE=0
+            # echo "$(date '+%Y-%m-%d %H:%M:%S') - Normal display mode detected." >> "$LOG_FILE"
             ;;
         *"Audio activity started"*|*"Audio activity ongoing"*)
             (( AUDIO_DETECTION_ENABLED == 1 )) && audio_active=1
@@ -407,8 +405,7 @@ fi
                 kb_brightness_restored=0
                 idle_since=$now
                 last_ts=$now
-                start_fake_activity
-                last_real_activity_ts=$now
+                stop_fake_activity
             fi
             ;;
         *"Lid closed"*)
@@ -457,11 +454,9 @@ fi
             fi
             monitor_idle=0
             active=1
-            last_ts=$now
             stop_fake_activity
             backlight_off=0
             kb_brightness_restored=1
-            last_real_activity_ts=$now
             power_backlight_ts=$now
             battery_backlight_ts=$now
             was_dimmed=0
@@ -481,33 +476,27 @@ fi
     esac
 
     if (( monitor_idle == 1 )); then
-    
+        idle_elapsed=$(( now - last_ts ))
         (( STATUS == "Discharging" )) && AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_BATTERY || AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_POWER
     
-        if (( now - last_ts >= 10 )); then
-            idle_seconds=$(( now - last_real_activity_ts ))
-            echo "Idle for: ${idle_seconds}s Since: $idle_since $LAST_FAKE_ACTIVITY_TS" >> "$LOG_FILE"
-            last_ts=$now
+      if (( now - last_log_ts >= 10 )); then
+            echo "Current Timestamp -> $now | $idle_since <- Timestamp since Idle" >> "$LOG_FILE"
+            last_log_ts=$now
         fi
-    
+
         if (( AUDIO_DETECTION_ENABLED == 1 && audio_active == 1 )); then
             idle_since=$now
-            last_real_activity_ts=$now
+            last_ts=$now
             was_dimmed=0
             backlight_off=0
-            stop_fake_activity
             continue
         fi
     
-        idle_elapsed=$(( now - last_real_activity_ts ))
-            if (( idle_elapsed < 2 && idle_elapsed > -2 )); then
-                idle_elapsed=0
-            fi
         if (( idle_elapsed >= dim_delay && idle_elapsed < backlight_delay )); then
             if [[ $was_dimmed -eq 0 ]]; then
                 save_current_brightness
                 was_dimmed=1
-                dim_value=$((saved_display_brightness / 8))
+                dim_value=$((saved_display_brightness/8))
                 (( dim_value < 1 )) && dim_value=1
                 set_display_brightness "$dim_value"
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Display dimmed to $dim_value" >> "$LOG_FILE"
@@ -516,7 +505,9 @@ fi
     
         if (( idle_elapsed >= backlight_delay )); then
             if (( backlight_off == 0 )); then
-                [[ -n "$BRIGHTNESS_PATH" ]] && echo 0 | sudo tee "$BRIGHTNESS_PATH" >/dev/null
+                if [[ -n "$BRIGHTNESS_PATH" ]]; then
+                    echo 0 | sudo tee "$BRIGHTNESS_PATH" >/dev/null
+                fi
                 backlight_off=1
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Display and keyboard backlight off." >> "$LOG_FILE"
             fi
@@ -532,9 +523,10 @@ fi
                 stop_fake_activity
                 sleep 2
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Sleep threshold elapsed; going to sleep!" >> "$LOG_FILE"
+                # echo mem | sudo tee /sys/power/state >/dev/null
                 monitor_idle=0
                 idle_since=$now
-                last_real_activity_ts=$now
+                last_ts=$now
                 idle_elapsed=0
             fi
         fi
@@ -812,7 +804,7 @@ echo "${RESET}"
             echo "Valid suspend types: freeze | deep"
             echo "Current suspend mode:"
             echo ""
-            echo "${RESET}${BOLD}${BLUE}$(cat /sys/power/mem_sleep)${RESET}${BLUE}"
+            echo "${RESET}${BOLD}${BLUE$}$(cat /sys/power/mem_sleep)${RESET}${BLUE}"
             echo ""
             echo "Note: freeze is s2idle - use freeze to apply correct value."
             echo "If set to deep, ChromeOS_PowerControl logic will continue to function when plugged in."
