@@ -403,6 +403,7 @@ fi
                 idle_since=$now
                 last_ts=$now
                 start_fake_activity
+                sending_fake_activity=1
             fi
             ;;
         *"Lid closed"*)
