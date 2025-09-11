@@ -454,9 +454,8 @@ fi
             else
                 log_ts=$now
             fi
+    
             if (( log_ts > LAST_FAKE_ACTIVITY_TS + GRACE_PERIOD )); then
-                echo "${MAGENTA}$(date '+%Y-%m-%d %H:%M:%S') - Ignored user activity: simulated ($timestamp <= $LAST_FAKE_ACTIVITY_TS + $GRACE_PERIOD).${RESET}" >> "$LOG_FILE"
-            else
                 LAST_REAL_ACTIVITY_TS=$log_ts
                 if (( monitor_idle == 1 )); then
                     echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - User activity resumed.${RESET}" >> "$LOG_FILE"
@@ -469,9 +468,12 @@ fi
                 power_backlight_ts=$log_ts
                 battery_backlight_ts=$log_ts
                 was_dimmed=0
+    
                 if [[ -n "$SAVED_DISPLAY_BRIGHTNESS" && "$SAVED_DISPLAY_BRIGHTNESS" -gt 0 ]]; then
                     echo "$SAVED_DISPLAY_BRIGHTNESS" | sudo tee "$BRIGHTNESS_PATH" >/dev/null
                 fi
+            else
+                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Ignored user activity (timestamp <= last fake activity + grace period)." >> "$LOG_FILE"
             fi
             ;;
         *"Got user-triggered request to set brightness to "*)
