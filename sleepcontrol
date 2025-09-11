@@ -326,10 +326,8 @@ send_fake_activity() {
             while [ -f "$RUN_FLAG" ] && (( monitor_idle == 1 )); do
                 sleep "$FAKE_ACTIVITY_INTERVAL"
                 now=$(date +%s)
-                if (( now - LAST_REAL_ACTIVITY_TS > FAKE_ACTIVITY_INTERVAL )); then
+                if (( now - LAST_FAKE_ACTIVITY_TS >= FAKE_ACTIVITY_INTERVAL )); then
                     send_fake_activity
-                else
-                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Skipping fake activity (recent real activity)." >> "$LOG_FILE"
                 fi
             done
         ) &
@@ -347,7 +345,6 @@ send_fake_activity() {
             sending_fake_activity=0
             fake_activity_pid=0
         fi
-        IGNORE_NEXT_USER_ACTIVITY=0
     }
 
     exec 3< <(tail -Fn0 /var/log/power_manager/powerd.LATEST)
