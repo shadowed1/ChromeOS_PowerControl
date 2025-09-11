@@ -284,18 +284,17 @@ send_fake_activity() {
     echo "${CYAN}$(date '+%Y-%m-%d %H:%M:%S') - Simulated activity${RESET}" >> "$LOG_FILE"
 }
 
-   start_fake_activity() {
+  start_fake_activity() {
     if (( sending_fake_activity == 0 )); then
         (
             while [ -f "$RUN_FLAG" ]; do
-                sleep "$FAKE_ACTIVITY_INTERVAL"
                 now=$(date +%s)
-                
                 if (( now - LAST_REAL_ACTIVITY_TS > GRACE_PERIOD )) && \
                    (( now - LAST_FAKE_ACTIVITY_TS >= FAKE_ACTIVITY_INTERVAL )); then
                     send_fake_activity
                 fi
 
+                sleep 1
             done
         ) &
         fake_activity_pid=$!
@@ -334,8 +333,8 @@ monitor_idle_activity() {
 
     local active=1
     local monitor_idle=0
-    local sending_fake_activity=0
-    local fake_activity_pid=0
+    sending_fake_activity=0
+    fake_activity_pid=0
     local idle_since=0
     local backlight_off=0
     local kb_brightness_restored=1
