@@ -463,7 +463,7 @@ fi
             else
                 LAST_REAL_ACTIVITY_TS=$log_ts
                 if (( monitor_idle == 1 )); then
-                    echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - REAL user activity resumed.${RESET}" >> "$LOG_FILE"
+                    echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - User activity resumed.${RESET}" >> "$LOG_FILE"
                 fi
                 monitor_idle=0
                 active=1
