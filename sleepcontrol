@@ -456,7 +456,7 @@ fi
             else
                 log_ts=$now
             fi
-            if (( log_ts > LAST_FAKE_ACTIVITY_TS + GRACE_PERIOD )); then
+            if (( log_ts <= LAST_FAKE_ACTIVITY_TS + GRACE_PERIOD )); then
                 echo "${MAGENTA}$(date '+%Y-%m-%d %H:%M:%S') - Ignored user activity: simulated ($timestamp <= $LAST_FAKE_ACTIVITY_TS + $GRACE_PERIOD).${RESET}" >> "$LOG_FILE"
             else
                 LAST_REAL_ACTIVITY_TS=$log_ts
