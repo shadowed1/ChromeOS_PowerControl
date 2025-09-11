@@ -490,7 +490,7 @@ fi
         idle_elapsed=$(( now - last_ts ))
         (( STATUS == "Discharging" )) && AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_BATTERY || AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_POWER
         
-        if (( now - last_log_ts >= 10 )); then
+        if (( now - log_ts >= 10 )); then
             log_ts=$(awk '{print $1}' <<< "$line" | sed -E 's/T/ /; s/\..*Z//' | xargs -I{} date -d "{}" +%s 2>/dev/null || echo 0)
             echo "${BLUE}REAL -> $log_ts vs $LAST_FAKE_ACTIVITY_TS <- FAKE${RESET}" >> "$LOG_FILE"
         fi
