@@ -107,9 +107,8 @@ audio_active=0
 saved_display_brightness=0
 was_dimmed=0
 PRESENTATION_MODE=0 
-LAST_REAL_ACTIVITY_TS=$(date +%s)
 LAST_FAKE_ACTIVITY_TS=$(date +%s)
-GRACE_PERIOD=5
+GRACE_PERIOD=1
 BATTERY_DELAY=$DEFAULT_BATTERY_DELAY
 POWER_DELAY=$DEFAULT_POWER_DELAY
 BATTERY_BACKLIGHT=$DEFAULT_BATTERY_BACKLIGHT
@@ -285,6 +284,11 @@ monitor_idle_activity() {
         echo "${RESET}"
         exit 1
     }
+
+    if (( monitor_idle == 1 && sending_fake_activity == 0 )); then
+        LAST_REAL_ACTIVITY_TS=$now
+        start_fake_activity
+    fi
     
     if pgrep -f "$0 __sleepcontrol_monitor__" | grep -v "^$$\$" > /dev/null; then
         exit 0
@@ -326,8 +330,10 @@ send_fake_activity() {
             while [ -f "$RUN_FLAG" ] && (( monitor_idle == 1 )); do
                 sleep "$FAKE_ACTIVITY_INTERVAL"
                 now=$(date +%s)
-                if (( now - LAST_FAKE_ACTIVITY_TS >= FAKE_ACTIVITY_INTERVAL )); then
+                if (( now - LAST_REAL_ACTIVITY_TS > FAKE_ACTIVITY_INTERVAL )); then
                     send_fake_activity
+                else
+                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Skipping fake activity (recent real activity)." >> "$LOG_FILE"
                 fi
             done
         ) &
@@ -345,6 +351,7 @@ send_fake_activity() {
             sending_fake_activity=0
             fake_activity_pid=0
         fi
+        IGNORE_NEXT_USER_ACTIVITY=0
     }
 
     exec 3< <(tail -Fn0 /var/log/power_manager/powerd.LATEST)
