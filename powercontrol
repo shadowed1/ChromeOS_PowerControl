@@ -321,7 +321,7 @@ set_min_perf_pct() {
     MIN_PERF_PCT=$1
     save_config
     echo ""
-    echo "${CYAN}Minimum performance percentage set to $MIN_PERF_PCT%${RESET}" >> "$LOG_FILE"
+    echo "${CYAN}Minimum performance percentage set to $MIN_PERF_PCT%${RESET}" | tee -a "$LOG_FILE"
     echo ""
 }
 
@@ -335,9 +335,9 @@ set_no_turbo() {
     if [ "$IS_INTEL" -eq 1 ] && [ -w "$TURBO_PATH" ]; then
         echo "$value" | sudo tee "$TURBO_PATH" > /dev/null
         if [ "$value" -eq 1 ]; then
-            echo "Intel Turbo Boost ${CYAN}Disabled${RESET}" >> "$LOG_FILE"
+            echo "Intel Turbo Boost ${CYAN}Disabled${RESET}" | tee -a "$LOG_FILE"
         else
-            echo "Intel Turbo Boost ${CYAN}Enabled${RESET}" >> "$LOG_FILE"
+            echo "Intel Turbo Boost ${CYAN}Enabled${RESET}" | tee -a "$LOG_FILE"
         fi
     elif [ "$IS_AMD" -eq 1 ]; then
         echo "Turbo disable is not directly supported on AMD via no_turbo."
@@ -434,7 +434,7 @@ start_monitoring_loop() {
         sleep "$CPU_POLL"
     done
 
-    echo "${RED}PowerControl stopped.${RESET}" >> "$LOG_FILE"
+    echo "${RED}PowerControl stopped.${RESET}" | tee -a "$LOG_FILE"
     rm -f "$PID_FILE"
 }
 
@@ -514,7 +514,7 @@ stop_monitoring() {
     if [ -f "$PID_FILE" ]; then
         PID=$(cat "$PID_FILE")
         if ps -p "$PID" > /dev/null 2>&1; then
-            echo "${RED}$(date '+%Y-%m-%d %H:%M:%S') - Stopping PowerControl (PGID $PID)...${RESET}" >> "$LOG_FILE"
+            echo "${RED}$(date '+%Y-%m-%d %H:%M:%S') - Stopping PowerControl (PGID $PID)...${RESET}" | tee -a "$LOG_FILE"
             kill -- -"$PID" 2>/dev/null
             sleep 1
             if ps -p "$PID" > /dev/null 2>&1; then
@@ -524,7 +524,7 @@ stop_monitoring() {
             if ps -p "$PID" > /dev/null 2>&1; then
                 kill -9 "$PID" 2>/dev/null
             fi
-            echo "${RED}$(date '+%Y-%m-%d %H:%M:%S') - PowerControl Stopped (PID $PID)${RESET}" >> "$LOG_FILE"
+            echo "${RED}$(date '+%Y-%m-%d %H:%M:%S') - PowerControl Stopped (PID $PID)${RESET}" | tee -a "$LOG_FILE"
         fi
     fi
     rm -f "$RUN_FLAG" "$PID_FILE"
@@ -638,7 +638,7 @@ max_perf_pct() {
     save_config
 
     echo ""
-    echo "${CYAN}Maximum performance percentage set to $MAX_PERF_PCT%${RESET}" >> "$LOG_FILE"
+    echo "${CYAN}Maximum performance percentage set to $MAX_PERF_PCT%${RESET}" | tee -a "$LOG_FILE"
     echo ""
 }
 
@@ -660,7 +660,7 @@ case "$1" in
     fi
 
     if pgrep -f "$0 __powercontrol_monitor__" >/dev/null; then
-        echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') - PowerControl is already running.${RESET}" >> "$LOG_FILE"
+        echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') - PowerControl is already running.${RESET}" | tee -a "$LOG_FILE"
     else
         nohup "$0" __powercontrol_monitor__ >> "$LOG_FILE" 2>&1 &
         echo $! > "$PID_FILE"
