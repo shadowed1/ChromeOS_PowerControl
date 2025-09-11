@@ -328,9 +328,9 @@ send_fake_activity() {
                 sleep "$FAKE_ACTIVITY_INTERVAL"
                 now=$(date +%s)
                 
-                if (( now - LAST_REAL_ACTIVITY_TS > FAKE_ACTIVITY_INTERVAL )); then
+                if (( now - LAST_FAKE_ACTIVITY_TS >= FAKE_ACTIVITY_INTERVAL )); then
                     send_fake_activity
-                else
+                fi
                     echo "$(date '+%Y-%m-%d %H:%M:%S') - Skipping fake activity (recent real activity)." >> "$LOG_FILE"
                 fi
             done
