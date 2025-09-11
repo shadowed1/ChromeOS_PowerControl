@@ -321,6 +321,7 @@ send_fake_activity() {
     LAST_FAKE_ACTIVITY_TS=$(date +%s)
     echo "$(date '+%Y-%m-%d %H:%M:%S') - Simulated user activity." >> "$LOG_FILE"
 }
+
    start_fake_activity() {
     if (( sending_fake_activity == 0 )); then
         (
@@ -328,10 +329,9 @@ send_fake_activity() {
                 sleep "$FAKE_ACTIVITY_INTERVAL"
                 now=$(date +%s)
                 
-                if (( now - LAST_FAKE_ACTIVITY_TS >= FAKE_ACTIVITY_INTERVAL )); then
+                if (( now - LAST_REAL_ACTIVITY_TS > GRACE_PERIOD )) && \
+                   (( now - LAST_FAKE_ACTIVITY_TS >= FAKE_ACTIVITY_INTERVAL )); then
                     send_fake_activity
-                fi
-                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Skipping fake activity (recent real activity)." >> "$LOG_FILE"
                 fi
             done
         ) &
