@@ -108,6 +108,7 @@ saved_display_brightness=0
 was_dimmed=0
 PRESENTATION_MODE=0 
 LAST_FAKE_ACTIVITY_TS=$(date +%s)
+LAST_REAL_ACTIVITY_TS=$(date +%s)
 GRACE_PERIOD=1
 BATTERY_DELAY=$DEFAULT_BATTERY_DELAY
 POWER_DELAY=$DEFAULT_POWER_DELAY
@@ -285,10 +286,6 @@ monitor_idle_activity() {
         exit 1
     }
 
-    if (( monitor_idle == 1 && sending_fake_activity == 0 )); then
-        LAST_REAL_ACTIVITY_TS=$now
-        start_fake_activity
-    fi
     
     if pgrep -f "$0 __sleepcontrol_monitor__" | grep -v "^$$\$" > /dev/null; then
         exit 0
@@ -330,6 +327,7 @@ send_fake_activity() {
             while [ -f "$RUN_FLAG" ]; do
                 sleep "$FAKE_ACTIVITY_INTERVAL"
                 now=$(date +%s)
+                
                 if (( now - LAST_REAL_ACTIVITY_TS > FAKE_ACTIVITY_INTERVAL )); then
                     send_fake_activity
                 else
