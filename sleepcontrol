@@ -490,9 +490,7 @@ fi
     if (( monitor_idle == 1 )); then
         idle_elapsed=$(( now - last_ts ))
         (( STATUS == "Discharging" )) && AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_BATTERY || AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_POWER
-        
-            echo "${BLUE}REAL -> ${BOLD}${log_ts}${RESET} ${CYAN}vs${RESET} ${MAGENTA}${BOLD}$LAST_FAKE_ACTIVITY_TS${RESET}${MAGENTA} <- FAKE${RESET}" >> "$LOG_FILE"
-    
+            
         if (( AUDIO_DETECTION_ENABLED == 1 && AUDIO_ACTIVE == 1 )); then
             idle_since=$now
             last_ts=$now
