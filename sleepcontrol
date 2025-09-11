@@ -329,7 +329,8 @@ send_fake_activity() {
                 sleep "$FAKE_ACTIVITY_INTERVAL"
                 now=$(date +%s)
                 
-                if (( now - LAST_FAKE_ACTIVITY_TS >= FAKE_ACTIVITY_INTERVAL )); then
+                if (( now - LAST_REAL_ACTIVITY_TS > GRACE_PERIOD )) && \
+                   (( now - LAST_FAKE_ACTIVITY_TS >= FAKE_ACTIVITY_INTERVAL )); then
                     send_fake_activity
                     echo "fake activity sent"
                 fi
