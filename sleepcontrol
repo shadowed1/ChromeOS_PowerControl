@@ -54,7 +54,7 @@ SUSPEND_MODE=$DEFAULT_SUSPEND_MODE
 ORIGINAL_SUSPEND_MODE=$ORIGINAL_SUSPEND_MODE
 LAST_FAKE_ACTIVITY_TS=$(date +%s)
 LAST_REAL_ACTIVITY_TS=$(date +%s)
-GRACE_PERIOD=0
+GRACE_PERIOD=1
 FAKE_ACTIVITY_INTERVAL=60
 
 SUSPEND_APPLIED_FLAG="/tmp/.sleepcontrol_suspend_applied"
@@ -615,7 +615,7 @@ case "$1" in
         fi
 
         stop_monitoring >/dev/null 2>&1
-        echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') - SleepControl Stopped (PID $PID)${RESET}"
+        echo "${RED}$(date '+%Y-%m-%d %H:%M:%S') - SleepControl Stopped (PID $PID)${RESET}"
         ;;
     battery|power)
     MODE=$1
