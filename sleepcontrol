@@ -573,7 +573,7 @@ case "$1" in
         }
 
         if pgrep -f "$0 __sleepcontrol_monitor__" > /dev/null; then
-            echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - SleepControl is already running. ${RESET}" | tee -a "$LOG_FILE"
+            echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - SleepControl is already running. ${RESET}" >> "$LOG_FILE"
             exit 0
         fi
 
@@ -591,11 +591,11 @@ case "$1" in
         stop_monitoring >/dev/null 2>&1
 
         if [ -f "$LOG_FILE" ] && [ "$(stat -c%s "$LOG_FILE")" -gt 131072 ]; then
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - Truncated log file (exceeded 128KB)" | tee -a "$LOG_FILE"
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - Truncated log file (exceeded 128KB)" >> "$LOG_FILE"
         fi
 
         setsid "$0" __sleepcontrol_monitor__ >> "$LOG_FILE" 2>&1 &
-        echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - SleepControl Started. Output is logged to $LOG_FILE${RESET}" | tee -a "$LOG_FILE"
+        echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - SleepControl Started. Output is logged to $LOG_FILE${RESET}" >> "$LOG_FILE"
         ;;
     stop)
         if [[ -n "$BRIGHTNESS_PATH" ]]; then
