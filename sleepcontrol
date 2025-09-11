@@ -108,7 +108,7 @@ saved_display_brightness=0
 was_dimmed=0
 PRESENTATION_MODE=0 
 LAST_REAL_ACTIVITY_TS=$(date +%s)
-LAST_FAKE_ACTIVITY_TS=0
+LAST_FAKE_ACTIVITY_TS=$(date +%s)
 GRACE_PERIOD=10
 BATTERY_DELAY=$DEFAULT_BATTERY_DELAY
 POWER_DELAY=$DEFAULT_POWER_DELAY
@@ -451,9 +451,7 @@ fi
             fi
             ;;
       *"User activity reported"*|*"Enabling wakeup for"*|*"User triggered wake"*|*"User activity ongoing"*)
-            read log_date log_time _ <<< "$line"
-            log_time="${log_time%%.*}"
-            log_ts=$(date -d "$log_date $log_time" +%s 2>/dev/null || echo 0)
+            log_ts=$(awk '{print $1}' <<< "$line" | sed -E 's/T/ /; s/\..*Z//' | xargs -I{} date -d "{}" +%s 2>/dev/null || echo 0)
             if (( log_ts > LAST_FAKE_ACTIVITY_TS + GRACE_PERIOD )); then
                 LAST_REAL_ACTIVITY_TS=$log_ts
                 if (( monitor_idle == 1 )); then
@@ -474,7 +472,7 @@ fi
             else
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Ignored user activity (timestamp <= last fake activity + grace period)." >> "$LOG_FILE"
             fi
-        ;;
+            ;;
         *"Got user-triggered request to set brightness to "*)
             line=$(grep "Setting brightness to" /var/log/power_manager/powerd.LATEST | tail -n1)
             brightness_value=$(echo "$line" | sed -n 's/.*Setting brightness to \([0-9]\+\) (.*/\1/p')
@@ -496,8 +494,8 @@ fi
         fi
     
         if (( now - last_log_ts >= 10 )); then
+            log_ts=$(awk '{print $1}' <<< "$line" | sed -E 's/T/ /; s/\..*Z//' | xargs -I{} date -d "{}" +%s 2>/dev/null || echo 0)
             echo "log_ts=$log_ts last_fake=$LAST_FAKE_ACTIVITY_TS" >> "$LOG_FILE"
-            last_log_ts=$now
         fi
     
         if (( AUDIO_DETECTION_ENABLED == 1 && audio_active == 1 )); then
