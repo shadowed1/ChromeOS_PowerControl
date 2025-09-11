@@ -306,7 +306,7 @@ monitor_idle_activity() {
     local lid_closed=0
     local last_fake_activity_ts=$(date +%s)
     local last_real_activity_ts=$(date +%s)
-    local grace_period=1
+    local grace_period=5
     local fake_activity_interval=60
 
     save_current_brightness
