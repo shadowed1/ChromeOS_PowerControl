@@ -320,10 +320,10 @@ send_fake_activity() {
     LAST_FAKE_ACTIVITY_TS=$(date +%s)
     echo "$(date '+%Y-%m-%d %H:%M:%S') - Simulated user activity." >> "$LOG_FILE"
 }
-   start_fake_activity() {
-    if (( sending_fake_activity == 0 )); then
+  start_fake_activity() {
+    if (( sending_fake_activity == 0 && monitor_idle == 1 )); then
         (
-            while [ -f "$RUN_FLAG" ]; do
+            while [ -f "$RUN_FLAG" ] && (( monitor_idle == 1 )); do
                 sleep "$FAKE_ACTIVITY_INTERVAL"
                 now=$(date +%s)
                 if (( now - LAST_REAL_ACTIVITY_TS > FAKE_ACTIVITY_INTERVAL )); then
@@ -386,6 +386,11 @@ fi
 
         AUDIO_DETECTION_ENABLED=$(( STATUS == "Discharging" ? AUDIO_DETECTION_BATTERY : AUDIO_DETECTION_POWER ))
         (( AUDIO_DETECTION_ENABLED == 0 )) && audio_active=0
+
+        parse_log_ts() {
+            local line="$1"
+            awk '{print $1}' <<< "$line" | sed -E 's/T/ /; s/\..*Z//' | xargs -I{} date -d "{}" +%s 2>/dev/null || echo 0
+        }
 
         case "$line" in
         *"Chrome is using presentation display mode"*)
@@ -452,6 +457,8 @@ fi
             ;;
       *"User activity reported"*|*"Enabling wakeup for"*|*"User triggered wake"*|*"User activity ongoing"*)
             log_ts=$(awk '{print $1}' <<< "$line" | sed -E 's/T/ /; s/\..*Z//' | xargs -I{} date -d "{}" +%s 2>/dev/null || echo 0)
+            (( log_ts <= last_log_ts )) && continue
+            last_log_ts=$log_ts
             if (( log_ts > LAST_FAKE_ACTIVITY_TS + GRACE_PERIOD )); then
                 LAST_REAL_ACTIVITY_TS=$log_ts
                 if (( monitor_idle == 1 )); then
