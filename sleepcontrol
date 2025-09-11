@@ -311,7 +311,6 @@ send_fake_activity() {
             sending_fake_activity=0
             fake_activity_pid=0
         fi
-        IGNORE_NEXT_USER_ACTIVITY=0
     }
 
 monitor_idle_activity() {
