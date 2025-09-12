@@ -52,10 +52,11 @@ BATTERY_DIM_DELAY=$DEFAULT_BATTERY_DIM_DELAY
 POWER_DIM_DELAY=$DEFAULT_POWER_DIM_DELAY
 SUSPEND_MODE=$DEFAULT_SUSPEND_MODE
 ORIGINAL_SUSPEND_MODE=$ORIGINAL_SUSPEND_MODE
-LAST_FAKE_ACTIVITY_TS=$(date +%s)
 LAST_REAL_ACTIVITY_TS=$(date +%s)
 GRACE_PERIOD=5
 FAKE_ACTIVITY_INTERVAL=60
+LAST_FAKE_ACTIVITY_TS=$(( LAST_REAL_ACTIVITY_TS - FAKE_ACTIVITY_INTERVAL ))
+
 
 SUSPEND_APPLIED_FLAG="/tmp/.sleepcontrol_suspend_applied"
 
@@ -282,7 +283,7 @@ send_fake_activity() {
         /org/chromium/PowerManager \
         org.chromium.PowerManager.HandleUserActivity int32:0 int32:0
 
-    LAST_FAKE_ACTIVITY_TS=$(date +%s)
+    LAST_FAKE_ACTIVITY_TS=$(( LAST_REAL_ACTIVITY_TS - FAKE_ACTIVITY_INTERVAL ))
     echo "$(date '+%Y-%m-%d %H:%M:%S') - Simulated user activity." >> "$LOG_FILE"
 }
 
@@ -358,32 +359,31 @@ monitor_idle_activity() {
         (( now - last_reload_time >= 10 )) && { load_config; last_reload_time=$now; }
 
         if (( now - last_power_check_time >= 10 )); then
-    get_battery_info
-    [[ -z "$STATUS" ]] && { STATUS="Unknown"; CHARGE=""; }
-    last_power_check_time=$now
-
-    if [[ "$STATUS" != "Discharging" && "$SUSPEND_MODE" == "deep" ]]; then
-        if [[ -f /usr/share/power_manager/suspend_mode ]]; then
-            if read -r desired_mode < /usr/share/power_manager/suspend_mode; then
-                [[ "$desired_mode" != "deep" && "$desired_mode" != "s2idle" ]] && desired_mode="s2idle"
-            else
-                desired_mode="s2idle"
+            get_battery_info
+            [[ -z "$STATUS" ]] && { STATUS="Unknown"; CHARGE=""; }
+            last_power_check_time=$now
+        
+            if [[ "$STATUS" != "Discharging" && "$SUSPEND_MODE" == "deep" ]]; then
+                if [[ -f /usr/share/power_manager/suspend_mode ]]; then
+                    if read -r desired_mode < /usr/share/power_manager/suspend_mode; then
+                        [[ "$desired_mode" != "deep" && "$desired_mode" != "s2idle" ]] && desired_mode="s2idle"
+                    else
+                        desired_mode="s2idle"
+                    fi
+                else
+                    desired_mode="s2idle"
+                fi
+        
+                echo "$desired_mode" | sudo tee /sys/power/mem_sleep >/dev/null
+        
+                for file in \
+                    /var/lib/power_manager/disable_dark_resume \
+                    /usr/share/power_manager/disable_dark_resume \
+                    /mnt/stateful_partition/encrypted/var/lib/power_manager/disable_dark_resume; do
+                    [[ -f "$file" ]] && echo 0 | sudo tee "$file" >/dev/null
+                done
             fi
-        else
-            desired_mode="s2idle"
         fi
-
-        echo "$desired_mode" | sudo tee /sys/power/mem_sleep >/dev/null
-
-        for file in \
-            /var/lib/power_manager/disable_dark_resume \
-            /usr/share/power_manager/disable_dark_resume \
-            /mnt/stateful_partition/encrypted/var/lib/power_manager/disable_dark_resume; do
-            [[ -f "$file" ]] && echo 0 | sudo tee "$file" >/dev/null
-        done
-    fi
-fi
-
 
         AUDIO_DETECTION_ENABLED=$(( STATUS == "Discharging" ? AUDIO_DETECTION_BATTERY : AUDIO_DETECTION_POWER ))
         (( AUDIO_DETECTION_ENABLED == 0 )) && AUDIO_ACTIVE=0
