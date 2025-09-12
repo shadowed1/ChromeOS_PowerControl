@@ -52,7 +52,7 @@ SUSPEND_MODE=$DEFAULT_SUSPEND_MODE
 ORIGINAL_SUSPEND_MODE=$ORIGINAL_SUSPEND_MODE
 LAST_FAKE_ACTIVITY_TS=$(date +%s)
 LAST_REAL_ACTIVITY_TS=$(date +%s)
-GRACE_PERIOD=5
+GRACE_PERIOD=1
 FAKE_ACTIVITY_INTERVAL=60
 WAS_DIMMED=0
 SAVED_DISPLAY_BRIGHTNESS=0
@@ -456,8 +456,8 @@ fi
             else
                 log_ts=$now
             fi
-            if (( log_ts <= LAST_FAKE_ACTIVITY_TS + GRACE_PERIOD )); then
-                echo "${MAGENTA}$(date '+%Y-%m-%d %H:%M:%S') - Ignored user activity: simulated ($now <= $LAST_FAKE_ACTIVITY_TS + $GRACE_PERIOD).${RESET}" >> "$LOG_FILE"
+            if (( log_ts > LAST_FAKE_ACTIVITY_TS + GRACE_PERIOD )); then
+                echo "${MAGENTA}$(date '+%Y-%m-%d %H:%M:%S') - Ignored user activity: simulated ($timestamp <= $LAST_FAKE_ACTIVITY_TS + $GRACE_PERIOD).${RESET}" >> "$LOG_FILE"
             else
                 LAST_REAL_ACTIVITY_TS=$log_ts
                 if (( monitor_idle == 1 )); then
@@ -483,6 +483,7 @@ fi
             if [[ -n "$brightness_value" ]]; then
                 SAVED_DISPLAY_BRIGHTNESS="$brightness_value"
                 echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Saved current brightness: $SAVED_DISPLAY_BRIGHTNESS ${RESET}" >> "$LOG_FILE"
+                stop_fake_activity
             fi
             ;;
     esac
@@ -491,6 +492,9 @@ fi
         idle_elapsed=$(( now - last_ts ))
         (( STATUS == "Discharging" )) && AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_BATTERY || AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_POWER
         
+        if (( $now - $log_ts >= 10 )); then
+            echo "${BLUE}REAL -> ${BOLD}${log_ts}${RESET} ${CYAN}vs${RESET} ${MAGENTA}${BOLD}$LAST_FAKE_ACTIVITY_TS${RESET}${MAGENTA} <- FAKE${RESET}" >> "$LOG_FILE"
+        fi
     
         if (( AUDIO_DETECTION_ENABLED == 1 && AUDIO_ACTIVE == 1 )); then
             idle_since=$now
