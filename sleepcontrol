@@ -110,7 +110,7 @@ was_dimmed=0
 PRESENTATION_MODE=0
 LAST_REAL_ACTIVITY_TS=$(date +%s)
 LAST_FAKE_ACTIVITY_TS=$(date +%s)
-GRACE_PERIOD=1
+GRACE_PERIOD=30
 BATTERY_DELAY=$DEFAULT_BATTERY_DELAY
 POWER_DELAY=$DEFAULT_POWER_DELAY
 BATTERY_BACKLIGHT=$DEFAULT_BATTERY_BACKLIGHT
@@ -326,16 +326,19 @@ send_fake_activity() {
     LAST_FAKE_ACTIVITY_TS=$(date +%s)
     echo "$(date '+%Y-%m-%d %H:%M:%S') - Simulated user activity." >> "$LOG_FILE"
 }
-   start_fake_activity() {
+  start_fake_activity() {
     if (( sending_fake_activity == 0 )); then
         (
             while [ -f "$RUN_FLAG" ]; do
                 sleep "$FAKE_ACTIVITY_INTERVAL"
                 now=$(date +%s)
-                if (( now - LAST_REAL_ACTIVITY_TS > FAKE_ACTIVITY_INTERVAL )); then
+
+                # Only send fake if both conditions are met:
+                if (( now - LAST_REAL_ACTIVITY_TS > GRACE_PERIOD )) && \
+                   (( now - LAST_FAKE_ACTIVITY_TS >= FAKE_ACTIVITY_INTERVAL )); then
                     send_fake_activity
                 else
-                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Skipping fake activity (recent real activity)." >> "$LOG_FILE"
+                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Skipping fake activity (real or too soon after last fake)." >> "$LOG_FILE"
                 fi
             done
         ) &
