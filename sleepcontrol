@@ -18,16 +18,6 @@ BRIGHTNESS_PATH=""
 MAX_BRIGHTNESS_PATH=""
 FAKE_ACTIVITY_INTERVAL=120
 LID_SUSPEND_IGNORE_UNTIL=0
-REAL_TS_FILE="$INSTALL_DIR/last_real_activity_ts"
-FAKE_TS_FILE="$INSTALL_DIR/last_fake_activity_ts"
-
-if [[ ! -f "$REAL_TS_FILE" ]]; then
-    echo 0 > "$REAL_TS_FILE"
-fi
-
-if [[ ! -f "$FAKE_TS_FILE" ]]; then
-    echo 0 > "$FAKE_TS_FILE"
-fi
 
 SUSPEND_APPLIED_FLAG="/tmp/.sleepcontrol_suspend_applied"
 
@@ -150,11 +140,6 @@ recalc_timers() {
     fi    
 }
 
-if [[ -f "$BRIGHTNESS_PATH" ]]; then
-    read -r original_display_brightness < "$BRIGHTNESS_PATH"
-    echo "$(date '+%Y-%m-%d %H:%M:%S') - Original brightness saved: $original_display_brightness" >> "$LOG_FILE"
-fi
-
 validate_config() {
     if [[ -z "$BATTERY_DELAY" || ! "$BATTERY_DELAY" =~ ^[0-9]+$ ]]; then
         BATTERY_DELAY=$DEFAULT_BATTERY_DELAY
@@ -245,16 +230,6 @@ echo "${RESET}"
 
 load_config
 
-save_original_brightness() {
-    if [[ -f "$BRIGHTNESS_PATH" ]]; then
-        if read -r original_display_brightness < "$BRIGHTNESS_PATH"; then
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - Original brightness saved: $original_display_brightness" >> "$LOG_FILE"
-        else
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - Could not read brightness from $BRIGHTNESS_PATH" >> "$LOG_FILE"
-        fi
-    fi
-}
-
 set_display_brightness() {
     local value=$1
     if [[ -n "$BRIGHTNESS_PATH" ]]; then
@@ -303,11 +278,11 @@ send_fake_activity() {
         /org/chromium/PowerManager \
         org.chromium.PowerManager.HandleUserActivity int32:0 int32:0
     now=$(date +%s)
-    echo "$now" > "$FAKE_TS_FILE"
+    echo "$now" > /tmp/last_fake_activity_ts
     echo "$(date '+%Y-%m-%d %H:%M:%S') - Simulated user activity." >> "$LOG_FILE"
 }
 
-save_original_brightness
+
 
 monitor_idle_activity() {
     exec 200>"$PID_FILE.lock"
@@ -417,7 +392,7 @@ start_fake_activity() {
                 kb_brightness_restored=0
                 idle_since=$now
                 last_ts=$now
-                (( sending_fake_activity == 0 )) && start_fake_activity
+                (( sending_fake_activity == 0 )) && start_fake_activity   # START immediately on idle
             fi
             ;;
         *"Lid closed"*)
@@ -436,11 +411,9 @@ start_fake_activity() {
             if (( PRESENTATION_MODE == 0 )); then
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid opened, restoring brightness." >> "$LOG_FILE"
                 if [[ -n "$saved_display_brightness" && "$saved_display_brightness" -gt 0 ]]; then
-                    set_display_brightness "$saved_display_brightness"
-                elif [[ -n "$original_display_brightness" && "$original_display_brightness" -gt 0 ]]; then
-                    set_display_brightness "$original_display_brightness"
+                    echo "$saved_display_brightness" | sudo tee "$BRIGHTNESS_PATH" >/dev/null
                 fi
-                kb_brightness_restored=1
+                # sudo ectool pwmsetkblight "$saved_kb_brightness" 2>/dev/null
             fi
             ;;
         *"On battery at"*)
@@ -459,15 +432,18 @@ start_fake_activity() {
                 suspend_delay=$((POWER_DELAY*60))
             fi
             ;;
-       *"User activity reported"*|*"User triggered wake"*|*"User activity ongoing"*)
+        *"User activity reported"*|*"User triggered wake"*|*"User activity ongoing"*)
             now=$(date +%s)
-            last_ts=$now
-            read -r last_fake_ts < "$FAKE_TS_FILE" 2>/dev/null || last_fake_ts=0
-            read -r last_real_ts < "$REAL_TS_FILE" 2>/dev/null || last_real_ts=0
+            [[ -f /tmp/last_real_activity_ts ]] || echo 0 > /tmp/last_real_activity_ts
+            read -r last_real_ts < /tmp/last_real_activity_ts
         
-            if (( now - last_real_ts > 2 )) && (( now > last_fake_ts )); then
-                echo "$now" > "$REAL_TS_FILE"
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Real user activity detected." >> "$LOG_FILE"
+            if (( now - last_real_ts > 1 )); then
+                last_real_ts=$now
+                echo "$last_real_ts" > /tmp/last_real_activity_ts
+        
+                if (( monitor_idle == 1 )); then
+                    echo "$(date '+%Y-%m-%d %H:%M:%S') - User activity resumed." >> "$LOG_FILE"
+                fi
         
                 monitor_idle=0
                 active=1
