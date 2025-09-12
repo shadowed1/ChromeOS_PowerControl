@@ -291,7 +291,7 @@ monitor_idle_activity() {
     }
 
     if (( monitor_idle == 1 && sending_fake_activity == 0 )); then
-        LAST_REAL_ACTIVITY_TS=$now
+        #LAST_REAL_ACTIVITY_TS=$now
         start_fake_activity
     fi
     
