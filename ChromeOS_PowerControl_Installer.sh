@@ -183,7 +183,7 @@ DEFAULT_INSTALL_DIR="/usr/local/bin/ChromeOS_PowerControl"
 
 if [ -f "$DEFAULT_INSTALL_DIR/.install_path" ]; then
     INSTALL_DIR=$(sudo cat "$DEFAULT_INSTALL_DIR/.install_path")
-    echo -e "${CYAN}Found existing install path: ${BOLD}$INSTALL_DIR${RESET}"
+    echo -e "${CYAN}Found existing Install Path: ${BOLD}$INSTALL_DIR${RESET}"
 else
     INSTALL_DIR="$DEFAULT_INSTALL_DIR"
 fi
