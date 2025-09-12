@@ -334,7 +334,7 @@ start_fake_activity() {
         ) &
         fake_activity_pid=$!
         sending_fake_activity=1
-        echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Starting simulated activity loop (PID $FAKE_ACTIVITY_PID)${RESET}" >> "$LOG_FILE"
+        echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Starting simulated activity loop (PID $fake_activity_pid)${RESET}" >> "$LOG_FILE"
     fi
 }
 
