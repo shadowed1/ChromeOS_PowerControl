@@ -21,7 +21,6 @@ LID_SUSPEND_IGNORE_UNTIL=0
 LAST_REAL_ACTIVITY_TS=$(date +%s)
 LAST_FAKE_ACTIVITY_TS=$(( LAST_REAL_ACTIVITY_TS - FAKE_ACTIVITY_INTERVAL ))
 GRACE_PERIOD=5
-FAKE_EVENT_GRACE=2
 
 SUSPEND_APPLIED_FLAG="/tmp/.sleepcontrol_suspend_applied"
 
@@ -321,12 +320,11 @@ monitor_idle_activity() {
     local last_reload_time=0
     local last_power_check_time=0
     local saved_kb_brightness=$(sudo ectool pwmgetkblight 2>/dev/null | awk '{print $NF}')
-    local last_ts=0
 
     save_current_brightness
 
     start_fake_activity() {
-    if (( sending_fake_activity == 0 )); then
+    if (( SENDING_FAKE_ACTIVITY == 0 )); then
         (
             while [ -f "$RUN_FLAG" ]; do
                 now=$(date +%s)
@@ -339,6 +337,7 @@ monitor_idle_activity() {
             done
         ) &
         fake_activity_pid=$!
+        monitor_idle=1
         sending_fake_activity=1
         echo "$(date '+%Y-%m-%d %H:%M:%S') - Starting simulated activity loop (PID $fake_activity_pid)." >> "$LOG_FILE"
     fi
@@ -420,7 +419,7 @@ monitor_idle_activity() {
                 active=0
                 kb_brightness_restored=0
                 idle_since=$now
-                last_ts=$LAST_REAL_ACTIVITY_TS
+                last_ts=$now
                 stop_fake_activity
             fi
             ;;
@@ -442,7 +441,6 @@ monitor_idle_activity() {
                 if [[ -n "$saved_display_brightness" && "$saved_display_brightness" -gt 0 ]]; then
                     echo "$saved_display_brightness" | sudo tee "$BRIGHTNESS_PATH" >/dev/null
                 fi
-                # sudo ectool pwmsetkblight "$saved_kb_brightness" 2>/dev/null
             fi
             ;;
         *"On battery at"*)
@@ -461,9 +459,9 @@ monitor_idle_activity() {
                 suspend_delay=$((POWER_DELAY*60))
             fi
             ;;
-       *"User activity reported"*|*"Enabling wakeup for"*|*"User triggered wake"*|*"powerd_suspend returned 0"*|*"User activity ongoing"*|*"Configuring devices for mode"*)
+        *"User activity reported"*|*"Enabling wakeup for"*|*"User triggered wake"*|*"powerd_suspend returned 0"*|*"User activity ongoing"*|*"Configuring devices for mode"*)
             if (( monitor_idle == 1 )); then
-                if (( now - LAST_FAKE_ACTIVITY_TS <= FAKE_ACTIVITY_INTERVAL + FAKE_EVENT_GRACE )); then
+                if (( now - LAST_FAKE_ACTIVITY_TS < GRACE_PERIOD )); then
                     echo "$(date '+%Y-%m-%d %H:%M:%S') - Ignoring simulated/fake user activity event." >> "$LOG_FILE"
                 else
                     LAST_REAL_ACTIVITY_TS=$now
