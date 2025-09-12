@@ -392,7 +392,10 @@ monitor_idle_activity() {
         *"Chrome is using presentation display mode"*)
             PRESENTATION_MODE=1
             echo "$(date '+%Y-%m-%d %H:%M:%S') - Presentation mode detected." >> "$LOG_FILE"
+            active=1
+            backlight_off=0
             stop_fake_activity
+            WAS_DIMMED=0
             ;;
         *"Chrome is using normal display mode"*)
             PRESENTATION_MODE=0
@@ -453,7 +456,7 @@ monitor_idle_activity() {
             ;;
       *"User activity reported"*|*"Enabling wakeup for"*|*"User triggered wake"*|*"User activity ongoing"*)
             log_ts=$(awk '{print $1}' <<< "$line" | sed -E 's/T/ /; s/\..*Z//' | xargs -I{} date -d "{}" +%s 2>/dev/null || echo 0)
-            if (( log_ts > LAST_FAKE_ACTIVITY_TS + GRACE_PERIOD )); then
+            if (( log_ts - LAST_FAKE_ACTIVITY_TS + GRACE_PERIOD )); then
                 LAST_REAL_ACTIVITY_TS=$log_ts
                 if (( monitor_idle == 1 )); then
                     echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - User activity resumed.${RESET}" >> "$LOG_FILE"
@@ -481,6 +484,9 @@ monitor_idle_activity() {
             if [[ -n "$brightness_value" ]]; then
                 SAVED_DISPLAY_BRIGHTNESS="$brightness_value"
                 echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Saved current brightness: $SAVED_DISPLAY_BRIGHTNESS ${RESET}" >> "$LOG_FILE"
+                stop_fake_activity
+                backlight_off=0
+                WAS_DIMMED=0
             fi
             ;;
     esac
