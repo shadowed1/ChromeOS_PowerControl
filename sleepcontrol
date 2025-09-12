@@ -55,9 +55,7 @@ ORIGINAL_SUSPEND_MODE=$ORIGINAL_SUSPEND_MODE
 LAST_REAL_ACTIVITY_TS=$(date +%s)
 GRACE_PERIOD=5
 FAKE_ACTIVITY_INTERVAL=60
-LAST_FAKE_ACTIVITY_TS=$(( LAST_REAL_ACTIVITY_TS - GRACE_PERIOD ))
-
-
+LAST_FAKE_ACTIVITY_TS=$(( LAST_REAL_ACTIVITY_TS - FAKE_ACTIVITY_INTERVAL ))
 SUSPEND_APPLIED_FLAG="/tmp/.sleepcontrol_suspend_applied"
 
 if [[ ! -f "$SUSPEND_APPLIED_FLAG" ]]; then
@@ -283,7 +281,7 @@ send_fake_activity() {
         /org/chromium/PowerManager \
         org.chromium.PowerManager.HandleUserActivity int32:0 int32:0
 
-    LAST_FAKE_ACTIVITY_TS=$(( LAST_REAL_ACTIVITY_TS - FAKE_ACTIVITY_INTERVAL ))
+    #LAST_FAKE_ACTIVITY_TS=$(( LAST_REAL_ACTIVITY_TS - FAKE_ACTIVITY_INTERVAL ))
     echo "$(date '+%Y-%m-%d %H:%M:%S') - Simulated user activity." >> "$LOG_FILE"
 }
 
@@ -303,7 +301,7 @@ send_fake_activity() {
         ) &
         fake_activity_pid=$!
         sending_fake_activity=1
-        echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Starting simulated activity loop (PID $fake_activity_pid)${RESET}" >> "$LOG_FILE"
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - Starting simulated activity loop... (PID $fake_activity_pid)." >> "$LOG_FILE"
     fi
 }
 
@@ -311,7 +309,7 @@ send_fake_activity() {
         if (( sending_fake_activity == 1 )); then
             kill "$fake_activity_pid" 2>/dev/null
             wait "$fake_activity_pid" 2>/dev/null
-            echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Stopping simulated activity loop... (PID $fake_activity_pid)${RESET}" >> "$LOG_FILE"
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - Stopping simulated activity loop... (PID $fake_activity_pid)." >> "$LOG_FILE"
             sending_fake_activity=0
             fake_activity_pid=0
         fi
@@ -359,31 +357,32 @@ monitor_idle_activity() {
         (( now - last_reload_time >= 10 )) && { load_config; last_reload_time=$now; }
 
         if (( now - last_power_check_time >= 10 )); then
-            get_battery_info
-            [[ -z "$STATUS" ]] && { STATUS="Unknown"; CHARGE=""; }
-            last_power_check_time=$now
-        
-            if [[ "$STATUS" != "Discharging" && "$SUSPEND_MODE" == "deep" ]]; then
-                if [[ -f /usr/share/power_manager/suspend_mode ]]; then
-                    if read -r desired_mode < /usr/share/power_manager/suspend_mode; then
-                        [[ "$desired_mode" != "deep" && "$desired_mode" != "s2idle" ]] && desired_mode="s2idle"
-                    else
-                        desired_mode="s2idle"
-                    fi
-                else
-                    desired_mode="s2idle"
-                fi
-        
-                echo "$desired_mode" | sudo tee /sys/power/mem_sleep >/dev/null
-        
-                for file in \
-                    /var/lib/power_manager/disable_dark_resume \
-                    /usr/share/power_manager/disable_dark_resume \
-                    /mnt/stateful_partition/encrypted/var/lib/power_manager/disable_dark_resume; do
-                    [[ -f "$file" ]] && echo 0 | sudo tee "$file" >/dev/null
-                done
+    get_battery_info
+    [[ -z "$STATUS" ]] && { STATUS="Unknown"; CHARGE=""; }
+    last_power_check_time=$now
+
+    if [[ "$STATUS" != "Discharging" && "$SUSPEND_MODE" == "deep" ]]; then
+        if [[ -f /usr/share/power_manager/suspend_mode ]]; then
+            if read -r desired_mode < /usr/share/power_manager/suspend_mode; then
+                [[ "$desired_mode" != "deep" && "$desired_mode" != "s2idle" ]] && desired_mode="s2idle"
+            else
+                desired_mode="s2idle"
             fi
+        else
+            desired_mode="s2idle"
         fi
+
+        echo "$desired_mode" | sudo tee /sys/power/mem_sleep >/dev/null
+
+        for file in \
+            /var/lib/power_manager/disable_dark_resume \
+            /usr/share/power_manager/disable_dark_resume \
+            /mnt/stateful_partition/encrypted/var/lib/power_manager/disable_dark_resume; do
+            [[ -f "$file" ]] && echo 0 | sudo tee "$file" >/dev/null
+        done
+    fi
+fi
+
 
         AUDIO_DETECTION_ENABLED=$(( STATUS == "Discharging" ? AUDIO_DETECTION_BATTERY : AUDIO_DETECTION_POWER ))
         (( AUDIO_DETECTION_ENABLED == 0 )) && AUDIO_ACTIVE=0
@@ -392,10 +391,7 @@ monitor_idle_activity() {
         *"Chrome is using presentation display mode"*)
             PRESENTATION_MODE=1
             echo "$(date '+%Y-%m-%d %H:%M:%S') - Presentation mode detected." >> "$LOG_FILE"
-            active=1
-            backlight_off=0
             stop_fake_activity
-            WAS_DIMMED=0
             ;;
         *"Chrome is using normal display mode"*)
             PRESENTATION_MODE=0
@@ -456,10 +452,10 @@ monitor_idle_activity() {
             ;;
       *"User activity reported"*|*"Enabling wakeup for"*|*"User triggered wake"*|*"User activity ongoing"*)
             log_ts=$(awk '{print $1}' <<< "$line" | sed -E 's/T/ /; s/\..*Z//' | xargs -I{} date -d "{}" +%s 2>/dev/null || echo 0)
-            if (( log_ts - LAST_FAKE_ACTIVITY_TS + GRACE_PERIOD )); then
+            if (( log_ts > LAST_FAKE_ACTIVITY_TS + GRACE_PERIOD )); then
                 LAST_REAL_ACTIVITY_TS=$log_ts
                 if (( monitor_idle == 1 )); then
-                    echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - User activity resumed.${RESET}" >> "$LOG_FILE"
+                    echo "$(date '+%Y-%m-%d %H:%M:%S') - User activity resumed." >> "$LOG_FILE"
                 fi
                 monitor_idle=0
                 active=1
@@ -484,9 +480,6 @@ monitor_idle_activity() {
             if [[ -n "$brightness_value" ]]; then
                 SAVED_DISPLAY_BRIGHTNESS="$brightness_value"
                 echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Saved current brightness: $SAVED_DISPLAY_BRIGHTNESS ${RESET}" >> "$LOG_FILE"
-                stop_fake_activity
-                backlight_off=0
-                WAS_DIMMED=0
             fi
             ;;
     esac
@@ -497,7 +490,7 @@ monitor_idle_activity() {
         
         if (( now - log_ts >= 10 )); then
             log_ts=$(awk '{print $1}' <<< "$line" | sed -E 's/T/ /; s/\..*Z//' | xargs -I{} date -d "{}" +%s 2>/dev/null || echo 0)
-            echo "${BLUE}REAL -> ${BOLD}${log_ts}${RESET} ${CYAN}vs${RESET} ${MAGENTA}${BOLD}$LAST_FAKE_ACTIVITY_TS${RESET}${MAGENTA} <- FAKE${RESET}" >> "$LOG_FILE"
+            echo "${BLUE}REAL -> $log_ts vs $LAST_FAKE_ACTIVITY_TS <- FAKE${RESET}" >> "$LOG_FILE"
         fi
     
         if (( AUDIO_DETECTION_ENABLED == 1 && AUDIO_ACTIVE == 1 )); then
