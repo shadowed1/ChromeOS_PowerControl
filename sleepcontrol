@@ -112,7 +112,7 @@ was_dimmed=0
 PRESENTATION_MODE=0
 LAST_REAL_ACTIVITY_TS=$(date +%s)
 LAST_FAKE_ACTIVITY_TS=$(date +%s)
-GRACE_PERIOD=30
+GRACE_PERIOD=5
 BATTERY_DELAY=$DEFAULT_BATTERY_DELAY
 POWER_DELAY=$DEFAULT_POWER_DELAY
 BATTERY_BACKLIGHT=$DEFAULT_BATTERY_BACKLIGHT
@@ -340,7 +340,6 @@ send_fake_activity() {
                 sleep "$FAKE_ACTIVITY_INTERVAL"
                 now=$(date +%s)
 
-                # Only send fake if both conditions are met:
                 if (( now - LAST_REAL_ACTIVITY_TS > GRACE_PERIOD )) && \
                    (( now - LAST_FAKE_ACTIVITY_TS >= FAKE_ACTIVITY_INTERVAL )); then
                     send_fake_activity
@@ -511,7 +510,7 @@ fi
         
         if (( now - last_log_ts >= 10 )); then
             log_ts=$(awk '{print $1}' <<< "$line" | sed -E 's/T/ /; s/\..*Z//' | xargs -I{} date -d "{}" +%s 2>/dev/null || echo 0)
-            echo "${BLUE}REAL -> $log_ts vs $LAST_FAKE_ACTIVITY_TS <- FAKE${RESET}" >> "$LOG_FILE"
+            echo "${BLUE}NOW -> $log_ts vs $LAST_FAKE_ACTIVITY_TS <- LAST IDLE${RESET}" >> "$LOG_FILE"
         fi
     
         if (( AUDIO_DETECTION_ENABLED == 1 && audio_active == 1 )); then
