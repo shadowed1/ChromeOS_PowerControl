@@ -329,9 +329,14 @@ send_fake_activity() {
 
     LAST_FAKE_ACTIVITY_TS=$(date +%s)
     FAKE_ACTIVITY_SENT=1
-    NEXT_FAKE_SAFE_TS=$((LAST_FAKE_ACTIVITY_TS + FAKE_ACTIVITY_INTERVAL))
+
+    NEXT_FAKE_TS=$((LAST_FAKE_ACTIVITY_TS + FAKE_ACTIVITY_INTERVAL))
+    NEXT_FAKE_SAFE_TS_START=$((NEXT_FAKE_TS - 5))
+    NEXT_FAKE_SAFE_TS_END=$((NEXT_FAKE_TS + 5))
+
     echo "$(date '+%Y-%m-%d %H:%M:%S') - Simulated user activity." >> "$LOG_FILE"
 }
+
 
  start_fake_activity() {
     if (( sending_fake_activity == 0 )); then
@@ -470,8 +475,8 @@ fi
             ;;
      *"User activity reported"*|*"Enabling wakeup for"*|*"User triggered wake"*|*"User activity ongoing"*)
             log_ts=$(awk '{print $1}' <<< "$line" | sed -E 's/T/ /; s/\..*Z//' | xargs -I{} date -d "{}" +%s 2>/dev/null || echo 0)
-            if (( log_ts < NEXT_FAKE_SAFE_TS )); then
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Ignored user activity (simulated)." >> "$LOG_FILE"
+            if (( log_ts >= NEXT_FAKE_SAFE_TS_START && log_ts <= NEXT_FAKE_SAFE_TS_END )); then
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Ignored user activity (predicted fake)." >> "$LOG_FILE"
             else
                 LAST_REAL_ACTIVITY_TS=$log_ts
                 FAKE_ACTIVITY_SENT=0
