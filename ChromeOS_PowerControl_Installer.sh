@@ -479,7 +479,7 @@ enable_component_on_boot() {
         "GPUControl")     COLOR=${MAGENTA}${BOLD} ;;
         "FanControl")     COLOR=${YELLOW}${BOLD} ;;
         "BatteryControl") COLOR=${GREEN}${BOLD} ;;
-        "SleepControl")   COLOR=${BLUE}${BOLD} ;;
+        #"SleepControl")   COLOR=${BLUE}${BOLD} ;;
         *)                COLOR=${RESET} ;;
     esac
     
@@ -512,7 +512,7 @@ if [[ -z "$link_cmd" || "$link_cmd" =~ ^[Yy]$ ]]; then
     fi
 
     enable_component_on_boot "GPUControl" "$INSTALL_DIR/gpucontrol.conf"
-    enable_component_on_boot "SleepControl" "$INSTALL_DIR/sleepcontrol.conf"
+    #enable_component_on_boot "SleepControl" "$INSTALL_DIR/sleepcontrol.conf"
 else
     echo "Skipping boot-time setup since global commands were declined."
 fi
@@ -543,7 +543,7 @@ start_component_now() {
         "GPUControl")     COLOR=${MAGENTA}${BOLD} ;;
         "FanControl")     COLOR=${YELLOW}${BOLD} ;;
         "BatteryControl") COLOR=${GREEN}${BOLD} ;;
-        "SleepControl")   COLOR=${BLUE}${BOLD} ;;
+        #"SleepControl")   COLOR=${BLUE}${BOLD} ;;
         *)                COLOR=${RESET} ;;
     esac
 
@@ -790,8 +790,7 @@ fi
 if [[ "$SHOW_SLEEPCONTROL_NOTICE" -eq 1 ]]; then
 echo "${BLUE}╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
 echo "║  ${RESET}${BLUE}${BOLD}SleepControl Notice:${RESET}${BLUE}                                                                                              ║"
-echo "║  Relies on default ChromeOS sleep behavior - Keep Sleep enabled in ChromeOS settings for SleepControl to work.     ║"
-echo "║  Cannot override 'Sleep when lid is closed' setting if enabled. SleepControl supports its own lid sleep logic.     ║"
+echo "║  Currently not functioning as intended. Can be manually started, but in meantime, it is not going to do anything.  ║"
 echo "╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝${RESET}"
 echo ""
 fi
