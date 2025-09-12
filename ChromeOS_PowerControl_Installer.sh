@@ -645,7 +645,7 @@ else
     echo "${YELLOW}FanControl start skipped - passively cooled device.${RESET}"
     echo ""
 fi
-start_component_now "SleepControl" "$INSTALL_DIR/sleepcontrol"
+#start_component_now "SleepControl" "$INSTALL_DIR/sleepcontrol"
 
 echo ""
 echo "                                                       ${RED}████████████${RESET}           "
