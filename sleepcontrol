@@ -56,6 +56,7 @@ LAST_REAL_ACTIVITY_TS=$(date +%s)
 GRACE_PERIOD=5
 FAKE_ACTIVITY_INTERVAL=60
 LAST_FAKE_ACTIVITY_TS=$(( LAST_REAL_ACTIVITY_TS - FAKE_ACTIVITY_INTERVAL ))
+
 SUSPEND_APPLIED_FLAG="/tmp/.sleepcontrol_suspend_applied"
 
 if [[ ! -f "$SUSPEND_APPLIED_FLAG" ]]; then
@@ -281,7 +282,7 @@ send_fake_activity() {
         /org/chromium/PowerManager \
         org.chromium.PowerManager.HandleUserActivity int32:0 int32:0
 
-    #LAST_FAKE_ACTIVITY_TS=$(( LAST_REAL_ACTIVITY_TS - FAKE_ACTIVITY_INTERVAL ))
+    LAST_FAKE_ACTIVITY_TS=$(date +%s)
     echo "$(date '+%Y-%m-%d %H:%M:%S') - Simulated user activity." >> "$LOG_FILE"
 }
 
@@ -301,7 +302,7 @@ send_fake_activity() {
         ) &
         fake_activity_pid=$!
         sending_fake_activity=1
-        echo "$(date '+%Y-%m-%d %H:%M:%S') - Starting simulated activity loop... (PID $fake_activity_pid)." >> "$LOG_FILE"
+        echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Starting simulated activity loop (PID $fake_activity_pid)${RESET}" >> "$LOG_FILE"
     fi
 }
 
@@ -309,7 +310,7 @@ send_fake_activity() {
         if (( sending_fake_activity == 1 )); then
             kill "$fake_activity_pid" 2>/dev/null
             wait "$fake_activity_pid" 2>/dev/null
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - Stopping simulated activity loop... (PID $fake_activity_pid)." >> "$LOG_FILE"
+            echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Stopping simulated activity loop... (PID $fake_activity_pid)${RESET}" >> "$LOG_FILE"
             sending_fake_activity=0
             fake_activity_pid=0
         fi
@@ -451,11 +452,18 @@ fi
             fi
             ;;
       *"User activity reported"*|*"Enabling wakeup for"*|*"User triggered wake"*|*"User activity ongoing"*)
-            log_ts=$(awk '{print $1}' <<< "$line" | sed -E 's/T/ /; s/\..*Z//' | xargs -I{} date -d "{}" +%s 2>/dev/null || echo 0)
+            timestamp=$(echo "$line" | grep -oE '^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}')
+            timestamp=${timestamp/T/ }
+            if [[ -n "$timestamp" ]]; then
+                log_ts=$(date -d "$timestamp" +%s 2>/dev/null || echo 0)
+            else
+                log_ts=$now
+            fi
+    
             if (( log_ts > LAST_FAKE_ACTIVITY_TS + GRACE_PERIOD )); then
                 LAST_REAL_ACTIVITY_TS=$log_ts
                 if (( monitor_idle == 1 )); then
-                    echo "$(date '+%Y-%m-%d %H:%M:%S') - User activity resumed." >> "$LOG_FILE"
+                    echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - User activity resumed.${RESET}" >> "$LOG_FILE"
                 fi
                 monitor_idle=0
                 active=1
@@ -465,12 +473,12 @@ fi
                 power_backlight_ts=$log_ts
                 battery_backlight_ts=$log_ts
                 WAS_DIMMED=0
-        
+    
                 if [[ -n "$SAVED_DISPLAY_BRIGHTNESS" && "$SAVED_DISPLAY_BRIGHTNESS" -gt 0 ]]; then
                     echo "$SAVED_DISPLAY_BRIGHTNESS" | sudo tee "$BRIGHTNESS_PATH" >/dev/null
                 fi
             else
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Ignored user activity (timestamp <= last fake activity + grace period)." >> "$LOG_FILE"
+                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Ignored user activity ($timestamp <= $LAST_FAKE_ACTIVITY_TS + $GRACE_PERIOD)." >> "$LOG_FILE"
             fi
             ;;
         *"Got user-triggered request to set brightness to "*)
@@ -488,11 +496,8 @@ fi
         idle_elapsed=$(( now - last_ts ))
         (( STATUS == "Discharging" )) && AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_BATTERY || AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_POWER
         
-        if (( now - log_ts >= 10 )); then
-            log_ts=$(awk '{print $1}' <<< "$line" | sed -E 's/T/ /; s/\..*Z//' | xargs -I{} date -d "{}" +%s 2>/dev/null || echo 0)
-            echo "${BLUE}REAL -> $log_ts vs $LAST_FAKE_ACTIVITY_TS <- FAKE${RESET}" >> "$LOG_FILE"
-        fi
-    
+        echo "Current Timestamp -> $now | $last_ts <- Timestamp since Idle" >> "$LOG_FILE"
+
         if (( AUDIO_DETECTION_ENABLED == 1 && AUDIO_ACTIVE == 1 )); then
             idle_since=$now
             last_ts=$now
