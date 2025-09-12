@@ -108,6 +108,9 @@ SUSPEND_MODE=
 ORIGINAL_SUSPEND_MODE=
 LIDSLEEP_BATTERY=
 LIDSLEEP_POWER=
+audio_active=0
+saved_display_brightness=0
+was_dimmed=0
 
 BATTERY_DELAY=$DEFAULT_BATTERY_DELAY
 POWER_DELAY=$DEFAULT_POWER_DELAY
@@ -319,9 +322,6 @@ monitor_idle_activity() {
     local last_power_check_time=0
     local saved_kb_brightness=$(sudo ectool pwmgetkblight 2>/dev/null | awk '{print $NF}')
     local last_ts=0
-    local was_dimmed=0
-    local audio_active=0
-    local saved_display_brightness=0
 
     save_current_brightness
 
