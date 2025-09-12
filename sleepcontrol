@@ -16,11 +16,8 @@ BATTERY_STATUS_PATH="/var/log/power_manager/powerd.LATEST"
 BACKLIGHT_NAME=""
 BRIGHTNESS_PATH=""
 MAX_BRIGHTNESS_PATH=""
-FAKE_ACTIVITY_INTERVAL=120
+FAKE_ACTIVITY_INTERVAL=30
 LID_SUSPEND_IGNORE_UNTIL=0
-LAST_FAKE_ACTIVITY_TS=$(date +%s)
-LAST_REAL_ACTIVITY_TS=$(date +%s)
-GRACE_PERIOD=0
 
 SUSPEND_APPLIED_FLAG="/tmp/.sleepcontrol_suspend_applied"
 
@@ -94,6 +91,7 @@ DEFAULT_AUDIO_DETECTION_POWER=1
 DEFAULT_LIDSLEEP_BATTERY=1
 DEFAULT_LIDSLEEP_POWER=1
 
+
 AUDIO_DETECTION_BATTERY=
 AUDIO_DETECTION_POWER=
 BATTERY_DELAY=
@@ -106,8 +104,9 @@ SUSPEND_MODE=
 ORIGINAL_SUSPEND_MODE=
 LIDSLEEP_BATTERY=
 LIDSLEEP_POWER=
-SAVED_DISPLAY_BRIGHTNESS=0
-WAS_DIMMED=0
+audio_active=0
+saved_display_brightness=0
+was_dimmed=0
 
 BATTERY_DELAY=$DEFAULT_BATTERY_DELAY
 POWER_DELAY=$DEFAULT_POWER_DELAY
@@ -189,6 +188,7 @@ validate_config() {
     fi
 }
 
+
 save_config() {
     validate_config
     sed -i "s/^BATTERY_DELAY=.*/BATTERY_DELAY=$BATTERY_DELAY/" "$CONFIG_FILE" || echo "BATTERY_DELAY=$BATTERY_DELAY" >> "$CONFIG_FILE"
@@ -203,6 +203,7 @@ save_config() {
     sed -i "s/^ORIGINAL_SUSPEND_MODE=.*/ORIGINAL_SUSPEND_MODE=$ORIGINAL_SUSPEND_MODE/" "$CONFIG_FILE" || echo "ORIGINAL_SUSPEND_MODE=$ORIGINAL_SUSPEND_MODE" >> "$CONFIG_FILE"
     sed -i "s/^LIDSLEEP_BATTERY=.*/LIDSLEEP_BATTERY=$LIDSLEEP_BATTERY/" "$CONFIG_FILE" || echo "LIDSLEEP_BATTERY=$LIDSLEEP_BATTERY" >> "$CONFIG_FILE"
     sed -i "s/^LIDSLEEP_POWER=.*/LIDSLEEP_POWER=$LIDSLEEP_POWER/" "$CONFIG_FILE" || echo "LIDSLEEP_POWER=$LIDSLEEP_POWER" >> "$CONFIG_FILE"
+
 }
 
 show_help() {
@@ -240,9 +241,9 @@ set_display_brightness() {
     }
 
 save_current_brightness() {
-    if [[ $WAS_DIMMED -eq 0 ]]; then
+    if [[ $was_dimmed -eq 0 ]]; then
         if [[ -f "$BRIGHTNESS_PATH" ]]; then
-            if read -r SAVED_DISPLAY_BRIGHTNESS < "$BRIGHTNESS_PATH"; then
+            if read -r saved_display_brightness < "$BRIGHTNESS_PATH"; then
                 :
             else
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Could not read brightness from $BRIGHTNESS_PATH" >> "$LOG_FILE"
@@ -254,6 +255,8 @@ save_current_brightness() {
         echo "$(date '+%Y-%m-%d %H:%M:%S') - Skipping because display is dimmed." >> "$LOG_FILE"
     fi
 }
+
+
 
    set_audio_detection() {
     local mode=$1
@@ -279,12 +282,8 @@ send_fake_activity() {
         --dest=org.chromium.PowerManager \
         /org/chromium/PowerManager \
         org.chromium.PowerManager.HandleUserActivity int32:0 int32:0
-
-    LAST_FAKE_ACTIVITY_TS=$(date +%s)
-    echo "${CYAN}$(date '+%Y-%m-%d %H:%M:%S') - Simulated activity${RESET}" >> "$LOG_FILE"
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - Simulated user activity." >> "$LOG_FILE"
 }
-
-
 
 monitor_idle_activity() {
     exec 200>"$PID_FILE.lock"
@@ -315,26 +314,24 @@ monitor_idle_activity() {
     local last_reload_time=0
     local last_power_check_time=0
     local saved_kb_brightness=$(sudo ectool pwmgetkblight 2>/dev/null | awk '{print $NF}')
-    local audio_active=0
 
     save_current_brightness
 
-start_fake_activity() {
+    start_fake_activity() {
     if (( sending_fake_activity == 0 )); then
         (
             while [ -f "$RUN_FLAG" ]; do
-                now=$(date +%s)
-                if (( now - LAST_REAL_ACTIVITY_TS > GRACE_PERIOD )) && \
-                   (( now - LAST_FAKE_ACTIVITY_TS >= FAKE_ACTIVITY_INTERVAL )); then
-                    send_fake_activity
+                sleep "$FAKE_ACTIVITY_INTERVAL"
+                if send_fake_activity; then
+                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Fake activity sent." >> "$LOG_FILE"
+                else
+                    echo "$(date '+%Y-%m-%d %H:%M:%S') - ERROR: Failed to send fake activity." >> "$LOG_FILE"
                 fi
-
-                sleep 1
             done
         ) &
         fake_activity_pid=$!
         sending_fake_activity=1
-        echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Starting simulated activity loop (PID $fake_activity_pid)${RESET}" >> "$LOG_FILE"
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - Starting simulated activity loop (PID $fake_activity_pid)." >> "$LOG_FILE"
     fi
 }
 
@@ -349,75 +346,93 @@ start_fake_activity() {
         fake_activity_pid=0
     fi
 }
+
+    while [ -f "$RUN_FLAG" ] && [[ "$STATUS" != "Discharging" ]]; do
+                    source "$CONFIG_FILE" >/dev/null 2>&1
+                    [[ "$SUSPEND_MODE" != "deep" ]] && break
+    
+                    if [[ -f /usr/share/power_manager/suspend_mode ]]; then
+                        if read -r desired_mode < /usr/share/power_manager/suspend_mode; then
+                            [[ "$desired_mode" != "deep" && "$desired_mode" != "s2idle" ]] && desired_mode="s2idle"
+                        else
+                            desired_mode="s2idle"
+                        fi
+                    else
+                        desired_mode="s2idle"
+                    fi
+    
+                    echo "$desired_mode" | sudo tee /sys/power/mem_sleep >/dev/null
+    
+                    for file in \
+                        /var/lib/power_manager/disable_dark_resume \
+                        /usr/share/power_manager/disable_dark_resume \
+                        /mnt/stateful_partition/encrypted/var/lib/power_manager/disable_dark_resume; do
+                        [[ -f "$file" ]] && echo 0 | sudo tee "$file" >/dev/null
+                    done
+    
+                    get_battery_info
+                    sleep 10
+                done
+
     exec 3< <(tail -Fn0 /var/log/power_manager/powerd.LATEST)
     while read -r line <&3; do
         now=$(date +%s)
+
         (( now - last_reload_time >= 10 )) && { load_config; last_reload_time=$now; }
 
         if (( now - last_power_check_time >= 10 )); then
             get_battery_info
             [[ -z "$STATUS" ]] && { STATUS="Unknown"; CHARGE=""; }
-        
-            if [[ "$STATUS" == "Charging" ]]; then
-                for file in \
-                    /var/lib/power_manager/disable_dark_resume \
-                    /usr/share/power_manager/disable_dark_resume \
-                    /mnt/stateful_partition/encrypted/var/lib/power_manager/disable_dark_resume; do
-                    [[ -f "$file" ]] && echo 0 | sudo tee "$file" >/dev/null
-                done
-            fi
-        
             last_power_check_time=$now
         fi
 
         AUDIO_DETECTION_ENABLED=$(( STATUS == "Discharging" ? AUDIO_DETECTION_BATTERY : AUDIO_DETECTION_POWER ))
-        (( AUDIO_DETECTION_ENABLED == 0 )) && AUDIO_ACTIVE=0
+        (( AUDIO_DETECTION_ENABLED == 0 )) && audio_active=0
 
         case "$line" in
         *"Chrome is using presentation display mode"*)
             PRESENTATION_MODE=1
-            echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Presentation mode detected.${RESET}" >> "$LOG_FILE"
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - Presentation mode detected." >> "$LOG_FILE"
             stop_fake_activity
             ;;
         *"Chrome is using normal display mode"*)
             PRESENTATION_MODE=0
             ;;
         *"Audio activity started"*|*"Audio activity ongoing"*)
-            (( AUDIO_DETECTION_ENABLED == 1 )) && AUDIO_ACTIVE=1
+            (( AUDIO_DETECTION_ENABLED == 1 )) && audio_active=1
             ;;
         *"Audio activity stopped"*)
-            (( AUDIO_DETECTION_ENABLED == 1 )) && AUDIO_ACTIVE=0
+            (( AUDIO_DETECTION_ENABLED == 1 )) && audio_active=0
             ;;
-       *"User activity stopped"*)
-            if (( AUDIO_ACTIVE == 0 )) && (( now - last_ts > 5 )) && (( now - idle_since > 5 )); then
+        *"User activity stopped"*)
+            if (( audio_active == 0 )); then
                 monitor_idle=1
                 active=0
                 kb_brightness_restored=0
                 idle_since=$now
                 last_ts=$now
-                start_fake_activity
+                stop_fake_activity
             fi
             ;;
         *"Lid closed"*)
             lid_closed=1
             if (( PRESENTATION_MODE == 1 )); then
-                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Lid close ignored (presentation mode).${RESET}" >> "$LOG_FILE"
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid close ignored (presentation mode)." >> "$LOG_FILE"
                 stop_fake_activity
             elif (( LIDSLEEP_ENABLED == 1 )); then
-                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Lid closed, lid sleep on!${RESET}" >> "$LOG_FILE"
-                sleep 2
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid closed; relying on ChromeOS suspend." >> "$LOG_FILE"
                 stop_fake_activity
             else
-                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Lid closed, lid sleep off.${RESET}" >> "$LOG_FILE"
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid closed, lid sleep off." >> "$LOG_FILE"
             fi
             ;;
         *"Lid opened"*)
-            lid_closed=0
             if (( PRESENTATION_MODE == 0 )); then
-                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Lid opened, restoring brightness.${RESET}" >> "$LOG_FILE"
-                if [[ -n "$SAVED_DISPLAY_BRIGHTNESS" && "$SAVED_DISPLAY_BRIGHTNESS" -gt 0 ]]; then
-                    echo "$SAVED_DISPLAY_BRIGHTNESS" | sudo tee "$BRIGHTNESS_PATH" >/dev/null
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid opened, restoring brightness." >> "$LOG_FILE"
+                if [[ -n "$saved_display_brightness" && "$saved_display_brightness" -gt 0 ]]; then
+                    echo "$saved_display_brightness" | sudo tee "$BRIGHTNESS_PATH" >/dev/null
                 fi
+                # sudo ectool pwmsetkblight "$saved_kb_brightness" 2>/dev/null
             fi
             ;;
         *"On battery at"*)
@@ -436,34 +451,20 @@ start_fake_activity() {
                 suspend_delay=$((POWER_DELAY*60))
             fi
             ;;
-     *"User activity reported"*|*"Enabling wakeup for"*|*"User triggered wake"*|*"User activity ongoing"*)
-            timestamp=$(echo "$line" | grep -oE '^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}')
-            timestamp=${timestamp/T/ }
-            if [[ -n "$timestamp" ]]; then
-                log_ts=$(date -d "$timestamp" +%s 2>/dev/null || echo 0)
-            else
-                log_ts=$now
+        *"User activity reported"*|*"Enabling wakeup for"*|*"User triggered wake"*|*"powerd_suspend returned 0"*|*"User activity ongoing"*|*"Configuring devices for mode"*)
+            if (( monitor_idle == 1 )); then
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - User activity resumed." >> "$LOG_FILE"
             fi
-    
-            if (( log_ts > LAST_FAKE_ACTIVITY_TS + GRACE_PERIOD )); then
-                LAST_REAL_ACTIVITY_TS=$log_ts
-                if (( monitor_idle == 1 )); then
-                    echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - User activity resumed.${RESET}" >> "$LOG_FILE"
-                fi
-                monitor_idle=0
-                active=1
-                stop_fake_activity
-                backlight_off=0
-                kb_brightness_restored=1
-                power_backlight_ts=$log_ts
-                battery_backlight_ts=$log_ts
-                WAS_DIMMED=0
-    
-                if [[ -n "$SAVED_DISPLAY_BRIGHTNESS" && "$SAVED_DISPLAY_BRIGHTNESS" -gt 0 ]]; then
-                    echo "$SAVED_DISPLAY_BRIGHTNESS" | sudo tee "$BRIGHTNESS_PATH" >/dev/null
-                fi
-            else
-                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Ignored user activity (timestamp <= last fake activity + grace period)." >> "$LOG_FILE"
+            monitor_idle=0
+            active=1
+            stop_fake_activity
+            backlight_off=0
+            kb_brightness_restored=1
+            power_backlight_ts=$now
+            battery_backlight_ts=$now
+            was_dimmed=0
+            if [[ -n "$saved_display_brightness" && "$saved_display_brightness" -gt 0 ]]; then
+                echo "$saved_display_brightness" | sudo tee "$BRIGHTNESS_PATH" >/dev/null
             fi
             ;;
         *"Got user-triggered request to set brightness to "*)
@@ -471,63 +472,57 @@ start_fake_activity() {
             brightness_value=$(echo "$line" | sed -n 's/.*Setting brightness to \([0-9]\+\) (.*/\1/p')
     
             if [[ -n "$brightness_value" ]]; then
-                SAVED_DISPLAY_BRIGHTNESS="$brightness_value"
-                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Saved current brightness: $SAVED_DISPLAY_BRIGHTNESS ${RESET}" >> "$LOG_FILE"
+                saved_display_brightness="$brightness_value"
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Saved current brightness: $saved_display_brightness" >> "$LOG_FILE"
             fi
             ;;
     esac
-
+    
     if (( monitor_idle == 1 )); then
         idle_elapsed=$(( now - last_ts ))
         (( STATUS == "Discharging" )) && AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_BATTERY || AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_POWER
-        
-        if (( $now - $log_ts >= 10 )); then
-            echo "${BLUE}REAL -> ${BOLD}${log_ts}${RESET} ${CYAN}vs${RESET} ${MAGENTA}${BOLD}$LAST_FAKE_ACTIVITY_TS${RESET}${MAGENTA} <- FAKE${RESET}" >> "$LOG_FILE"
-        fi
     
-        if (( AUDIO_DETECTION_ENABLED == 1 && AUDIO_ACTIVE == 1 )); then
-            idle_since=$now
-            last_ts=$now
-            WAS_DIMMED=0
-            backlight_off=0
-            continue
-        fi
+       echo "Current Timestamp -> $now | $last_ts <- Timestamp since Idle" >> "$LOG_FILE"
     
         if (( idle_elapsed >= dim_delay && idle_elapsed < backlight_delay )); then
-            if [[ $WAS_DIMMED -eq 0 ]]; then
-                save_current_brightness
-                WAS_DIMMED=1
-                dim_value=$((SAVED_DISPLAY_BRIGHTNESS/8))
-                (( dim_value < 1 )) && dim_value=1
-                set_display_brightness "$dim_value"
-                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Display dimmed to $dim_value ${RESET}" >> "$LOG_FILE"
+            if (( audio_active == 1 )); then
+                (( sending_fake_activity == 0 )) && start_fake_activity
+            else
+                if [[ $was_dimmed -eq 0 ]]; then
+                    save_current_brightness
+                    sleep 1
+                    was_dimmed=1
+                    dim_value=$((saved_display_brightness/8))
+                    (( dim_value < 1 )) && dim_value=1
+                    set_display_brightness "$dim_value"
+                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Display dimmed to $dim_value" >> "$LOG_FILE"
+                fi
+                (( sending_fake_activity == 0 )) && start_fake_activity
             fi
         fi
-    
-        if (( idle_elapsed >= backlight_delay )); then
+        
+        if (( idle_elapsed >= backlight_delay && idle_elapsed < suspend_delay )); then
             if (( backlight_off == 0 )); then
                 if [[ -n "$BRIGHTNESS_PATH" ]]; then
                     echo 0 | sudo tee "$BRIGHTNESS_PATH" >/dev/null
                 fi
                 backlight_off=1
-                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Display and keyboard backlight off.${RESET}" >> "$LOG_FILE"
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Display and keyboard backlight off." >> "$LOG_FILE"
             fi
+            (( audio_active == 1 || sending_fake_activity == 0 )) && start_fake_activity
         fi
-    
-        if (( idle_elapsed >= suspend_delay )); then
+
+            
+       if (( idle_elapsed >= suspend_delay )); then
             if (( PRESENTATION_MODE == 1 )); then
-                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Presentation mode active, suspend skipped.${RESET}" >> "$LOG_FILE"
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Presentation mode active, suspend skipped." >> "$LOG_FILE"
                 stop_fake_activity
-            elif (( AUDIO_ACTIVE == 1 )); then
+            elif (( audio_active == 1 || kb_brightness_restored == 0 )); then
                 (( sending_fake_activity == 0 )) && start_fake_activity
             else
                 stop_fake_activity
-                sleep 2
-                echo "${BLUE}${BOLD}$(date '+%Y-%m-%d %H:%M:%S') - Sleep threshold elapsed; simulator loop going to sleep!${RESET}" >> "$LOG_FILE"
-                monitor_idle=0
-                idle_since=$now
-                last_ts=$now
-                idle_elapsed=0
+                sleep 5
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Sleep threshold elapsed; going to sleep!" >> "$LOG_FILE"
             fi
         fi
     fi
@@ -675,6 +670,7 @@ case "$1" in
         save_config
         echo "${BLUE}${BOLD}${MODE^}${RESET}${BLUE} = Timeout: $((POWER_BACKLIGHT)) min -> Sleep: $((POWER_DELAY)) min${RESET}"
         load_config
+
 
     elif [[ $# -eq 2 ]]; then
         VAL=$2
