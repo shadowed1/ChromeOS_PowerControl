@@ -285,11 +285,10 @@ send_fake_activity() {
         --dest=org.chromium.PowerManager \
         /org/chromium/PowerManager \
         org.chromium.PowerManager.HandleUserActivity int32:0 int32:0
-
+    sleep 0.5
     LAST_FAKE_ACTIVITY_TS=$(date +%s)
     echo "$(date '+%Y-%m-%d %H:%M:%S') - Simulated user activity." >> "$LOG_FILE"
 }
-
 
 monitor_idle_activity() {
     exec 200>"$PID_FILE.lock"
@@ -330,6 +329,7 @@ monitor_idle_activity() {
                 now=$(date +%s)
                 if (( now - LAST_REAL_ACTIVITY_TS > GRACE_PERIOD )) && \
                    (( now - LAST_FAKE_ACTIVITY_TS >= FAKE_ACTIVITY_INTERVAL )); then
+                    sleep 0.5
                     send_fake_activity
                 fi
 
@@ -337,7 +337,6 @@ monitor_idle_activity() {
             done
         ) &
         fake_activity_pid=$!
-        monitor_idle=1
         sending_fake_activity=1
         echo "$(date '+%Y-%m-%d %H:%M:%S') - Starting simulated activity loop (PID $fake_activity_pid)." >> "$LOG_FILE"
     fi
@@ -352,7 +351,6 @@ monitor_idle_activity() {
         echo "$(date '+%Y-%m-%d %H:%M:%S') - Stopping simulated activity loop (PID $fake_activity_pid)." >> "$LOG_FILE"
         sending_fake_activity=0
         fake_activity_pid=0
-        sleep 1
     fi
 }
 
@@ -441,6 +439,7 @@ monitor_idle_activity() {
                 if [[ -n "$saved_display_brightness" && "$saved_display_brightness" -gt 0 ]]; then
                     echo "$saved_display_brightness" | sudo tee "$BRIGHTNESS_PATH" >/dev/null
                 fi
+                # sudo ectool pwmsetkblight "$saved_kb_brightness" 2>/dev/null
             fi
             ;;
         *"On battery at"*)
@@ -459,11 +458,12 @@ monitor_idle_activity() {
                 suspend_delay=$((POWER_DELAY*60))
             fi
             ;;
-        *"User activity reported"*|*"Enabling wakeup for"*|*"User triggered wake"*|*"powerd_suspend returned 0"*|*"User activity ongoing"*|*"Configuring devices for mode"*)
+         *"User activity reported"*|*"Enabling wakeup for"*|*"User triggered wake"*|*"powerd_suspend returned 0"*|*"User activity ongoing"*|*"Configuring devices for mode"*)
             if (( monitor_idle == 1 )); then
                 if (( now - LAST_FAKE_ACTIVITY_TS < GRACE_PERIOD )); then
                     echo "$(date '+%Y-%m-%d %H:%M:%S') - Ignoring simulated/fake user activity event." >> "$LOG_FILE"
                 else
+                    sleep 0.5
                     LAST_REAL_ACTIVITY_TS=$now
                     echo "$(date '+%Y-%m-%d %H:%M:%S') - User activity resumed." >> "$LOG_FILE"
                     monitor_idle=0
@@ -476,7 +476,6 @@ monitor_idle_activity() {
                     if [[ -n "$saved_display_brightness" && "$saved_display_brightness" -gt 0 ]]; then
                         echo "$saved_display_brightness" | sudo tee "$BRIGHTNESS_PATH" >/dev/null
                     fi
-        
                     stop_fake_activity
                 fi
             fi
@@ -608,7 +607,7 @@ case "$1" in
         fi
 
         stop_monitoring >/dev/null 2>&1
-        echo "${RED}$(date '+%Y-%m-%d %H:%M:%S') - SleepControl Stopped (PID $PID)${RESET}"
+        echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') - SleepControl Stopped (PID $PID)${RESET}"
         ;;
     battery|power)
     MODE=$1
