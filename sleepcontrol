@@ -16,8 +16,11 @@ BATTERY_STATUS_PATH="/var/log/power_manager/powerd.LATEST"
 BACKLIGHT_NAME=""
 BRIGHTNESS_PATH=""
 MAX_BRIGHTNESS_PATH=""
-FAKE_ACTIVITY_INTERVAL=30
+FAKE_ACTIVITY_INTERVAL=120
 LID_SUSPEND_IGNORE_UNTIL=0
+LAST_FAKE_ACTIVITY_TS=$(date +%s)
+LAST_REAL_ACTIVITY_TS=$(date +%s)
+GRACE_PERIOD=5
 
 SUSPEND_APPLIED_FLAG="/tmp/.sleepcontrol_suspend_applied"
 
@@ -318,15 +321,16 @@ monitor_idle_activity() {
     save_current_brightness
 
     start_fake_activity() {
-    if (( sending_fake_activity == 0 )); then
+    if (( SENDING_FAKE_ACTIVITY == 0 )); then
         (
             while [ -f "$RUN_FLAG" ]; do
-                sleep "$FAKE_ACTIVITY_INTERVAL"
-                if send_fake_activity; then
-                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Fake activity sent." >> "$LOG_FILE"
-                else
-                    echo "$(date '+%Y-%m-%d %H:%M:%S') - ERROR: Failed to send fake activity." >> "$LOG_FILE"
+                now=$(date +%s)
+                if (( now - LAST_REAL_ACTIVITY_TS > GRACE_PERIOD )) && \
+                   (( now - LAST_FAKE_ACTIVITY_TS >= FAKE_ACTIVITY_INTERVAL )); then
+                    send_fake_activity
                 fi
+
+                sleep 1
             done
         ) &
         fake_activity_pid=$!
