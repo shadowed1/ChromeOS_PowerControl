@@ -19,7 +19,7 @@ MAX_BRIGHTNESS_PATH=""
 FAKE_ACTIVITY_INTERVAL=120
 LID_SUSPEND_IGNORE_UNTIL=0
 FAKE_ACTIVITY_SENT=1
-
+GRACE_PERIOD=10
 
 
 SUSPEND_APPLIED_FLAG="/tmp/.sleepcontrol_suspend_applied"
@@ -337,12 +337,20 @@ send_fake_activity() {
 
 
 
- start_fake_activity() {
+start_fake_activity() {
     if (( sending_fake_activity == 0 )); then
+        FAKE_LOOP_START_TS=$(date +%s)
         (
+            last_log_ts=0
             while [ -f "$RUN_FLAG" ]; do
                 sleep "$FAKE_ACTIVITY_INTERVAL"
                 now=$(date +%s)
+
+                if (( now - last_log_ts >= 10 )); then
+                    idle_diff=$(( now - FAKE_LOOP_START_TS ))
+                    echo "${BLUE}Idle for -> ${idle_diff}s)${RESET}" >> "$LOG_FILE"
+                    last_log_ts=$now
+                fi
 
                 if (( now - LAST_REAL_ACTIVITY_TS > GRACE_PERIOD )) && \
                    (( now - LAST_FAKE_ACTIVITY_TS >= FAKE_ACTIVITY_INTERVAL )); then
