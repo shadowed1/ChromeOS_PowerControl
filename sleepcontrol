@@ -18,6 +18,8 @@ BRIGHTNESS_PATH=""
 MAX_BRIGHTNESS_PATH=""
 FAKE_ACTIVITY_INTERVAL=120
 LID_SUSPEND_IGNORE_UNTIL=0
+FAKE_ACTIVITY_SENT=1
+
 
 
 SUSPEND_APPLIED_FLAG="/tmp/.sleepcontrol_suspend_applied"
@@ -119,6 +121,8 @@ BATTERY_DIM_DELAY=$DEFAULT_BATTERY_DIM_DELAY
 POWER_DIM_DELAY=$DEFAULT_POWER_DIM_DELAY
 SUSPEND_MODE=$DEFAULT_SUSPEND_MODE
 ORIGINAL_SUSPEND_MODE=$ORIGINAL_SUSPEND_MODE
+NEXT_FAKE_SAFE_TS=$(( LAST_FAKE_ACTIVITY_TS + FAKE_ACTIVITY_INTERVAL ))
+
 
 load_config() {
     if [ -f "$CONFIG_FILE" ]; then
@@ -324,8 +328,11 @@ send_fake_activity() {
         org.chromium.PowerManager.HandleUserActivity int32:0 int32:0
 
     LAST_FAKE_ACTIVITY_TS=$(date +%s)
+    FAKE_ACTIVITY_SENT=1
+    NEXT_FAKE_SAFE_TS=$((LAST_FAKE_ACTIVITY_TS + FAKE_ACTIVITY_INTERVAL))
     echo "$(date '+%Y-%m-%d %H:%M:%S') - Simulated user activity." >> "$LOG_FILE"
 }
+
   start_fake_activity() {
     if (( sending_fake_activity == 0 )); then
         (
@@ -461,11 +468,17 @@ fi
             ;;
       *"User activity reported"*|*"Enabling wakeup for"*|*"User triggered wake"*|*"User activity ongoing"*)
             log_ts=$(awk '{print $1}' <<< "$line" | sed -E 's/T/ /; s/\..*Z//' | xargs -I{} date -d "{}" +%s 2>/dev/null || echo 0)
-            if (( log_ts > LAST_FAKE_ACTIVITY_TS + GRACE_PERIOD )); then
+            if (( log_ts < NEXT_FAKE_SAFE_TS )); then
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Ignored user activity (simulated)." >> "$LOG_FILE"
+            else
                 LAST_REAL_ACTIVITY_TS=$log_ts
+                FAKE_ACTIVITY_SENT=0
+                NEXT_FAKE_SAFE_TS=0
+        
                 if (( monitor_idle == 1 )); then
                     echo "$(date '+%Y-%m-%d %H:%M:%S') - User activity resumed." >> "$LOG_FILE"
                 fi
+        
                 monitor_idle=0
                 active=1
                 stop_fake_activity
@@ -478,10 +491,9 @@ fi
                 if [[ -n "$saved_display_brightness" && "$saved_display_brightness" -gt 0 ]]; then
                     echo "$saved_display_brightness" | sudo tee "$BRIGHTNESS_PATH" >/dev/null
                 fi
-            else
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Ignored user activity (timestamp <= last fake activity + grace period)." >> "$LOG_FILE"
             fi
             ;;
+
         *"Got user-triggered request to set brightness to "*)
             line=$(grep "Setting brightness to" /var/log/power_manager/powerd.LATEST | tail -n1)
             brightness_value=$(echo "$line" | sed -n 's/.*Setting brightness to \([0-9]\+\) (.*/\1/p')
