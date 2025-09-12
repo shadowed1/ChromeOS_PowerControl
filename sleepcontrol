@@ -459,11 +459,7 @@ monitor_idle_activity() {
             ;;
         "User activity reported"*|*"Enabling wakeup for"*|*"User triggered wake"*|*"powerd_suspend returned 0"*|*"User activity ongoing"*|*"Configuring devices for mode"*)
             if (( monitor_idle == 1 )); then
-                if (( now - LAST_FAKE_ACTIVITY_TS < GRACE_PERIOD )); then
-                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Ignoring simulated user activity event." >> "$LOG_FILE"
-                else
                     LAST_REAL_ACTIVITY_TS=$now
-        
                     echo "$(date '+%Y-%m-%d %H:%M:%S') - User activity resumed." >> "$LOG_FILE"
                     monitor_idle=0
                     active=1
@@ -473,7 +469,7 @@ monitor_idle_activity() {
                     power_backlight_ts=$now
                     battery_backlight_ts=$now
                     was_dimmed=0
-
+                
                     if [[ -n "$saved_display_brightness" && "$saved_display_brightness" -gt 0 ]]; then
                         echo "$saved_display_brightness" | sudo tee "$BRIGHTNESS_PATH" >/dev/null
                     fi
