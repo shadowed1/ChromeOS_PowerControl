@@ -20,7 +20,7 @@ FAKE_ACTIVITY_INTERVAL=120
 LID_SUSPEND_IGNORE_UNTIL=0
 LAST_FAKE_ACTIVITY_TS=$(date +%s)
 LAST_REAL_ACTIVITY_TS=$(date +%s)
-GRACE_PERIOD=1
+GRACE_PERIOD=0
 
 SUSPEND_APPLIED_FLAG="/tmp/.sleepcontrol_suspend_applied"
 
@@ -327,7 +327,6 @@ monitor_idle_activity() {
         (
             while [ -f "$RUN_FLAG" ]; do
                 now=$(date +%s)
-                
                 if (( now - LAST_REAL_ACTIVITY_TS > GRACE_PERIOD )) && \
                    (( now - LAST_FAKE_ACTIVITY_TS >= FAKE_ACTIVITY_INTERVAL )); then
                     send_fake_activity
@@ -341,7 +340,6 @@ monitor_idle_activity() {
         echo "$(date '+%Y-%m-%d %H:%M:%S') - Starting simulated activity loop (PID $fake_activity_pid)." >> "$LOG_FILE"
     fi
 }
-
 
    stop_fake_activity() {
     if (( sending_fake_activity == 1 )); then
@@ -460,37 +458,35 @@ monitor_idle_activity() {
             fi
             ;;
         "User activity reported"*|*"Enabling wakeup for"*|*"User triggered wake"*|*"powerd_suspend returned 0"*|*"User activity ongoing"*|*"Configuring devices for mode"*)
-                if (( monitor_idle == 1 )); then
-                    if (( now - LAST_FAKE_ACTIVITY_TS < FAKE_ACTIVITY_INTERVAL )); then
-                        echo "$(date '+%Y-%m-%d %H:%M:%S') - Ignoring simulated user activity event." >> "$LOG_FILE"
-                    else
-                        LAST_REAL_ACTIVITY_TS=$now
-                        echo "$(date '+%Y-%m-%d %H:%M:%S') - User activity resumed." >> "$LOG_FILE"
-            
-                        monitor_idle=0
-                        active=1
-                        stop_fake_activity
-                        backlight_off=0
-                        kb_brightness_restored=1
-                        power_backlight_ts=$now
-                        battery_backlight_ts=$now
-                        was_dimmed=0
-            
-                        if [[ -n "$saved_display_brightness" && "$saved_display_brightness" -gt 0 ]]; then
-                            echo "$saved_display_brightness" | sudo tee "$BRIGHTNESS_PATH" >/dev/null
-                        fi
+            if (( monitor_idle == 1 )); then
+                if (( now - LAST_FAKE_ACTIVITY_TS < GRACE_PERIOD )); then
+                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Ignoring simulated user activity event." >> "$LOG_FILE"
+                else
+                    LAST_REAL_ACTIVITY_TS=$now
+        
+                    echo "$(date '+%Y-%m-%d %H:%M:%S') - User activity resumed." >> "$LOG_FILE"
+                    monitor_idle=0
+                    active=1
+                    stop_fake_activity
+                    backlight_off=0
+                    kb_brightness_restored=1
+                    power_backlight_ts=$now
+                    battery_backlight_ts=$now
+                    was_dimmed=0
+
+                    if [[ -n "$saved_display_brightness" && "$saved_display_brightness" -gt 0 ]]; then
+                        echo "$saved_display_brightness" | sudo tee "$BRIGHTNESS_PATH" >/dev/null
                     fi
                 fi
+            fi
             ;;
         *"Got user-triggered request to set brightness to "*)
             line=$(grep "Setting brightness to" /var/log/power_manager/powerd.LATEST | tail -n1)
             brightness_value=$(echo "$line" | sed -n 's/.*Setting brightness to \([0-9]\+\) (.*/\1/p')
+    
             if [[ -n "$brightness_value" ]]; then
                 saved_display_brightness="$brightness_value"
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Saved current brightness: $saved_display_brightness" >> "$LOG_FILE"
-                active=1
-                was_dimmed=0
-                stop_fake_activity
             fi
             ;;
     esac
