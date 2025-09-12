@@ -21,7 +21,6 @@ LID_SUSPEND_IGNORE_UNTIL=0
 LAST_FAKE_ACTIVITY_TS=$(date +%s)
 LAST_REAL_ACTIVITY_TS=$(date +%s)
 GRACE_PERIOD=5
-FAKE_ACTIVITY_PENDING=0
 
 SUSPEND_APPLIED_FLAG="/tmp/.sleepcontrol_suspend_applied"
 
@@ -282,15 +281,12 @@ save_current_brightness() {
 idle_elapsed=0
 
 send_fake_activity() {
-    FAKE_ACTIVITY_PENDING=1
     dbus-send --system --type=method_call \
         --dest=org.chromium.PowerManager \
         /org/chromium/PowerManager \
         org.chromium.PowerManager.HandleUserActivity int32:0 int32:0
     LAST_FAKE_ACTIVITY_TS=$(date +%s)
     echo "$(date '+%Y-%m-%d %H:%M:%S') - Simulated user activity." >> "$LOG_FILE"
-    sleep 2
-    FAKE_ACTIVITY_PENDING=0
 }
 
 monitor_idle_activity() {
@@ -461,10 +457,10 @@ monitor_idle_activity() {
             fi
             ;;
         *"User activity reported"*|*"Enabling wakeup for"*|*"User triggered wake"*|*"powerd_suspend returned 0"*|*"User activity ongoing"*|*"Configuring devices for mode"*)
-             if (( monitor_idle == 1 )); then
-                if (( FAKE_ACTIVITY_PENDING == 1 )); then
-                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Ignoring simulated user activity event due to pending flag." >> "$LOG_FILE"
-                elif (( now - LAST_FAKE_ACTIVITY_TS < GRACE_PERIOD )); then
+            if (( monitor_idle == 1 )); then
+                log_ts=$(echo "$line" | awk '{print $1}' | sed 's/T/ /' | cut -d'.' -f1)
+                event_epoch=$(date --date="$log_ts" +%s)
+                if (( event_epoch - LAST_FAKE_ACTIVITY_TS < GRACE_PERIOD )); then
                     echo "$(date '+%Y-%m-%d %H:%M:%S') - Ignoring simulated user activity event." >> "$LOG_FILE"
                 else
                     echo "$(date '+%Y-%m-%d %H:%M:%S') - User activity resumed." >> "$LOG_FILE"
