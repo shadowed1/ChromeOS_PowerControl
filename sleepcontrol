@@ -283,11 +283,6 @@ monitor_idle_activity() {
         echo "${RESET}"
         exit 1
     }
-
-    if (( monitor_idle == 1 && sending_fake_activity == 0 )); then
-        LAST_REAL_ACTIVITY_TS=$now
-        start_fake_activity
-    fi
     
     if pgrep -f "$0 __sleepcontrol_monitor__" | grep -v "^$$\$" > /dev/null; then
         exit 0
