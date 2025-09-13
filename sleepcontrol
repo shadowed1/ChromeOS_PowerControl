@@ -327,12 +327,10 @@ send_fake_activity() {
         org.chromium.PowerManager.HandleUserActivity int32:0 int32:0
 
     LAST_FAKE_ACTIVITY_TS=$(date +%s)
-    LAST_FAKE_LOG_TS=$LAST_FAKE_ACTIVITY_TS
-    FAKE_ACTIVITY_SENT=1
-
     NEXT_FAKE_TS=$((LAST_FAKE_ACTIVITY_TS + FAKE_ACTIVITY_INTERVAL))
+    IGNORE_UNTIL=$((LAST_FAKE_ACTIVITY_TS + GRACE_PERIOD))
 
-    echo "$(date '+%Y-%m-%d %H:%M:%S') - Simulated user activity." >> "$LOG_FILE"
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - Simulated user activity (ignore until $IGNORE_UNTIL)." >> "$LOG_FILE"
 }
 
 
@@ -485,7 +483,7 @@ fi
      *"User activity reported"*|*"Enabling wakeup for"*|*"User triggered wake"*|*"User activity ongoing"*)
             log_ts=$(awk '{print $1}' <<< "$line" | sed -E 's/T/ /; s/\..*Z//' | xargs -I{} date -d "{}" +%s 2>/dev/null || echo 0)
         
-            if (( log_ts >= LAST_FAKE_LOG_TS - 5 && log_ts <= LAST_FAKE_LOG_TS + 5 )); then
+            if (( log_ts <= IGNORE_UNTIL )); then
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Ignored user activity (simulated)." >> "$LOG_FILE"
             else
                 LAST_REAL_ACTIVITY_TS=$log_ts
