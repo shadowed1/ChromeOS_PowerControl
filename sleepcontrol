@@ -319,7 +319,6 @@ monitor_idle_activity() {
 
    start_fake_activity() {
     if (( sending_fake_activity == 0 )); then
-        # Send first fake activity immediately
         if send_fake_activity; then
             echo "$(date '+%Y-%m-%d %H:%M:%S') - Fake activity sent immediately." >> "$LOG_FILE"
         else
