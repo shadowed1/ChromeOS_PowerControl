@@ -91,7 +91,6 @@ DEFAULT_AUDIO_DETECTION_POWER=1
 DEFAULT_LIDSLEEP_BATTERY=1
 DEFAULT_LIDSLEEP_POWER=1
 
-
 AUDIO_DETECTION_BATTERY=
 AUDIO_DETECTION_POWER=
 BATTERY_DELAY=
@@ -364,13 +363,22 @@ monitor_idle_activity() {
         IGNORE_NEXT_USER_ACTIVITY=0
     }
 
-  while read -r -t 0.1 line <&3; do
-    if (( now_ms >= IGNORE_UNTIL_START && now_ms <= IGNORE_UNTIL_END )); then
-        echo "$(date '+%Y-%m-%d %H:%M:%S.%3N') - Skipping line due to ignore window: $line" >> "$LOG_FILE"
-        continue
-    fi
+    while true; do
+        now_ms=$(( $(date -u +%s%3N) ))
 
-        (( now - last_reload_time >= 10 )) && { load_config; last_reload_time=$now; }
+        if (( now_ms >= IGNORE_UNTIL_START && now_ms <= IGNORE_UNTIL_END )); then
+            sleep_ms=$((IGNORE_UNTIL_END - now_ms))
+            sleep_sec=$(awk "BEGIN{printf \"%.3f\", $sleep_ms/1000}")
+            echo "$(date '+%Y-%m-%d %H:%M:%S.%3N') - Sleeping $sleep_sec sec until end of ignore window." >> "$LOG_FILE"
+            sleep "$sleep_sec"
+            continue
+        fi
+
+        exec 3< <(tail -Fn0 /var/log/power_manager/powerd.LATEST)
+        while read -r -t 0.1 line <&3; do
+            now=$(( $(date +%s) ))
+
+            (( now - last_reload_time >= 10 )) && { load_config; last_reload_time=$now; }
             if (( now - last_power_check_time >= 10 )); then
                 get_battery_info
                 [[ -z "$STATUS" ]] && { STATUS="Unknown"; CHARGE=""; }
@@ -455,7 +463,6 @@ monitor_idle_activity() {
                     fi
                     ;;
                 *"User activity reported"*|*"User activity ongoing"*|*"User triggered wake"*)
-                    LAST_REAL_ACTIVITY_TS=$now_ms
                     if (( monitor_idle == 1 )); then
                         echo "$(date '+%Y-%m-%d %H:%M:%S.%3N') - User activity resumed." >> "$LOG_FILE"
                     fi
@@ -481,59 +488,60 @@ monitor_idle_activity() {
                     fi
                     ;;
             esac
-        done
 
-        if (( monitor_idle == 1 )); then
-            idle_elapsed=$(( now - last_ts ))
-            (( STATUS == "Discharging" )) && AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_BATTERY || AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_POWER
+            if (( monitor_idle == 1 )); then
+                idle_elapsed=$(( now - last_ts ))
+                (( STATUS == "Discharging" )) && AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_BATTERY || AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_POWER
 
-            if (( AUDIO_DETECTION_ENABLED == 1 && audio_active == 1 )); then
-                idle_since=$now
-                last_ts=$now
-                was_dimmed=0
-                backlight_off=0
-                continue
-            fi
-
-            if (( idle_elapsed >= dim_delay && idle_elapsed < backlight_delay )); then
-                if [[ $was_dimmed -eq 0 ]]; then
-                    save_current_brightness
-                    was_dimmed=1
-                    dim_value=$((saved_display_brightness/8))
-                    (( dim_value < 1 )) && dim_value=1
-                    set_display_brightness "$dim_value"
-                    echo "$(date '+%Y-%m-%d %H:%M:%S.%3N') - Display dimmed to $dim_value" >> "$LOG_FILE"
-                fi
-            fi
-
-            if (( idle_elapsed >= backlight_delay )); then
-                if (( backlight_off == 0 )); then
-                    if [[ -n "$BRIGHTNESS_PATH" ]]; then
-                        echo 0 | sudo tee "$BRIGHTNESS_PATH" >/dev/null
-                    fi
-                    backlight_off=1
-                    echo "$(date '+%Y-%m-%d %H:%M:%S.%3N') - Display and keyboard backlight off." >> "$LOG_FILE"
-                fi
-            fi
-
-            if (( idle_elapsed >= suspend_delay )); then
-                if (( PRESENTATION_MODE == 1 )); then
-                    echo "$(date '+%Y-%m-%d %H:%M:%S.%3N') - Presentation mode active, suspend skipped." >> "$LOG_FILE"
-                    stop_fake_activity
-                elif (( audio_active == 1 )); then
-                    (( sending_fake_activity == 0 )) && start_fake_activity
-                else
-                    stop_fake_activity
-                    sleep 2
-                    echo "$(date '+%Y-%m-%d %H:%M:%S.%3N') - Sleep threshold elapsed; going to sleep!" >> "$LOG_FILE"
-                    monitor_idle=0
+                if (( AUDIO_DETECTION_ENABLED == 1 && audio_active == 1 )); then
                     idle_since=$now
                     last_ts=$now
-                    idle_elapsed=0
+                    was_dimmed=0
+                    backlight_off=0
+                    continue
+                fi
+
+                if (( idle_elapsed >= dim_delay && idle_elapsed < backlight_delay )); then
+                    if [[ $was_dimmed -eq 0 ]]; then
+                        save_current_brightness
+                        was_dimmed=1
+                        dim_value=$((saved_display_brightness/8))
+                        (( dim_value < 1 )) && dim_value=1
+                        set_display_brightness "$dim_value"
+                        echo "$(date '+%Y-%m-%d %H:%M:%S.%3N') - Display dimmed to $dim_value" >> "$LOG_FILE"
+                    fi
+                fi
+
+                if (( idle_elapsed >= backlight_delay )); then
+                    if (( backlight_off == 0 )); then
+                        if [[ -n "$BRIGHTNESS_PATH" ]]; then
+                            echo 0 | sudo tee "$BRIGHTNESS_PATH" >/dev/null
+                        fi
+                        backlight_off=1
+                        echo "$(date '+%Y-%m-%d %H:%M:%S.%3N') - Display and keyboard backlight off." >> "$LOG_FILE"
+                    fi
+                fi
+
+                if (( idle_elapsed >= suspend_delay )); then
+                    if (( PRESENTATION_MODE == 1 )); then
+                        echo "$(date '+%Y-%m-%d %H:%M:%S.%3N') - Presentation mode active, suspend skipped." >> "$LOG_FILE"
+                        stop_fake_activity
+                    elif (( audio_active == 1 )); then
+                        (( sending_fake_activity == 0 )) && start_fake_activity
+                    else
+                        stop_fake_activity
+                        sleep 2
+                        echo "$(date '+%Y-%m-%d %H:%M:%S.%3N') - Sleep threshold elapsed; going to sleep!" >> "$LOG_FILE"
+                        monitor_idle=0
+                        idle_since=$now
+                        last_ts=$now
+                        idle_elapsed=0
+                    fi
                 fi
             fi
-        fi
-    done 
+        done
+    done
+
     stop_fake_activity
 }
 
