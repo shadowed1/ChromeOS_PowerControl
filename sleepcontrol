@@ -258,7 +258,7 @@ save_current_brightness() {
     fi
 }
 
-   set_audio_detection() {
+set_audio_detection() {
     local mode=$1
     local value=$2
     load_config
@@ -364,23 +364,13 @@ monitor_idle_activity() {
         IGNORE_NEXT_USER_ACTIVITY=0
     }
 
-    while true; do
-        now_ms=$(( $(date -u +%s%3N) ))
+  while read -r -t 0.1 line <&3; do
+    if (( now_ms >= IGNORE_UNTIL_START && now_ms <= IGNORE_UNTIL_END )); then
+        echo "$(date '+%Y-%m-%d %H:%M:%S.%3N') - Skipping line due to ignore window: $line" >> "$LOG_FILE"
+        continue
+    fi
 
-        if (( now_ms >= IGNORE_UNTIL_START && now_ms <= IGNORE_UNTIL_END )); then
-            sleep_ms=$((IGNORE_UNTIL_END - now_ms))
-            sleep_sec=$(awk "BEGIN{printf \"%.3f\", $sleep_ms/1000}")
-            echo "$(date '+%Y-%m-%d %H:%M:%S.%3N') - Sleeping $sleep_sec sec until end of ignore window." >> "$LOG_FILE"
-            sleep "$sleep_sec"
-            continue
-        fi
-
-        exec 3< <(tail -Fn0 /var/log/power_manager/powerd.LATEST)
-        while read -r -t 0.5 line <&3; do
-            now=$(( $(date +%s) ))
-
-            (( now - last_reload_time >= 10 )) && { load_config; last_reload_time=$now; }
-
+        (( now - last_reload_time >= 10 )) && { load_config; last_reload_time=$now; }
             if (( now - last_power_check_time >= 10 )); then
                 get_battery_info
                 [[ -z "$STATUS" ]] && { STATUS="Unknown"; CHARGE=""; }
@@ -543,7 +533,6 @@ monitor_idle_activity() {
                 fi
             fi
         fi
-        sleep 0.1
     done 
     stop_fake_activity
 }
