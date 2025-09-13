@@ -322,8 +322,9 @@ monitor_idle_activity() {
         LAST_FAKE_ACTIVITY_TS_MS=$(( $(date -u +%s%3N) ))
 
         IGNORE_GRACE=1000
-        IGNORE_UNTIL_START=$((LAST_FAKE_ACTIVITY_TS_MS - IGNORE_GRACE))
-        IGNORE_UNTIL_END=$((LAST_FAKE_ACTIVITY_TS_MS + IGNORE_GRACE))
+        LAST_FAKE_ACTIVITY_TS_MS=$(( $(date -u +%s%3N) ))
+        IGNORE_UNTIL_START=$((LAST_FAKE_ACTIVITY_TS_MS))
+        IGNORE_UNTIL_END=$((LAST_FAKE_ACTIVITY_TS_MS + FAKE_ACTIVITY_INTERVAL*1000 + IGNORE_GRACE))
 
         echo "$(date '+%Y-%m-%d %H:%M:%S.%3N') - Simulated user activity sent (ignore logs ${IGNORE_UNTIL_START} -> ${IGNORE_UNTIL_END})." >> "$LOG_FILE"
     }
@@ -363,37 +364,36 @@ monitor_idle_activity() {
         IGNORE_NEXT_USER_ACTIVITY=0
     }
 
-    while true; do
-        now_ms=$(( $(date -u +%s%3N) ))
+    exec 3< <(tail -Fn0 /var/log/power_manager/powerd.LATEST)
 
+    while read -r -t 0.1 line <&3; do
+        now_ms=$(( $(date -u +%s%3N) ))
+    
         if (( now_ms >= IGNORE_UNTIL_START && now_ms <= IGNORE_UNTIL_END )); then
-            sleep_ms=$((IGNORE_UNTIL_END - now_ms))
-            sleep_sec=$(awk "BEGIN{printf \"%.3f\", $sleep_ms/1000}")
-            echo "$(date '+%Y-%m-%d %H:%M:%S.%3N') - Sleeping $sleep_sec sec until end of ignore window." >> "$LOG_FILE"
-            sleep "$sleep_sec"
+            echo "$(date '+%Y-%m-%d %H:%M:%S.%3N') - Skipping line due to ignore window: $line" >> "$LOG_FILE"
             continue
         fi
-
-        exec 3< <(tail -Fn0 /var/log/power_manager/powerd.LATEST)
-        while read -r -t 0.1 line <&3; do
-            now=$(( $(date +%s) ))
-
-            (( now - last_reload_time >= 10 )) && { load_config; last_reload_time=$now; }
-            if (( now - last_power_check_time >= 10 )); then
-                get_battery_info
-                [[ -z "$STATUS" ]] && { STATUS="Unknown"; CHARGE=""; }
-
-                if [[ "$STATUS" == "Charging" ]]; then
-                    for file in \
-                        /var/lib/power_manager/disable_dark_resume \
-                        /usr/share/power_manager/disable_dark_resume \
-                        /mnt/stateful_partition/encrypted/var/lib/power_manager/disable_dark_resume; do
-                        [[ -f "$file" ]] && echo 0 | sudo tee "$file" >/dev/null
-                    done
-                fi
-
-                last_power_check_time=$now
+    
+        now=$(( $(date +%s) ))
+    
+        (( now - last_reload_time >= 10 )) && { load_config; last_reload_time=$now; }
+    
+        if (( now - last_power_check_time >= 10 )); then
+            get_battery_info
+            [[ -z "$STATUS" ]] && { STATUS="Unknown"; CHARGE=""; }
+    
+            if [[ "$STATUS" == "Charging" ]]; then
+                for file in \
+                    /var/lib/power_manager/disable_dark_resume \
+                    /usr/share/power_manager/disable_dark_resume \
+                    /mnt/stateful_partition/encrypted/var/lib/power_manager/disable_dark_resume; do
+                    [[ -f "$file" ]] && echo 0 | sudo tee "$file" >/dev/null
+                done
             fi
+    
+            last_power_check_time=$now
+            
+        fi
 
             AUDIO_DETECTION_ENABLED=$(( STATUS == "Discharging" ? AUDIO_DETECTION_BATTERY : AUDIO_DETECTION_POWER ))
             (( AUDIO_DETECTION_ENABLED == 0 )) && audio_active=0
