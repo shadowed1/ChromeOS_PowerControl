@@ -19,7 +19,7 @@ MAX_BRIGHTNESS_PATH=""
 FAKE_ACTIVITY_INTERVAL=120
 LID_SUSPEND_IGNORE_UNTIL=0
 FAKE_ACTIVITY_SENT=1
-GRACE_PERIOD=2
+GRACE_PERIOD=8
 
 
 SUSPEND_APPLIED_FLAG="/tmp/.sleepcontrol_suspend_applied"
@@ -291,7 +291,6 @@ monitor_idle_activity() {
     }
 
     if (( monitor_idle == 1 && sending_fake_activity == 0 )); then
-        #LAST_REAL_ACTIVITY_TS=$now
         start_fake_activity
     fi
     
@@ -334,13 +333,12 @@ send_fake_activity() {
 
 
 
-
 start_fake_activity() {
     if (( sending_fake_activity == 0 )); then
         FAKE_LOOP_START_TS=$(date +%s)
         (
             last_log_ts=0
-            while [ -f "$RUN_FLAG" ]; do
+            while [ -f "$RUN_FLAG" ] && (( monitor_idle == 1 )); do
                 sleep "$FAKE_ACTIVITY_INTERVAL"
                 now=$(date +%s)
 
@@ -350,13 +348,7 @@ start_fake_activity() {
                     last_log_ts=$now
                 fi
 
-               if (( now - LAST_REAL_ACTIVITY_TS > GRACE_PERIOD )); then
-                    send_fake_activity
-                else
-                    send_fake_activity
-                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Simulated activity (real too recent, not resetting idle)." >> "$LOG_FILE"
-                fi
-
+                send_fake_activity
             done
         ) &
         fake_activity_pid=$!
@@ -364,7 +356,6 @@ start_fake_activity() {
         echo "$(date '+%Y-%m-%d %H:%M:%S') - Starting simulated activity loop... (PID $fake_activity_pid)." >> "$LOG_FILE"
     fi
 }
-
 
     stop_fake_activity() {
         if (( sending_fake_activity == 1 )); then
@@ -480,11 +471,10 @@ fi
             fi
             ;;
      *"User activity reported"*|*"Enabling wakeup for"*|*"User triggered wake"*|*"User activity ongoing"*)
-            log_ts=$(awk '{print $1}' <<< "$line" | sed -E 's/T/ /; s/\..*Z//' \
-                      | xargs -I{} date -d "{}" +%s 2>/dev/null || echo 0)
+            log_ts=$(awk '{print $1}' <<< "$line" | sed -E 's/T/ /; s/\..*Z//' | xargs -I{} date -d "{}" +%s 2>/dev/null || echo 0)
         
             if (( log_ts <= IGNORE_UNTIL )); then
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Ignored user activity (simulated)." >> "$LOG_FILE"
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Simulated Activity" >> "$LOG_FILE"
             else
                 LAST_REAL_ACTIVITY_TS=$log_ts
                 FAKE_ACTIVITY_SENT=0
@@ -499,7 +489,7 @@ fi
                 power_backlight_ts=$log_ts
                 battery_backlight_ts=$log_ts
                 was_dimmed=0
-        
+            
                 [[ -n "$saved_display_brightness" && "$saved_display_brightness" -gt 0 ]] &&
                     echo "$saved_display_brightness" | sudo tee "$BRIGHTNESS_PATH" >/dev/null
             fi
@@ -634,7 +624,7 @@ case "$1" in
         fi
 
         stop_monitoring >/dev/null 2>&1
-        echo "${RED}$(date '+%Y-%m-%d %H:%M:%S') - SleepControl Stopped (PID $PID)${RESET}"
+        echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') - SleepControl Stopped (PID $PID)${RESET}"
         ;;
     battery|power)
     MODE=$1
