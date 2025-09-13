@@ -368,20 +368,15 @@ start_fake_activity() {
 
     exec 3< <(tail -Fn0 /var/log/power_manager/powerd.LATEST)
     while read -r line <&3; do
-        now=$(date -u +%s)
+        now=$(date +%s)
 
         (( now - last_reload_time >= 10 )) && { load_config; last_reload_time=$now; }
 
         if (( now - last_power_check_time >= 10 )); then
-    get_battery_info
-    [[ -z "$STATUS" ]] && { STATUS="Unknown"; CHARGE=""; }
-    last_power_check_time=$now
-
-    if (( now - last_power_check_time >= 10 )); then
             get_battery_info
             [[ -z "$STATUS" ]] && { STATUS="Unknown"; CHARGE=""; }
         
-            if [[ "$STATUS" == "Charging" ]]; then
+            if [[ "$STATUS" == "Chargine" ]]; then
                 for file in \
                     /var/lib/power_manager/disable_dark_resume \
                     /usr/share/power_manager/disable_dark_resume \
