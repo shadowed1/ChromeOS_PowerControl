@@ -381,7 +381,7 @@ start_fake_activity() {
     [[ -z "$STATUS" ]] && { STATUS="Unknown"; CHARGE=""; }
     last_power_check_time=$now
 
-    if [[ "$STATUS" != "Discharging" && "$SUSPEND_MODE" == "deep" ]]; then
+    if [[ "$STATUS" != "Charging" && "$SUSPEND_MODE" == "deep" ]]; then
         if [[ -f /usr/share/power_manager/suspend_mode ]]; then
             if read -r desired_mode < /usr/share/power_manager/suspend_mode; then
                 [[ "$desired_mode" != "deep" && "$desired_mode" != "s2idle" ]] && desired_mode="s2idle"
