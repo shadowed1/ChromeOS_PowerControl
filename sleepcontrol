@@ -488,11 +488,8 @@ start_fake_activity() {
                 [[ -n "$brightness_value" ]] && saved_display_brightness="$brightness_value"
                 ;;
         esac
+        sleep 0.1
     done
-
-    sleep 0.1
-done
-
 
     if (( monitor_idle == 1 )); then
         idle_elapsed=$(( now - last_ts ))
