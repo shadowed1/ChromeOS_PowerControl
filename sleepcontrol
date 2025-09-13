@@ -349,7 +349,7 @@ start_fake_activity() {
                     last_log_ts=$now
                 fi
 
-                send_fake_activity  # run only after sleeping interval
+                send_fake_activity
             done
         ) &
         fake_activity_pid=$!
@@ -629,7 +629,7 @@ case "$1" in
         fi
 
         stop_monitoring >/dev/null 2>&1
-        echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') - SleepControl Stopped (PID $PID)${RESET}"
+        echo "${RED}$(date '+%Y-%m-%d %H:%M:%S') - SleepControl Stopped (PID $PID)${RESET}"
         ;;
     battery|power)
     MODE=$1
@@ -741,7 +741,7 @@ case "$1" in
         read -p "Do you want SleepControl to startup automatically? (y/n): " choice
         if [[ "$choice" =~ ^[Yy]$ ]]; then
             if [ -f "$CONF_SOURCE" ]; then
-                echo "Copying sleepcontrol.conf to /etc/init/..."
+                echo "${BLUE}Copying sleepcontrol.conf to /etc/init/...${RESET}"
                 sudo cp "$CONF_SOURCE" "$CONF_TARGET"
                 echo "${BLUE}sleepcontrol.conf copied.${RESET}"
             else
