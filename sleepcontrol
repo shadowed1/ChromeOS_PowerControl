@@ -16,8 +16,8 @@ BATTERY_STATUS_PATH="/var/log/power_manager/powerd.LATEST"
 BACKLIGHT_NAME=""
 BRIGHTNESS_PATH=""
 MAX_BRIGHTNESS_PATH=""
-FAKE_ACTIVITY_INTERVAL=180
 LID_SUSPEND_IGNORE_UNTIL=0
+FAKE_ACTIVITY_INTERVAL=180
 FAKE_ACTIVITY_SENT=1
 
 SUSPEND_APPLIED_FLAG="/tmp/.sleepcontrol_suspend_applied"
@@ -108,8 +108,6 @@ audio_active=0
 saved_display_brightness=0
 was_dimmed=0
 PRESENTATION_MODE=0
-LAST_REAL_ACTIVITY_TS=$(date +%s)
-LAST_FAKE_ACTIVITY_TS=$(date +%s)
 BATTERY_DELAY=$DEFAULT_BATTERY_DELAY
 POWER_DELAY=$DEFAULT_POWER_DELAY
 BATTERY_BACKLIGHT=$DEFAULT_BATTERY_BACKLIGHT
@@ -118,6 +116,8 @@ BATTERY_DIM_DELAY=$DEFAULT_BATTERY_DIM_DELAY
 POWER_DIM_DELAY=$DEFAULT_POWER_DIM_DELAY
 SUSPEND_MODE=$DEFAULT_SUSPEND_MODE
 ORIGINAL_SUSPEND_MODE=$ORIGINAL_SUSPEND_MODE
+LAST_REAL_ACTIVITY_TS=$(date -u +%s)
+LAST_FAKE_ACTIVITY_TS=$(date -u +%s)
 NEXT_FAKE_SAFE_TS=$(( LAST_FAKE_ACTIVITY_TS + FAKE_ACTIVITY_INTERVAL ))
 
 
@@ -307,8 +307,8 @@ monitor_idle_activity() {
     local idle_since=0
     local backlight_off=0
     local kb_brightness_restored=1
-    local power_backlight_ts=$(date +%s)
-    local battery_backlight_ts=$(date +%s)
+    local power_backlight_ts=$(date -u +%s)
+    local battery_backlight_ts=$(date -u +%s)
     local last_reload_time=0
     local last_power_check_time=0
     local saved_kb_brightness=$(sudo ectool pwmgetkblight 2>/dev/null | awk '{print $NF}')
@@ -323,7 +323,7 @@ send_fake_activity() {
         /org/chromium/PowerManager \
         org.chromium.PowerManager.HandleUserActivity int32:0 int32:0
 
-    LAST_FAKE_ACTIVITY_TS=$(date +%s)
+    LAST_FAKE_ACTIVITY_TS=$(date -u +%s)
 
     IGNORE_GRACE=15
     IGNORE_UNTIL_START=$((LAST_FAKE_ACTIVITY_TS - IGNORE_GRACE))
@@ -336,12 +336,12 @@ send_fake_activity() {
 
 start_fake_activity() {
     if (( sending_fake_activity == 0 )); then
-        FAKE_LOOP_START_TS=$(date +%s)
+        FAKE_LOOP_START_TS=$(date -u +%s)
         (
             last_log_ts=0
             while [ -f "$RUN_FLAG" ] && (( monitor_idle == 1 )); do
                 sleep "$FAKE_ACTIVITY_INTERVAL"
-                now=$(date +%s)
+                now=$(date -u +%s)
 
                 if (( now - last_log_ts >= 10 )); then
                     idle_diff=$(( now - FAKE_LOOP_START_TS ))
@@ -372,7 +372,7 @@ start_fake_activity() {
 
     exec 3< <(tail -Fn0 /var/log/power_manager/powerd.LATEST)
     while read -r line <&3; do
-        now=$(date +%s)
+        now=$(date -u +%s)
 
         (( now - last_reload_time >= 10 )) && { load_config; last_reload_time=$now; }
 
