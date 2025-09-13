@@ -326,11 +326,12 @@ send_fake_activity() {
         org.chromium.PowerManager.HandleUserActivity int32:0 int32:0
 
     LAST_FAKE_ACTIVITY_TS=$(date +%s)
-    IGNORE_UNTIL=$((LAST_FAKE_ACTIVITY_TS + 10))
 
-    echo "$(date '+%Y-%m-%d %H:%M:%S') - Simulated user activity (ignore until $IGNORE_UNTIL)." >> "$LOG_FILE"
+    IGNORE_UNTIL_START=$((LAST_FAKE_ACTIVITY_TS - 5))
+    IGNORE_UNTIL_END=$((LAST_FAKE_ACTIVITY_TS + 5))
+
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - Simulated user activity sent (ignore logs $IGNORE_UNTIL_START -> $IGNORE_UNTIL_END)." >> "$LOG_FILE"
 }
-
 
 
 start_fake_activity() {
@@ -348,7 +349,7 @@ start_fake_activity() {
                     last_log_ts=$now
                 fi
 
-                send_fake_activity
+                send_fake_activity  # run only after sleeping interval
             done
         ) &
         fake_activity_pid=$!
@@ -356,6 +357,7 @@ start_fake_activity() {
         echo "$(date '+%Y-%m-%d %H:%M:%S') - Starting simulated activity loop... (PID $fake_activity_pid)." >> "$LOG_FILE"
     fi
 }
+
 
     stop_fake_activity() {
         if (( sending_fake_activity == 1 )); then
@@ -470,30 +472,33 @@ fi
                 suspend_delay=$((POWER_DELAY*60))
             fi
             ;;
-     *"User activity reported"*|*"Enabling wakeup for"*|*"User triggered wake"*|*"User activity ongoing"*)
-            log_ts=$(awk '{print $1}' <<< "$line" | sed -E 's/T/ /; s/\..*Z//' | xargs -I{} date -d "{}" +%s 2>/dev/null || echo 0)
-        
-            if (( log_ts <= IGNORE_UNTIL )); then
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Simulated Activity" >> "$LOG_FILE"
-            else
-                LAST_REAL_ACTIVITY_TS=$log_ts
-                FAKE_ACTIVITY_SENT=0
-                if (( monitor_idle == 1 )); then
-                    echo "$(date '+%Y-%m-%d %H:%M:%S') - User activity resumed." >> "$LOG_FILE"
-                fi
-                monitor_idle=0
-                active=1
-                stop_fake_activity
-                backlight_off=0
-                kb_brightness_restored=1
-                power_backlight_ts=$log_ts
-                battery_backlight_ts=$log_ts
-                was_dimmed=0
-            
-                [[ -n "$saved_display_brightness" && "$saved_display_brightness" -gt 0 ]] &&
-                    echo "$saved_display_brightness" | sudo tee "$BRIGHTNESS_PATH" >/dev/null
-            fi
-            ;;
+     *"User activity reported"*|*"User activity ongoing"*|*"User triggered wake"*)
+    log_ts=$(awk '{print $1}' <<< "$line" \
+                | sed -E 's/T/ /; s/\..*Z//' \
+                | xargs -I{} date -u -d "{} UTC" +%s 2>/dev/null || echo 0)
+
+    if (( log_ts >= IGNORE_UNTIL_START && log_ts <= IGNORE_UNTIL_END )); then
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - Ignored simulated activity" >> "$LOG_FILE"
+        continue
+    fi
+
+    LAST_REAL_ACTIVITY_TS=$log_ts
+    if (( monitor_idle == 1 )); then
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - User activity resumed." >> "$LOG_FILE"
+    fi
+
+    monitor_idle=0
+    active=1
+    stop_fake_activity
+    backlight_off=0
+    kb_brightness_restored=1
+    power_backlight_ts=$log_ts
+    battery_backlight_ts=$log_ts
+    was_dimmed=0
+
+    [[ -n "$saved_display_brightness" && "$saved_display_brightness" -gt 0 ]] &&
+        echo "$saved_display_brightness" | sudo tee "$BRIGHTNESS_PATH" >/dev/null
+    ;;
         *"Got user-triggered request to set brightness to "*)
             line=$(grep "Setting brightness to" /var/log/power_manager/powerd.LATEST | tail -n1)
             brightness_value=$(echo "$line" | sed -n 's/.*Setting brightness to \([0-9]\+\) (.*/\1/p')
