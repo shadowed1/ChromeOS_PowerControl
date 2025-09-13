@@ -350,14 +350,13 @@ start_fake_activity() {
                     last_log_ts=$now
                 fi
 
-                if (( now - LAST_REAL_ACTIVITY_TS > GRACE_PERIOD )) && \
-                   (( now - LAST_FAKE_ACTIVITY_TS >= FAKE_ACTIVITY_INTERVAL )); then
+               if (( now - LAST_REAL_ACTIVITY_TS > GRACE_PERIOD )); then
                     send_fake_activity
                 else
-                    reason="real too recent"
-                    (( now - LAST_FAKE_ACTIVITY_TS >= FAKE_ACTIVITY_INTERVAL )) || reason="fake too recent"
-                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Skipping fake activity ($reason)." >> "$LOG_FILE"
+                    send_fake_activity
+                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Simulated activity (real too recent, not resetting idle)." >> "$LOG_FILE"
                 fi
+
             done
         ) &
         fake_activity_pid=$!
@@ -635,7 +634,7 @@ case "$1" in
         fi
 
         stop_monitoring >/dev/null 2>&1
-        echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') - SleepControl Stopped (PID $PID)${RESET}"
+        echo "${RED}$(date '+%Y-%m-%d %H:%M:%S') - SleepControl Stopped (PID $PID)${RESET}"
         ;;
     battery|power)
     MODE=$1
