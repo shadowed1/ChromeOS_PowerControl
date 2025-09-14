@@ -286,6 +286,8 @@ monitor_idle_activity() {
         exit 1
     }
 
+    load_config
+
     if pgrep -f "$0 __sleepcontrol_monitor__" | grep -v "^$$\$" > /dev/null; then
         exit 0
     fi
