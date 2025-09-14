@@ -384,8 +384,8 @@ monitor_idle_activity() {
                 monitor_idle=1
                 active=0
                 kb_brightness_restored=0
-                idle_since=$now
-                last_ts=$now
+                #idle_since=$now
+                #last_ts=$now
                 start_fake_activity
                 sleep 11
                 sudo ectool pwmsetkblight 0 >/dev/null 2>&1
@@ -502,7 +502,7 @@ monitor_idle_activity() {
         esac
 
         if (( monitor_idle == 1 )); then
-            idle_elapsed=$(( now - idle_since ))
+            idle_elapsed=$(( now - last_ts ))
             (( STATUS == "Discharging" )) && AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_BATTERY || AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_POWER
 
             if (( now - last_log_ts >= 10 )); then
