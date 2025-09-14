@@ -512,10 +512,18 @@ monitor_idle_activity() {
                     AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_POWER
                 fi
 
-            if (( now - last_log_ts >= 10 )); then
-                echo "${BLUE}Current Epoch ->${BOLD} $now ${RESET}${CYAN}vs${RESET}${MAGENTA}${BOLD} $last_ts ${RESET}${MAGENTA}<- Idle Epoch${RESET}" >> "$LOG_FILE"
+            if (( now - last_log_ts >= 60 )); then
+                remaining_dim=$(( dim_delay - (now - last_ts) ))
+                remaining_backlight=$(( backlight_delay - (now - last_ts) ))
+                remaining_suspend=$(( suspend_delay - (now - last_ts) ))
+                (( remaining_dim < 0 )) && remaining_dim=0
+                (( remaining_backlight < 0 )) && remaining_backlight=0
+                (( remaining_suspend < 0 )) && remaining_suspend=0
+            
+                echo "${BLUE}Dim -> ${BOLD}${remaining_dim}s${RESET}${BLUE}, Backlight off -> ${BOLD}${remaining_backlight}s${RESET}${BLUE}, Sleep -> ${BOLD}${BLUE}${remaining_suspend}s${RESET}" >> "$LOG_FILE"
                 last_log_ts=$now
             fi
+
 
            if (( idle_elapsed >= dim_delay && idle_elapsed < backlight_delay )); then
             if (( audio_active == 1 )); then
