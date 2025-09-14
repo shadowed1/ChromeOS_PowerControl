@@ -310,15 +310,20 @@ monitor_idle_activity() {
     save_current_brightness
 
     send_fake_activity() {
-        printf '%s\n' "$(date +%s)" > "$LAST_FAKE_ACTIVITY_FILE"
+    now=$(date +%s)
 
+    if (( monitor_idle == 1 && audio_active == 0 )); then
         dbus-send --system --type=method_call \
             --dest=org.chromium.PowerManager \
             /org/chromium/PowerManager \
             org.chromium.PowerManager.HandleUserActivity int32:0 int32:0
 
+        printf '%s\n' "$now" > "$LAST_FAKE_ACTIVITY_FILE"
+
         echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Simulated user activity.${RESET}" >> "$LOG_FILE"
-    }
+    fi
+}
+
 
     start_fake_activity() {
         if (( sending_fake_activity == 0 )); then
