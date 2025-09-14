@@ -583,7 +583,7 @@ start_component_now() {
                 fi
         
                 if [[ -n "$saved_display_brightness" && -n "$BRIGHTNESS_PATH" ]]; then
-                    echo "$saved_display_brightness" | sudo tee "$BRIGHTNESS_PATH" >/dev/null
+                    echo "$saved_display_brightness" | sudo tee "$BRIGHTNESS_PATH" >/dev/null 2>&1
                     echo "${BLUE}Restored display brightness: $saved_display_brightness${RESET}"
                 fi
         
