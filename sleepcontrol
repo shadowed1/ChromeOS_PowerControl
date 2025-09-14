@@ -520,7 +520,7 @@ monitor_idle_activity() {
                 else
                     stop_fake_activity
                     sleep 2
-                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Sleep threshold elapsed; going to sleep!" >> "$LOG_FILE"
+                    echo "$(date '+%Y-%m-%d %H:%M:%S') - SleepControl timer elapsed!" >> "$LOG_FILE"
                     monitor_idle=0
                     idle_since=$now
                     last_ts=$now
