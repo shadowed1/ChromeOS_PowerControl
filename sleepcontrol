@@ -389,7 +389,7 @@ monitor_idle_activity() {
                 start_fake_activity
                 sleep 11
                 sudo ectool pwmsetkblight 0 >/dev/null 2>&1
-                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Keyboard backlight turned off.${RESET}" >> "$LOG_FILE"
+                #echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Keyboard backlight turned off.${RESET}" >> "$LOG_FILE"
             fi
             ;;
         *"Lid closed"*)
