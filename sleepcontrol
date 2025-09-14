@@ -345,7 +345,7 @@ monitor_idle_activity() {
     
             if [[ -n "$BRIGHTNESS_PATH" && -f "$BRIGHTNESS_PATH" ]]; then
                 saved_display_brightness=$(cat "$BRIGHTNESS_PATH")
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Saved display brightness: $saved_display_brightness" >> "$LOG_FILE"
+                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Saved display brightness: ${RESET}${YELLOW}${saved_display_brightness}${RESET}" >> "$LOG_FILE"
             fi
             
             (
