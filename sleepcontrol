@@ -1,4 +1,4 @@
-#!/bin/bash
+x`#!/bin/bash
 RED=$(tput setaf 1)
 GREEN=$(tput setaf 2)
 YELLOW=$(tput setaf 3)
@@ -318,7 +318,7 @@ monitor_idle_activity() {
             /org/chromium/PowerManager \
             org.chromium.PowerManager.HandleUserActivity int32:0 int32:0
 
-        echo "$(date '+%Y-%m-%d %H:%M:%S') - Simulated user activity." >> "$LOG_FILE"
+        echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Simulated user activity.${RESET}" >> "$LOG_FILE"
     }
 
     start_fake_activity() {
@@ -447,13 +447,13 @@ monitor_idle_activity() {
             fi
 
             if (( last_fake_ts > 0 && now - last_fake_ts <= FAKE_ACTIVITY_GRACE )); then
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Ignored simulated activity (within ${FAKE_ACTIVITY_GRACE}s)." >> "$LOG_FILE"
+                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Ignored simulated activity within ${FAKE_ACTIVITY_GRACE}s${RESET}." >> "$LOG_FILE"
                 rm -f "$LAST_FAKE_ACTIVITY_FILE" 2>/dev/null || true
                 continue
             fi
 
             if (( monitor_idle == 1 )); then
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - User activity resumed." >> "$LOG_FILE"
+                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - User activity resumed.${RESET}" >> "$LOG_FILE"
             fi
             monitor_idle=0
             active=1
