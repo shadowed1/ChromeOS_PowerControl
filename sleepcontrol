@@ -510,24 +510,26 @@ monitor_idle_activity() {
                 last_log_ts=$now
             fi
 
-           if (( idle_elapsed >= dim_delay )); then
-                if (( idle_elapsed < backlight_delay )); then
-                    if [[ $was_dimmed -eq 0 ]]; then
-                        save_current_brightness
-                        was_dimmed=1
-                        dim_value=$((saved_display_brightness/8))
-                        (( dim_value < 1 )) && dim_value=1
-                        set_display_brightness "$dim_value"
-                        echo "${BLUE}Display dimmed to $dim_value" >> "$LOG_FILE"
-                    fi
-                else
-                    if (( backlight_off == 0 )); then
-                        echo 0 | sudo tee "$BRIGHTNESS_PATH" >/dev/null
-                        backlight_off=1
-                        echo "${BLUE}Display and keyboard backlight off.${RESET}" >> "$LOG_FILE"
-                    fi
-                fi
+           if (( idle_elapsed >= dim_delay && idle_elapsed < backlight_delay )); then
+            if [[ $was_dimmed -eq 0 ]]; then
+                save_current_brightness
+                was_dimmed=1
+                dim_value=$((saved_display_brightness/8))
+                (( dim_value < 1 )) && dim_value=1
+                set_display_brightness "$dim_value"
+                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Display dimmed to $dim_value${RESET}" >> "$LOG_FILE"
             fi
+        fi
+    
+        if (( idle_elapsed >= backlight_delay )); then
+            if (( backlight_off == 0 )); then
+                if [[ -n "$BRIGHTNESS_PATH" ]]; then
+                    echo 0 | sudo tee "$BRIGHTNESS_PATH" >/dev/null
+                fi
+                backlight_off=1
+                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Display and keyboard backlight off.${RESET}" >> "$LOG_FILE"
+            fi
+        fi
 
             if (( idle_elapsed >= suspend_delay )); then
                 if (( PRESENTATION_MODE == 1 )); then
