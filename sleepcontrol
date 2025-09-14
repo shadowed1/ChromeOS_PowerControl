@@ -292,7 +292,7 @@ monitor_idle_activity() {
 
     echo "$BASHPID" > "$PID_FILE"
     touch "$RUN_FLAG"
-    echo "$(date '+%Y-%m-%d %H:%M:%S') - SleepControl started (PID $$)." > "$LOG_FILE"
+    echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - SleepControl started (PID $$)${RESET}" > "$LOG_FILE"
 
     local active=1
     local monitor_idle=0
