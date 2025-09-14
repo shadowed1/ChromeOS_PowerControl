@@ -16,7 +16,7 @@ BATTERY_STATUS_PATH="/var/log/power_manager/powerd.LATEST"
 BACKLIGHT_NAME=""
 BRIGHTNESS_PATH=""
 MAX_BRIGHTNESS_PATH=""
-FAKE_ACTIVITY_INTERVAL=180
+FAKE_ACTIVITY_INTERVAL=240
 LID_SUSPEND_IGNORE_UNTIL=0
 LAST_FAKE_ACTIVITY_FILE="${INSTALL_DIR}/.last_fake_activity"
 FAKE_ACTIVITY_GRACE=1
@@ -521,7 +521,7 @@ monitor_idle_activity() {
                 (( remaining_backlight < 0 )) && remaining_backlight=0
                 (( remaining_suspend < 0 )) && remaining_suspend=0
             
-                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S')${RESET}${CYAN} Dim: ${BOLD}${remaining_dim}s$ -> ${RESET}${GREEN}Backlight off:${BOLD}${remaining_backlight}s -> ${RESET}${MAGENTA}Sleep: ${BOLD}${remaining_suspend}s${RESET}" >> "$LOG_FILE"
+                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S')${RESET}${CYAN} Dim: ${BOLD}${remaining_dim}s -> ${RESET}${GREEN}Backlight off:${BOLD}${remaining_backlight}s -> ${RESET}${MAGENTA}Sleep: ${BOLD}${remaining_suspend}s${RESET}" >> "$LOG_FILE"
                 last_log_ts=$now
             fi
 
