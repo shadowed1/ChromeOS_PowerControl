@@ -308,7 +308,7 @@ monitor_idle_activity() {
     local lid_closed=0
 
     save_current_brightness
-
+    last_power_check_time=0
     send_fake_activity() {
     now=$(date +%s)
 
@@ -361,7 +361,6 @@ monitor_idle_activity() {
         now=$(date +%s)
         (( now - last_reload_time >= 10 )) && { load_config; last_reload_time=$now; }
 
-        last_power_check_time=0
         if (( now - last_power_check_time >= 10 )); then
             get_battery_info
             [[ -z "$STATUS" ]] && { STATUS="Unknown"; CHARGE=""; }
