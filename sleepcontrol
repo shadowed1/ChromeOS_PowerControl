@@ -497,7 +497,6 @@ monitor_idle_activity() {
                 last_ts=$now
                 was_dimmed=0
                 backlight_off=0
-                continue
             fi
 
             if (( idle_elapsed >= dim_delay && idle_elapsed < backlight_delay )); then
