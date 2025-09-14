@@ -261,8 +261,9 @@ case "$1" in
         LOG_FILE="/var/log/batterycontrol.log"
 
         if [ -f "$LOG_FILE" ] && [ "$(stat -c%s "$LOG_FILE")" -gt 32768 ]; then
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - Truncated log file (exceeded 32KB)" | tee -a "$LOG_FILE"
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - Truncated log file (exceeded 32KB)" > "$LOG_FILE"
         fi
+
 
         nohup "$0" __batterycontrol_monitor__ >> "$LOG_FILE" 2>&1 &
         echo "${GREEN}$(date '+%Y-%m-%d %H:%M:%S') - Starting BatteryControl - Output is logged to $LOG_FILE${RESET}" | tee -a "$LOG_FILE"
@@ -288,7 +289,7 @@ case "$1" in
             fi
         else
             echo "BatteryControl will not startup automatically."
-            sudo rm -r /etc/init/batterycontrol.conf
+            sudo rm -r /etc/init/batterycontrol.conf >/dev/null 2>&1
         fi
         ;;
    --h|-h|h|--help|-help|help)
