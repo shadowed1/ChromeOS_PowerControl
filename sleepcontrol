@@ -327,6 +327,13 @@ monitor_idle_activity() {
 
     start_fake_activity() {
         if (( sending_fake_activity == 0 )); then
+            
+            if (( kb_brightness_restored == 1 )); then
+                saved_kb_brightness=$(sudo ectool pwmgetkblight 2>/dev/null | awk '{print $NF}')
+                kb_brightness_restored=0
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Saved keyboard brightness: $saved_kb_brightness" >> "$LOG_FILE"
+            fi
+            
             (
                 while [ -f "$RUN_FLAG" ]; do
                     sleep "$FAKE_ACTIVITY_INTERVAL"
@@ -345,11 +352,19 @@ monitor_idle_activity() {
         if (( sending_fake_activity == 1 )); then
             kill "$fake_activity_pid" 2>/dev/null
             wait "$fake_activity_pid" 2>/dev/null
-            echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Stopping simulated activity loop... (PID $fake_activity_pid)${RESET}" >> "$LOG_FILE"
+    
+            if (( kb_brightness_restored == 0 )); then
+                sudo ectool pwmsetkblight "$saved_kb_brightness" >/dev/null 2>&1
+                kb_brightness_restored=1
+                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Restored keyboard brightness to $saved_kb_brightness${RESET}" >> "$LOG_FILE"
+            fi
+    
             sending_fake_activity=0
             fake_activity_pid=0
+            echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Stopping simulated activity loop...${RESET}" >> "$LOG_FILE"
         fi
     }
+
 
     exec 3< <(
         tail -Fn0 /var/log/power_manager/powerd.LATEST |
