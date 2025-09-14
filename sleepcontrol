@@ -435,9 +435,7 @@ monitor_idle_activity() {
                     /usr/share/power_manager/disable_dark_resume \
                     /mnt/stateful_partition/encrypted/var/lib/power_manager/disable_dark_resume; do
                     [[ -f "$file" ]] && echo 0 | sudo tee "$file" >/dev/null
-                done
-        
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Switched to AC (charging), dark resume disabled." >> "$LOG_FILE"
+                done        
             fi
             ;;
         *"User activity reported"*|*"Enabling wakeup for"*|*"User triggered wake"*|*"User activity ongoing"*)
