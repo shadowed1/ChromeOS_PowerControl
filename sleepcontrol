@@ -506,7 +506,7 @@ monitor_idle_activity() {
             (( STATUS == "Discharging" )) && AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_BATTERY || AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_POWER
 
             if (( now - last_log_ts >= 10 )); then
-                echo "${BLUE}Now ->${BOLD} $now ${RESET}${CYAN}vs${RESET}${MAGENTA}${BOLD} $last_ts ${RESET}${MAGENTA}<- Idle${RESET}" >> "$LOG_FILE"
+                echo "${BLUE}Current Epoch ->${BOLD} $now ${RESET}${CYAN}vs${RESET}${MAGENTA}${BOLD} $last_ts ${RESET}${MAGENTA}<- Idle Epoch${RESET}" >> "$LOG_FILE"
                 last_log_ts=$now
             fi
 
