@@ -359,11 +359,20 @@ monitor_idle_activity() {
         done
     )
 
+    load_config
+    last_reload_time=$(date +%s)
+
     while read -r line <&3; do
         now=$(date +%s)
+
         (( now - last_reload_time >= 10 )) && { load_config; last_reload_time=$now; }
 
-        AUDIO_DETECTION_ENABLED=$(( STATUS == "Discharging" ? AUDIO_DETECTION_BATTERY : AUDIO_DETECTION_POWER ))
+        if [[ "$STATUS" == "Discharging" ]]; then
+            AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_BATTERY
+        else
+            AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_POWER
+        fi
+
         (( AUDIO_DETECTION_ENABLED == 0 )) && audio_active=0
 
         case "$line" in
