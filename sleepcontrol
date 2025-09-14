@@ -335,7 +335,7 @@ monitor_idle_activity() {
             ) &
             fake_activity_pid=$!
             sending_fake_activity=1
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - Starting simulated activity loop... (PID $fake_activity_pid)." >> "$LOG_FILE"
+            echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Starting simulated activity loop... (PID $fake_activity_pid)${RESET}" >> "$LOG_FILE"
         fi
     }
 
@@ -343,7 +343,7 @@ monitor_idle_activity() {
         if (( sending_fake_activity == 1 )); then
             kill "$fake_activity_pid" 2>/dev/null
             wait "$fake_activity_pid" 2>/dev/null
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - Stopping simulated activity loop... (PID $fake_activity_pid)." >> "$LOG_FILE"
+            echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Stopping simulated activity loop... (PID $fake_activity_pid)${RESET}" >> "$LOG_FILE"
             sending_fake_activity=0
             fake_activity_pid=0
         fi
@@ -487,7 +487,7 @@ monitor_idle_activity() {
             (( STATUS == "Discharging" )) && AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_BATTERY || AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_POWER
 
             if (( now - last_log_ts >= 10 )); then
-                echo "${BLUE}Now -> $now vs $last_ts <- Idle${RESET}" >> "$LOG_FILE"
+                echo "${BLUE}Now -> $now ${RESET}${CYAN}vs${RESET}${MAGENTA} $last_ts <- Idle${RESET}" >> "$LOG_FILE"
                 last_log_ts=$now
             fi
 
@@ -506,7 +506,7 @@ monitor_idle_activity() {
                     dim_value=$((saved_display_brightness/8))
                     (( dim_value < 1 )) && dim_value=1
                     set_display_brightness "$dim_value"
-                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Display dimmed to $dim_value" >> "$LOG_FILE"
+                    echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Display dimmed to $dim_value${RESET}" >> "$LOG_FILE"
                 fi
             fi
 
@@ -606,7 +606,7 @@ case "$1" in
         fi
 
         stop_monitoring >/dev/null 2>&1
-        echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') - SleepControl Stopped (PID $PID)${RESET}"
+        echo "${RED}$(date '+%Y-%m-%d %H:%M:%S') - SleepControl Stopped (PID $PID)${RESET}"
         ;;
     battery|power)
     MODE=$1
