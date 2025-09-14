@@ -552,23 +552,40 @@ start_component_now() {
         sudo "$command" start
         echo ""
 
-        if [[ "$component" == "BatteryControl" ]]; then
+       if [[ "$component" == "BatteryControl" ]]; then
             declare -g SHOW_BATTERYCONTROL_NOTICE=1
             read -rp "${BOLD}${GREEN}Do you want to set suspend mode from freeze to deep, allowing BatteryControl to function while sleeping when charging? Display will dim once when enabling (powerd restarts)${RESET}${BOLD} (Y/n): ${RESET} " set_deep
             if [[ -z "$set_deep" || "$set_deep" =~ ^[Yy]$ ]]; then
                 echo "deep" | sudo tee /usr/share/power_manager/suspend_mode >/dev/null
                 echo "deep" | sudo tee /sys/power/mem_sleep >/dev/null
-                
+        
                 for file in \
                     /var/lib/power_manager/disable_dark_resume \
                     /usr/share/power_manager/disable_dark_resume \
                     /mnt/stateful_partition/encrypted/var/lib/power_manager/disable_dark_resume; do
                     [[ -f "$file" ]] && echo 0 | sudo tee "$file" >/dev/null
                 done
+        
                 saved_kb_brightness=$(sudo ectool pwmgetkblight 2>/dev/null | awk '{print $NF}')
+        
+                saved_display_brightness=""
+                if [[ -n "$BRIGHTNESS_PATH" && -r "$BRIGHTNESS_PATH" ]]; then
+                    saved_display_brightness=$(<"$BRIGHTNESS_PATH")
+                fi
+        
                 sudo restart powerd >/dev/null
                 sleep 2
-                sudo ectool pwmsetkblight "$saved_kb_brightness" >/dev/null 2>&1
+        
+                if [[ -n "$saved_kb_brightness" ]]; then
+                    sudo ectool pwmsetkblight "$saved_kb_brightness" >/dev/null 2>&1
+                    echo "${BLUE}Restored keyboard brightness: $saved_kb_brightness${RESET}"
+                fi
+        
+                if [[ -n "$saved_display_brightness" && -n "$BRIGHTNESS_PATH" ]]; then
+                    echo "$saved_display_brightness" | sudo tee "$BRIGHTNESS_PATH" >/dev/null
+                    echo "${BLUE}Restored display brightness: $saved_display_brightness${RESET}"
+                fi
+        
                 echo "${RESET}${BOLD}${BLUE}Suspend mode set to: $(cat /usr/share/power_manager/suspend_mode) ${RESET}"
                 echo ""
             else
@@ -576,6 +593,7 @@ start_component_now() {
                 echo ""
             fi
         fi
+
 
         if [[ "$component" == "GPUControl" ]]; then
             declare -g SHOW_GPUCONTROL_NOTICE=1
