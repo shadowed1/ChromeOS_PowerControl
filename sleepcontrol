@@ -470,9 +470,9 @@ monitor_idle_activity() {
                 rm -f "$LAST_FAKE_ACTIVITY_FILE" 2>/dev/null || true
                 continue
             fi
-            if (( monitor_idle == 1 )); then
-                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - User activity resumed.${RESET}" >> "$LOG_FILE"
-            fi
+            #if (( monitor_idle == 1 )); then
+            #    echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - User activity resumed.${RESET}" >> "$LOG_FILE"
+            #fi
             monitor_idle=0
             active=1
             last_ts=$now
