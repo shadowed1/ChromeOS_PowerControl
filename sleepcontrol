@@ -370,7 +370,7 @@ monitor_idle_activity() {
     
             if [[ -n "$saved_display_brightness" && "$saved_display_brightness" -ge 0 ]]; then
                 set_display_brightness "$saved_display_brightness"
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Restored display brightness to $saved_display_brightness" >> "$LOG_FILE"
+                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Restored display brightness to ${RESET}${YELLOW}${saved_display_brightness}${RESET}" >> "$LOG_FILE"
             fi
     
             sending_fake_activity=0
