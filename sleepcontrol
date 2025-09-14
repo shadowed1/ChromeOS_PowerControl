@@ -439,7 +439,8 @@ monitor_idle_activity() {
 
             if (( last_fake_ts > 0 && now - last_fake_ts <= FAKE_ACTIVITY_GRACE )); then
                 echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Simulated Activity Reported +/- ${FAKE_ACTIVITY_GRACE}s${RESET}." >> "$LOG_FILE"
-                rm -f "$LAST_FAKE_ACTIVITY_FILE" 2>/dev/null || true
+                rm -f "$LAST_FAKE_ACTIVITY_FILE" 2>/dev/null || 
+                continue
             fi
 
             if (( monitor_idle == 1 )); then
