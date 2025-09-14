@@ -387,8 +387,6 @@ monitor_idle_activity() {
                 idle_since=$now
                 last_ts=$now
                 start_fake_activity
-                saved_kb_brightness=$(sudo ectool pwmgetkblight 2>/dev/null | awk '{print $NF}')
-                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Saved keyboard brightness: $saved_kb_brightness${RESET}" >> "$LOG_FILE"
                 sleep 11
                 sudo ectool pwmsetkblight 0 >/dev/null 2>&1
                 echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Keyboard backlight turned off.${RESET}" >> "$LOG_FILE"
@@ -519,24 +517,23 @@ monitor_idle_activity() {
                 backlight_off=0
             fi
 
-            if (( idle_elapsed >= dim_delay && idle_elapsed < backlight_delay )); then
-                if [[ $was_dimmed -eq 0 ]]; then
-                    save_current_brightness
-                    was_dimmed=1
-                    dim_value=$((saved_display_brightness/8))
-                    (( dim_value < 1 )) && dim_value=1
-                    set_display_brightness "$dim_value"
-                    echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Display dimmed to $dim_value${RESET}" >> "$LOG_FILE"
-                fi
-            fi
-
-            if (( idle_elapsed >= backlight_delay )); then
-                if (( backlight_off == 0 )); then
-                    if [[ -n "$BRIGHTNESS_PATH" ]]; then
-                        echo 0 | sudo tee "$BRIGHTNESS_PATH" >/dev/null
+           if (( idle_elapsed >= dim_delay )); then
+                if (( idle_elapsed < backlight_delay )); then
+                    if [[ $was_dimmed -eq 0 ]]; then
+                        save_current_brightness
+                        was_dimmed=1
+                        dim_value=$((saved_display_brightness/8))
+                        (( dim_value < 1 )) && dim_value=1
+                        set_display_brightness "$dim_value"
+                        echo "Display dimmed to $dim_value" >> "$LOG_FILE"
                     fi
-                    backlight_off=1
-                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Display and keyboard backlight off." >> "$LOG_FILE"
+                else
+                    if (( backlight_off == 0 )); then
+                        # optionally restore saved_display_brightness before powering off
+                        echo 0 | sudo tee "$BRIGHTNESS_PATH" >/dev/null
+                        backlight_off=1
+                        echo "Display and keyboard backlight off." >> "$LOG_FILE"
+                    fi
                 fi
             fi
 
