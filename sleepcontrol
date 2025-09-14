@@ -529,7 +529,7 @@ monitor_idle_activity() {
                 (( remaining_backlight < 0 )) && remaining_backlight=0
                 (( remaining_suspend < 0 )) && remaining_suspend=0
             
-                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S')${RESET}${CYAN} Dim: ${BOLD}${remaining_dim}s -> ${RESET}${GREEN}Backlight off:${BOLD}${remaining_backlight}s -> ${RESET}${MAGENTA}Sleep: ${BOLD}${remaining_suspend}s${RESET}" >> "$LOG_FILE"
+                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S')${RESET}${CYAN} Dim: ${BOLD}${remaining_dim}s${RESET}${CYAN} -> ${RESET}${GREEN}Backlight off: ${BOLD}${remaining_backlight}s${RESET}${GREEN} -> ${RESET}${MAGENTA}Sleep: ${BOLD}${remaining_suspend}s${RESET}" >> "$LOG_FILE"
                 last_log_ts=$now
             fi
 
