@@ -538,7 +538,7 @@ monitor_idle_activity() {
                 (( remaining_backlight < 0 )) && remaining_backlight=0
                 (( remaining_suspend < 0 )) && remaining_suspend=0
             
-                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - ${RESET}${CYAN} Dim: ${BOLD}${remaining_dim}s${RESET}${CYAN} -> ${RESET}${GREEN}Backlight off: ${BOLD}${remaining_backlight}s${RESET}${GREEN} -> ${RESET}${MAGENTA}Sleep: ${BOLD}${remaining_suspend}s${RESET}" >> "$LOG_FILE"
+                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - ${RESET}${CYAN} Dim: ${BOLD}${remaining_dim}s${RESET}${CYAN} -> ${RESET}${GREEN}Backlight off: ${BOLD}${remaining_backlight}s${RESET}${GREEN} -> ${RESET}${MAGENTA}Idle: ${BOLD}${remaining_suspend}s${RESET}" >> "$LOG_FILE"
                 last_log_ts=$now
             fi
 
@@ -698,7 +698,7 @@ case "$1" in
         fi
 
         save_config
-        echo "${BLUE}${BOLD}${MODE^}${RESET}${BLUE} = Dim: $((DIM_VAL)) min -> Timeout: $((BACKLIGHT_VAL)) min -> Sleep: $((DELAY_VAL)) min${RESET}"
+        echo "${BLUE}${BOLD}${MODE^}${RESET}${BLUE} = Dim: $((DIM_VAL)) min -> Backlight off: $((BACKLIGHT_VAL)) min -> Idle: $((DELAY_VAL)) min${RESET}"
         load_config
 
     elif [[ $# -eq 3 ]]; then
@@ -729,7 +729,7 @@ case "$1" in
         fi
 
         save_config
-        echo "${BLUE}${BOLD}${MODE^}${RESET}${BLUE} = Timeout: $((POWER_BACKLIGHT)) min -> Sleep: $((POWER_DELAY)) min${RESET}"
+        echo "${BLUE}${BOLD}${MODE^}${RESET}${BLUE} = Timeout: $((POWER_BACKLIGHT)) min -> Idle: $((POWER_DELAY)) min${RESET}"
         load_config
 
 
@@ -748,15 +748,15 @@ case "$1" in
         fi
 
         save_config
-        echo "${BLUE}${BOLD}${MODE^}${RESET}${BLUE} = Sleep: $((POWER_DELAY)) min${RESET}"
+        echo "${BLUE}${BOLD}${MODE^}${RESET}${BLUE} = Idle: $((POWER_DELAY)) min${RESET}"
         load_config
 
     else
         load_config
         if [[ "$MODE" == "battery" ]]; then
-            echo "${BLUE}Battery = Dim: $((BATTERY_DIM_DELAY)) min -> Timeout: $((BATTERY_BACKLIGHT)) min -> Sleep: $((BATTERY_DELAY)) min | Audio Detection: $AUDIO_DETECTION_BATTERY Lid Sleep: $LIDSLEEP_POWER ${RESET}"
+            echo "${BLUE}Battery = Dim: $((BATTERY_DIM_DELAY)) min -> Backlight off: $((BATTERY_BACKLIGHT)) min -> Idle: $((BATTERY_DELAY)) min | Audio Detection: $AUDIO_DETECTION_BATTERY Lid Sleep: $LIDSLEEP_POWER ${RESET}"
         else
-            echo "${BLUE}Power = Dim: $((POWER_DIM_DELAY)) min -> Timeout: $((POWER_BACKLIGHT)) min -> Sleep: $((POWER_DELAY)) min | Audio Detection: $AUDIO_DETECTION_POWER | Lid Sleep: $LIDSLEEP_BATTERY ${RESET}"
+            echo "${BLUE}Power = Dim: $((POWER_DIM_DELAY)) min -> Backlight off: $((POWER_BACKLIGHT)) min -> Idle: $((POWER_DELAY)) min | Audio Detection: $AUDIO_DETECTION_POWER | Lid Sleep: $LIDSLEEP_BATTERY ${RESET}"
         fi
     fi
         ;;
@@ -800,8 +800,8 @@ echo "${RED}"
 echo "═════════════════════════════════════════════════════════════════════════════════════════════════"
 echo "                              SleepControl Status: STOPPED                                       "
         fi
-echo "  Battery = Dim: $((BATTERY_DIM_DELAY)) min -> Timeout: $((BATTERY_BACKLIGHT)) min -> Sleep: $((BATTERY_DELAY)) min | Audio Detection: $AUDIO_DETECTION_BATTERY | Lid Sleep: $LIDSLEEP_BATTERY "
-echo "  Power   = Dim: $((POWER_DIM_DELAY)) min -> Timeout: $((POWER_BACKLIGHT)) min -> Sleep: $((POWER_DELAY)) min | Audio Detection: $AUDIO_DETECTION_POWER | Lid Sleep: $LIDSLEEP_POWER "
+echo "  Battery = Dim: $((BATTERY_DIM_DELAY)) min -> Backlight off: $((BATTERY_BACKLIGHT)) min -> Sleep: $((BATTERY_DELAY)) min | Audio Detection: $AUDIO_DETECTION_BATTERY | Lid Sleep: $LIDSLEEP_BATTERY "
+echo "  Power   = Dim: $((POWER_DIM_DELAY)) min -> Backlight off: $((POWER_BACKLIGHT)) min -> Sleep: $((POWER_DELAY)) min | Audio Detection: $AUDIO_DETECTION_POWER | Lid Sleep: $LIDSLEEP_POWER "
 echo "  Suspend Mode: ${SUSPEND_MODE}"
 echo "═════════════════════════════════════════════════════════════════════════════════════════════════"
 echo "${RESET}"
