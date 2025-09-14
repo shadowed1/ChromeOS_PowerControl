@@ -304,7 +304,6 @@ monitor_idle_activity() {
     local power_backlight_ts=$(date +%s)
     local battery_backlight_ts=$(date +%s)
     local last_reload_time=0
-    local last_power_check_time=0
     local saved_kb_brightness=$(sudo ectool pwmgetkblight 2>/dev/null | awk '{print $NF}')
     local lid_closed=0
 
@@ -355,6 +354,7 @@ monitor_idle_activity() {
 
     while read -r line <&3; do
         now=$(date +%s)
+        last_power_check_time=0
         (( now - last_reload_time >= 10 )) && { load_config; last_reload_time=$now; }
 
         if (( now - last_power_check_time >= 10 )); then
