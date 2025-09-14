@@ -483,7 +483,7 @@ monitor_idle_activity() {
             (( STATUS == "Discharging" )) && AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_BATTERY || AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_POWER
 
             if (( now - last_log_ts >= 10 )); then
-                echo "${BLUE}Now -> $now vs $last_ts <- Idle${RESET}" >> "$LOG_FILE"
+                echo "${BLUE}Now -> $now ${RESET}${CYAN}vs${RESET}${MAGENTA} $last_ts <- Idle${RESET}" >> "$LOG_FILE"
                 last_log_ts=$now
             fi
 
@@ -714,14 +714,14 @@ case "$1" in
         read -p "Do you want SleepControl to startup automatically? (y/n): " choice
         if [[ "$choice" =~ ^[Yy]$ ]]; then
             if [ -f "$CONF_SOURCE" ]; then
-                echo "Copying sleepcontrol.conf to /etc/init/..."
+                echo "${BLUE}Copying sleepcontrol.conf to /etc/init/...${RESET}"
                 sudo cp "$CONF_SOURCE" "$CONF_TARGET"
                 echo "${BLUE}sleepcontrol.conf copied.${RESET}"
             else
                 echo "${RED}sleepcontrol.conf not found at $CONF_SOURCE${RESET}"
             fi
         else
-            echo "SleepControl will not startup automatically."
+            echo "${BLUE}SleepControl will not startup automatically.${RESET}"
             sudo rm -f /etc/init/sleepcontrol.conf
         fi
         ;;
