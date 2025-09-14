@@ -510,13 +510,6 @@ monitor_idle_activity() {
                 last_log_ts=$now
             fi
 
-            if (( AUDIO_DETECTION_ENABLED == 1 && audio_active == 1 )); then
-                idle_since=$now
-                last_ts=$now
-                was_dimmed=0
-                backlight_off=0
-            fi
-
            if (( idle_elapsed >= dim_delay )); then
                 if (( idle_elapsed < backlight_delay )); then
                     if [[ $was_dimmed -eq 0 ]]; then
