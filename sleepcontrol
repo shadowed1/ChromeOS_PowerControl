@@ -21,6 +21,7 @@ LID_SUSPEND_IGNORE_UNTIL=0
 LAST_FAKE_ACTIVITY_FILE="${INSTALL_DIR}/.last_fake_activity"
 FAKE_ACTIVITY_GRACE=1
 
+
 SUSPEND_APPLIED_FLAG="/tmp/.sleepcontrol_suspend_applied"
 
 if [[ ! -f "$SUSPEND_APPLIED_FLAG" ]]; then
@@ -74,6 +75,7 @@ get_battery_info() {
     fi
 }
 
+
 if ! ( [[ -z "$1" ]] || [[ "$1" == "--h" || "$1" == "-h" || "$1" == "h" || "$1" == "--help" || "$1" == "-help" || "$1" == "help" || "$1" == "help_all" || "$1" == "monitor" || "$1" == "powerd" || "$1" == "status" ]] ) && [[ "$(id -u)" -ne 0 ]]; then    echo "${RED}SleepControl requires sudo to run.${RESET}"
     echo "  Try: sudo sleepcontrol $*  or  sudo $0 $*"
     exit 1
@@ -90,6 +92,8 @@ DEFAULT_AUDIO_DETECTION_BATTERY=1
 DEFAULT_AUDIO_DETECTION_POWER=1
 DEFAULT_LIDSLEEP_BATTERY=1
 DEFAULT_LIDSLEEP_POWER=1
+
+
 AUDIO_DETECTION_BATTERY=
 AUDIO_DETECTION_POWER=
 BATTERY_DELAY=
@@ -186,6 +190,7 @@ validate_config() {
     fi
 }
 
+
 save_config() {
     validate_config
     sed -i "s/^BATTERY_DELAY=.*/BATTERY_DELAY=$BATTERY_DELAY/" "$CONFIG_FILE" || echo "BATTERY_DELAY=$BATTERY_DELAY" >> "$CONFIG_FILE"
@@ -200,6 +205,7 @@ save_config() {
     sed -i "s/^ORIGINAL_SUSPEND_MODE=.*/ORIGINAL_SUSPEND_MODE=$ORIGINAL_SUSPEND_MODE/" "$CONFIG_FILE" || echo "ORIGINAL_SUSPEND_MODE=$ORIGINAL_SUSPEND_MODE" >> "$CONFIG_FILE"
     sed -i "s/^LIDSLEEP_BATTERY=.*/LIDSLEEP_BATTERY=$LIDSLEEP_BATTERY/" "$CONFIG_FILE" || echo "LIDSLEEP_BATTERY=$LIDSLEEP_BATTERY" >> "$CONFIG_FILE"
     sed -i "s/^LIDSLEEP_POWER=.*/LIDSLEEP_POWER=$LIDSLEEP_POWER/" "$CONFIG_FILE" || echo "LIDSLEEP_POWER=$LIDSLEEP_POWER" >> "$CONFIG_FILE"
+
 }
 
 show_help() {
@@ -300,6 +306,7 @@ monitor_idle_activity() {
     local last_reload_time=0
     local saved_kb_brightness=$(sudo ectool pwmgetkblight 2>/dev/null | awk '{print $NF}')
     local lid_closed=0
+
     save_current_brightness
     last_power_check_time=0
     send_fake_activity() {
@@ -316,6 +323,7 @@ monitor_idle_activity() {
         echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Simulated user activity.${RESET}" >> "$LOG_FILE"
     fi
 }
+
 
     start_fake_activity() {
         if (( sending_fake_activity == 0 )); then
@@ -380,10 +388,10 @@ monitor_idle_activity() {
                 last_ts=$now
                 start_fake_activity
                 saved_kb_brightness=$(sudo ectool pwmgetkblight 2>/dev/null | awk '{print $NF}')
-                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Saved keyboard brightness: $saved_kb_brightness${RESET}" >> "$LOG_FILE"
-                sleep 10
+                #echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Saved keyboard brightness: $saved_kb_brightness${RESET}" >> "$LOG_FILE"
+                sleep 5
                 sudo ectool pwmsetkblight 0 >/dev/null 2>&1
-                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Keyboard backlight turned off.${RESET}" >> "$LOG_FILE"
+                #echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Keyboard backlight turned off.${RESET}" >> "$LOG_FILE"
             fi
             ;;
         *"Lid closed"*)
@@ -438,31 +446,30 @@ monitor_idle_activity() {
             fi
 
             if (( last_fake_ts > 0 && now - last_fake_ts <= FAKE_ACTIVITY_GRACE )); then
-                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Simulated Activity Reported +/- ${FAKE_ACTIVITY_GRACE}s${RESET}." >> "$LOG_FILE"
-                rm -f "$LAST_FAKE_ACTIVITY_FILE" 2>/dev/null || 
+                #echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - simulated activity ${FAKE_ACTIVITY_GRACE}s${RESET}." >> "$LOG_FILE"
+                rm -f "$LAST_FAKE_ACTIVITY_FILE" 2>/dev/null || true
                 continue
             fi
 
             if (( monitor_idle == 1 )); then
-                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - User Activity Reported${RESET}" >> "$LOG_FILE"
+                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - User activity resumed.${RESET}" >> "$LOG_FILE"
             fi
             monitor_idle=0
             active=1
             stop_fake_activity
             backlight_off=0
+            if (( kb_brightness_restored == 0 )); then
+                if [[ -n "$saved_kb_brightness" && "$saved_kb_brightness" -ge 0 ]]; then
+                    sudo ectool pwmsetkblight "$saved_kb_brightness"
+                    #echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Restored keyboard brightness to $saved_kb_brightness.${RESET}" >> "$LOG_FILE"
+                fi
+                kb_brightness_restored=1
+            fi
             power_backlight_ts=$now
             battery_backlight_ts=$now
             was_dimmed=0
             if [[ -n "$saved_display_brightness" && "$saved_display_brightness" -gt 0 ]]; then
                 echo "$saved_display_brightness" | sudo tee "$BRIGHTNESS_PATH" >/dev/null
-            fi
-            sleep 2
-            if (( kb_brightness_restored == 0 )); then
-                if [[ -n "$saved_kb_brightness" && "$saved_kb_brightness" -ge 0 ]]; then
-                    sudo ectool pwmsetkblight "$saved_kb_brightness" >/dev/null 2>&1
-                    echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Restored keyboard brightness to $saved_kb_brightness.${RESET}" >> "$LOG_FILE"
-                fi
-                kb_brightness_restored=1
             fi
             ;;
         *"Got user-triggered request to set brightness to "*)
@@ -490,6 +497,7 @@ monitor_idle_activity() {
                 last_ts=$now
                 was_dimmed=0
                 backlight_off=0
+                continue
             fi
 
             if (( idle_elapsed >= dim_delay && idle_elapsed < backlight_delay )); then
@@ -522,7 +530,7 @@ monitor_idle_activity() {
                 else
                     stop_fake_activity
                     sleep 2
-                    echo "$(date '+%Y-%m-%d %H:%M:%S') - SleepControl timer elapsed!" >> "$LOG_FILE"
+                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Sleep threshold elapsed; going to sleep!" >> "$LOG_FILE"
                     monitor_idle=0
                     idle_since=$now
                     last_ts=$now
@@ -719,7 +727,7 @@ case "$1" in
             fi
         else
             echo "SleepControl will not startup automatically."
-            sudo rm -f /etc/init/sleepcontrol.conf >/dev/null 2>&1
+            sudo rm -f /etc/init/sleepcontrol.conf
         fi
         ;;
         status|"")
