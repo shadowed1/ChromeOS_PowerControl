@@ -387,10 +387,10 @@ monitor_idle_activity() {
                 idle_since=$now
                 last_ts=$now
                 saved_kb_brightness=$(sudo ectool pwmgetkblight 2>/dev/null | awk '{print $NF}')
-                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Saved keyboard brightness: $saved_kb_brightness${RESET}" >> "$LOG_FILE"
+                #echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Saved keyboard brightness: $saved_kb_brightness${RESET}" >> "$LOG_FILE"
                 sleep 0.1
                 sudo ectool pwmsetkblight 0 >/dev/null 2>&1
-                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Keyboard backlight turned off.${RESET}" >> "$LOG_FILE"
+                #echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Keyboard backlight turned off.${RESET}" >> "$LOG_FILE"
                 start_fake_activity
             fi
             ;;
@@ -461,7 +461,7 @@ monitor_idle_activity() {
             if (( kb_brightness_restored == 0 )); then
                 if [[ -n "$saved_kb_brightness" && "$saved_kb_brightness" -ge 0 ]]; then
                     sudo ectool pwmsetkblight "$saved_kb_brightness"
-                    echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Restored keyboard brightness to $saved_kb_brightness.${RESET}" >> "$LOG_FILE"
+                    #echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Restored keyboard brightness to $saved_kb_brightness.${RESET}" >> "$LOG_FILE"
                 fi
                 kb_brightness_restored=1
             fi
