@@ -1,4 +1,4 @@
-#!/bin/bash
+x`#!/bin/bash
 RED=$(tput setaf 1)
 GREEN=$(tput setaf 2)
 YELLOW=$(tput setaf 3)
@@ -16,7 +16,7 @@ BATTERY_STATUS_PATH="/var/log/power_manager/powerd.LATEST"
 BACKLIGHT_NAME=""
 BRIGHTNESS_PATH=""
 MAX_BRIGHTNESS_PATH=""
-FAKE_ACTIVITY_INTERVAL=60
+FAKE_ACTIVITY_INTERVAL=180
 LID_SUSPEND_IGNORE_UNTIL=0
 LAST_FAKE_ACTIVITY_FILE="${INSTALL_DIR}/.last_fake_activity"
 FAKE_ACTIVITY_GRACE=1
@@ -304,7 +304,6 @@ monitor_idle_activity() {
     local power_backlight_ts=$(date +%s)
     local battery_backlight_ts=$(date +%s)
     local last_reload_time=0
-    local last_power_check_time=0
     local saved_kb_brightness=$(sudo ectool pwmgetkblight 2>/dev/null | awk '{print $NF}')
     local lid_closed=0
 
@@ -318,7 +317,7 @@ monitor_idle_activity() {
             /org/chromium/PowerManager \
             org.chromium.PowerManager.HandleUserActivity int32:0 int32:0
 
-        echo "$(date '+%Y-%m-%d %H:%M:%S') - Simulated user activity." >> "$LOG_FILE"
+        echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Simulated user activity.${RESET}" >> "$LOG_FILE"
     }
 
     start_fake_activity() {
@@ -348,7 +347,7 @@ monitor_idle_activity() {
     exec 3< <(
         tail -Fn0 /var/log/power_manager/powerd.LATEST |
         while IFS= read -r line; do
-            sleep 0.05
+            sleep 0.04
             printf '%s\n' "$line"
         done
     )
@@ -357,6 +356,7 @@ monitor_idle_activity() {
         now=$(date +%s)
         (( now - last_reload_time >= 10 )) && { load_config; last_reload_time=$now; }
 
+        last_power_check_time=0
         if (( now - last_power_check_time >= 10 )); then
             get_battery_info
             [[ -z "$STATUS" ]] && { STATUS="Unknown"; CHARGE=""; }
@@ -447,13 +447,13 @@ monitor_idle_activity() {
             fi
 
             if (( last_fake_ts > 0 && now - last_fake_ts <= FAKE_ACTIVITY_GRACE )); then
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Ignored simulated activity (within ${FAKE_ACTIVITY_GRACE}s)." >> "$LOG_FILE"
+                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Ignored simulated activity within ${FAKE_ACTIVITY_GRACE}s${RESET}." >> "$LOG_FILE"
                 rm -f "$LAST_FAKE_ACTIVITY_FILE" 2>/dev/null || true
                 continue
             fi
 
             if (( monitor_idle == 1 )); then
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - User activity resumed." >> "$LOG_FILE"
+                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - User activity resumed.${RESET}" >> "$LOG_FILE"
             fi
             monitor_idle=0
             active=1
