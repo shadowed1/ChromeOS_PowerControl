@@ -127,6 +127,9 @@ load_config() {
     recalc_timers
 }
 
+last_reload_time=$(date +%s)
+last_ts=$(date +%s)
+
 recalc_timers() {
     if [[ "$STATUS" == "Discharging" ]]; then
         dim_delay=$((BATTERY_DIM_DELAY * 60))
@@ -287,6 +290,9 @@ monitor_idle_activity() {
     }
 
     load_config
+    recalc_timers
+    last_reload_time=$(date +%s)
+    last_ts=$(date +%s)
 
     if pgrep -f "$0 __sleepcontrol_monitor__" | grep -v "^$$\$" > /dev/null; then
         exit 0
@@ -305,7 +311,7 @@ monitor_idle_activity() {
     local kb_brightness_restored=1
     local power_backlight_ts=$(date +%s)
     local battery_backlight_ts=$(date +%s)
-    local last_reload_time=0
+    last_reload_time=0
     local saved_kb_brightness=$(sudo ectool pwmgetkblight 2>/dev/null | awk '{print $NF}')
     local lid_closed=0
 
@@ -378,6 +384,7 @@ monitor_idle_activity() {
 
     load_config
     last_reload_time=$(date +%s)
+    last_ts=$(date +%s)
 
     while read -r line <&3; do
         now=$(date +%s)
