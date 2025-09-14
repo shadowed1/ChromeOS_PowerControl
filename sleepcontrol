@@ -19,7 +19,7 @@ MAX_BRIGHTNESS_PATH=""
 FAKE_ACTIVITY_INTERVAL=180
 LID_SUSPEND_IGNORE_UNTIL=0
 LAST_FAKE_ACTIVITY_FILE="${INSTALL_DIR}/.last_fake_activity"
-FAKE_ACTIVITY_GRACE=2
+FAKE_ACTIVITY_GRACE=1
 
 
 SUSPEND_APPLIED_FLAG="/tmp/.sleepcontrol_suspend_applied"
@@ -352,7 +352,7 @@ monitor_idle_activity() {
     exec 3< <(
         tail -Fn0 /var/log/power_manager/powerd.LATEST |
         while IFS= read -r line; do
-            sleep 0.05
+            sleep 0.04
             printf '%s\n' "$line"
         done
     )
@@ -367,7 +367,7 @@ monitor_idle_activity() {
         case "$line" in
         *"Chrome is using presentation display mode"*)
             PRESENTATION_MODE=1
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - Presentation mode detected." >> "$LOG_FILE"
+            echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Presentation mode/External display detected.${RESET}" >> "$LOG_FILE"
             stop_fake_activity
             ;;
         *"Chrome is using normal display mode"*)
@@ -389,7 +389,7 @@ monitor_idle_activity() {
                 saved_kb_brightness=$(sudo ectool pwmgetkblight 2>/dev/null | awk '{print $NF}')
                 echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Saved keyboard brightness: $saved_kb_brightness${RESET}" >> "$LOG_FILE"
                 sleep 0.1
-                sudo ectool pwmsetkblight 0
+                sudo ectool pwmsetkblight 0 >/dev/null 2>&1
                 echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Keyboard backlight turned off.${RESET}" >> "$LOG_FILE"
                 start_fake_activity
             fi
@@ -446,7 +446,7 @@ monitor_idle_activity() {
             fi
 
             if (( last_fake_ts > 0 && now - last_fake_ts <= FAKE_ACTIVITY_GRACE )); then
-                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Ignored simulated activity within ${FAKE_ACTIVITY_GRACE}s${RESET}." >> "$LOG_FILE"
+                #echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - simulated activity ${FAKE_ACTIVITY_GRACE}s${RESET}." >> "$LOG_FILE"
                 rm -f "$LAST_FAKE_ACTIVITY_FILE" 2>/dev/null || true
                 continue
             fi
@@ -461,7 +461,7 @@ monitor_idle_activity() {
             if (( kb_brightness_restored == 0 )); then
                 if [[ -n "$saved_kb_brightness" && "$saved_kb_brightness" -ge 0 ]]; then
                     sudo ectool pwmsetkblight "$saved_kb_brightness"
-                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Restored keyboard brightness to $saved_kb_brightness." >> "$LOG_FILE"
+                    echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Restored keyboard brightness to $saved_kb_brightness.${RESET}" >> "$LOG_FILE"
                 fi
                 kb_brightness_restored=1
             fi
