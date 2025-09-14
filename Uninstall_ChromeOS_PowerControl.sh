@@ -88,6 +88,7 @@ case "$choice" in
         sudo rm -f "$INSTALL_DIR/.batterycontrol_enabled"
         sudo rm -f "$INSTALL_DIR/.sleepcontrol_enabled"
         sudo rm -f "$INSTALL_DIR/.last_simulated_times"
+        sudo rm -f "$INSTALL_DIR/.last_fake_activity"
         
         sudo rm -f "$INSTALL_DIR/.fan_curve_pid"
         sudo rm -f "$INSTALL_DIR/.fan_curve_running"
