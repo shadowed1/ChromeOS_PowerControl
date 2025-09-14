@@ -166,9 +166,11 @@ case "$1" in
         CONF_TARGET="/etc/init/gpucontrol.conf"
         read -p "Enable GPUControl on startup? (y/n): " choice
         if [[ "$choice" =~ ^[Yy]$ ]]; then
-            sudo cp "$CONF_SOURCE" "$CONF_TARGET" && echo "${MAGENTA}Startup enabled.${RESET}"
+            sudo cp "$CONF_SOURCE" "$CONF_TARGET"
+            echo "${MAGENTA}Startup enabled.${RESET}"
         else
-            sudo rm -f "$CONF_TARGET" && echo "${RED}Startup disabled.${RESET}"
+            sudo rm -f "$CONF_TARGET" >/dev/null 2>&1
+            echo "${RED}Startup disabled.${RESET}"
         fi
         exit 0
         ;;
