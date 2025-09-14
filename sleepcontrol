@@ -1,4 +1,4 @@
-x`#!/bin/bash
+#!/bin/bash
 RED=$(tput setaf 1)
 GREEN=$(tput setaf 2)
 YELLOW=$(tput setaf 3)
@@ -19,7 +19,7 @@ MAX_BRIGHTNESS_PATH=""
 FAKE_ACTIVITY_INTERVAL=60
 LID_SUSPEND_IGNORE_UNTIL=0
 LAST_FAKE_ACTIVITY_FILE="${INSTALL_DIR}/.last_fake_activity"
-FAKE_ACTIVITY_GRACE=1
+FAKE_ACTIVITY_GRACE=3
 
 
 SUSPEND_APPLIED_FLAG="/tmp/.sleepcontrol_suspend_applied"
@@ -304,6 +304,7 @@ monitor_idle_activity() {
     local power_backlight_ts=$(date +%s)
     local battery_backlight_ts=$(date +%s)
     local last_reload_time=0
+    local last_power_check_time=0
     local saved_kb_brightness=$(sudo ectool pwmgetkblight 2>/dev/null | awk '{print $NF}')
     local lid_closed=0
 
@@ -317,7 +318,7 @@ monitor_idle_activity() {
             /org/chromium/PowerManager \
             org.chromium.PowerManager.HandleUserActivity int32:0 int32:0
 
-        echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Simulated user activity.${RESET}" >> "$LOG_FILE"
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - Simulated user activity." >> "$LOG_FILE"
     }
 
     start_fake_activity() {
@@ -354,7 +355,6 @@ monitor_idle_activity() {
 
     while read -r line <&3; do
         now=$(date +%s)
-        last_power_check_time=0
         (( now - last_reload_time >= 10 )) && { load_config; last_reload_time=$now; }
 
         if (( now - last_power_check_time >= 10 )); then
@@ -447,13 +447,13 @@ monitor_idle_activity() {
             fi
 
             if (( last_fake_ts > 0 && now - last_fake_ts <= FAKE_ACTIVITY_GRACE )); then
-                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Ignored simulated activity within ${FAKE_ACTIVITY_GRACE}s${RESET}." >> "$LOG_FILE"
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Ignored simulated activity (within ${FAKE_ACTIVITY_GRACE}s)." >> "$LOG_FILE"
                 rm -f "$LAST_FAKE_ACTIVITY_FILE" 2>/dev/null || true
                 continue
             fi
 
             if (( monitor_idle == 1 )); then
-                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - User activity resumed.${RESET}" >> "$LOG_FILE"
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - User activity resumed." >> "$LOG_FILE"
             fi
             monitor_idle=0
             active=1
@@ -483,7 +483,7 @@ monitor_idle_activity() {
             (( STATUS == "Discharging" )) && AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_BATTERY || AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_POWER
 
             if (( now - last_log_ts >= 10 )); then
-                echo "${BLUE}Now -> $now ${RESET}${CYAN}vs${RESET}${MAGENTA} $last_ts <- Idle${RESET}" >> "$LOG_FILE"
+                echo "${BLUE}Now -> $now vs $last_ts <- Idle${RESET}" >> "$LOG_FILE"
                 last_log_ts=$now
             fi
 
@@ -714,14 +714,14 @@ case "$1" in
         read -p "Do you want SleepControl to startup automatically? (y/n): " choice
         if [[ "$choice" =~ ^[Yy]$ ]]; then
             if [ -f "$CONF_SOURCE" ]; then
-                echo "${BLUE}Copying sleepcontrol.conf to /etc/init/...${RESET}"
+                echo "Copying sleepcontrol.conf to /etc/init/..."
                 sudo cp "$CONF_SOURCE" "$CONF_TARGET"
                 echo "${BLUE}sleepcontrol.conf copied.${RESET}"
             else
                 echo "${RED}sleepcontrol.conf not found at $CONF_SOURCE${RESET}"
             fi
         else
-            echo "${BLUE}SleepControl will not startup automatically.${RESET}"
+            echo "SleepControl will not startup automatically."
             sudo rm -f /etc/init/sleepcontrol.conf
         fi
         ;;
