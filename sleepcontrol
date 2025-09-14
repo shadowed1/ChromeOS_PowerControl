@@ -459,7 +459,7 @@ monitor_idle_activity() {
             backlight_off=0
             if (( kb_brightness_restored == 0 )); then
                 if [[ -n "$saved_kb_brightness" && "$saved_kb_brightness" -ge 0 ]]; then
-                    sudo ectool pwmsetkblight "$saved_kb_brightness"
+                    sudo ectool pwmsetkblight "$saved_kb_brightness" >/dev/null 2>&1
                     #echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Restored keyboard brightness to $saved_kb_brightness.${RESET}" >> "$LOG_FILE"
                 fi
                 kb_brightness_restored=1
@@ -725,7 +725,7 @@ case "$1" in
             fi
         else
             echo "SleepControl will not startup automatically."
-            sudo rm -f /etc/init/sleepcontrol.conf
+            sudo rm -f /etc/init/sleepcontrol.conf >/dev/null 2>&1
         fi
         ;;
         status|"")
