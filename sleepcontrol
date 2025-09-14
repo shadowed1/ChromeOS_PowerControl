@@ -19,7 +19,7 @@ MAX_BRIGHTNESS_PATH=""
 FAKE_ACTIVITY_INTERVAL=180
 LID_SUSPEND_IGNORE_UNTIL=0
 LAST_FAKE_ACTIVITY_FILE="${INSTALL_DIR}/.last_fake_activity"
-FAKE_ACTIVITY_GRACE=0
+FAKE_ACTIVITY_GRACE=1
 
 SUSPEND_APPLIED_FLAG="/tmp/.sleepcontrol_suspend_applied"
 
@@ -437,7 +437,7 @@ monitor_idle_activity() {
                 last_fake_ts=0
             fi
 
-            if (( last_fake_ts > 0 )); then
+            if (( last_fake_ts > 0 && now - last_fake_ts <= FAKE_ACTIVITY_GRACE )); then
                 #echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - simulated activity ${FAKE_ACTIVITY_GRACE}s${RESET}." >> "$LOG_FILE"
                 rm -f "$LAST_FAKE_ACTIVITY_FILE" 2>/dev/null || true
             fi
