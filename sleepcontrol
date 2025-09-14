@@ -559,7 +559,7 @@ monitor_idle_activity() {
                     AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_POWER
                 fi
 
-            if (( now - last_log_ts >= 60 )); then
+            if (( now - last_log_ts >= 30 )); then
                 remaining_dim=$(( dim_delay - (now - last_ts) ))
                 remaining_backlight=$(( backlight_delay - (now - last_ts) ))
                 remaining_suspend=$(( suspend_delay - (now - last_ts) ))
