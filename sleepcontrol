@@ -380,10 +380,10 @@ monitor_idle_activity() {
                 last_ts=$now
                 start_fake_activity
                 saved_kb_brightness=$(sudo ectool pwmgetkblight 2>/dev/null | awk '{print $NF}')
-                #echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Saved keyboard brightness: $saved_kb_brightness${RESET}" >> "$LOG_FILE"
+                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Saved keyboard brightness: $saved_kb_brightness${RESET}" >> "$LOG_FILE"
                 sleep 10
                 sudo ectool pwmsetkblight 0 >/dev/null 2>&1
-                #echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Keyboard backlight turned off.${RESET}" >> "$LOG_FILE"
+                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Keyboard backlight turned off.${RESET}" >> "$LOG_FILE"
             fi
             ;;
         *"Lid closed"*)
@@ -438,12 +438,12 @@ monitor_idle_activity() {
             fi
 
             if (( last_fake_ts > 0 && now - last_fake_ts <= FAKE_ACTIVITY_GRACE )); then
-                #echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - simulated activity ${FAKE_ACTIVITY_GRACE}s${RESET}." >> "$LOG_FILE"
+                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Simulated Activity Reported +/- ${FAKE_ACTIVITY_GRACE}s${RESET}." >> "$LOG_FILE"
                 rm -f "$LAST_FAKE_ACTIVITY_FILE" 2>/dev/null || true
             fi
 
             if (( monitor_idle == 1 )); then
-                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - User activity resumed.${RESET}" >> "$LOG_FILE"
+                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - User Activity Reported${RESET}" >> "$LOG_FILE"
             fi
             monitor_idle=0
             active=1
@@ -459,7 +459,7 @@ monitor_idle_activity() {
             if (( kb_brightness_restored == 0 )); then
                 if [[ -n "$saved_kb_brightness" && "$saved_kb_brightness" -ge 0 ]]; then
                     sudo ectool pwmsetkblight "$saved_kb_brightness" >/dev/null 2>&1
-                    #echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Restored keyboard brightness to $saved_kb_brightness.${RESET}" >> "$LOG_FILE"
+                    echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Restored keyboard brightness to $saved_kb_brightness.${RESET}" >> "$LOG_FILE"
                 fi
                 kb_brightness_restored=1
             fi
