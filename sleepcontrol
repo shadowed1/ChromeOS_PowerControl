@@ -454,6 +454,9 @@ monitor_idle_activity() {
             power_backlight_ts=$now
             battery_backlight_ts=$now
             was_dimmed=0
+            if [[ ! -f "$LAST_FAKE_ACTIVITY_FILE" ]] && (( was_dimmed == 0 )); then
+                save_current_brightness
+            fi
             ;;
         *"User activity reported"*)
             if [[ -f "$LAST_FAKE_ACTIVITY_FILE" ]]; then
@@ -461,14 +464,12 @@ monitor_idle_activity() {
             else
                 last_fake_ts=0
             fi
-
             if (( last_fake_ts > 0 && now - last_fake_ts <= FAKE_ACTIVITY_GRACE )); then
                 sudo ectool pwmsetkblight 0 >/dev/null 2>&1
                 #echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - simulated activity ${FAKE_ACTIVITY_GRACE}s${RESET}." >> "$LOG_FILE"
                 rm -f "$LAST_FAKE_ACTIVITY_FILE" 2>/dev/null || true
                 continue
             fi
-
             if (( monitor_idle == 1 )); then
                 echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - User activity resumed.${RESET}" >> "$LOG_FILE"
             fi
@@ -481,13 +482,16 @@ monitor_idle_activity() {
             if (( kb_brightness_restored == 0 )); then
                 if [[ -n "$saved_kb_brightness" && "$saved_kb_brightness" -ge 0 ]]; then
                     sudo ectool pwmsetkblight "$saved_kb_brightness" >/dev/null 2>&1
-                    #echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Restored keyboard brightness to $saved_kb_brightness.${RESET}" >> "$LOG_FILE"
+                    echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Restored keyboard brightness to $saved_kb_brightness.${RESET}" >> "$LOG_FILE"
                 fi
                 kb_brightness_restored=1
             fi
             power_backlight_ts=$now
             battery_backlight_ts=$now
             was_dimmed=0
+            if (( was_dimmed == 0 )); then
+                save_current_brightness
+            fi
             if [[ -n "$saved_display_brightness" && "$saved_display_brightness" -gt 0 ]]; then
                 echo "$saved_display_brightness" | sudo tee "$BRIGHTNESS_PATH" >/dev/null
             fi
@@ -531,8 +535,6 @@ monitor_idle_activity() {
                 (( sending_fake_activity == 0 )) && start_fake_activity
             else
                 if [[ $was_dimmed -eq 0 ]]; then
-                    save_current_brightness
-                    sleep 1
                     was_dimmed=1
                     dim_value=$((saved_display_brightness/8))
                     (( dim_value < 1 )) && dim_value=1
