@@ -365,7 +365,7 @@ monitor_idle_activity() {
             if (( kb_brightness_restored == 0 )); then
                 sudo ectool pwmsetkblight "$saved_kb_brightness" >/dev/null 2>&1
                 kb_brightness_restored=1
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Restored keyboard brightness to $saved_kb_brightness" >> "$LOG_FILE"
+                #echo "$(date '+%Y-%m-%d %H:%M:%S') - Restored keyboard brightness to $saved_kb_brightness" >> "$LOG_FILE"
             fi
     
             if [[ -n "$saved_display_brightness" && "$saved_display_brightness" -ge 0 ]]; then
