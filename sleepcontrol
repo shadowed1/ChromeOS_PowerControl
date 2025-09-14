@@ -19,7 +19,7 @@ MAX_BRIGHTNESS_PATH=""
 FAKE_ACTIVITY_INTERVAL=180
 LID_SUSPEND_IGNORE_UNTIL=0
 LAST_FAKE_ACTIVITY_FILE="${INSTALL_DIR}/.last_fake_activity"
-FAKE_ACTIVITY_GRACE=1
+FAKE_ACTIVITY_GRACE=2
 
 
 SUSPEND_APPLIED_FLAG="/tmp/.sleepcontrol_suspend_applied"
@@ -352,7 +352,7 @@ monitor_idle_activity() {
     exec 3< <(
         tail -Fn0 /var/log/power_manager/powerd.LATEST |
         while IFS= read -r line; do
-            sleep 0.04
+            sleep 0.05
             printf '%s\n' "$line"
         done
     )
@@ -360,22 +360,6 @@ monitor_idle_activity() {
     while read -r line <&3; do
         now=$(date +%s)
         (( now - last_reload_time >= 10 )) && { load_config; last_reload_time=$now; }
-
-        if (( now - last_power_check_time >= 10 )); then
-            get_battery_info
-            [[ -z "$STATUS" ]] && { STATUS="Unknown"; CHARGE=""; }
-
-            if [[ "$STATUS" == "Charging" ]]; then
-                for file in \
-                    /var/lib/power_manager/disable_dark_resume \
-                    /usr/share/power_manager/disable_dark_resume \
-                    /mnt/stateful_partition/encrypted/var/lib/power_manager/disable_dark_resume; do
-                    [[ -f "$file" ]] && echo 0 | sudo tee "$file" >/dev/null
-                done
-            fi
-
-            last_power_check_time=$now
-        fi
 
         AUDIO_DETECTION_ENABLED=$(( STATUS == "Discharging" ? AUDIO_DETECTION_BATTERY : AUDIO_DETECTION_POWER ))
         (( AUDIO_DETECTION_ENABLED == 0 )) && audio_active=0
@@ -402,6 +386,11 @@ monitor_idle_activity() {
                 kb_brightness_restored=0
                 idle_since=$now
                 last_ts=$now
+                saved_kb_brightness=$(sudo ectool pwmgetkblight 2>/dev/null | awk '{print $NF}')
+                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Saved keyboard brightness: $saved_kb_brightness${RESET}" >> "$LOG_FILE"
+                sleep 0.1
+                sudo ectool pwmsetkblight 0
+                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Keyboard backlight turned off.${RESET}" >> "$LOG_FILE"
                 start_fake_activity
             fi
             ;;
@@ -435,12 +424,20 @@ monitor_idle_activity() {
                 suspend_delay=$((BATTERY_DELAY*60))
             fi
             ;;
-        *"On AC"*)
+       *"On AC"*)
             if [[ "$STATUS" != "Charging" ]]; then
                 STATUS="Charging"
                 dim_delay=$((POWER_DIM_DELAY*60))
                 backlight_delay=$((POWER_BACKLIGHT*60))
                 suspend_delay=$((POWER_DELAY*60))
+                for file in \
+                    /var/lib/power_manager/disable_dark_resume \
+                    /usr/share/power_manager/disable_dark_resume \
+                    /mnt/stateful_partition/encrypted/var/lib/power_manager/disable_dark_resume; do
+                    [[ -f "$file" ]] && echo 0 | sudo tee "$file" >/dev/null
+                done
+        
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Switched to AC (charging), dark resume disabled." >> "$LOG_FILE"
             fi
             ;;
         *"User activity reported"*|*"Enabling wakeup for"*|*"User triggered wake"*|*"User activity ongoing"*)
@@ -463,7 +460,13 @@ monitor_idle_activity() {
             active=1
             stop_fake_activity
             backlight_off=0
-            kb_brightness_restored=1
+            if (( kb_brightness_restored == 0 )); then
+                if [[ -n "$saved_kb_brightness" && "$saved_kb_brightness" -ge 0 ]]; then
+                    sudo ectool pwmsetkblight "$saved_kb_brightness"
+                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Restored keyboard brightness to $saved_kb_brightness." >> "$LOG_FILE"
+                fi
+                kb_brightness_restored=1
+            fi
             power_backlight_ts=$now
             battery_backlight_ts=$now
             was_dimmed=0
