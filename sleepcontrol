@@ -21,7 +21,6 @@ LID_SUSPEND_IGNORE_UNTIL=0
 LAST_FAKE_ACTIVITY_FILE="${INSTALL_DIR}/.last_fake_activity"
 FAKE_ACTIVITY_GRACE=0
 
-
 SUSPEND_APPLIED_FLAG="/tmp/.sleepcontrol_suspend_applied"
 
 if [[ ! -f "$SUSPEND_APPLIED_FLAG" ]]; then
@@ -75,7 +74,6 @@ get_battery_info() {
     fi
 }
 
-
 if ! ( [[ -z "$1" ]] || [[ "$1" == "--h" || "$1" == "-h" || "$1" == "h" || "$1" == "--help" || "$1" == "-help" || "$1" == "help" || "$1" == "help_all" || "$1" == "monitor" || "$1" == "powerd" || "$1" == "status" ]] ) && [[ "$(id -u)" -ne 0 ]]; then    echo "${RED}SleepControl requires sudo to run.${RESET}"
     echo "  Try: sudo sleepcontrol $*  or  sudo $0 $*"
     exit 1
@@ -92,8 +90,6 @@ DEFAULT_AUDIO_DETECTION_BATTERY=1
 DEFAULT_AUDIO_DETECTION_POWER=1
 DEFAULT_LIDSLEEP_BATTERY=1
 DEFAULT_LIDSLEEP_POWER=1
-
-
 AUDIO_DETECTION_BATTERY=
 AUDIO_DETECTION_POWER=
 BATTERY_DELAY=
@@ -190,7 +186,6 @@ validate_config() {
     fi
 }
 
-
 save_config() {
     validate_config
     sed -i "s/^BATTERY_DELAY=.*/BATTERY_DELAY=$BATTERY_DELAY/" "$CONFIG_FILE" || echo "BATTERY_DELAY=$BATTERY_DELAY" >> "$CONFIG_FILE"
@@ -205,7 +200,6 @@ save_config() {
     sed -i "s/^ORIGINAL_SUSPEND_MODE=.*/ORIGINAL_SUSPEND_MODE=$ORIGINAL_SUSPEND_MODE/" "$CONFIG_FILE" || echo "ORIGINAL_SUSPEND_MODE=$ORIGINAL_SUSPEND_MODE" >> "$CONFIG_FILE"
     sed -i "s/^LIDSLEEP_BATTERY=.*/LIDSLEEP_BATTERY=$LIDSLEEP_BATTERY/" "$CONFIG_FILE" || echo "LIDSLEEP_BATTERY=$LIDSLEEP_BATTERY" >> "$CONFIG_FILE"
     sed -i "s/^LIDSLEEP_POWER=.*/LIDSLEEP_POWER=$LIDSLEEP_POWER/" "$CONFIG_FILE" || echo "LIDSLEEP_POWER=$LIDSLEEP_POWER" >> "$CONFIG_FILE"
-
 }
 
 show_help() {
@@ -306,7 +300,6 @@ monitor_idle_activity() {
     local last_reload_time=0
     local saved_kb_brightness=$(sudo ectool pwmgetkblight 2>/dev/null | awk '{print $NF}')
     local lid_closed=0
-
     save_current_brightness
     last_power_check_time=0
     send_fake_activity() {
@@ -323,7 +316,6 @@ monitor_idle_activity() {
         echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Simulated user activity.${RESET}" >> "$LOG_FILE"
     fi
 }
-
 
     start_fake_activity() {
         if (( sending_fake_activity == 0 )); then
