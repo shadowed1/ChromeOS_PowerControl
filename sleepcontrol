@@ -32,7 +32,7 @@ if [[ ! -f "$SUSPEND_APPLIED_FLAG" ]]; then
         SUSPEND_MODE=$(grep "^SUSPEND_MODE=" "$CONFIG_FILE" | cut -d'=' -f2)
         if [[ "$SUSPEND_MODE" == "freeze" || "$SUSPEND_MODE" == "deep" ]]; then
             echo "$SUSPEND_MODE" | sudo tee /usr/share/power_manager/suspend_mode >/dev/null
-          f  sudo restart powerd >/dev/null
+            sudo restart powerd >/dev/null
 
             if [[ "$SUSPEND_MODE" == "freeze" ]]; then
                 echo s2idle | sudo tee /sys/power/mem_sleep >/dev/null
