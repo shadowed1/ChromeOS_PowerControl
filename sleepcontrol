@@ -409,6 +409,8 @@ monitor_idle_activity() {
             ;;
         *"Lid opened"*)
             lid_closed=0
+            monitor_idle=0
+            stop_fake_activity
             if (( PRESENTATION_MODE == 0 )); then
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - Lid opened, restoring brightness." >> "$LOG_FILE"
                 if [[ -n "$saved_display_brightness" && "$saved_display_brightness" -gt 0 ]]; then
@@ -438,7 +440,23 @@ monitor_idle_activity() {
                 done        
             fi
             ;;
-        *"User activity reported"*|*"Enabling wakeup for"*|*"User triggered wake"*|*"User activity ongoing"*)
+         *"Enabling wakeup for"*|*"User triggered wake"*|*"User activity ongoing"*)
+            monitor_idle=0
+            active=1
+            stop_fake_activity
+            backlight_off=0
+            if (( kb_brightness_restored == 0 )); then
+                if [[ -n "$saved_kb_brightness" && "$saved_kb_brightness" -ge 0 ]]; then
+                    sudo ectool pwmsetkblight "$saved_kb_brightness" >/dev/null 2>&1
+                    #echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Restored keyboard brightness to $saved_kb_brightness.${RESET}" >> "$LOG_FILE"
+                fi
+                kb_brightness_restored=1
+            fi
+            power_backlight_ts=$now
+            battery_backlight_ts=$now
+            was_dimmed=0
+            ;;
+        *"User activity reported"*)
             if [[ -f "$LAST_FAKE_ACTIVITY_FILE" ]]; then
                 last_fake_ts=$(head -n1 "$LAST_FAKE_ACTIVITY_FILE" 2>/dev/null || echo 0)
             else
@@ -473,6 +491,8 @@ monitor_idle_activity() {
             fi
             ;;
         *"Got user-triggered request to set brightness to "*)
+            monitor_idle=0
+            stop_fake_activity
             line=$(grep "Setting brightness to" /var/log/power_manager/powerd.LATEST | tail -n1)
             brightness_value=$(echo "$line" | sed -n 's/.*Setting brightness to \([0-9]\+\) (.*/\1/p')
 
