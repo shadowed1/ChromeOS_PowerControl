@@ -567,7 +567,7 @@ start_component_now() {
                 done
                 saved_kb_brightness=$(sudo ectool pwmgetkblight 2>/dev/null | awk '{print $NF}')
                 sudo restart powerd >/dev/null
-                sleep 1
+                sleep 2
                 sudo ectool pwmsetkblight "$saved_kb_brightness" >/dev/null 2>&1
                 echo "${RESET}${BOLD}${BLUE}Suspend mode set to: $(cat /usr/share/power_manager/suspend_mode) ${RESET}"
                 echo ""
