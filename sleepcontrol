@@ -365,19 +365,26 @@ monitor_idle_activity() {
             if (( kb_brightness_restored == 0 )); then
                 sudo ectool pwmsetkblight "$saved_kb_brightness" >/dev/null 2>&1
                 kb_brightness_restored=1
-                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Restored keyboard brightness to ${RESET}${YELLOW}${saved_kb_brightness}%${RESET}" >> "$LOG_FILE"
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Restored keyboard brightness to $saved_kb_brightness" >> "$LOG_FILE"
             fi
     
             if [[ -n "$saved_display_brightness" && "$saved_display_brightness" -ge 0 ]]; then
                 set_display_brightness "$saved_display_brightness"
-                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Restored display brightness to ${RESET}${YELLOW}${saved_display_brightness}${RESET}" >> "$LOG_FILE"
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Restored display brightness to $saved_display_brightness" >> "$LOG_FILE"
             fi
+    
+            last_ts=$(date +%s)
+            idle_elapsed=0
+            monitor_idle=0
+            backlight_off=0
     
             sending_fake_activity=0
             fake_activity_pid=0
+    
             echo "$(date '+%Y-%m-%d %H:%M:%S') - Stopping simulated activity loop..." >> "$LOG_FILE"
         fi
     }
+
 
 
     exec 3< <(
