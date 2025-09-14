@@ -331,6 +331,7 @@ monitor_idle_activity() {
                 while [ -f "$RUN_FLAG" ]; do
                     sleep "$FAKE_ACTIVITY_INTERVAL"
                     send_fake_activity
+                    sudo ectool pwmsetkblight 0 >/dev/null 2>&1
                 done
             ) &
             fake_activity_pid=$!
@@ -463,6 +464,7 @@ monitor_idle_activity() {
             fi
 
             if (( last_fake_ts > 0 && now - last_fake_ts <= FAKE_ACTIVITY_GRACE )); then
+                sudo ectool pwmsetkblight 0 >/dev/null 2>&1
                 #echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - simulated activity ${FAKE_ACTIVITY_GRACE}s${RESET}." >> "$LOG_FILE"
                 rm -f "$LAST_FAKE_ACTIVITY_FILE" 2>/dev/null || true
                 continue
