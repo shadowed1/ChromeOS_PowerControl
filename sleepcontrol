@@ -504,7 +504,11 @@ monitor_idle_activity() {
 
         if (( monitor_idle == 1 )); then
             idle_elapsed=$(( now - last_ts ))
-            (( STATUS == "Discharging" )) && AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_BATTERY || AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_POWER
+                if [[ "$STATUS" == "Discharging" ]]; then
+                    AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_BATTERY
+                else
+                    AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_POWER
+                fi
 
             if (( now - last_log_ts >= 10 )); then
                 echo "${BLUE}Current Epoch ->${BOLD} $now ${RESET}${CYAN}vs${RESET}${MAGENTA}${BOLD} $last_ts ${RESET}${MAGENTA}<- Idle Epoch${RESET}" >> "$LOG_FILE"
@@ -512,17 +516,23 @@ monitor_idle_activity() {
             fi
 
            if (( idle_elapsed >= dim_delay && idle_elapsed < backlight_delay )); then
-            if [[ $was_dimmed -eq 0 ]]; then
-                save_current_brightness
-                was_dimmed=1
-                dim_value=$((saved_display_brightness/8))
-                (( dim_value < 1 )) && dim_value=1
-                set_display_brightness "$dim_value"
-                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Display dimmed to $dim_value${RESET}" >> "$LOG_FILE"
+            if (( audio_active == 1 )); then
+                (( sending_fake_activity == 0 )) && start_fake_activity
+            else
+                if [[ $was_dimmed -eq 0 ]]; then
+                    save_current_brightness
+                    sleep 1
+                    was_dimmed=1
+                    dim_value=$((saved_display_brightness/8))
+                    (( dim_value < 1 )) && dim_value=1
+                    set_display_brightness "$dim_value"
+                    echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Display dimmed to $dim_value${RESET}" >> "$LOG_FILE"
+                fi
+                (( sending_fake_activity == 0 )) && start_fake_activity
             fi
         fi
     
-        if (( idle_elapsed >= backlight_delay )); then
+       if (( idle_elapsed >= backlight_delay && idle_elapsed < suspend_delay )); then
             if (( backlight_off == 0 )); then
                 if [[ -n "$BRIGHTNESS_PATH" ]]; then
                     echo 0 | sudo tee "$BRIGHTNESS_PATH" >/dev/null
@@ -530,6 +540,7 @@ monitor_idle_activity() {
                 backlight_off=1
                 echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Display and keyboard backlight off.${RESET}" >> "$LOG_FILE"
             fi
+            (( audio_active == 1 || sending_fake_activity == 0 )) && start_fake_activity
         fi
 
             if (( idle_elapsed >= suspend_delay )); then
@@ -541,7 +552,7 @@ monitor_idle_activity() {
                 else
                     stop_fake_activity
                     sleep 2
-                    echo "$(date '+%Y-%m-%d %H:%M:%S') - Sleep threshold elapsed; going to sleep!" >> "$LOG_FILE"
+                    echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Sleep threshold elapsed; going to sleep!" >> "$LOG_FILE"
                     monitor_idle=0
                     idle_since=$now
                     last_ts=$now
