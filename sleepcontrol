@@ -504,7 +504,7 @@ monitor_idle_activity() {
 
             if [[ -n "$brightness_value" ]]; then
                 saved_display_brightness="$brightness_value"
-                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Saved current brightness: $saved_display_brightness ${RESET}" >> "$LOG_FILE"
+                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Saved brightness: ${RESET}${YELLOW}$saved_display_brightness ${RESET}" >> "$LOG_FILE"
             fi
             ;;
         esac
