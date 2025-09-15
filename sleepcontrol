@@ -498,6 +498,16 @@ send_fake_activity() {
                 idle_elapsed=0
                 active=1
                 stop_fake_activity
+                if (( kb_brightness_restored == 0 )); then
+                    sudo ectool pwmsetkblight "$saved_kb_brightness" >/dev/null 2>&1
+                    kb_brightness_restored=1
+                    #echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Restored keyboard brightness to ${RESET}${YELLOW}${saved_kb_brightness}%${RESET}" >> "$LOG_FILE"
+                fi
+                if [[ -n "$saved_display_brightness" && "$saved_display_brightness" -ge 0 ]]; then
+                    set_display_brightness "$saved_display_brightness"
+                    #echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Restored display brightness to ${RESET}${YELLOW}$saved_display_brightness${RESET}" >> "$LOG_FILE"
+                fi
+
                 for file in \
                     /var/lib/power_manager/disable_dark_resume \
                     /usr/share/power_manager/disable_dark_resume \
