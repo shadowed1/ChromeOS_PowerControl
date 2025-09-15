@@ -738,7 +738,7 @@ case "$1" in
             exit 1
         fi
         sed -i "s/^RAMP_UP=.*/RAMP_UP=$2/" "$CONFIG_FILE"
-        echo "RAMP_UP set to $2%"
+        echo "ramp_up set to $2%"
     else
         echo "Error: ramp_up must be between 1 and 100"
         exit 1
@@ -751,7 +751,7 @@ case "$1" in
             exit 1
         fi
         sed -i "s/^RAMP_DOWN=.*/RAMP_DOWN=$2/" "$CONFIG_FILE"
-        echo "RAMP_DOWN set to $2°C"
+        echo "ramp_down set to $2%"
     else
         echo "Error: ramp_down must be between 1 and 100"
         exit 1
