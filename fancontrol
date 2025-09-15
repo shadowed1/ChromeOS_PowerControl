@@ -117,7 +117,6 @@ else
     return 1
 fi
     TEMP_C=$((RAW_TEMP / 1000))
-    TEMP_C=$(((TEMP_C + prev_temp) / 2))
     prev_temp=$TEMP_C
 
 if (( TEMP_C <= FAN_MIN_TEMP )); then
@@ -130,7 +129,7 @@ else
     initial_duty=$((MIN_FAN + (OFFSET * (MAX_FAN - MIN_FAN) / RANGE)))
 fi
 
-sudo ectool fanduty "$initial_duty"  >/dev/null 2>&1
+sudo ectool fanduty "$initial_duty"
     prev_temp=$TEMP_C
     local last_duty=-1
     local last_reload_time=0
@@ -154,11 +153,9 @@ sudo ectool fanduty "$initial_duty"  >/dev/null 2>&1
             return 1
         fi
 
-        if (( DUTY < MIN_FAN )); then
-            DUTY=$MIN_FAN
-        elif (( DUTY > MAX_FAN )); then
-            DUTY=$MAX_FAN
-        fi
+        TEMP_C=$((RAW_TEMP / 1000))
+        TEMP_C=$(((TEMP_C + prev_temp) / 2))
+        prev_temp=$TEMP_C
 
         if (( TEMP_C <= FAN_MIN_TEMP )); then
             DUTY=$MIN_FAN
@@ -169,6 +166,7 @@ sudo ectool fanduty "$initial_duty"  >/dev/null 2>&1
             OFFSET=$((TEMP_C - FAN_MIN_TEMP))
             DUTY=$((MIN_FAN + (OFFSET * (MAX_FAN - MIN_FAN) / RANGE)))
         fi
+
 
         HYSTERESIS=2
              if (( last_duty < 50 )); then
@@ -200,24 +198,30 @@ sudo ectool fanduty "$initial_duty"  >/dev/null 2>&1
 
 
 
-      echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') CPU: ${TEMP_C}°C -> Fan: ${target_duty}%${RESET}" | tee -a "$LOG_FILE"
+      echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') CPU: ${TEMP_C}°C -> Fan: ${target_duty}%${RESET}" >> "$LOG_FILE"
 
        if (( last_duty > 0 && target_duty == 0 )); then
             echo "Applying kickstart ramp-up before setting to 0%" >> "$LOG_FILE"
-            for duty in 4 8 12 16; do
+            for duty in 2 4 6 8 10 12 14; do
                 echo "  - Kickstart: ${duty}%" >> "$LOG_FILE"
-                sudo ectool fanduty "$duty" >/dev/null 2>&1
+                sudo ectool fanduty "$duty" | grep -v "Fan duty cycle set for all fans." >> "$LOG_FILE"
                 sleep 1
             done
-            sudo ectool fanduty 0 >/dev/null 2>&1
+            sudo ectool fanduty 0 | grep -v "Fan duty cycle set for all fans." >> "$LOG_FILE"
         else
-            sudo ectool fanduty "$target_duty" >/dev/null 2>&1
+            sudo ectool fanduty "$target_duty" | grep -v "Fan duty cycle set for all fans." >> "$LOG_FILE"
         fi
 
         if [[ -n "$prev_temp" ]]; then
             TEMP_C=$(((TEMP_C + prev_temp) / 2))
         fi
         prev_temp=$TEMP_C
+
+        if (( DUTY < MIN_FAN )); then
+            DUTY=$MIN_FAN
+        elif (( DUTY > MAX_FAN )); then
+            DUTY=$MAX_FAN
+        fi
 
         last_duty=$target_duty
 
@@ -259,7 +263,7 @@ stop() {
         PID=$(cat "$PID_FILE")
         if ps -p "$PID" > /dev/null 2>&1; then
             PGID=$(ps -o pgid= "$PID" | grep -o '[0-9]*')
-            echo "${RED}$(date '+%Y-%m-%d %H:%M:%S') - FanControl Stopped (PGID $PGID)...${RESET}" | tee -a "$LOG_FILE"
+            echo "${RED}Stopping FanControl (PGID $PGID)...${RESET}" | tee -a "$LOG_FILE"
             kill -- -"$PGID" 2>/dev/null
             sleep 1
         else
@@ -268,7 +272,7 @@ stop() {
         rm -f "$PID_FILE"
     fi
     rm -f "$RUN_FLAG"
-    sudo ectool autofanctrl >/dev/null 2>&1
+    sudo ectool autofanctrl
 }
 
 
@@ -362,7 +366,7 @@ set_fan_poll() {
         fi
         sed -i "s/^FAN_POLL=.*/FAN_POLL=$FAN_POLL/" "$CONFIG_FILE"
         echo ""
-        echo "${YELLOW}FanControl polling rate set to $FAN_POLL seconds${RESET}" | tee -a "$LOG_FILE"
+        echo "${YELLOW}FanControl polling rate set to $FAN_POLL seconds${RESET}"
         echo ""
     else
         echo "Error: FAN_POLL must be a number between 1.0 and 10.0 (e.g., 1.5, 3, 4.2)"
