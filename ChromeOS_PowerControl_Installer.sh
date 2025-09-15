@@ -574,8 +574,8 @@ start_component_now() {
                 fi
         
                 sudo restart powerd >/dev/null
-                echo "Restarting powerd..."
-                sleep 3
+                echo "${BLUE}Restarting powerd...${RESET}"
+                sleep 5
         
                 if [[ -n "$saved_kb_brightness" ]]; then
                     sudo ectool pwmsetkblight "$saved_kb_brightness" >/dev/null 2>&1
