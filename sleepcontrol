@@ -347,7 +347,7 @@ send_fake_activity() {
             if (( kb_brightness_restored == 1 )); then
                 saved_kb_brightness=$(sudo ectool pwmgetkblight 2>/dev/null | awk '{print $NF}')
                 kb_brightness_restored=0
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - Saved keyboard brightness: $saved_kb_brightness" >> "$LOG_FILE"
+                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Saved keyboard brightness: $saved_kb_brightness${RESET}" >> "$LOG_FILE"
             fi
             
             (
@@ -452,7 +452,7 @@ send_fake_activity() {
                     start_fake_activity
                     if [[ -n "$current_kb_brightness" && "$current_kb_brightness" -gt 0 ]]; then
                         saved_kb_brightness=$current_kb_brightness
-                        echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Captured keyboard brightness: $saved_kb_brightness${RESET}" >> "$LOG_FILE"
+                        #echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Captured keyboard brightness: $saved_kb_brightness${RESET}" >> "$LOG_FILE"
                     fi
                     sleep 11
                     sudo ectool pwmsetkblight 0 >/dev/null 2>&1
