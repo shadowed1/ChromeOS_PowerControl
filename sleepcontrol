@@ -484,30 +484,30 @@ send_fake_activity() {
             ;;
      *"On battery at"*|*"On AC"*|*"line_power connected"*|*"line_power online"*)
             get_battery_info
+        
             if [[ -f "$LAST_POWER_STATE" ]]; then
                 prev_status=$(<"$LAST_POWER_STATE")
             else
                 prev_status=""
             fi
+        
             if [[ "$STATUS" != "$prev_status" ]]; then
-                recalc_timers
-                update_power_state_file
+                recalc_timers                 # sets dim_delay/backlight_delay/suspend_delay etc.
+                echo "$STATUS" | sudo tee "$LAST_POWER_STATE" >/dev/null
+        
                 last_ts=$(date +%s)
                 idle_elapsed=0
         
-                if [[ "$STATUS" == "Charging" ]]; then
-                    for file in \
-                        /var/lib/power_manager/disable_dark_resume \
-                        /usr/share/power_manager/disable_dark_resume \
-                        /mnt/stateful_partition/encrypted/var/lib/power_manager/disable_dark_resume; do
-                        [[ -f "$file" ]] && echo 0 | sudo tee "$file" >/dev/null
-                    done
-                fi
+                for file in \
+                    /var/lib/power_manager/disable_dark_resume \
+                    /usr/share/power_manager/disable_dark_resume \
+                    /mnt/stateful_partition/encrypted/var/lib/power_manager/disable_dark_resume; do
+                    [[ -f "$file" ]] && echo 0 | sudo tee "$file" >/dev/null 2>&1
+                done
         
                 echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Power state changed to $STATUS, timers recalculated${RESET}" >> "$LOG_FILE"
             fi
             ;;
-
          *"Enabling wakeup for"*|*"User triggered wake"*|*"User activity ongoing"*)
             monitor_idle=0
             last_ts=$now
