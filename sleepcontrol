@@ -317,24 +317,21 @@ monitor_idle_activity() {
 
     save_current_brightness
     last_power_check_time=0
-    
     send_fake_activity() {
-        now=$(date +%s)
-    
-        if (( monitor_idle == 1 && audio_active == 0 )); then
-            sudo ectool pwmsetkblight 0 >/dev/null 2>&1
+    now=$(date +%s)
 
-            dbus-send --system --type=method_call \
-                --dest=org.chromium.PowerManager \
-                /org/chromium/PowerManager \
-                org.chromium.PowerManager.HandleUserActivity int32:0 int32:0
-    
-            sudo ectool pwmsetkblight 0 >/dev/null 2>&1
-    
-            printf '%s\n' "$now" > "$LAST_FAKE_ACTIVITY_FILE"
-            echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Simulated user activity${RESET}" >> "$LOG_FILE"
-        fi
-    }
+    if (( monitor_idle == 1 && audio_active == 0 )); then
+        sudo ectool pwmsetkblight 0 >/dev/null 2>&1
+        dbus-send --system --type=method_call \
+            --dest=org.chromium.PowerManager \
+            /org/chromium/PowerManager \
+            org.chromium.PowerManager.HandleUserActivity int32:0 int32:0
+
+        printf '%s\n' "$now" > "$LAST_FAKE_ACTIVITY_FILE"
+
+        echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Simulated user activity${RESET}" >> "$LOG_FILE"
+    fi
+}
 
 
     start_fake_activity() {
@@ -350,6 +347,7 @@ monitor_idle_activity() {
                 while [ -f "$RUN_FLAG" ]; do
                     sleep "$FAKE_ACTIVITY_INTERVAL"
                     send_fake_activity
+                    sudo ectool pwmsetkblight 0 >/dev/null 2>&1
                 done
             ) &
             fake_activity_pid=$!
@@ -529,7 +527,7 @@ monitor_idle_activity() {
                 last_fake_ts=0
             fi
             if (( last_fake_ts > 0 && now - last_fake_ts <= FAKE_ACTIVITY_GRACE )); then
-                #sudo ectool pwmsetkblight 0 >/dev/null 2>&1
+                sudo ectool pwmsetkblight 0 >/dev/null 2>&1
                 #echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - simulated activity ${FAKE_ACTIVITY_GRACE}s${RESET}." >> "$LOG_FILE"
                 rm -f "$LAST_FAKE_ACTIVITY_FILE" 2>/dev/null || true
                 continue
