@@ -130,7 +130,7 @@ else
     initial_duty=$((MIN_FAN + (OFFSET * (MAX_FAN - MIN_FAN) / RANGE)))
 fi
 
-sudo ectool fanduty "$initial_duty"
+sudo ectool fanduty "$initial_duty"  >/dev/null 2>&1
     prev_temp=$TEMP_C
     local last_duty=-1
     local last_reload_time=0
@@ -206,12 +206,12 @@ sudo ectool fanduty "$initial_duty"
             echo "Applying kickstart ramp-up before setting to 0%" >> "$LOG_FILE"
             for duty in 4 8 12 16; do
                 echo "  - Kickstart: ${duty}%" >> "$LOG_FILE"
-                sudo ectool fanduty "$duty"
+                sudo ectool fanduty "$duty" >/dev/null 2>&1
                 sleep 1
             done
-            sudo ectool fanduty 0
+            sudo ectool fanduty 0 >/dev/null 2>&1
         else
-            sudo ectool fanduty "$target_duty"
+            sudo ectool fanduty "$target_duty" >/dev/null 2>&1
         fi
 
         if [[ -n "$prev_temp" ]]; then
@@ -268,7 +268,7 @@ stop() {
         rm -f "$PID_FILE"
     fi
     rm -f "$RUN_FLAG"
-    sudo ectool autofanctrl
+    sudo ectool autofanctrl >/dev/null 2>&1
 }
 
 
