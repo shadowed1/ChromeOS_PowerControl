@@ -88,7 +88,7 @@ DEFAULT_POWER_DELAY=24
 DEFAULT_POWER_BACKLIGHT=18
 DEFAULT_POWER_DIM_DELAY=12
 DEFAULT_SUSPEND_MODE=deep
-DEFAULT_AUDIO_DETECTION_BATTERY=1
+DEFAULT_AUDIO_DETECTION_BATTERY=0
 DEFAULT_AUDIO_DETECTION_POWER=1
 DEFAULT_LIDSLEEP_BATTERY=1
 DEFAULT_LIDSLEEP_POWER=1
@@ -317,10 +317,11 @@ monitor_idle_activity() {
 
     save_current_brightness
     last_power_check_time=0
-    send_fake_activity() {
+    
+send_fake_activity() {
     now=$(date +%s)
 
-    if (( monitor_idle == 1 && audio_active == 0 )); then
+    if (( monitor_idle == 1 || audio_active == 1 )); then
         sudo ectool pwmsetkblight 0 >/dev/null 2>&1
         dbus-send --system --type=method_call \
             --dest=org.chromium.PowerManager \
