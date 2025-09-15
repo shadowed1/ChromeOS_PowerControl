@@ -347,7 +347,7 @@ monitor_idle_activity() {
                 while [ -f "$RUN_FLAG" ]; do
                     sleep "$FAKE_ACTIVITY_INTERVAL"
                     send_fake_activity
-                    sudo ectool pwmsetkblight 0 >/dev/null 2>&1
+                    #sudo ectool pwmsetkblight 0 >/dev/null 2>&1
                 done
             ) &
             fake_activity_pid=$!
