@@ -103,7 +103,7 @@ save_config() {
 }
 
 cleanup() {
-    echo "${YELLOW} $(date '+%Y-%m-%d %H:%M:%S') - Restoring automatic fan control...${RESET}" >> "$LOG_FILE"
+    echo "${YELLOW} $(date '+%Y-%m-%d %H:%M:%S') - Restoring automatic fan control...${RESET}" | tee -a "$LOG_FILE"
     sudo ectool autofanctrl
     rm -f "$RUN_FLAG" "$PID_FILE"
     exit 0
@@ -137,7 +137,7 @@ sudo ectool fanduty "$initial_duty"
 
     while [ -f "$RUN_FLAG" ]; do
         if [ ! -f "$ZONE_PATH" ]; then
-            echo "${RED} $(date '+%Y-%m-%d %H:%M:%S') - Thermal zone not found: $ZONE_PATH${RESET}" >> "$LOG_FILE"
+            echo "${RED} $(date '+%Y-%m-%d %H:%M:%S') - Thermal zone not found: $ZONE_PATH${RESET}" | tee -a "$LOG_FILE"
             cleanup
         fi
 
@@ -200,18 +200,18 @@ sudo ectool fanduty "$initial_duty"
 
 
 
-      echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') CPU: ${TEMP_C}°C -> Fan: ${target_duty}%${RESET}" >> "$LOG_FILE"
+      echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') CPU: ${TEMP_C}°C -> Fan: ${target_duty}%${RESET}" | tee -a "$LOG_FILE"
 
        if (( last_duty > 0 && target_duty == 0 )); then
             echo "Applying kickstart ramp-up before setting to 0%" >> "$LOG_FILE"
             for duty in 4 8 12 16; do
                 echo "  - Kickstart: ${duty}%" >> "$LOG_FILE"
-                sudo ectool fanduty "$duty" | grep -v "Fan duty cycle set for all fans." >> "$LOG_FILE"
+                sudo ectool fanduty "$duty"
                 sleep 1
             done
-            sudo ectool fanduty 0 | grep -v "Fan duty cycle set for all fans." >> "$LOG_FILE"
+            sudo ectool fanduty 0
         else
-            sudo ectool fanduty "$target_duty" | grep -v "Fan duty cycle set for all fans." >> "$LOG_FILE"
+            sudo ectool fanduty "$target_duty"
         fi
 
         if [[ -n "$prev_temp" ]]; then
@@ -233,7 +233,7 @@ start() {
     FAN_COUNT=$(sudo ectool pwmgetnumfans | awk -F= '{print $2}' | sed -e 's/ //g')
     if [[ "$FAN_COUNT" =~ ^[0-9]+$ ]] && (( FAN_COUNT == 0 )); then
         echo ""
-        echo "${RED}$(date '+%Y-%m-%d %H:%M:%S') - No fans detected (FAN_COUNT=0). Stopping.${RESET}" >> "$LOG_FILE"
+        echo "${RED}$(date '+%Y-%m-%d %H:%M:%S') - No fans detected (FAN_COUNT=0). Stopping.${RESET}" | tee -a "$LOG_FILE"
         echo ""
         exit 1
     fi
@@ -245,12 +245,12 @@ start() {
 
     if pgrep -f "[f]ancontrol __fancontrol_monitor__" >/dev/null; then
         echo ""
-        echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') - FanControl already running.${RESET}" >> "$LOG_FILE"
+        echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') - FanControl already running.${RESET}" | tee -a "$LOG_FILE"
         echo ""
     else
         nohup "$0" __fancontrol_monitor__ >> "$LOG_FILE" 2>&1 &
         echo $! > "$MONITOR_PID_FILE"
-        echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') - Starting FanControl - Output is logged to $LOG_FILE${RESET}" >> "$LOG_FILE"
+        echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') - Starting FanControl - Output is logged to $LOG_FILE${RESET}" | tee -a "$LOG_FILE"
     fi
 }
 
@@ -263,7 +263,7 @@ stop() {
             kill -- -"$PGID" 2>/dev/null
             sleep 1
         else
-            echo "${YELLOW}FanControl process not found.${RESET}" >> "$LOG_FILE"
+            echo "${YELLOW}FanControl process not found.${RESET}" | tee -a "$LOG_FILE"
         fi
         rm -f "$PID_FILE"
     fi
@@ -296,7 +296,7 @@ fan_min_temp() {
         FAN_MIN_TEMP=$2
         save_config
         echo "${YELLOW}"
-        echo "$(date '+%Y-%m-%d %H:%M:%S') - Min temp set to $FAN_MIN_TEMP°C" >> "$LOG_FILE"
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - Min temp set to $FAN_MIN_TEMP°C" | tee -a "$LOG_FILE"
         echo "${RESET}"
     else
         echo "Usage: $0 fan_min_temp <number>"
@@ -309,7 +309,7 @@ fan_max_temp() {
         FAN_MAX_TEMP=$2
         save_config
         echo "${YELLOW}"
-        echo "$(date '+%Y-%m-%d %H:%M:%S') - Max temp set to $FAN_MAX_TEMP°C" >> "$LOG_FILE"
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - Max temp set to $FAN_MAX_TEMP°C" | tee -a "$LOG_FILE"
         echo "${RESET}"
     else
         echo "Usage: $0 fan_max_temp <number (<=90)>"
@@ -323,7 +323,7 @@ min_fan() {
             MIN_FAN=$2
             save_config
             echo "${YELLOW}"
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - Min fan set to $MIN_FAN%" >> "$LOG_FILE"
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - Min fan set to $MIN_FAN%" | tee -a "$LOG_FILE"
             echo "${RESET}"
         else
             echo "Error: MIN_FAN must be less than MAX_FAN ($MAX_FAN)"
@@ -340,7 +340,7 @@ max_fan() {
             MAX_FAN=$2
             save_config
             echo "${YELLOW}"
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - Max fan set to $MAX_FAN%" >> "$LOG_FILE"
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - Max fan set to $MAX_FAN%" | tee -a "$LOG_FILE"
             echo ${RESET}
         else
             echo "Error: MAX_FAN must be greater than MIN_FAN ($MIN_FAN)"
@@ -362,7 +362,7 @@ set_fan_poll() {
         fi
         sed -i "s/^FAN_POLL=.*/FAN_POLL=$FAN_POLL/" "$CONFIG_FILE"
         echo ""
-        echo "${YELLOW}FanControl polling rate set to $FAN_POLL seconds${RESET}"
+        echo "${YELLOW}FanControl polling rate set to $FAN_POLL seconds${RESET}" | tee -a "$LOG_FILE"
         echo ""
     else
         echo "Error: FAN_POLL must be a number between 1.0 and 10.0 (e.g., 1.5, 3, 4.2)"
@@ -376,7 +376,7 @@ set_stepup() {
         STEP_UP=$2
         save_config
         echo "${YELLOW}"
-        echo "$(date '+%Y-%m-%d %H:%M:%S') - Step-up size set to $STEP_UP%"
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - Step-up size set to $STEP_UP%" | tee -a "$LOG_FILE"
         echo "${RESET}"
     else
         echo "Usage: $0 step_up <step_size_percent (1-100)>"
@@ -389,7 +389,7 @@ set_stepdown() {
         STEP_DOWN=$2
         save_config
         echo "${YELLOW}"
-        echo "$(date '+%Y-%m-%d %H:%M:%S') - Step-down size set to $STEP_DOWN%"
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - Step-down size set to $STEP_DOWN%" | tee -a "$LOG_FILE"
         echo "${RESET}"
     else
         echo "Usage: $0 step_down <step_size_percent (1-100)>"
@@ -453,7 +453,7 @@ case "$1" in
         touch "$RUN_FLAG"
         FAN_COUNT=$(sudo ectool pwmgetnumfans | awk -F= '{print $2}' | sed -e 's/ //g')
             if [[ "$FAN_COUNT" =~ ^[0-9]+$ ]] && (( FAN_COUNT == 0 )); then
-                echo "${RED}$(date '+%Y-%m-%d %H:%M:%S') - No fans detected (FAN_COUNT=0). Stopping monitor.${RESET}" >> "$LOG_FILE"
+                echo "${RED}$(date '+%Y-%m-%d %H:%M:%S') - No fans detected (FAN_COUNT=0). Stopping monitor.${RESET}" | tee -a "$LOG_FILE"
                 rm -f "$RUN_FLAG" "$PID_FILE"
                 exit 1
             fi
