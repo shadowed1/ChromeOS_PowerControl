@@ -19,6 +19,7 @@ MAX_BRIGHTNESS_PATH=""
 FAKE_ACTIVITY_INTERVAL=240
 LID_SUSPEND_IGNORE_UNTIL=0
 LAST_FAKE_ACTIVITY_FILE="${INSTALL_DIR}/.last_fake_activity"
+LAST_POWER_STATE="${INSTALL_DIR}/.last_power_state"
 FAKE_ACTIVITY_GRACE=1
 
 
@@ -278,6 +279,11 @@ save_current_brightness() {
     fi
 }
 
+update_power_state_file() {
+    echo "$STATUS" | sudo tee "$LAST_POWER_STATE" >/dev/null
+}
+
+
 idle_elapsed=0
 
 monitor_idle_activity() {
@@ -328,7 +334,7 @@ send_fake_activity() {
             /org/chromium/PowerManager \
             org.chromium.PowerManager.HandleUserActivity int32:0 int32:0
 
-        printf '%s\n' "$now" > "$LAST_FAKE_ACTIVITY_FILE"
+        echo "$now" | sudo tee "$LAST_FAKE_ACTIVITY_FILE" >/dev/null
 
         echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Simulated user activity${RESET}" >> "$LOG_FILE"
     fi
@@ -476,28 +482,32 @@ send_fake_activity() {
                 fi
             fi
             ;;
-        *"On battery at"*)
-            if [[ "$STATUS" != "Discharging" ]]; then
-                STATUS="Discharging"
-                dim_delay=$((BATTERY_DIM_DELAY*60))
-                backlight_delay=$((BATTERY_BACKLIGHT*60))
-                suspend_delay=$((BATTERY_DELAY*60))
+     *"On battery at"*|*"On AC"*|*"line_power connected"*|*"line_power online"*)
+            get_battery_info
+            if [[ -f "$LAST_POWER_STATE" ]]; then
+                prev_status=$(<"$LAST_POWER_STATE")
+            else
+                prev_status=""
+            fi
+            if [[ "$STATUS" != "$prev_status" ]]; then
+                recalc_timers
+                update_power_state_file
+                last_ts=$(date +%s)
+                idle_elapsed=0
+        
+                if [[ "$STATUS" == "Charging" ]]; then
+                    for file in \
+                        /var/lib/power_manager/disable_dark_resume \
+                        /usr/share/power_manager/disable_dark_resume \
+                        /mnt/stateful_partition/encrypted/var/lib/power_manager/disable_dark_resume; do
+                        [[ -f "$file" ]] && echo 0 | sudo tee "$file" >/dev/null
+                    done
+                fi
+        
+                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Power state changed to $STATUS, timers recalculated${RESET}" >> "$LOG_FILE"
             fi
             ;;
-       *"On AC"*)
-            if [[ "$STATUS" != "Charging" ]]; then
-                STATUS="Charging"
-                dim_delay=$((POWER_DIM_DELAY*60))
-                backlight_delay=$((POWER_BACKLIGHT*60))
-                suspend_delay=$((POWER_DELAY*60))
-                for file in \
-                    /var/lib/power_manager/disable_dark_resume \
-                    /usr/share/power_manager/disable_dark_resume \
-                    /mnt/stateful_partition/encrypted/var/lib/power_manager/disable_dark_resume; do
-                    [[ -f "$file" ]] && echo 0 | sudo tee "$file" >/dev/null
-                done        
-            fi
-            ;;
+
          *"Enabling wakeup for"*|*"User triggered wake"*|*"User activity ongoing"*)
             monitor_idle=0
             last_ts=$now
