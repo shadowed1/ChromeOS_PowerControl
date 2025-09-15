@@ -167,36 +167,29 @@ sudo ectool fanduty "$initial_duty"
             DUTY=$((MIN_FAN + (OFFSET * (MAX_FAN - MIN_FAN) / RANGE)))
         fi
 
-
         HYSTERESIS=2
-             if (( last_duty < 50 )); then
-                effective_step_down=$((STEP_DOWN / 2))
-                (( effective_step_down < 1 )) && effective_step_down=1
+        effective_step_down=$STEP_DOWN
+        (( effective_step_down < 1 )) && effective_step_down=1
+        
+        if (( last_duty < 0 )); then
+            target_duty=$DUTY
+        elif (( DUTY > last_duty + HYSTERESIS )); then
+            diff=$((DUTY - last_duty))
+            if (( diff > STEP_UP )); then
+                target_duty=$((last_duty + STEP_UP))
             else
-                effective_step_down=$STEP_DOWN
-            fi
-
-            if (( last_duty < 0 )); then
                 target_duty=$DUTY
-            elif (( DUTY > last_duty + HYSTERESIS )); then
-                diff=$((DUTY - last_duty))
-                if (( diff > STEP_UP )); then
-                    target_duty=$((last_duty + STEP_UP))
-                else
-                    target_duty=$DUTY
-                fi
-            elif (( DUTY < last_duty - HYSTERESIS )); then
-                diff=$((last_duty - DUTY))
-                if (( diff > effective_step_down )); then
-                    target_duty=$((last_duty - effective_step_down))
-                else
-                    target_duty=$DUTY
-                fi
-            else
-                target_duty=$last_duty
             fi
-
-
+        elif (( DUTY < last_duty - HYSTERESIS )); then
+            diff=$((last_duty - DUTY))
+            if (( diff > effective_step_down )); then
+                target_duty=$((last_duty - effective_step_down))
+            else
+                target_duty=$DUTY
+            fi
+        else
+            target_duty=$last_duty
+        fi
 
       echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') CPU: ${TEMP_C}°C -> Fan: ${target_duty}%${RESET}" >> "$LOG_FILE"
 
