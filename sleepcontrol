@@ -425,6 +425,7 @@ send_fake_activity() {
         *"Audio activity started"*|*"Audio activity ongoing"*)
             (( AUDIO_DETECTION_ENABLED == 1 )) && audio_active=1
             start_fake_activity
+            last_ts=$now
             monitor_idle=1
             active=0
             ;;
