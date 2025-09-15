@@ -492,20 +492,17 @@ send_fake_activity() {
             fi
         
             if [[ "$STATUS" != "$prev_status" ]]; then
-                recalc_timers                 # sets dim_delay/backlight_delay/suspend_delay etc.
+                recalc_timers
                 echo "$STATUS" | sudo tee "$LAST_POWER_STATE" >/dev/null
-        
                 last_ts=$(date +%s)
                 idle_elapsed=0
-        
                 for file in \
                     /var/lib/power_manager/disable_dark_resume \
                     /usr/share/power_manager/disable_dark_resume \
                     /mnt/stateful_partition/encrypted/var/lib/power_manager/disable_dark_resume; do
                     [[ -f "$file" ]] && echo 0 | sudo tee "$file" >/dev/null 2>&1
                 done
-        
-                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Power state changed to $STATUS, timers recalculated${RESET}" >> "$LOG_FILE"
+                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Power state changed to ${RESET}${GREEN}${STATUS}${RESET}" >> "$LOG_FILE"
             fi
             ;;
          *"Enabling wakeup for"*|*"User triggered wake"*|*"User activity ongoing"*)
