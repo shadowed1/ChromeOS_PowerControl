@@ -264,7 +264,7 @@ Added back verbose logging (To do: Plan on implementing log levels recommend by 
 Implemented mem sleep logic in sleepcontrol to avoid s2idle. Fixed fancontrol.conf file from respawning. Added lid state detection with loop logic to re-suspend machine upon wakeup from power changes while lid sleep is on.` <br><br>
 - 0.46: `Fixed power switching loop. Removed mem sleep commands due to ARM incompatiblity. Added previous install path to be autofilled when reinstalling.` <br><br>
 - 0.47: `Implemented reliable simulation activity, removed race conditions, and fixed bugs for SleepControl. Added back SleepControl prompts in Installer.
-Added display and keyboard backlight restore in Installer when restarting powerd.` <br><br>
+Added display and keyboard backlight restore in Installer when restarting powerd. Lowered FanControl aggressiveness above 50% fan speed.` <br><br>
   
 __Acknowledgements:__
 
