@@ -344,12 +344,6 @@ send_fake_activity() {
     start_fake_activity() {
         if (( sending_fake_activity == 0 )); then
             
-            if (( kb_brightness_restored == 1 )); then
-                saved_kb_brightness=$(sudo ectool pwmgetkblight 2>/dev/null | awk '{print $NF}')
-                kb_brightness_restored=0
-                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Saved keyboard brightness: $saved_kb_brightness${RESET}" >> "$LOG_FILE"
-            fi
-            
             (
                 while [ -f "$RUN_FLAG" ]; do
                     sleep "$FAKE_ACTIVITY_INTERVAL"
