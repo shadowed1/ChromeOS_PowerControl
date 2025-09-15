@@ -107,6 +107,7 @@ case "$choice" in
         sudo rm -f "$INSTALL_DIR/.sleepcontrol_pid.lid"
         sudo rm -f "$INSTALL_DIR/last_fake_activity_ts"
         sudo rm -f "$INSTALL_DIR/last_real_activity_ts"
+        sudo rm -f "$INSTALL_DIR/.last_power_state"
         sudo rm -rf "$INSTALL_DIR/sleep"
         sudo rm -f "/usr/local/bin/.ChromeOS_PowerControl.install_dir"
         sudo rm -f "/usr/local/bin/fancontrol_conf.sh"
