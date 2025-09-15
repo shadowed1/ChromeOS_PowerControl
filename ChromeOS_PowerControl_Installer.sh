@@ -479,7 +479,7 @@ enable_component_on_boot() {
         "GPUControl")     COLOR=${MAGENTA}${BOLD} ;;
         "FanControl")     COLOR=${YELLOW}${BOLD} ;;
         "BatteryControl") COLOR=${GREEN}${BOLD} ;;
-        #"SleepControl")   COLOR=${BLUE}${BOLD} ;;
+        "SleepControl")   COLOR=${BLUE}${BOLD} ;;
         *)                COLOR=${RESET} ;;
     esac
     
@@ -512,7 +512,7 @@ if [[ -z "$link_cmd" || "$link_cmd" =~ ^[Yy]$ ]]; then
     fi
 
     enable_component_on_boot "GPUControl" "$INSTALL_DIR/gpucontrol.conf"
-    #enable_component_on_boot "SleepControl" "$INSTALL_DIR/sleepcontrol.conf"
+    enable_component_on_boot "SleepControl" "$INSTALL_DIR/sleepcontrol.conf"
 else
     echo "Skipping boot-time setup since global commands were declined."
 fi
@@ -543,7 +543,7 @@ start_component_now() {
         "GPUControl")     COLOR=${MAGENTA}${BOLD} ;;
         "FanControl")     COLOR=${YELLOW}${BOLD} ;;
         "BatteryControl") COLOR=${GREEN}${BOLD} ;;
-        #"SleepControl")   COLOR=${BLUE}${BOLD} ;;
+        "SleepControl")   COLOR=${BLUE}${BOLD} ;;
         *)                COLOR=${RESET} ;;
     esac
 
@@ -666,7 +666,7 @@ else
     echo "${YELLOW}FanControl start skipped - passively cooled device.${RESET}"
     echo ""
 fi
-#start_component_now "SleepControl" "$INSTALL_DIR/sleepcontrol"
+start_component_now "SleepControl" "$INSTALL_DIR/sleepcontrol"
 
 echo ""
 echo "                                                       ${RED}████████████${RESET}           "
@@ -797,7 +797,7 @@ echo "${GREEN}"
 echo "╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
 echo "║   ${RESET}${GREEN}${BOLD}BatteryControl Notice:${RESET}${GREEN}                                                                                           ║"
 echo "║   Disable Adaptive Charging in Settings → System Preferences → Power to avoid notification spam.                   ║"
-#echo "║   SleepControl is required to prevent s2idle when charging; which causes battery to top up when asleep.            ║"
+echo "║   SleepControl is required to prevent s2idle when charging; which causes battery to top up when asleep.            ║"
 echo "╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝${RESET}"
 fi
 
@@ -811,7 +811,9 @@ fi
 if [[ "$SHOW_SLEEPCONTROL_NOTICE" -eq 1 ]]; then
 echo "${BLUE}╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
 echo "║  ${RESET}${BLUE}${BOLD}SleepControl Notice:${RESET}${BLUE}                                                                                              ║"
-echo "║  Currently not functioning as intended. Can be manually started, but in meantime, it is not going to do anything.  ║"
+echo "║  SleepControl requires Sleep to be enabled in Settings -> Power -> While Inactive plugged-in and battery.          ║"
+echo "║  Cannot override sleep when lid is closed setting when enabled; but allows custom lid sleep logic.                 ║"
+echo "║  Customize when ChromeOS is allowed to sleep using commands above!                                                 ║"
 echo "╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝${RESET}"
 echo ""
 fi
