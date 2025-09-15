@@ -182,14 +182,15 @@ __How It Works:__
 *SleepControl:*
 
 - SleepControl does not send sleep commands to the OS, but simulates activity when idle on a configurable timer. 
-- By reading powerd.LATEST log, SleepControl monitors when the powerd daemon reports 'User activity stopped'.
-- The file /usr/share/power_manager/send_feedback_if_undimmed (when set to 1) is what controls this behavior. 
-- Parsing strings like 'User activity started' or 'Audio activity started' tells SleepControl the user is active.
-- If 'User activity stopped' and 'Audio activity stopped' is parsed, SleepControl assumes the user is away and sleep timers begin.
+- By passively reading powerd.LATEST log, SleepControl monitors when the powerd daemon reports 'User activity stopped'.
+- Parsing strings like 'User activity started' or 'User activiting ongoing' tells SleepControl the user is active.
+- If 'User activity stopped' is parsed, SleepControl assumes the user is away and sleep timers begin.
 - Can turn on or off audio detection to customize sleep during multimedia playback.
 - ChromeOS will report 'User activity stopped' after around 20 seconds of inactivity, so the timers won't be exact.
-- When idle, SleepControl uses dbus to send an empty input every 60s until interrupted/sleeping with the configurable timer.  
+- When idle, SleepControl uses dbus to send an empty input every 4m until interrupted/sleeping with the configurable timer.  
 - By using epoch timestamps, SleepControl is able to verify when its simulated inputs are to be ignored.
+- Allows user to customize when display can dim, turn off, and delays sleep.
+- Requires sleep to be enabled in settings -> power since SleepControl will not send a sleep command to OS; only delay it. 
 <br>
 
 __Bonus:__
