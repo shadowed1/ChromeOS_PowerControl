@@ -59,7 +59,7 @@ detect_cpu_type() {
     esac
 }
 
-    DEFAULT_HOTZONE=77
+    DEFAULT_HOTZONE=79
     DEFAULT_MIN_TEMP=60
     DEFAULT_MAX_TEMP=85
     DEFAULT_MIN_PERF_PCT=10
