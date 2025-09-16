@@ -262,7 +262,7 @@ stop() {
         PID=$(cat "$PID_FILE")
         if ps -p "$PID" > /dev/null 2>&1; then
             PGID=$(ps -o pgid= "$PID" | grep -o '[0-9]*')
-            echo "${RED}Stopping FanControl (PGID $PGID)...${RESET}" | tee -a "$LOG_FILE"
+            echo "${RED}$(date '+%Y-%m-%d %H:%M:%S') - Stopping FanControl (PGID $PGID)...${RESET}" | tee -a "$LOG_FILE"
             kill -- -"$PGID" 2>/dev/null
             sleep 1
         else
