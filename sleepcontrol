@@ -289,11 +289,7 @@ initialize_display_brightness() {
         
         if [[ -z "$saved_display_brightness" || "$saved_display_brightness" -le 0 ]]; then
             saved_display_brightness=50  # Set a reasonable default if invalid
-        fi
-        
-        echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Initial display brightness: ${RESET}${YELLOW}$saved_display_brightness${RESET}" >> "$LOG_FILE"
-    else
-        echo "$(date '+%Y-%m-%d %H:%M:%S') - ERROR: Display brightness file ($BRIGHTNESS_PATH) not found!" >> "$LOG_FILE"
+        fi 
     fi
 }
 
