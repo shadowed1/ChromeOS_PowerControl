@@ -283,7 +283,21 @@ update_power_state_file() {
     echo "$STATUS" | sudo tee "$LAST_POWER_STATE" >/dev/null
 }
 
+initialize_display_brightness() {
+    if [[ -f "$BRIGHTNESS_PATH" ]]; then
+        saved_display_brightness=$(<"$BRIGHTNESS_PATH")
+        
+        if [[ -z "$saved_display_brightness" || "$saved_display_brightness" -le 0 ]]; then
+            saved_display_brightness=50  # Set a reasonable default if invalid
+        fi
+        
+        echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Initial display brightness: ${RESET}${YELLOW}$saved_display_brightness${RESET}" >> "$LOG_FILE"
+    else
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - ERROR: Display brightness file ($BRIGHTNESS_PATH) not found!" >> "$LOG_FILE"
+    fi
+}
 
+initialize_display_brightness
 idle_elapsed=0
 
 monitor_idle_activity() {
@@ -320,6 +334,12 @@ monitor_idle_activity() {
     last_reload_time=0
     local saved_kb_brightness=$(sudo ectool pwmgetkblight 2>/dev/null | awk '{print $NF}')
     local lid_closed=0
+
+    if [[ "$saved_kb_brightness" -gt 0 ]]; then
+        saved_kb_brightness="$saved_kb_brightness"
+    else
+        saved_kb_brightness=""
+    fi
 
     save_current_brightness
     last_power_check_time=0
