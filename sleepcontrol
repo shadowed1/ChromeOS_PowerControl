@@ -286,15 +286,17 @@ update_power_state_file() {
 initialize_display_brightness() {
     if [[ -f "$BRIGHTNESS_PATH" ]]; then
         saved_display_brightness=$(<"$BRIGHTNESS_PATH")
-        
-        if [[ -z "$saved_display_brightness" || "$saved_display_brightness" -le 0 ]]; then
-            saved_display_brightness=50  # Set a reasonable default if invalid
-        fi 
     fi
 }
 
 initialize_display_brightness
 idle_elapsed=0
+
+saved_kb_brightness=$(sudo ectool pwmgetkblight 2>/dev/null | awk '{print $NF}')
+
+initialize_kb_brightness() {
+    sudo ectool pwmsetkblight "$saved_kb_brightness" >/dev/null 2>&1
+}
 
 monitor_idle_activity() {
     exec 200>"$PID_FILE.lock"
