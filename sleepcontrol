@@ -449,7 +449,7 @@ send_fake_activity() {
             ;;
         *"Audio activity stopped"*)
             (( AUDIO_DETECTION_ENABLED == 1 )) && audio_active=0
-            stop_fake_activity
+            #stop_fake_activity
             last_ts=$(date +%s)
             idle_elapsed=0
             active=1
