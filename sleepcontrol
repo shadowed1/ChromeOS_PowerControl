@@ -598,12 +598,13 @@ send_fake_activity() {
             active=1
             stop_fake_activity
             backlight_off=0
+        
             line=$(grep "Setting brightness to" /var/log/power_manager/powerd.LATEST | tail -n1)
             brightness_value=$(echo "$line" | sed -n 's/.*Setting brightness to \([0-9]\+\) (.*/\1/p')
-
-            if [[ -n "$brightness_value" ]]; then
+        
+            if [[ -n "$brightness_value" && "$brightness_value" -gt 0 && $lid_closed -eq 0 && $backlight_off -eq 0 ]]; then
                 saved_display_brightness="$brightness_value"
-                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Saved display brightness: ${RESET}${YELLOW}$saved_display_brightness ${RESET}" >> "$LOG_FILE"
+                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Saved display brightness: ${RESET}${YELLOW}$saved_display_brightness${RESET}" >> "$LOG_FILE"
             fi
             ;;
         esac
