@@ -352,7 +352,36 @@ cleanup() {
     exit 0
 }
 
+save_default_cpu_state() {
+    detect_cpu_type
+    if (( IS_INTEL == 1 )); then
+        [[ -f "$TURBO_PATH" ]] && DEFAULT_TURBO=$(<"$TURBO_PATH")
+        [[ -f "$PERF_PATH" ]] && DEFAULT_MAX_PERF=$(<"$PERF_PATH")
+    elif (( IS_AMD == 1 || IS_ARM == 1 )) && [[ ${#PERF_PATHS[@]} -gt 0 ]]; then
+        DEFAULT_FREQS=()
+        for path in "${PERF_PATHS[@]}"; do
+            [[ -f "$path" ]] && DEFAULT_FREQS+=("$(<"$path")")
+        done
+    fi
+}
+
+restore_default_cpu_state() {
+    detect_cpu_type
+    if (( IS_INTEL == 1 )); then
+        [[ -n "$DEFAULT_TURBO" && -w "$TURBO_PATH" ]] && echo "$DEFAULT_TURBO" | sudo tee "$TURBO_PATH" >/dev/null
+        [[ -n "$DEFAULT_MAX_PERF" && -w "$PERF_PATH" ]] && echo "$DEFAULT_MAX_PERF" | sudo tee "$PERF_PATH" >/dev/null
+        echo "Intel CPU: Turbo and max_perf_pct restored." | tee -a "$LOG_FILE"
+    elif (( IS_AMD == 1 || IS_ARM == 1 )); then
+        for i in "${!PERF_PATHS[@]}"; do
+            [[ -w "${PERF_PATHS[$i]}" ]] && echo "${DEFAULT_FREQS[$i]}" | sudo tee "${PERF_PATHS[$i]}" >/dev/null
+        done
+        echo "AMD/ARM CPU: scaling_max_freq restored." | tee -a "$LOG_FILE"
+    fi
+}
+
+
 start_monitoring_loop() {
+    save_default_cpu_state
     detect_cpu_type
     load_config
     touch "$RUN_FLAG"
@@ -511,25 +540,21 @@ if [ $# -eq 0 ]; then
 fi
 
 stop_monitoring() {
-    if [ -f "$PID_FILE" ]; then
-        PID=$(cat "$PID_FILE")
+    if [[ -f "$PID_FILE" ]]; then
+        PID=$(<"$PID_FILE")
         if ps -p "$PID" > /dev/null 2>&1; then
-            #echo "${RED}$(date '+%Y-%m-%d %H:%M:%S') - Stopping PowerControl (PGID $PID)...${RESET}" | tee -a "$LOG_FILE"
+            echo "Restoring CPU defaults..." | tee -a "$LOG_FILE"
+            restore_default_cpu_state
             kill -- -"$PID" 2>/dev/null
             sleep 1
-            if ps -p "$PID" > /dev/null 2>&1; then
-                kill "$PID" 2>/dev/null
-                sleep 1
-            fi
-            if ps -p "$PID" > /dev/null 2>&1; then
-                kill -9 "$PID" 2>/dev/null
-            fi
-            echo "${RED}$(date '+%Y-%m-%d %H:%M:%S') - PowerControl Stopped (PID $PID)${RESET}" | tee -a "$LOG_FILE"
+            kill "$PID" 2>/dev/null 2>/dev/null || true
+            sleep 1
+            kill -9 "$PID" 2>/dev/null || true
+            echo "${RED}$(date '+%Y-%m-%d %H:%M:%S') - PowerControl stopped (PID $PID)${RESET}" | tee -a "$LOG_FILE"
         fi
     fi
     rm -f "$RUN_FLAG" "$PID_FILE"
 }
-
 
 uninstall_script() {
     if [ -z "$INSTALL_DIR" ]; then
