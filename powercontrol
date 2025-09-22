@@ -370,12 +370,12 @@ restore_default_cpu_state() {
     if (( IS_INTEL == 1 )); then
         [[ -n "$DEFAULT_TURBO" && -w "$TURBO_PATH" ]] && echo "$DEFAULT_TURBO" | sudo tee "$TURBO_PATH" >/dev/null
         [[ -n "$DEFAULT_MAX_PERF" && -w "$PERF_PATH" ]] && echo "$DEFAULT_MAX_PERF" | sudo tee "$PERF_PATH" >/dev/null
-        echo "Intel CPU: Turbo and max_perf_pct restored." | tee -a "$LOG_FILE"
+        echo "${BLUE}Turbo and max_perf_pct restored.${RESET}" | tee -a "$LOG_FILE"
     elif (( IS_AMD == 1 || IS_ARM == 1 )); then
         for i in "${!PERF_PATHS[@]}"; do
             [[ -w "${PERF_PATHS[$i]}" ]] && echo "${DEFAULT_FREQS[$i]}" | sudo tee "${PERF_PATHS[$i]}" >/dev/null
         done
-        echo "AMD/ARM CPU: scaling_max_freq restored." | tee -a "$LOG_FILE"
+        echo "${RED}CPU: scaling_max_freq restored.${RESET}" | tee -a "$LOG_FILE"
     fi
 }
 
