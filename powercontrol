@@ -370,7 +370,7 @@ restore_default_cpu_state() {
     if (( IS_INTEL == 1 )); then
         [[ -n "$DEFAULT_TURBO" && -w "$TURBO_PATH" ]] && echo "$DEFAULT_TURBO" | sudo tee "$TURBO_PATH" >/dev/null
         [[ -n "$DEFAULT_MAX_PERF" && -w "$PERF_PATH" ]] && echo "$DEFAULT_MAX_PERF" | sudo tee "$PERF_PATH" >/dev/null
-        echo "${BLUE}Turbo and max_perf_pct restored.${RESET}" | tee -a "$LOG_FILE"
+        echo "${BLUE}Turbo Boost and max_perf_pct restored.${RESET}" | tee -a "$LOG_FILE"
     elif (( IS_AMD == 1 || IS_ARM == 1 )); then
         for i in "${!PERF_PATHS[@]}"; do
             [[ -w "${PERF_PATHS[$i]}" ]] && echo "${DEFAULT_FREQS[$i]}" | sudo tee "${PERF_PATHS[$i]}" >/dev/null
@@ -543,7 +543,6 @@ stop_monitoring() {
     if [[ -f "$PID_FILE" ]]; then
         PID=$(<"$PID_FILE")
         if ps -p "$PID" > /dev/null 2>&1; then
-            echo "Restoring CPU defaults..." | tee -a "$LOG_FILE"
             restore_default_cpu_state
             kill -- -"$PID" 2>/dev/null
             sleep 1
