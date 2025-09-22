@@ -228,7 +228,7 @@ for file in "${files[@]}"; do
         echo ""
         continue
     fi
-        echo "Downloading $file to $dest..."
+        echo "${BLUE}Downloading $file to $dest..."
     if curl -fsSL "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/$file" -o "$dest"; then
         if grep -q "@INSTALL_DIR@" "$dest"; then
             sed -i "s|@INSTALL_DIR@|$INSTALL_DIR|g" "$dest"
@@ -237,14 +237,13 @@ for file in "${files[@]}"; do
     else
         echo "${RED}Failed to download $file. Skipping.${RESET}"
     fi
-    echo ""
 done
 
 CONFIG_FILE="$INSTALL_DIR/config.sh"
 FAN_COUNT=$(sudo ectool pwmgetnumfans | awk -F= '{print $2}' | sed -e 's/ //g')
 
 if [ "$FAN_COUNT" -eq 0 ]; then
-    echo "${GREEN}Passively cooled device detected, skipping FanControl setup.${RESET}"
+    echo "${RESET}${GREEN}Passively cooled device detected, skipping FanControl setup.${RESET}"
     echo ""
     SKIP_FANCONTROL=true
     sed -i '/^STARTUP_FANCONTROL=/d' "$CONFIG_FILE" 2>/dev/null
@@ -261,12 +260,12 @@ if [ "$IS_INTEL" -eq 1 ]; then
     SHOW_POWERCONTROL_NOTICE=1
 fi
 echo ""
-echo "${GREEN}$BACKLIGHT_NAME"
+echo "${RESET}${GREEN}$BACKLIGHT_NAME"
 echo "$BRIGHTNESS_PATH"
 echo "$MAX_BRIGHTNESS_PATH${RESET}"
 echo ""
 
-echo "${CYAN}Detected CPU Vendor: $CPU_VENDOR"
+echo "${RESET}${CYAN}Detected CPU Vendor: $CPU_VENDOR"
 echo "PERF_PATH: $PERF_PATH"
 echo "PERF_PATHS: ${PERF_PATHS[*]}"
 echo "TURBO_PATH: $TURBO_PATH"
