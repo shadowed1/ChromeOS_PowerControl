@@ -346,7 +346,7 @@ send_fake_activity() {
     now=$(date +%s)
 
     if (( monitor_idle == 1 || audio_active == 1 )); then
-        sudo ectool pwmsetkblight 0 >/dev/null 2>&1
+        #sudo ectool pwmsetkblight 0 >/dev/null 2>&1
         dbus-send --system --type=method_call \
             --dest=org.chromium.PowerManager \
             /org/chromium/PowerManager \
