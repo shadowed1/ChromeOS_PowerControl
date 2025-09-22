@@ -283,20 +283,7 @@ update_power_state_file() {
     echo "$STATUS" | sudo tee "$LAST_POWER_STATE" >/dev/null
 }
 
-initialize_display_brightness() {
-    if [[ -f "$BRIGHTNESS_PATH" ]]; then
-        saved_display_brightness=$(<"$BRIGHTNESS_PATH")
-    fi
-}
-
-initialize_display_brightness
 idle_elapsed=0
-
-saved_kb_brightness=$(sudo ectool pwmgetkblight 2>/dev/null | awk '{print $NF}')
-
-initialize_kb_brightness() {
-    sudo ectool pwmsetkblight "$saved_kb_brightness" >/dev/null 2>&1
-}
 
 monitor_idle_activity() {
     exec 200>"$PID_FILE.lock"
@@ -494,7 +481,7 @@ send_fake_activity() {
             backlight_off=0
             if (( PRESENTATION_MODE == 0 )); then
                 if (( kb_brightness_restored == 0 )); then
-                    sudo ectool pwmsetkblight "$saved_kb_brightness" >/dev/null 2>&1
+                    #sudo ectool pwmsetkblight "$saved_kb_brightness" >/dev/null 2>&1
                     kb_brightness_restored=1
                     #echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Restored keyboard brightness to ${RESET}${YELLOW}${saved_kb_brightness}%${RESET}" >> "$LOG_FILE"
                 fi
@@ -547,7 +534,7 @@ send_fake_activity() {
             stop_fake_activity
             backlight_off=0
             if (( kb_brightness_restored == 0 )); then
-                sudo ectool pwmsetkblight "$saved_kb_brightness" >/dev/null 2>&1
+                #sudo ectool pwmsetkblight "$saved_kb_brightness" >/dev/null 2>&1
                 kb_brightness_restored=1
                 #echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Restored keyboard brightness to ${RESET}${YELLOW}${saved_kb_brightness}%${RESET}" >> "$LOG_FILE"
             fi
@@ -585,7 +572,7 @@ send_fake_activity() {
             stop_fake_activity
             backlight_off=0
             if (( kb_brightness_restored == 0 )); then
-                sudo ectool pwmsetkblight "$saved_kb_brightness" >/dev/null 2>&1
+                #sudo ectool pwmsetkblight "$saved_kb_brightness" >/dev/null 2>&1
                 kb_brightness_restored=1
                 echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Restored keyboard brightness to ${RESET}${YELLOW}${saved_kb_brightness}%${RESET}" >> "$LOG_FILE"
             fi
