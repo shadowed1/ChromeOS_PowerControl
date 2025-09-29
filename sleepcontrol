@@ -470,6 +470,7 @@ send_fake_activity() {
                 stop_fake_activity
             else
                 echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Lid closed, lid sleep off!${RESET}" >> "$LOG_FILE"
+                starf_fake_activity
             fi
             ;;
         *"Lid opened"*)
