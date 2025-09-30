@@ -392,7 +392,8 @@ start_monitoring_loop() {
     last_pct=0
 
     while [ -f "$RUN_FLAG" ]; do
-        now=$(date +%s)
+        now=$(( $(printf '%(%s)T' -1) ))
+    
         if (( now - last_reload_time >= 10 )); then
             load_config
             validate_config
@@ -454,8 +455,9 @@ start_monitoring_loop() {
         fi
 
          if [[ "$last_pct" != "$pct" ]]; then
-            echo "${CYAN}$(date '+%Y-%m-%d %H:%M:%S') - CPU ${temp_c}°C -> Clockspeed ${pct}%${RESET}" >> "$LOG_FILE"
-         fi
+            printf -v ts '%(%Y-%m-%d %H:%M:%S)T' -1
+            echo "${CYAN}${ts} - CPU ${temp_c}°C -> Clockspeed ${pct}%${RESET}" >> "$LOG_FILE"
+        fi
         
         set_max_perf_pct "$pct"
         last_pct=$pct
