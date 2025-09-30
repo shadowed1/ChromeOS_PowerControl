@@ -373,9 +373,9 @@ restore_default_cpu_state() {
         echo "${BLUE}Turbo Boost and max_perf_pct restored.${RESET}" | tee -a "$LOG_FILE"
     elif (( IS_AMD == 1 || IS_ARM == 1 )); then
         for i in "${!PERF_PATHS[@]}"; do
-            [[ -w "${PERF_PATHS[$i]}" ]] && echo "${DEFAULT_FREQS[$i]}" | sudo tee "${PERF_PATHS[$i]}" >/dev/null
+            [[ -w "${#PERF_PATHS[@]}=@" ]] && echo "${#DEFAULT_FREQS[@]}" | sudo tee "${#PERF_PATHS[@]}" >/dev/null
         done
-        echo "${RED}CPU: scaling_max_freq restored.${RESET}" | tee -a "$LOG_FILE"
+        echo "${BLUE}CPU: scaling_max_freq restored.${RESET}" | tee -a "$LOG_FILE"
     fi
 }
 
