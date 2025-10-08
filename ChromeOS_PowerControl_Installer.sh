@@ -812,7 +812,6 @@ echo "${BLUE}╔═════════════════════�
 echo "║  ${RESET}${BLUE}${BOLD}SleepControl Notice:${RESET}${BLUE}                                                                                              ║"
 echo "║  SleepControl requires Sleep to be enabled in Settings -> Power -> While Inactive plugged-in and battery.          ║"
 echo "║  Cannot override sleep when lid is closed setting when enabled; but allows custom lid sleep logic.                 ║"
-echo "║  Customize when ChromeOS is allowed to sleep using commands above!                                                 ║"
 echo "╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝${RESET}"
 echo ""
 fi
