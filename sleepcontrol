@@ -364,22 +364,28 @@ send_fake_activity() {
     }
 
     stop_fake_activity() {
-    if (( lid_closed == 1 && LIDSLEEP_ENABLED == 0 )); then
-        echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Lid Sleep off${RESET}" >> "$LOG_FILE"
-        return
-    fi
-
-    if (( sending_fake_activity == 1 )); then
-        kill "$fake_activity_pid" 2>/dev/null
-        wait "$fake_activity_pid" 2>/dev/null
-        last_ts=$(date +%s)
-        idle_elapsed=0
-        monitor_idle=0
-        sending_fake_activity=0
-        fake_activity_pid=0
-        echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Stopping simulated activity loop...${RESET}" >> "$LOG_FILE"
-    fi
-}
+        if (( lid_closed == 1 )); then
+            if [[ "$STATUS" == "Discharging" && $LIDSLEEP_BATTERY -eq 1 ]]; then
+                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Lid closed on battery; stopping fake activity.${RESET}" >> "$LOG_FILE"
+            elif [[ "$STATUS" != "Discharging" && $LIDSLEEP_POWER -eq 1 ]]; then
+                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Lid closed on AC; stopping fake activity.${RESET}" >> "$LOG_FILE"
+            else
+                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Lid closed but lid sleep disabled for this power mode; continuing fake activity.${RESET}" >> "$LOG_FILE"
+                return
+            fi
+        fi
+    
+        if (( sending_fake_activity == 1 )); then
+            kill "$fake_activity_pid" 2>/dev/null
+            wait "$fake_activity_pid" 2>/dev/null
+            sending_fake_activity=0
+            fake_activity_pid=0
+            idle_elapsed=0
+            monitor_idle=0
+            last_ts=$(date +%s)
+            echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Stopping simulated activity loop...${RESET}" >> "$LOG_FILE"
+        fi
+    }
 
     exec 3< <(
         tail -Fn0 /var/log/power_manager/powerd.LATEST |
@@ -403,6 +409,13 @@ send_fake_activity() {
         else
             AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_POWER
         fi
+
+        if [[ "$STATUS" == "Discharging" ]]; then
+            LIDSLEEP_ENABLED=$LIDSLEEP_BATTERY
+        else
+            LIDSLEEP_ENABLED=$LIDSLEEP_POWER
+        fi
+
 
         (( AUDIO_DETECTION_ENABLED == 0 )) && audio_active=0
 
@@ -441,15 +454,14 @@ send_fake_activity() {
                 fi
             fi
             ;;
-        *"Lid closed"*)
+       *"Lid closed"*)
             lid_closed=1
-            if (( LIDSLEEP_ENABLED == 1 )); then
-                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Lid closed, lid sleep on!${RESET}" >> "$LOG_FILE"
-                sleep 5
+            if [[ "$STATUS" == "Discharging" && $LIDSLEEP_BATTERY -eq 1 ]] || \
+               [[ "$STATUS" != "Discharging" && $LIDSLEEP_POWER -eq 1 ]]; then
+                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Lid closed; lid sleep enabled for current power state.${RESET}" >> "$LOG_FILE"
                 stop_fake_activity
             else
-                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Lid closed, lid sleep off!${RESET}" >> "$LOG_FILE"
-                sleep 5
+                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Lid closed; lid sleep disabled for current power state.${RESET}" >> "$LOG_FILE"
                 start_fake_activity
             fi
             ;;
