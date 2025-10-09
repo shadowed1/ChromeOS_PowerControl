@@ -364,34 +364,22 @@ send_fake_activity() {
     }
 
     stop_fake_activity() {
-        if (( sending_fake_activity == 1 )); then
-            kill "$fake_activity_pid" 2>/dev/null
-            wait "$fake_activity_pid" 2>/dev/null
-    
-            #if (( kb_brightness_restored == 0 )); then
-            #    sudo ectool pwmsetkblight "$saved_kb_brightness" >/dev/null 2>&1
-            #    kb_brightness_restored=1
-            #    echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Restored keyboard brightness to ${RESET}${YELLOW}${saved_kb_brightness}%${RESET}" >> "$LOG_FILE"
-            #fi
-    
-            #if [[ -n "$saved_display_brightness" && "$saved_display_brightness" -ge 0 ]]; then
-            #    set_display_brightness "$saved_display_brightness"
-            #    echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Restored display brightness to ${RESET}${YELLOW}$saved_display_brightness${RESET}" >> "$LOG_FILE"
-            #fi
-    
-            last_ts=$(date +%s)
-            idle_elapsed=0
-            monitor_idle=0
-            #backlight_off=0
-    
-            sending_fake_activity=0
-            fake_activity_pid=0
-    
-            echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Stopping simulated activity loop...${RESET}" >> "$LOG_FILE"
-        fi
-    }
+    if (( lid_closed == 1 && LIDSLEEP_ENABLED == 0 )); then
+        echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Lid closed with lid sleep off; ignoring stop_fake_activity${RESET}" >> "$LOG_FILE"
+        return
+    fi
 
-
+    if (( sending_fake_activity == 1 )); then
+        kill "$fake_activity_pid" 2>/dev/null
+        wait "$fake_activity_pid" 2>/dev/null
+        last_ts=$(date +%s)
+        idle_elapsed=0
+        monitor_idle=0
+        sending_fake_activity=0
+        fake_activity_pid=0
+        echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Stopping simulated activity loop...${RESET}" >> "$LOG_FILE"
+    fi
+}
 
     exec 3< <(
         tail -Fn0 /var/log/power_manager/powerd.LATEST |
