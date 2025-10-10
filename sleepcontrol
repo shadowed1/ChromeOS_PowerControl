@@ -333,7 +333,6 @@ send_fake_activity() {
     now=$(date +%s)
 
     if (( monitor_idle == 1 || audio_active == 1 )); then
-        #sudo ectool pwmsetkblight 0 >/dev/null 2>&1
         dbus-send --system --type=method_call \
             --dest=org.chromium.PowerManager \
             /org/chromium/PowerManager \
@@ -353,12 +352,10 @@ send_fake_activity() {
                 while [ -f "$RUN_FLAG" ]; do
                     sleep "$FAKE_ACTIVITY_INTERVAL"
                     send_fake_activity
-                    #sudo ectool pwmsetkblight 0 >/dev/null 2>&1
                 done
             ) &
             fake_activity_pid=$!
             sending_fake_activity=1
-            #last_ts=$now
             echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Starting simulated activity loop... (PID $fake_activity_pid)${RESET}" >> "$LOG_FILE"
         fi
     }
@@ -368,21 +365,9 @@ send_fake_activity() {
             kill "$fake_activity_pid" 2>/dev/null
             wait "$fake_activity_pid" 2>/dev/null
     
-            #if (( kb_brightness_restored == 0 )); then
-            #    sudo ectool pwmsetkblight "$saved_kb_brightness" >/dev/null 2>&1
-            #    kb_brightness_restored=1
-            #    echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Restored keyboard brightness to ${RESET}${YELLOW}${saved_kb_brightness}%${RESET}" >> "$LOG_FILE"
-            #fi
-    
-            #if [[ -n "$saved_display_brightness" && "$saved_display_brightness" -ge 0 ]]; then
-            #    set_display_brightness "$saved_display_brightness"
-            #    echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Restored display brightness to ${RESET}${YELLOW}$saved_display_brightness${RESET}" >> "$LOG_FILE"
-            #fi
-    
             last_ts=$(date +%s)
             idle_elapsed=0
             monitor_idle=0
-            #backlight_off=0
     
             sending_fake_activity=0
             fake_activity_pid=0
@@ -418,6 +403,14 @@ send_fake_activity() {
 
         (( AUDIO_DETECTION_ENABLED == 0 )) && audio_active=0
 
+        if [[ "$STATUS" == "Discharging" ]]; then
+            LIDSLEEP_ENABLED=$LIDSLEEP_BATTERY
+        else
+            LIDSLEEP_ENABLED=$LIDSLEEP_POWER
+        fi
+
+        ((  LIDSLEEP_ENABLED == 0 )) && lid_closed=0
+
         case "$line" in
         *"Chrome is using presentation display mode"*)
             PRESENTATION_MODE=1
@@ -436,7 +429,6 @@ send_fake_activity() {
             ;;
         *"Audio activity stopped"*)
             (( AUDIO_DETECTION_ENABLED == 1 )) && audio_active=0
-            #stop_fake_activity
             last_ts=$(date +%s)
             idle_elapsed=0
             active=1
@@ -450,12 +442,6 @@ send_fake_activity() {
                     active=0
                     kb_brightness_restored=0
                     start_fake_activity
-                    #if [[ -n "$current_kb_brightness" && "$current_kb_brightness" -gt 0 ]]; then
-                    #    saved_kb_brightness=$current_kb_brightness
-                    #    #echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Captured keyboard brightness: $saved_kb_brightness${RESET}" >> "$LOG_FILE"
-                    #fi
-                    #sleep 13
-                    #sudo ectool pwmsetkblight 0 >/dev/null 2>&1
                 fi
             fi
             ;;
@@ -463,12 +449,12 @@ send_fake_activity() {
             lid_closed=1
             if (( LIDSLEEP_ENABLED == 1 )); then
                 echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Lid closed, lid sleep on!${RESET}" >> "$LOG_FILE"
-                sleep 2
+                sleep 5
                 stop_fake_activity
             else
                 echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Lid closed, lid sleep off!${RESET}" >> "$LOG_FILE"
-                sleep 2
-                #start_fake_activity
+                sleep 5
+                start_fake_activity
             fi
             ;;
         *"Lid opened"*)
@@ -480,14 +466,11 @@ send_fake_activity() {
             backlight_off=0
             if (( PRESENTATION_MODE == 0 )); then
                 if (( kb_brightness_restored == 0 )); then
-                    #sudo ectool pwmsetkblight "$saved_kb_brightness" >/dev/null 2>&1
                     kb_brightness_restored=1
-                    #echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Restored keyboard brightness to ${RESET}${YELLOW}${saved_kb_brightness}%${RESET}" >> "$LOG_FILE"
                 fi
         
                 if [[ -n "$saved_display_brightness" && "$saved_display_brightness" -ge 0 ]]; then
                     set_display_brightness "$saved_display_brightness"
-                    #echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Restored display brightness to ${RESET}${YELLOW}$saved_display_brightness${RESET}" >> "$LOG_FILE"
                 fi
             fi
             ;;
@@ -507,14 +490,8 @@ send_fake_activity() {
                 idle_elapsed=0
                 active=1
                 stop_fake_activity
-                #if (( kb_brightness_restored == 0 )); then
-                #    sudo ectool pwmsetkblight "$saved_kb_brightness" >/dev/null 2>&1
-                #    kb_brightness_restored=1
-                #    #echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Restored keyboard brightness to ${RESET}${YELLOW}${saved_kb_brightness}%${RESET}" >> "$LOG_FILE"
-                #fi
                 if [[ -n "$saved_display_brightness" && "$saved_display_brightness" -ge 0 ]]; then
                     set_display_brightness "$saved_display_brightness"
-                    #echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Restored display brightness to ${RESET}${YELLOW}$saved_display_brightness${RESET}" >> "$LOG_FILE"
                 fi
 
                 for file in \
@@ -533,14 +510,11 @@ send_fake_activity() {
             stop_fake_activity
             backlight_off=0
             if (( kb_brightness_restored == 0 )); then
-                #sudo ectool pwmsetkblight "$saved_kb_brightness" >/dev/null 2>&1
                 kb_brightness_restored=1
-                #echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Restored keyboard brightness to ${RESET}${YELLOW}${saved_kb_brightness}%${RESET}" >> "$LOG_FILE"
             fi
     
             if [[ -n "$saved_display_brightness" && "$saved_display_brightness" -ge 0 ]]; then
                 set_display_brightness "$saved_display_brightness"
-                #echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Restored display brightness to ${RESET}${YELLOW}$saved_display_brightness${RESET}" >> "$LOG_FILE"
             fi
             power_backlight_ts=$now
             battery_backlight_ts=$now
@@ -556,8 +530,6 @@ send_fake_activity() {
                 last_fake_ts=0
             fi
             if (( last_fake_ts > 0 && now - last_fake_ts <= FAKE_ACTIVITY_GRACE )); then
-                #sudo ectool pwmsetkblight 0 >/dev/null 2>&1
-                #echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - simulated activity ${FAKE_ACTIVITY_GRACE}s${RESET}." >> "$LOG_FILE"
                 rm -f "$LAST_FAKE_ACTIVITY_FILE" 2>/dev/null || true
                 continue
             fi
@@ -571,14 +543,11 @@ send_fake_activity() {
             stop_fake_activity
             backlight_off=0
             if (( kb_brightness_restored == 0 )); then
-                #sudo ectool pwmsetkblight "$saved_kb_brightness" >/dev/null 2>&1
                 kb_brightness_restored=1
-                #echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Restored keyboard brightness to ${RESET}${YELLOW}${saved_kb_brightness}%${RESET}" >> "$LOG_FILE"
             fi
     
             if [[ -n "$saved_display_brightness" && "$saved_display_brightness" -ge 0 ]]; then
                 set_display_brightness "$saved_display_brightness"
-                #echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Restored display brightness to ${RESET}${YELLOW}$saved_display_brightness${RESET}" >> "$LOG_FILE"
             fi
 
             power_backlight_ts=$now
