@@ -860,7 +860,7 @@ case "$1" in
     "$INSTALL_DIR/powercontrol" && "$INSTALL_DIR/batterycontrol" && "$INSTALL_DIR/fancontrol" && "$INSTALL_DIR/gpucontrol" && "$INSTALL_DIR/sleepcontrol"
     ;;
     startup_all)
-    sudo "$INSTALL_DIR/powercontrol" startup && sudo "$INSTALL_DIR/batterycontrol" startup && sudo "$INSTALL_DIR/fancontrol" startup && sudo "$INSTALL_DIR/gpuontrol" startup && sudo "$INSTALL_DIR/sleepcontrol" startup
+    sudo "$INSTALL_DIR/powercontrol" startup && sudo "$INSTALL_DIR/batterycontrol" startup && sudo "$INSTALL_DIR/fancontrol" startup && sudo "$INSTALL_DIR/gpucontrol" startup && sudo "$INSTALL_DIR/sleepcontrol" startup
     ;;
     start_all)
     sudo "$INSTALL_DIR/powercontrol" start && sudo "$INSTALL_DIR/batterycontrol" start && sudo "$INSTALL_DIR/fancontrol" start && sudo "$INSTALL_DIR/sleepcontrol" start
