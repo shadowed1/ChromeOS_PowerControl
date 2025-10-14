@@ -255,7 +255,7 @@ set_max_perf_pct() {
                 fi
 
                 if [ -w "$path" ]; then
-                    echo "$target_freq" > "$path"
+                    echo "$target_freq" | sudo tee "$path" > /dev/null
                 else
                     echo "${RED}Warning: Cannot write to $path; skipping.${RESET}" >&2
                 fi
@@ -263,6 +263,9 @@ set_max_perf_pct() {
                 echo "${RED}Warning: Missing cpuinfo_*_freq for $path; skipping.${RESET}" >&2
             fi
         done
+
+        save_config
+
     else
         echo "${RED}Unsupported CPU or PERF_PATH not set correctly.${RESET}" >&2
         exit 1
