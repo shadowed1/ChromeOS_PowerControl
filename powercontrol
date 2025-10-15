@@ -96,6 +96,10 @@ validate_config() {
         HOTZONE=76
     fi
 
+    if (( IS_ARM == 1 && MIN_TEMP < 66 )); then
+        MIN_TEMP=66
+    fi
+
     if (( MAX_TEMP > MAX_TEMP_LIMIT )); then
         echo "Warning: MAX_TEMP exceeds limit ($MAX_TEMP_LIMIT), resetting."
         MAX_TEMP=$DEFAULT_MAX_TEMP
@@ -115,7 +119,7 @@ validate_config() {
         echo "Warning: HOTZONE below 60, resetting."
         HOTZONE=60
     elif (( HOTZONE > 90 )); then
-        echo "Warning: MIN_PERF_PCT above 90, resetting."
+        echo "Warning: HOTZONE above 90, resetting."
         HOTZONE=90
     fi
 
