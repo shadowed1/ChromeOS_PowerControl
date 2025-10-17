@@ -490,7 +490,7 @@ send_fake_activity() {
                 last_ts=$(date +%s)
                 idle_elapsed=0
                 active=1
-                #stop_fake_activity
+                stop_fake_activity
                 if [[ -n "$saved_display_brightness" && "$saved_display_brightness" -ge 0 ]]; then
                     set_display_brightness "$saved_display_brightness"
                 fi
@@ -501,6 +501,8 @@ send_fake_activity() {
                     /mnt/stateful_partition/encrypted/var/lib/power_manager/disable_dark_resume; do
                     [[ -f "$file" ]] && echo 0 | sudo tee "$file" >/dev/null 2>&1
                 done
+                sleep 5
+                start_fake_activity
                 echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Saved power state: ${RESET}${GREEN}${STATUS}${RESET}" >> "$LOG_FILE"
             fi
             ;;
