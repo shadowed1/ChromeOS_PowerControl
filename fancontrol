@@ -204,7 +204,7 @@ sudo ectool fanduty "$initial_duty"
             for duty in 8 16; do
                 echo "  - Kickstart: ${duty}%"
                 sudo ectool fanduty "$duty" | grep -v "Fan duty cycle set for all fans."
-                sleep 1
+                sleep 0.5
             done
             sudo ectool fanduty 0 | grep -v "Fan duty cycle set for all fans." >> "$LOG_FILE"
         else
