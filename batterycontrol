@@ -39,7 +39,8 @@ detect_battery() {
     echo "No usable battery detected!"
     BATTERY_PATH=""
     STATUS_PATH=""
-    return 1
+    continue
+    sleep 1
 }
 
 load_config() {
@@ -119,8 +120,7 @@ detect_active_usbpd_port() {
 }
 
 battery_status() {
-    detect_battery || return 1
-
+    detect_battery
     if [ -f "$RUN_FLAG" ]; then
         if [ -f "$PID_FILE" ]; then
             PID=$(cat "$PID_FILE")
@@ -173,7 +173,7 @@ echo "${RESET}"
 }
 
 start_monitoring_loop() {
-    detect_battery || exit 1
+    detect_battery
     touch "$RUN_FLAG"
     echo $$ > "$PID_FILE"
 
