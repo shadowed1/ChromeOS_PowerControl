@@ -201,7 +201,7 @@ sudo ectool fanduty "$initial_duty"
         
         if (( target_duty == 0 )); then
             echo "Applying kickstart ramp-up before setting to 0%"
-            for duty in 2 4 6 8 10; do
+            for duty in 8 16; do
                 echo "  - Kickstart: ${duty}%"
                 sudo ectool fanduty "$duty" | grep -v "Fan duty cycle set for all fans."
                 sleep 1
