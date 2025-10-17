@@ -237,6 +237,7 @@ for file in "${files[@]}"; do
     else
         echo "${RED}Failed to download $file. Skipping.${RESET}"
     fi
+    sleep 0.3
 done
 
 CONFIG_FILE="$INSTALL_DIR/config.sh"
