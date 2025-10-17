@@ -46,13 +46,16 @@ get_temp() {
                 echo $(( raw_temp / 1000 ))
                 return 0
             else
-                return 1
+                sleep 1
+                continue
             fi
         else
-            return 1
+            sleep 1
+            continue
         fi
     else
-        return 1
+        sleep 1
+        continue
     fi
 }
 
@@ -114,7 +117,8 @@ if read -r RAW_TEMP < "$ZONE_PATH"; then
     :
 else
     echo "Failed to read temperature from $ZONE_PATH" >&2
-    return 1
+    sleep 1
+    continue
 fi
     TEMP_C=$((RAW_TEMP / 1000))
     prev_temp=$TEMP_C
@@ -150,7 +154,8 @@ sudo ectool fanduty "$initial_duty"
             :
         else
             echo "Failed to read temperature from $ZONE_PATH" >&2
-            return 1
+            sleep 1
+            continue
         fi
 
         TEMP_C=$((RAW_TEMP / 1000))
