@@ -268,7 +268,7 @@ Implemented mem sleep logic in sleepcontrol to avoid s2idle. Fixed fancontrol.co
 Added display and keyboard backlight restore in Installer when restarting powerd. Lowered FanControl aggressiveness above 50% fan speed.` <br><br>
 - 0.48: `Fixed brightness saving issues for display and keyboard` <br><br>
 - 0.49: `Added proper CPU restore logic when stopping PowerControl. Fixed bug where display brightness can be saved when lid is closed` <br><br>
-- 0.50: `Relaxed FanControl default settings. Fixed lid sleep bug. Fixed bug with redownloading scripts.`
+- 0.50: `Relaxed FanControl default settings. Fixed lid sleep bug. Fixed bug with redownloading scripts. Improved FanControl and BatteryControl loop resets.`
 __Acknowledgements:__
 
 - Thanks to WesBosch for helping me learn to make an installer:
