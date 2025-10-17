@@ -213,7 +213,8 @@ load_config
         fi
     fi
     echo "Failed to get temperature." >&2
-    return 1
+    continue
+    sleep 1
 }
 
 
