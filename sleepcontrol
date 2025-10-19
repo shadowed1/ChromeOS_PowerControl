@@ -376,31 +376,34 @@ send_fake_activity() {
         fi
     }
 
-    start_deep_sleep_enforcer() {
-        if [[ "$SUSPEND_MODE" == "deep" ]]; then
-            (
-                while [ -f "$RUN_FLAG" ]; do
-                    sleep 15
-                    
-                    current_mode=$(cat /sys/power/mem_sleep 2>/dev/null | grep -o '\[.*\]' | tr -d '[]')
-                    
-                    if [[ "$current_mode" != "deep" ]]; then
-                        echo "deep" | sudo tee /sys/power/mem_sleep >/dev/null 2>&1
-                        echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Re-enforcing deep sleep mode (was: $current_mode)${RESET}" >> "$LOG_FILE"
-                    fi
-                    
-                    for file in \
-                        /var/lib/power_manager/disable_dark_resume \
-                        /usr/share/power_manager/disable_dark_resume \
-                        /mnt/stateful_partition/encrypted/var/lib/power_manager/disable_dark_resume; do
-                        [[ -f "$file" ]] && echo 0 | sudo tee "$file" >/dev/null 2>&1
-                    done
+   start_deep_sleep_enforcer() {
+    if [[ "$SUSPEND_MODE" == "deep" ]]; then
+        (
+            while [ -f "$RUN_FLAG" ]; do
+                sleep 15
+
+                if read -r current_mode < /sys/power/mem_sleep 2>/dev/null; then
+                    current_mode=$(echo "$current_mode" | grep -o '\[.*\]' | tr -d '[]')
+                else
+                    current_mode=""
+                fi
+
+                if [[ "$current_mode" != "deep" ]]; then
+                    echo "deep" | sudo tee /sys/power/mem_sleep >/dev/null 2>&1
+                fi
+
+                for file in \
+                    /var/lib/power_manager/disable_dark_resume \
+                    /usr/share/power_manager/disable_dark_resume \
+                    /mnt/stateful_partition/encrypted/var/lib/power_manager/disable_dark_resume; do
+                    [[ -f "$file" ]] && echo 0 | sudo tee "$file" >/dev/null 2>&1
                 done
-            ) &
-            deep_sleep_enforcer_pid=$!
-            echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Started deep sleep enforcer (PID $deep_sleep_enforcer_pid)${RESET}" >> "$LOG_FILE"
-        fi
-    }
+            done
+        ) &
+        deep_sleep_enforcer_pid=$!
+    fi
+}
+
 
     stop_deep_sleep_enforcer() {
         if [[ -n "$deep_sleep_enforcer_pid" ]] && ps -p "$deep_sleep_enforcer_pid" > /dev/null 2>&1; then
@@ -541,7 +544,7 @@ send_fake_activity() {
                     [[ -f "$file" ]] && echo 0 | sudo tee "$file" >/dev/null 2>&1
                 done
                 
-                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Power state changed to: ${RESET}${GREEN}${STATUS}${RESET}${BLUE} - Timers recalculated (Dim: ${dim_delay}s, Backlight: ${backlight_delay}s, Suspend: ${suspend_delay}s)${RESET}" >> "$LOG_FILE"
+                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Power state changed to: ${RESET}${GREEN}${STATUS}${RESET}${BLUE}" >> "$LOG_FILE"
             fi
             ;;
          *"Enabling wakeup for"*|*"User triggered wake"*|*"User activity ongoing"*)
