@@ -376,33 +376,33 @@ send_fake_activity() {
         fi
     }
 
-   start_deep_sleep_enforcer() {
-    if [[ "$SUSPEND_MODE" == "deep" ]]; then
-        (
-            while [ -f "$RUN_FLAG" ]; do
-                sleep 15
-
-                if read -r current_mode < /sys/power/mem_sleep 2>/dev/null; then
-                    current_mode=$(echo "$current_mode" | grep -o '\[.*\]' | tr -d '[]')
-                else
-                    current_mode=""
-                fi
-
-                if [[ "$current_mode" != "deep" ]]; then
-                    echo "deep" | sudo tee /sys/power/mem_sleep >/dev/null 2>&1
-                fi
-
-                for file in \
-                    /var/lib/power_manager/disable_dark_resume \
-                    /usr/share/power_manager/disable_dark_resume \
-                    /mnt/stateful_partition/encrypted/var/lib/power_manager/disable_dark_resume; do
-                    [[ -f "$file" ]] && echo 0 | sudo tee "$file" >/dev/null 2>&1
+       start_deep_sleep_enforcer() {
+        if [[ "$SUSPEND_MODE" == "deep" ]]; then
+            (
+                while [ -f "$RUN_FLAG" ]; do
+                    sleep 15
+    
+                    if read -r current_mode < /sys/power/mem_sleep 2>/dev/null; then
+                        current_mode=$(echo "$current_mode" | grep -o '\[.*\]' | tr -d '[]')
+                    else
+                        current_mode=""
+                    fi
+    
+                    if [[ "$current_mode" != "deep" ]]; then
+                        echo "deep" | sudo tee /sys/power/mem_sleep >/dev/null 2>&1
+                    fi
+    
+                    for file in \
+                        /var/lib/power_manager/disable_dark_resume \
+                        /usr/share/power_manager/disable_dark_resume \
+                        /mnt/stateful_partition/encrypted/var/lib/power_manager/disable_dark_resume; do
+                        [[ -f "$file" ]] && echo 0 | sudo tee "$file" >/dev/null 2>&1
+                    done
                 done
-            done
-        ) &
-        deep_sleep_enforcer_pid=$!
-    fi
-}
+            ) &
+            deep_sleep_enforcer_pid=$!
+        fi
+    }
 
 
     stop_deep_sleep_enforcer() {
