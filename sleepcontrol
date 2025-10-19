@@ -492,6 +492,8 @@ send_fake_activity() {
                 echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Lid closed - maintaining wake state${RESET}" >> "$LOG_FILE"
                 monitor_idle=1
                 active=0
+                last_ts=$now
+                idle_elapsed=0
                 start_fake_activity
             fi
             ;;
