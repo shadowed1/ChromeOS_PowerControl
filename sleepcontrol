@@ -283,6 +283,43 @@ update_power_state_file() {
     echo "$STATUS" | sudo tee "$LAST_POWER_STATE" >/dev/null
 }
 
+start_deep_sleep_enforcer() {
+        if [[ "$SUSPEND_MODE" == "deep" ]]; then
+            (
+                while [ -f "$RUN_FLAG" ]; do
+                    sleep 15
+    
+                    if read -r current_mode < /sys/power/mem_sleep 2>/dev/null; then
+                        current_mode=$(echo "$current_mode" | grep -o '\[.*\]' | tr -d '[]')
+                    else
+                        current_mode=""
+                    fi
+    
+                    if [[ "$current_mode" != "deep" ]]; then
+                        echo "deep" | sudo tee /sys/power/mem_sleep >/dev/null 2>&1
+                    fi
+    
+                    for file in \
+                        /var/lib/power_manager/disable_dark_resume \
+                        /usr/share/power_manager/disable_dark_resume \
+                        /mnt/stateful_partition/encrypted/var/lib/power_manager/disable_dark_resume; do
+                        [[ -f "$file" ]] && echo 0 | sudo tee "$file" >/dev/null 2>&1
+                    done
+                done
+            ) &
+            deep_sleep_enforcer_pid=$!
+        fi
+    }
+
+
+    stop_deep_sleep_enforcer() {
+        if [[ -n "$deep_sleep_enforcer_pid" ]] && ps -p "$deep_sleep_enforcer_pid" > /dev/null 2>&1; then
+            kill "$deep_sleep_enforcer_pid" 2>/dev/null
+            wait "$deep_sleep_enforcer_pid" 2>/dev/null
+            echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Stopped deep sleep enforcer${RESET}" >> "$LOG_FILE"
+        fi
+    }
+
 idle_elapsed=0
 
 monitor_idle_activity() {
@@ -373,43 +410,6 @@ send_fake_activity() {
             fake_activity_pid=0
     
             echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Stopping simulated activity loop...${RESET}" >> "$LOG_FILE"
-        fi
-    }
-
-       start_deep_sleep_enforcer() {
-        if [[ "$SUSPEND_MODE" == "deep" ]]; then
-            (
-                while [ -f "$RUN_FLAG" ]; do
-                    sleep 15
-    
-                    if read -r current_mode < /sys/power/mem_sleep 2>/dev/null; then
-                        current_mode=$(echo "$current_mode" | grep -o '\[.*\]' | tr -d '[]')
-                    else
-                        current_mode=""
-                    fi
-    
-                    if [[ "$current_mode" != "deep" ]]; then
-                        echo "deep" | sudo tee /sys/power/mem_sleep >/dev/null 2>&1
-                    fi
-    
-                    for file in \
-                        /var/lib/power_manager/disable_dark_resume \
-                        /usr/share/power_manager/disable_dark_resume \
-                        /mnt/stateful_partition/encrypted/var/lib/power_manager/disable_dark_resume; do
-                        [[ -f "$file" ]] && echo 0 | sudo tee "$file" >/dev/null 2>&1
-                    done
-                done
-            ) &
-            deep_sleep_enforcer_pid=$!
-        fi
-    }
-
-
-    stop_deep_sleep_enforcer() {
-        if [[ -n "$deep_sleep_enforcer_pid" ]] && ps -p "$deep_sleep_enforcer_pid" > /dev/null 2>&1; then
-            kill "$deep_sleep_enforcer_pid" 2>/dev/null
-            wait "$deep_sleep_enforcer_pid" 2>/dev/null
-            echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Stopped deep sleep enforcer${RESET}" >> "$LOG_FILE"
         fi
     }
 
