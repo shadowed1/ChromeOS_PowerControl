@@ -913,7 +913,7 @@ echo "${RESET}"
         --h|-h|h|--help|-help|help)
             show_help
         ;;
-    monitor)
+    monitor|mon)
         tail -f /var/log/sleepcontrol.log
         ;;
     powerd)
