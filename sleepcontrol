@@ -483,13 +483,20 @@ send_fake_activity() {
             ;;
         *"Lid closed"*)
             lid_closed=1
+            get_battery_info
+            if [[ "$STATUS" == "Discharging" ]]; then
+                LIDSLEEP_ENABLED=$LIDSLEEP_BATTERY
+            else
+                LIDSLEEP_ENABLED=$LIDSLEEP_POWER
+            fi
+            
             if (( LIDSLEEP_ENABLED == 1 )); then
-                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Lid closed - allowing system sleep${RESET}" >> "$LOG_FILE"
+                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Lid closed - allowing system sleep - $LIDSLEEP_ENABLED ${RESET}" >> "$LOG_FILE"
                 stop_fake_activity
                 monitor_idle=0
                 active=1
             else
-                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Lid closed - maintaining wake state${RESET}" >> "$LOG_FILE"
+                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Lid closed - maintaining wake state - $LIDSLEEP_ENABLED ${RESET}" >> "$LOG_FILE"
                 monitor_idle=1
                 active=0
                 last_ts=$now
