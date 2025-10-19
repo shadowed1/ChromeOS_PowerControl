@@ -430,7 +430,7 @@ echo "${RESET}"
 case "$1" in
     start) start ;;
     stop) stop ;;
-    monitor) tail -f /var/log/fancontrol.log ;;
+    monitor|mon) tail -f /var/log/fancontrol.log ;;
     fan_min_temp|min_temp) fan_min_temp "$@" ;;
     fan_max_temp|max_temp) fan_max_temp "$@" ;;
     min_fan|min)  min_fan "$@" ;;
