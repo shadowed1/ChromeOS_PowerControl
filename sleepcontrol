@@ -306,7 +306,7 @@ monitor_idle_activity() {
     echo "$BASHPID" > "$PID_FILE"
     touch "$RUN_FLAG"
     echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - SleepControl started (PID $$)${RESET}" > "$LOG_FILE"
-
+    start_deep_sleep_enforcer
     local active=1
     local monitor_idle=0
     local sending_fake_activity=0
@@ -376,6 +376,39 @@ send_fake_activity() {
         fi
     }
 
+    start_deep_sleep_enforcer() {
+        if [[ "$SUSPEND_MODE" == "deep" ]]; then
+            (
+                while [ -f "$RUN_FLAG" ]; do
+                    sleep 15
+                    
+                    current_mode=$(cat /sys/power/mem_sleep 2>/dev/null | grep -o '\[.*\]' | tr -d '[]')
+                    
+                    if [[ "$current_mode" != "deep" ]]; then
+                        echo "deep" | sudo tee /sys/power/mem_sleep >/dev/null 2>&1
+                        echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Re-enforcing deep sleep mode (was: $current_mode)${RESET}" >> "$LOG_FILE"
+                    fi
+                    
+                    for file in \
+                        /var/lib/power_manager/disable_dark_resume \
+                        /usr/share/power_manager/disable_dark_resume \
+                        /mnt/stateful_partition/encrypted/var/lib/power_manager/disable_dark_resume; do
+                        [[ -f "$file" ]] && echo 0 | sudo tee "$file" >/dev/null 2>&1
+                    done
+                done
+            ) &
+            deep_sleep_enforcer_pid=$!
+            echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Started deep sleep enforcer (PID $deep_sleep_enforcer_pid)${RESET}" >> "$LOG_FILE"
+        fi
+    }
+
+    stop_deep_sleep_enforcer() {
+        if [[ -n "$deep_sleep_enforcer_pid" ]] && ps -p "$deep_sleep_enforcer_pid" > /dev/null 2>&1; then
+            kill "$deep_sleep_enforcer_pid" 2>/dev/null
+            wait "$deep_sleep_enforcer_pid" 2>/dev/null
+            echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Stopped deep sleep enforcer${RESET}" >> "$LOG_FILE"
+        fi
+    }
 
 
     exec 3< <(
@@ -448,12 +481,14 @@ send_fake_activity() {
         *"Lid closed"*)
             lid_closed=1
             if (( LIDSLEEP_ENABLED == 1 )); then
-                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Lid closed, lid sleep on!${RESET}" >> "$LOG_FILE"
-                sleep 4
+                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Lid closed, lid sleep enabled - allowing system sleep${RESET}" >> "$LOG_FILE"
                 stop_fake_activity
+                monitor_idle=0
+                active=1
             else
-                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Lid closed, lid sleep off!${RESET}" >> "$LOG_FILE"
-                sleep 5
+                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Lid closed, lid sleep disabled - maintaining wake state${RESET}" >> "$LOG_FILE"
+                monitor_idle=1
+                active=0
                 start_fake_activity
             fi
             ;;
@@ -485,12 +520,16 @@ send_fake_activity() {
             fi
         
             if [[ "$STATUS" != "$prev_status" ]]; then
+                echo "${BLUE}${STATUS}${RESET}" | sudo tee "$LAST_POWER_STATE" >/dev/null
                 recalc_timers
-                echo "$STATUS" | sudo tee "$LAST_POWER_STATE" >/dev/null
                 last_ts=$(date +%s)
                 idle_elapsed=0
                 active=1
+                monitor_idle=0
                 stop_fake_activity
+                backlight_off=0
+                was_dimmed=0
+                
                 if [[ -n "$saved_display_brightness" && "$saved_display_brightness" -ge 0 ]]; then
                     set_display_brightness "$saved_display_brightness"
                 fi
@@ -501,9 +540,8 @@ send_fake_activity() {
                     /mnt/stateful_partition/encrypted/var/lib/power_manager/disable_dark_resume; do
                     [[ -f "$file" ]] && echo 0 | sudo tee "$file" >/dev/null 2>&1
                 done
-                sleep 5
-                start_fake_activity
-                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Saved power state: ${RESET}${GREEN}${STATUS}${RESET}" >> "$LOG_FILE"
+                
+                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Power state changed to: ${RESET}${GREEN}${STATUS}${RESET}${BLUE} - Timers recalculated (Dim: ${dim_delay}s, Backlight: ${backlight_delay}s, Suspend: ${suspend_delay}s)${RESET}" >> "$LOG_FILE"
             fi
             ;;
          *"Enabling wakeup for"*|*"User triggered wake"*|*"User activity ongoing"*)
@@ -663,6 +701,7 @@ stop_monitoring() {
     rm -f "$RUN_FLAG"
     rm -f "$PID_FILE"
     rm -f "$PID_FILE.lock"
+    stop_deep_sleep_enforcer
 }
 
 case "$1" in
