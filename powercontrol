@@ -718,7 +718,7 @@ case "$1" in
     --h|-h|h|--help|-help|help)
         show_help
     ;;
-    monitor)
+    monitor|mon)
        tail -f /var/log/powercontrol.log
     ;;
     startup)
