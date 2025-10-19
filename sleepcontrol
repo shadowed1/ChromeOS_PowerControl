@@ -285,42 +285,6 @@ update_power_state_file() {
 
 idle_elapsed=0
 
- start_deep_sleep_enforcer() {
-        if [[ "$SUSPEND_MODE" == "deep" ]]; then
-            (
-                while [ -f "$RUN_FLAG" ]; do
-                    sleep 15
-                    
-                    if read -r mem_sleep < /sys/power/mem_sleep 2>/dev/null; then
-                        current_mode="${mem_sleep##*[}"
-                        current_mode="${current_mode%%]*}"
-                    else
-                        current_mode=""
-                    fi                    
-                    if [[ "$current_mode" != "deep" ]]; then
-                        echo "deep" | sudo tee /sys/power/mem_sleep >/dev/null 2>&1
-                        echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Re-enforcing deep sleep mode (was: $current_mode)${RESET}" >> "$LOG_FILE"
-                    fi
-                    
-                    for file in \
-                        /var/lib/power_manager/disable_dark_resume \
-                        /usr/share/power_manager/disable_dark_resume \
-                        /mnt/stateful_partition/encrypted/var/lib/power_manager/disable_dark_resume; do
-                        [[ -f "$file" ]] && echo 0 | sudo tee "$file" >/dev/null 2>&1
-                    done
-                done
-            ) &
-            deep_sleep_enforcer_pid=$!
-        fi
-    }
-
-    stop_deep_sleep_enforcer() {
-        if [[ -n "$deep_sleep_enforcer_pid" ]] && ps -p "$deep_sleep_enforcer_pid" > /dev/null 2>&1; then
-            kill "$deep_sleep_enforcer_pid" 2>/dev/null
-            wait "$deep_sleep_enforcer_pid" 2>/dev/null
-        fi
-    }
-
 monitor_idle_activity() {
     exec 200>"$PID_FILE.lock"
     flock -n 200 || {
@@ -356,20 +320,6 @@ monitor_idle_activity() {
     local saved_kb_brightness=$(sudo ectool pwmgetkblight 2>/dev/null | awk '{print $NF}')
     local lid_closed=0
 
-        get_battery_info
-        if [[ -f "$LAST_POWER_STATE" ]]; then
-            prev_status=$(<"$LAST_POWER_STATE")
-            if [[ "$STATUS" != "$prev_status" ]]; then
-                echo "$STATUS" | sudo tee "$LAST_POWER_STATE" >/dev/null
-                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Initial power state: ${RESET}${GREEN}${STATUS}${RESET}" >> "$LOG_FILE"
-            fi
-        else
-            echo "$STATUS" | sudo tee "$LAST_POWER_STATE" >/dev/null
-            echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Initial power state: ${RESET}${GREEN}${STATUS}${RESET}" >> "$LOG_FILE"
-        fi
-        recalc_timers
-
-
     if [[ "$saved_kb_brightness" -gt 0 ]]; then
         saved_kb_brightness="$saved_kb_brightness"
     else
@@ -378,7 +328,6 @@ monitor_idle_activity() {
 
     save_current_brightness
     last_power_check_time=0
-    last_log_ts=0
     
 send_fake_activity() {
     now=$(date +%s)
@@ -427,6 +376,39 @@ send_fake_activity() {
         fi
     }
 
+    start_deep_sleep_enforcer() {
+        if [[ "$SUSPEND_MODE" == "deep" ]]; then
+            (
+                while [ -f "$RUN_FLAG" ]; do
+                    sleep 15
+                    
+                    current_mode=$(cat /sys/power/mem_sleep 2>/dev/null | grep -o '\[.*\]' | tr -d '[]')
+                    
+                    if [[ "$current_mode" != "deep" ]]; then
+                        echo "deep" | sudo tee /sys/power/mem_sleep >/dev/null 2>&1
+                        echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Re-enforcing deep sleep mode (was: $current_mode)${RESET}" >> "$LOG_FILE"
+                    fi
+                    
+                    for file in \
+                        /var/lib/power_manager/disable_dark_resume \
+                        /usr/share/power_manager/disable_dark_resume \
+                        /mnt/stateful_partition/encrypted/var/lib/power_manager/disable_dark_resume; do
+                        [[ -f "$file" ]] && echo 0 | sudo tee "$file" >/dev/null 2>&1
+                    done
+                done
+            ) &
+            deep_sleep_enforcer_pid=$!
+            echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Started deep sleep enforcer (PID $deep_sleep_enforcer_pid)${RESET}" >> "$LOG_FILE"
+        fi
+    }
+
+    stop_deep_sleep_enforcer() {
+        if [[ -n "$deep_sleep_enforcer_pid" ]] && ps -p "$deep_sleep_enforcer_pid" > /dev/null 2>&1; then
+            kill "$deep_sleep_enforcer_pid" 2>/dev/null
+            wait "$deep_sleep_enforcer_pid" 2>/dev/null
+            echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Stopped deep sleep enforcer${RESET}" >> "$LOG_FILE"
+        fi
+    }
 
 
     exec 3< <(
@@ -499,12 +481,12 @@ send_fake_activity() {
         *"Lid closed"*)
             lid_closed=1
             if (( LIDSLEEP_ENABLED == 1 )); then
-                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Lid closed, lid sleep enabled - allowing system sleep${RESET}" >> "$LOG_FILE"
+                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Lid closed - allowing system sleep${RESET}" >> "$LOG_FILE"
                 stop_fake_activity
                 monitor_idle=0
                 active=1
             else
-                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Lid closed, lid sleep disabled - maintaining wake state${RESET}" >> "$LOG_FILE"
+                echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Lid closed - maintaining wake state${RESET}" >> "$LOG_FILE"
                 monitor_idle=1
                 active=0
                 start_fake_activity
@@ -517,7 +499,7 @@ send_fake_activity() {
             active=1
             stop_fake_activity
             backlight_off=0
-            echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Lid Opened!"
+            echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Lid opened!"
             if (( PRESENTATION_MODE == 0 )); then
                 if (( kb_brightness_restored == 0 )); then
                     kb_brightness_restored=1
@@ -538,7 +520,7 @@ send_fake_activity() {
             fi
         
             if [[ "$STATUS" != "$prev_status" ]]; then
-                echo "$STATUS" | sudo tee "$LAST_POWER_STATE" >/dev/null
+                echo "${BLUE}${STATUS}${RESET}" | sudo tee "$LAST_POWER_STATE" >/dev/null
                 recalc_timers
                 last_ts=$(date +%s)
                 idle_elapsed=0
@@ -869,9 +851,9 @@ case "$1" in
     else
         load_config
         if [[ "$MODE" == "battery" ]]; then
-            echo "${BLUE}Battery = Dim: $((BATTERY_DIM_DELAY)) min -> Display off: $((BATTERY_BACKLIGHT)) min -> Idle: $((BATTERY_DELAY)) min | Audio Detection: $AUDIO_DETECTION_BATTERY | Lid Sleep: $LIDSLEEP_BATTERY ${RESET}"
+            echo "${BLUE}Battery = Dim: $((BATTERY_DIM_DELAY)) min -> Display off: $((BATTERY_BACKLIGHT)) min -> Idle: $((BATTERY_DELAY)) min | Audio Detection: $AUDIO_DETECTION_BATTERY Lid Sleep: $LIDSLEEP_POWER ${RESET}"
         else
-            echo "${BLUE}Power = Dim: $((POWER_DIM_DELAY)) min -> Display off: $((POWER_BACKLIGHT)) min -> Idle: $((POWER_DELAY)) min | Audio Detection: $AUDIO_DETECTION_POWER | Lid Sleep: $LIDSLEEP_POWER ${RESET}"
+            echo "${BLUE}Power = Dim: $((POWER_DIM_DELAY)) min -> Display off: $((POWER_BACKLIGHT)) min -> Idle: $((POWER_DELAY)) min | Audio Detection: $AUDIO_DETECTION_POWER | Lid Sleep: $LIDSLEEP_BATTERY ${RESET}"
         fi
     fi
         ;;
