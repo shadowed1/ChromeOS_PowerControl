@@ -409,7 +409,7 @@ send_fake_activity() {
             LIDSLEEP_ENABLED=$LIDSLEEP_POWER
         fi
 
-       ((  LIDSLEEP_ENABLED == 0 )) && lid_closed=0
+       (( LIDSLEEP_ENABLED == 0 )) && lid_closed=0
 
         case "$line" in
         *"Chrome is using presentation display mode"*)
