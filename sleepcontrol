@@ -16,7 +16,7 @@ BATTERY_STATUS_PATH="/var/log/power_manager/powerd.LATEST"
 BACKLIGHT_NAME=""
 BRIGHTNESS_PATH=""
 MAX_BRIGHTNESS_PATH=""
-FAKE_ACTIVITY_INTERVAL=120
+FAKE_ACTIVITY_INTERVAL=240
 LID_SUSPEND_IGNORE_UNTIL=0
 LAST_FAKE_ACTIVITY_FILE="${INSTALL_DIR}/.last_fake_activity"
 LAST_POWER_STATE="${INSTALL_DIR}/.last_power_state"
@@ -409,13 +409,14 @@ send_fake_activity() {
             LIDSLEEP_ENABLED=$LIDSLEEP_POWER
         fi
 
-       # ((  LIDSLEEP_ENABLED == 0 )) && lid_closed=0
+       ((  LIDSLEEP_ENABLED == 0 )) && lid_closed=0
 
         case "$line" in
         *"Chrome is using presentation display mode"*)
             PRESENTATION_MODE=1
             echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Presentation mode/External display detected${RESET}" >> "$LOG_FILE"
             stop_fake_activity
+            lid_closed=0
             ;;
         *"Chrome is using normal display mode"*)
             PRESENTATION_MODE=0
