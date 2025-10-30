@@ -494,10 +494,11 @@ send_fake_activity() {
         
             if [[ "$STATUS" != "$prev_status" ]]; then
                 recalc_timers
+                monitor_idle=0
                 last_ts=$now
                 active=1
                 stop_fake_activity
-
+                backlight_off=0
                 echo "$STATUS" | sudo tee "$LAST_POWER_STATE" >/dev/null
                 if [[ -n "$saved_display_brightness" && "$saved_display_brightness" -ge 0 ]]; then
                     set_display_brightness "$saved_display_brightness"
