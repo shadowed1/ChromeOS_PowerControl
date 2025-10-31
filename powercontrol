@@ -545,7 +545,7 @@ stop_monitoring() {
             kill "$PID" 2>/dev/null 2>/dev/null || true
             sleep 1
             kill -9 "$PID" 2>/dev/null || true
-            echo "${RED}$(date '+%Y-%m-%d %H:%M:%S') - PowerControl stopped (PID $PID)${RESET}" | tee -a "$LOG_FILE"
+            echo "${RED}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - PowerControl stopped (PID $PID)${RESET}" | tee -a "$LOG_FILE"
         fi
     fi
     rm -f "$RUN_FLAG" "$PID_FILE"
@@ -676,15 +676,15 @@ case "$1" in
     LOG_FILE="/var/log/powercontrol.log"
 
     if [ -f "$LOG_FILE" ] && [ "$(stat -c%s "$LOG_FILE")" -gt 32768 ]; then
-        echo "$(date '+%Y-%m-%d %H:%M:%S') - Truncated log file (exceeded 32KB)" > "$LOG_FILE"
+        echo "$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Truncated log file (exceeded 32KB)" > "$LOG_FILE"
     fi
 
     if pgrep -f "$0 __powercontrol_monitor__" >/dev/null; then
-        echo "${YELLOW}$(date '+%Y-%m-%d %H:%M:%S') - PowerControl is already running.${RESET}" | tee -a "$LOG_FILE"
+        echo "${YELLOW}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - PowerControl is already running.${RESET}" | tee -a "$LOG_FILE"
     else
         nohup "$0" __powercontrol_monitor__ >> "$LOG_FILE" 2>&1 &
         echo $! > "$PID_FILE"
-        echo "${CYAN}$(date '+%Y-%m-%d %H:%M:%S') - Starting PowerControl - Output is logged to $LOG_FILE${RESET}"
+        echo "${CYAN}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Starting PowerControl - Output is logged to $LOG_FILE${RESET}"
     fi
     ;;
 
