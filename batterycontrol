@@ -233,13 +233,7 @@ start_monitoring_loop() {
                 sudo ectool chargecontrol normal >/dev/null 2>&1
             fi
         else
-            sleep 7
-            ACTIVE_PORT_CHECK=$(detect_active_usbpd_port)
-            if [ "$ACTIVE_PORT_CHECK" == "-1" ]; then
-                sudo ectool chargecontrol normal >/dev/null 2>&1
-            else
-               echo "$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - AC briefly disconnected (<5s), ignoring" >> "$LOG_FILE"
-            fi
+            sudo ectool chargecontrol normal >/dev/null 2>&1
         fi
 
         sleep 7
