@@ -19,3 +19,4 @@ sudo mv /home/chronos/ChromeOS_PowerControl_Installer.sh /usr/local/bin
 echo "sudo mv /home/chronos/ChromeOS_PowerControl_Installer.sh /usr/local/bin"
 echo "sudo bash /usr/local/bin/ChromeOS_PowerControl_Installer.sh"
 sudo bash /usr/local/bin/ChromeOS_PowerControl_Installer.sh
+exit 0
