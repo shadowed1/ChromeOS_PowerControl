@@ -236,20 +236,20 @@ elif [[ $# -eq 2 && "$1" =~ ^[a-zA-Z]+$ && "$2" =~ ^[0-9]+$ ]]; then
 
     if [[ "$GPU_ARG" != "$GPU_TYPE" ]]; then
         echo ""
-        echo "${RED}$(date '+%Y-%m-%d %H:%M:%S') Error: GPU type '$GPU_ARG' does not match detected type '$GPU_TYPE'.${RESET}"
+        echo "${RED}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) Error: GPU type '$GPU_ARG' does not match detected type '$GPU_TYPE'.${RESET}"
         echo ""
         exit 1
     fi
 else
     echo ""
-    echo "${RED}$(date '+%Y-%m-%d %H:%M:%S') Invalid arguments.${RESET}"
+    echo "${RED}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) Invalid arguments.${RESET}"
     help
     exit 1
 fi
 
 if ! [[ "$REQUESTED_FREQ" =~ ^[0-9]+$ ]]; then
     echo ""
-    echo "${RED}$(date '+%Y-%m-%d %H:%M:%S') Error: Frequency must be a whole number.${RESET}"
+    echo "${RED}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) Error: Frequency must be a whole number.${RESET}"
     echo ""
     help
     exit 1
@@ -259,7 +259,7 @@ case "$GPU_ARG" in
     intel)
         if (( REQUESTED_FREQ > ORIGINAL_GPU_MAX_FREQ )); then
             echo ""
-            echo "${RED}$(date '+%Y-%m-%d %H:%M:%S') Error: Requested frequency (${REQUESTED_FREQ} MHz) exceeds original maximum (${ORIGINAL_GPU_MAX_FREQ} MHz).${RESET}"
+            echo "${RED}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) Error: Requested frequency (${REQUESTED_FREQ} MHz) exceeds original maximum (${ORIGINAL_GPU_MAX_FREQ} MHz).${RESET}"
             echo ""
             exit 1
         fi
@@ -267,7 +267,7 @@ case "$GPU_ARG" in
         echo ""
         echo "$REQUESTED_FREQ" | sudo tee "$GPU_FREQ_PATH" > /dev/null
         DISPLAY_FREQ="$REQUESTED_FREQ"
-        echo "${MAGENTA}$(date '+%Y-%m-%d %H:%M:%S') Intel GPU frequency set to $DISPLAY_FREQ MHz${RESET}" | tee -a "$LOG_FILE"
+        echo "${MAGENTA}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) Intel GPU frequency set to $DISPLAY_FREQ MHz${RESET}" | tee -a "$LOG_FILE"
         echo ""
         GPU_MAX_FREQ="$REQUESTED_FREQ"
         save_config
@@ -282,7 +282,7 @@ case "$GPU_ARG" in
 
         if (( freq_hz > ORIGINAL_GPU_MAX_FREQ )); then
             echo ""
-            echo "${RED}$(date '+%Y-%m-%d %H:%M:%S') Error: Requested frequency (${freq_hz} Hz) exceeds original maximum (${ORIGINAL_GPU_MAX_FREQ} Hz).${RESET}"
+            echo "${RED}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) Error: Requested frequency (${freq_hz} Hz) exceeds original maximum (${ORIGINAL_GPU_MAX_FREQ} Hz).${RESET}"
             echo ""
             exit 1
         fi
@@ -290,7 +290,7 @@ case "$GPU_ARG" in
         echo ""
         echo "$freq_hz" | sudo tee "$GPU_FREQ_PATH" > /dev/null
         DISPLAY_FREQ=$((freq_hz / 1000000))
-        echo "${MAGENTA}$(date '+%Y-%m-%d %H:%M:%S') $GPU_ARG GPU frequency set to $DISPLAY_FREQ MHz${RESET}" | tee -a "$LOG_FILE"
+        echo "${MAGENTA}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) $GPU_ARG GPU frequency set to $DISPLAY_FREQ MHz${RESET}" | tee -a "$LOG_FILE"
         GPU_MAX_FREQ="$freq_hz"
         echo ""
         save_config
@@ -298,18 +298,18 @@ case "$GPU_ARG" in
     amd)
         if (( REQUESTED_FREQ > ORIGINAL_GPU_MAX_FREQ )); then
             echo ""
-            echo "${RED}$(date '+%Y-%m-%d %H:%M:%S') Error: Requested frequency (${REQUESTED_FREQ} MHz) exceeds original maximum (${ORIGINAL_GPU_MAX_FREQ} MHz).${RESET}"
+            echo "${RED}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) Error: Requested frequency (${REQUESTED_FREQ} MHz) exceeds original maximum (${ORIGINAL_GPU_MAX_FREQ} MHz).${RESET}"
             echo ""
             exit 1
         fi
 
         amd_set_max_freq "$REQUESTED_FREQ"
-        echo "${MAGENTA}$(date '+%Y-%m-%d %H:%M:%S') AMD GPU frequency set to $REQUESTED_FREQ MHz${RESET}" | tee -a "$LOG_FILE"
+        echo "${MAGENTA}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) AMD GPU frequency set to $REQUESTED_FREQ MHz${RESET}" | tee -a "$LOG_FILE"
         echo ""
         ;;
     *)
         echo ""
-        echo "${RED}$(date '+%Y-%m-%d %H:%M:%S') Unsupported GPU type '$GPU_ARG'.${RESET}"
+        echo "${RED}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) Unsupported GPU type '$GPU_ARG'.${RESET}"
         echo ""
         help
         exit 1
