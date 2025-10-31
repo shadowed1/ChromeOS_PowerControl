@@ -128,8 +128,8 @@ load_config() {
     recalc_timers
 }
 
-last_reload_time=$(date +%s)
-last_ts=$(date +%s)
+last_reload_time=$EPOCHSECONDS
+last_ts=$EPOCHSECONDS
 
 recalc_timers() {
     if [[ "$STATUS" == "Discharging" ]]; then
@@ -296,8 +296,8 @@ monitor_idle_activity() {
 
     load_config
     recalc_timers
-    last_reload_time=$(date +%s)
-    last_ts=$(date +%s)
+    last_reload_time=$EPOCHSECONDS
+    last_ts=$EPOCHSECONDS
 
     if pgrep -f "$0 __sleepcontrol_monitor__" | grep -v "^$$\$" > /dev/null; then
         exit 0
@@ -314,8 +314,8 @@ monitor_idle_activity() {
     local idle_since=0
     local backlight_off=0
     local kb_brightness_restored=1
-    local power_backlight_ts=$(date +%s)
-    local battery_backlight_ts=$(date +%s)
+    local power_backlight_ts=$EPOCHSECONDS
+    local battery_backlight_ts=$EPOCHSECONDS
     last_reload_time=0
     local saved_kb_brightness=$(sudo ectool pwmgetkblight 2>/dev/null | awk '{print $NF}')
     local lid_closed=0
@@ -330,7 +330,7 @@ monitor_idle_activity() {
     last_power_check_time=0
     
 send_fake_activity() {
-    now=$(date +%s)
+    now=$EPOCHSECONDS
 
     if (( monitor_idle == 1 || audio_active == 1 )); then
         dbus-send --system --type=method_call \
@@ -365,7 +365,7 @@ send_fake_activity() {
             kill "$fake_activity_pid" 2>/dev/null
             wait "$fake_activity_pid" 2>/dev/null
     
-            last_ts=$(date +%s)
+            last_ts=$EPOCHSECONDS
             idle_elapsed=0
             monitor_idle=0
     
@@ -387,11 +387,11 @@ send_fake_activity() {
     )
 
     load_config
-    last_reload_time=$(date +%s)
-    last_ts=$(date +%s)
+    last_reload_time=$EPOCHSECONDS
+    last_ts=$EPOCHSECONDS
 
     while read -r line <&3; do
-        now=$(date +%s)
+        now=$EPOCHSECONDS
 
         (( now - last_reload_time >= 10 )) && { load_config; last_reload_time=$now; }
 
@@ -430,7 +430,7 @@ send_fake_activity() {
             ;;
         *"Audio activity stopped"*)
             (( AUDIO_DETECTION_ENABLED == 1 )) && audio_active=0
-            last_ts=$(date +%s)
+            last_ts=$EPOCHSECONDS
             idle_elapsed=0
             active=1
             ;;
