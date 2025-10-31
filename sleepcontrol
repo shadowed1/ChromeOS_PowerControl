@@ -513,7 +513,7 @@ send_fake_activity() {
 
                 echo "${BLUE}$(date '+%Y-%m-%d %H:%M:%S') - Saved power state: ${RESET}${GREEN}${STATUS}${RESET}" >> "$LOG_FILE"
 
-                if (( now - last_ts >= dim_delay )); then
+                if (( now - last_ts >= 30 )); then
                     monitor_idle=1
                     start_fake_activity
                 fi
