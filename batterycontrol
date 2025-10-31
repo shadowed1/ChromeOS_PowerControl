@@ -80,7 +80,7 @@ set_threshold() {
 
     CHARGE_MAX=$1
     save_config
-    echo "${GREEN}$(date '+%Y-%m-%d %H:%M:%S') - Charge Limit: ${CHARGE_MAX}%${RESET}" | tee -a "$LOG_FILE"
+    echo "${GREEN}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Charge Limit: ${CHARGE_MAX}%${RESET}" | tee -a "$LOG_FILE"
 }
 
 load_config
@@ -177,13 +177,13 @@ start_monitoring_loop() {
     touch "$RUN_FLAG"
     echo $$ > "$PID_FILE"
 
-    echo "${GREEN}$(date '+%Y-%m-%d %H:%M:%S') - BatteryControl started. (PID $$).${RESET}"
+    echo "${GREEN}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - BatteryControl started. (PID $$).${RESET}"
 
     local last_reload_time=0
 
     while true; do
         if [ ! -f "$RUN_FLAG" ]; then
-            echo "${RED}$(date '+%Y-%m-%d %H:%M:%S') - BatteryControl Stopped${RESET}." | tee -a "$LOG_FILE"
+            echo "${RED}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - BatteryControl Stopped${RESET}." | tee -a "$LOG_FILE"
             rm -f "$PID_FILE"
             exit 0
         fi
@@ -195,7 +195,7 @@ start_monitoring_loop() {
 
             if read -r BATTERY_CHARGE < "$BATTERY_PATH"; then
                 read -r STATE < "$STATUS_PATH" || STATE="Unknown"
-                echo "${GREEN}$(date '+%Y-%m-%d %H:%M:%S') - Battery: ${BATTERY_CHARGE}% - Charge Limit: ${CHARGE_MAX}% - State: $STATE${RESET}" >> "$LOG_FILE"
+                echo "${GREEN}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Battery: ${BATTERY_CHARGE}% - Charge Limit: ${CHARGE_MAX}% - State: $STATE${RESET}" >> "$LOG_FILE"
             else
                 echo "Failed to read $BATTERY_PATH" >&2
             fi
@@ -232,10 +232,16 @@ start_monitoring_loop() {
                 sudo ectool chargecontrol normal >/dev/null 2>&1
             fi
         else
-            sudo ectool chargecontrol normal >/dev/null 2>&1
+            sleep 7
+            ACTIVE_PORT_CHECK=$(detect_active_usbpd_port)
+            if [ "$ACTIVE_PORT_CHECK" == "-1" ]; then
+                sudo ectool chargecontrol normal >/dev/null 2>&1
+            else
+               echo "$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - AC briefly disconnected (<5s), ignoring" >> "$LOG_FILE"
+            fi
         fi
 
-        sleep 5
+        sleep 7
     done
 }
 
@@ -244,7 +250,7 @@ stop_monitoring() {
         PID=$(cat "$PID_FILE")
         if ps -p "$PID" > /dev/null 2>&1; then
             kill "$PID"
-            echo "${RED}$(date '+%Y-%m-%d %H:%M:%S') - BatteryControl Stopped (PID $PID)${RESET}" | tee -a "$LOG_FILE"
+            echo "${RED}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - BatteryControl Stopped (PID $PID)${RESET}" | tee -a "$LOG_FILE"
         fi
         rm -f "$PID_FILE"
     fi
@@ -261,12 +267,12 @@ case "$1" in
         LOG_FILE="/var/log/batterycontrol.log"
 
         if [ -f "$LOG_FILE" ] && [ "$(stat -c%s "$LOG_FILE")" -gt 32768 ]; then
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - Truncated log file (exceeded 32KB)" > "$LOG_FILE"
+            echo "$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Truncated log file (exceeded 32KB)" > "$LOG_FILE"
         fi
 
 
         nohup "$0" __batterycontrol_monitor__ >> "$LOG_FILE" 2>&1 &
-        echo "${GREEN}$(date '+%Y-%m-%d %H:%M:%S') - Starting BatteryControl - Output is logged to $LOG_FILE${RESET}" | tee -a "$LOG_FILE"
+        echo "${GREEN}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Starting BatteryControl - Output is logged to $LOG_FILE${RESET}" | tee -a "$LOG_FILE"
         ;;
     stop)
         stop_monitoring
