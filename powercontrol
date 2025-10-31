@@ -573,6 +573,28 @@ uninstall_script() {
     fi
 }
 
+reinstall_script() {
+    if [ -z "$INSTALL_DIR" ]; then
+        echo "Error: INSTALL_DIR is not set."
+        exit 1
+    fi
+
+    local script="$INSTALL_DIR/Reinstall_ChromeOS_PowerControl.sh"
+
+    if [ -d "$INSTALL_DIR" ]; then
+        if [ -x "$script" ]; then
+            echo "Reinstalling ChromeOS PowerControl..."
+            sudo bash "$script"
+        else
+            echo "${RED}Reinstall script not found or not executable at: $script${RESET}"
+            exit 1
+        fi
+    else
+        echo "${RED}Installation directory not found: $INSTALL_DIR${RESET}"
+        exit 1
+    fi
+}
+
 
 show_help() {
 echo "${CYAN}"
@@ -665,27 +687,27 @@ max_perf_pct() {
 
 case "$1" in
    start)
-    if [ ! -f "$CONFIG_FILE" ]; then
-        echo "${CYAN}Initializing config file with default values...${RESET}"
-        detect_cpu_type
-        load_config
-    fi
-
-    stop_monitoring >/dev/null 2>&1
-
-    LOG_FILE="/var/log/powercontrol.log"
-
-    if [ -f "$LOG_FILE" ] && [ "$(stat -c%s "$LOG_FILE")" -gt 32768 ]; then
-        echo "$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Truncated log file (exceeded 32KB)" > "$LOG_FILE"
-    fi
-
-    if pgrep -f "$0 __powercontrol_monitor__" >/dev/null; then
-        echo "${YELLOW}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - PowerControl is already running.${RESET}" | tee -a "$LOG_FILE"
-    else
-        nohup "$0" __powercontrol_monitor__ >> "$LOG_FILE" 2>&1 &
-        echo $! > "$PID_FILE"
-        echo "${CYAN}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Starting PowerControl - Output is logged to $LOG_FILE${RESET}"
-    fi
+        if [ ! -f "$CONFIG_FILE" ]; then
+            echo "${CYAN}Initializing config file with default values...${RESET}"
+            detect_cpu_type
+            load_config
+        fi
+    
+        stop_monitoring >/dev/null 2>&1
+    
+        LOG_FILE="/var/log/powercontrol.log"
+    
+        if [ -f "$LOG_FILE" ] && [ "$(stat -c%s "$LOG_FILE")" -gt 32768 ]; then
+            echo "$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Truncated log file (exceeded 32KB)" > "$LOG_FILE"
+        fi
+    
+        if pgrep -f "$0 __powercontrol_monitor__" >/dev/null; then
+            echo "${YELLOW}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - PowerControl is already running.${RESET}" | tee -a "$LOG_FILE"
+        else
+            nohup "$0" __powercontrol_monitor__ >> "$LOG_FILE" 2>&1 &
+            echo $! > "$PID_FILE"
+            echo "${CYAN}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Starting PowerControl - Output is logged to $LOG_FILE${RESET}"
+        fi
     ;;
 
     stop)
@@ -716,154 +738,145 @@ case "$1" in
        tail -f /var/log/powercontrol.log
     ;;
     startup)
-    CONF_SOURCE="$INSTALL_DIR/powercontrol.conf"
-    CONF_TARGET="/etc/init/powercontrol.conf"
-    CONF_SOURCE_NO_TURBO="$INSTALL_DIR/no_turbo.conf"
-    
-    if [ "$IS_INTEL" -eq 1 ]; then
-        read -p "Do you want to disable Turbo Boost automatically on startup? (Y/n): " choice
-        if [[ "$choice" =~ ^[Yy]$ ]]; then
-            if [ -f "$CONF_SOURCE_NO_TURBO" ]; then
-                echo "Copying no_turbo.conf to /etc/init/..."
-                sudo cp "$CONF_SOURCE_NO_TURBO" "/etc/init/"
-                echo "${CYAN}no_turbo.conf copied.${RESET}"
+        CONF_SOURCE="$INSTALL_DIR/powercontrol.conf"
+        CONF_TARGET="/etc/init/powercontrol.conf"
+        CONF_SOURCE_NO_TURBO="$INSTALL_DIR/no_turbo.conf"
+        
+        if [ "$IS_INTEL" -eq 1 ]; then
+            read -p "Do you want to disable Turbo Boost automatically on startup? (Y/n): " choice
+            if [[ "$choice" =~ ^[Yy]$ ]]; then
+                if [ -f "$CONF_SOURCE_NO_TURBO" ]; then
+                    echo "Copying no_turbo.conf to /etc/init/..."
+                    sudo cp "$CONF_SOURCE_NO_TURBO" "/etc/init/"
+                    echo "${CYAN}no_turbo.conf copied.${RESET}"
+                else
+                    echo "Intel Turbo Boost will start automatically."
+                    sudo rm -f /etc/init/no_turbo.conf
+                fi
             else
-                echo "Intel Turbo Boost will start automatically."
-                sudo rm -f /etc/init/no_turbo.conf
+                echo "Intel Turbo Boost enabled on startup."
+                sudo rm -r /etc/init/no_turbo.conf
+            fi
+        fi
+    
+        read -p "Do you want PowerControl to startup automatically on boot? (Y/n): " choice
+        if [[ "$choice" =~ ^[Yy]$ ]]; then
+            if [ -f "$CONF_SOURCE" ]; then
+                echo "Copying powercontrol.conf to /etc/init/..."
+                sudo cp "$CONF_SOURCE" "$CONF_TARGET"
+                echo "${CYAN}powercontrol.conf copied.${RESET}"
+            else
+                echo "${RED}powercontrol.conf not found at $CONF_SOURCE${RESET}"
             fi
         else
-            echo "Intel Turbo Boost enabled on startup."
-            sudo rm -r /etc/init/no_turbo.conf
+            echo "PowerControl will not startup automatically on boot."
+            sudo rm -f /etc/init/powercontrol.conf
         fi
-    fi
-
-    read -p "Do you want PowerControl to startup automatically on boot? (Y/n): " choice
-    if [[ "$choice" =~ ^[Yy]$ ]]; then
-        if [ -f "$CONF_SOURCE" ]; then
-            echo "Copying powercontrol.conf to /etc/init/..."
-            sudo cp "$CONF_SOURCE" "$CONF_TARGET"
-            echo "${CYAN}powercontrol.conf copied.${RESET}"
-        else
-            echo "${RED}powercontrol.conf not found at $CONF_SOURCE${RESET}"
-        fi
-    else
-        echo "PowerControl will not startup automatically on boot."
-        sudo rm -f /etc/init/powercontrol.conf
-    fi
     ;;
     ramp_up)
-    if [[ "$2" =~ ^[0-9]+$ ]]; then
-        if (( $2 < 1 || $2 > 100 )); then
+        if [[ "$2" =~ ^[0-9]+$ ]]; then
+            if (( $2 < 1 || $2 > 100 )); then
+                echo "Error: ramp_up must be between 1 and 100"
+                exit 1
+            fi
+            sed -i "s/^RAMP_UP=.*/RAMP_UP=$2/" "$CONFIG_FILE"
+            echo "ramp_up set to $2%"
+        else
             echo "Error: ramp_up must be between 1 and 100"
             exit 1
         fi
-        sed -i "s/^RAMP_UP=.*/RAMP_UP=$2/" "$CONFIG_FILE"
-        echo "ramp_up set to $2%"
-    else
-        echo "Error: ramp_up must be between 1 and 100"
-        exit 1
-    fi
     ;;
     ramp_down)
-    if [[ "$2" =~ ^[0-9]+$ ]]; then
-        if (( $2 < 1 || $2 > 100 )); then
+        if [[ "$2" =~ ^[0-9]+$ ]]; then
+            if (( $2 < 1 || $2 > 100 )); then
+                echo "Error: ramp_down must be between 1 and 100"
+                exit 1
+            fi
+            sed -i "s/^RAMP_DOWN=.*/RAMP_DOWN=$2/" "$CONFIG_FILE"
+            echo "ramp_down set to $2%"
+        else
             echo "Error: ramp_down must be between 1 and 100"
             exit 1
         fi
-        sed -i "s/^RAMP_DOWN=.*/RAMP_DOWN=$2/" "$CONFIG_FILE"
-        echo "ramp_down set to $2%"
-    else
-        echo "Error: ramp_down must be between 1 and 100"
-        exit 1
-    fi
     ;;
     hotzone)
-    if [[ "$2" =~ ^[0-9]+$ ]]; then
-        if (( $2 < 60 || $2 > 90 )); then
+        if [[ "$2" =~ ^[0-9]+$ ]]; then
+            if (( $2 < 60 || $2 > 90 )); then
+                echo "Error: hotzone must be between 60°C and 90°C"
+                exit 1
+            fi
+            sed -i "s/^HOTZONE=.*/HOTZONE=$2/" "$CONFIG_FILE"
+            echo "${CYAN}"
+            echo "Hotzone set to $2°C"
+            echo "${RESET}"   
+        else
             echo "Error: hotzone must be between 60°C and 90°C"
             exit 1
         fi
-        sed -i "s/^HOTZONE=.*/HOTZONE=$2/" "$CONFIG_FILE"
-        echo "${CYAN}"
-        echo "Hotzone set to $2°C"
-        echo "${RESET}"   
-    else
-        echo "Error: hotzone must be between 60°C and 90°C"
-        exit 1
-    fi
     ;;
     poll | cpu_poll)
-    if [[ "$2" =~ ^[0-9]+([.][0-9]+)?$ ]]; then
-        CPU_POLL=$(printf "%.2f" "$2")
-        if (( $(awk "BEGIN {print ($CPU_POLL < 0.1)}") )); then
-            echo "${RED}Warning: CPU_POLL below 0.1s, resetting to 0.1s${RESET}"
-            CPU_POLL=0.1
-        elif (( $(awk "BEGIN {print ($CPU_POLL > 5)}") )); then
-            echo "${RED}Warning: CPU_POLL above 5s, resetting to 5s${RESET}"
-            CPU_POLL=5
+        if [[ "$2" =~ ^[0-9]+([.][0-9]+)?$ ]]; then
+            CPU_POLL=$(printf "%.2f" "$2")
+            if (( $(awk "BEGIN {print ($CPU_POLL < 0.1)}") )); then
+                echo "${RED}Warning: CPU_POLL below 0.1s, resetting to 0.1s${RESET}"
+                CPU_POLL=0.1
+            elif (( $(awk "BEGIN {print ($CPU_POLL > 5)}") )); then
+                echo "${RED}Warning: CPU_POLL above 5s, resetting to 5s${RESET}"
+                CPU_POLL=5
+            fi
+            sed -i "s/^CPU_POLL=.*/CPU_POLL=$CPU_POLL/" "$CONFIG_FILE"
+            echo "${CYAN}PowerControl polling rate set to $CPU_POLL seconds${RESET}"
+        else
+            echo "Error: cpu_poll must be a number between 0.1 and 5 (0.5, 1.2, 2.0, etc)"
+            exit 1
         fi
-        sed -i "s/^CPU_POLL=.*/CPU_POLL=$CPU_POLL/" "$CONFIG_FILE"
-        echo "${CYAN}PowerControl polling rate set to $CPU_POLL seconds${RESET}"
-    else
-        echo "Error: cpu_poll must be a number between 0.1 and 5 (0.5, 1.2, 2.0, etc)"
-        exit 1
-    fi
     ;;
     version)
-    if [[ -f "$VERSION_FILE" ]]; then
-        CURRENT_VER=$(cat "$INSTALL_DIR/version")
-        CURRENT_VER_NO=$(echo "$CURRENT_VER" | sed -e 's/VERSION=//' -e 's/"//g' -e 's/\.//g' -e 's/^0*//')
-
-        LATEST_VER=$(curl -Ls https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/version)
-        LATEST_VER_NO=$(echo "$LATEST_VER" | sed -e 's/VERSION=//' -e 's/"//g' -e 's/\.//g' -e 's/^0*//')
-
-        if (( 10#$CURRENT_VER_NO < 10#$LATEST_VER_NO )); then
-            echo "${CYAN}You're using $CURRENT_VER which is NOT the latest version.${RESET}"
-            read -rp "Would you like to 'reinstall' to get $LATEST_VER ? (Y/n): " choice
-            if [[ "$choice" =~ ^[Yy]$ ]]; then
-                echo "${CYAN}Reinstalling!${RESET}"
-                exec sudo powercontrol reinstall
+        if [[ -f "$VERSION_FILE" ]]; then
+            CURRENT_VER=$(cat "$INSTALL_DIR/version")
+            CURRENT_VER_NO=$(echo "$CURRENT_VER" | sed -e 's/VERSION=//' -e 's/"//g' -e 's/\.//g' -e 's/^0*//')
+    
+            LATEST_VER=$(curl -Ls https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/version)
+            LATEST_VER_NO=$(echo "$LATEST_VER" | sed -e 's/VERSION=//' -e 's/"//g' -e 's/\.//g' -e 's/^0*//')
+    
+            if (( 10#$CURRENT_VER_NO < 10#$LATEST_VER_NO )); then
+                echo "${CYAN}You're using $CURRENT_VER which is NOT the latest version.${RESET}"
+                read -rp "Would you like to 'reinstall' to get $LATEST_VER ? (Y/n): " choice
+                if [[ "$choice" =~ ^[Yy]$ ]]; then
+                    echo "${CYAN}Reinstalling!${RESET}"
+                    exec sudo powercontrol reinstall
+                else
+                    echo "${RED}Skipping reinstall.${RESET}"
+                fi
             else
-                echo "${RED}Skipping reinstall.${RESET}"
+                echo "${CYAN}You're using $CURRENT_VER which is up-to-date, so you're good.${RESET}"
             fi
         else
-            echo "${CYAN}You're using $CURRENT_VER which is up-to-date, so you're good.${RESET}"
+            echo "${RED}Version file not found.${RESET}"
+            exit 1
         fi
-    else
-        echo "${RED}Version file not found.${RESET}"
-        exit 1
-    fi
     ;;
     reinstall)
-    echo "Downloading to:${CYAN} /home/chronos/ChromeOS_PowerControl_Installer.sh $RESET"
-    bash <(curl -s "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/ChromeOS_PowerControl_Downloader.sh?$(date +%s)")
-    echo "Running commands:"
-    echo ""
-    sudo mkdir -p /usr/local/bin
-    echo "sudo mkdir -p /usr/local/bin"
-    sudo mv /home/chronos/ChromeOS_PowerControl_Installer.sh /usr/local/bin
-    echo "sudo mv /home/chronos/ChromeOS_PowerControl_Installer.sh /usr/local/bin"
-    echo "sudo bash /usr/local/bin/ChromeOS_PowerControl_Installer.sh"
-    sudo bash /usr/local/bin/ChromeOS_PowerControl_Installer.sh
+        reinstall_script
     ;;
     __powercontrol_monitor__)
-    LOG_FILE="/var/log/powercontrol.log"
-    start_monitoring_loop
+        LOG_FILE="/var/log/powercontrol.log"
+        start_monitoring_loop
     ;;
     all)
-    "$INSTALL_DIR/powercontrol" && "$INSTALL_DIR/batterycontrol" && "$INSTALL_DIR/fancontrol" && "$INSTALL_DIR/gpucontrol" && "$INSTALL_DIR/sleepcontrol"
+        "$INSTALL_DIR/powercontrol" && "$INSTALL_DIR/batterycontrol" && "$INSTALL_DIR/fancontrol" && "$INSTALL_DIR/gpucontrol" && "$INSTALL_DIR/sleepcontrol"
     ;;
     startup_all)
-    sudo "$INSTALL_DIR/powercontrol" startup && sudo "$INSTALL_DIR/batterycontrol" startup && sudo "$INSTALL_DIR/fancontrol" startup && sudo "$INSTALL_DIR/gpucontrol" startup && sudo "$INSTALL_DIR/sleepcontrol" startup
+        sudo "$INSTALL_DIR/powercontrol" startup && sudo "$INSTALL_DIR/batterycontrol" startup && sudo "$INSTALL_DIR/fancontrol" startup && sudo "$INSTALL_DIR/gpucontrol" startup && sudo "$INSTALL_DIR/sleepcontrol" startup
     ;;
     start_all)
-    sudo "$INSTALL_DIR/powercontrol" start && sudo "$INSTALL_DIR/batterycontrol" start && sudo "$INSTALL_DIR/fancontrol" start && sudo "$INSTALL_DIR/sleepcontrol" start
+        sudo "$INSTALL_DIR/powercontrol" start && sudo "$INSTALL_DIR/batterycontrol" start && sudo "$INSTALL_DIR/fancontrol" start && sudo "$INSTALL_DIR/sleepcontrol" start
     ;;
     help_all)
-    "$INSTALL_DIR/powercontrol" help && "$INSTALL_DIR/batterycontrol" help && "$INSTALL_DIR/fancontrol" help && "$INSTALL_DIR/gpucontrol" help && "$INSTALL_DIR/sleepcontrol" help
+        "$INSTALL_DIR/powercontrol" help && "$INSTALL_DIR/batterycontrol" help && "$INSTALL_DIR/fancontrol" help && "$INSTALL_DIR/gpucontrol" help && "$INSTALL_DIR/sleepcontrol" help
     ;;
     *)
-    echo "Unknown command: $1"
-    show_help
+        echo "Unknown command: $1"
+        show_help
     ;;
 esac
