@@ -556,8 +556,13 @@ start_component_now() {
             declare -g SHOW_BATTERYCONTROL_NOTICE=1
             read -rp "${BOLD}${GREEN}Do you want to set suspend mode from freeze to deep, allowing BatteryControl to function while sleeping when charging? Display brightness will change once when enabling (powerd restarts)${RESET}${BOLD} (Y/n): ${RESET} " set_deep
             if [[ -z "$set_deep" || "$set_deep" =~ ^[Yy]$ ]]; then
-                echo "deep" | sudo tee /usr/share/power_manager/suspend_mode >/dev/null
-                echo "deep" | sudo tee /sys/power/mem_sleep >/dev/null
+                 for file in \
+                    /usr/share/power_manager/suspend_mode \
+                    /sys/power/mem_sleep \
+                    /usr/share/power_manager/~/initial_suspend_mode; do
+                    [[ -f "$file" ]] && echo deep | sudo tee "$file" >/dev/null
+                done
+                
         
                 for file in \
                     /var/lib/power_manager/disable_dark_resume \
