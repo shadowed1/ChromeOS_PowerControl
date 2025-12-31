@@ -33,8 +33,6 @@ if [[ ! -f "$SUSPEND_APPLIED_FLAG" ]]; then
         SUSPEND_MODE=$(grep "^SUSPEND_MODE=" "$CONFIG_FILE" | cut -d'=' -f2)
         if [[ "$SUSPEND_MODE" == "freeze" || "$SUSPEND_MODE" == "deep" ]]; then
             echo "$SUSPEND_MODE" | sudo tee /usr/share/power_manager/suspend_mode >/dev/null
-            sudo restart powerd >/dev/null
-
             if [[ "$SUSPEND_MODE" == "freeze" ]]; then
                 echo "s2idle" | sudo tee /usr/share/power_manager/suspend_mode >/dev/null
                 echo "s2idle" | sudo tee /sys/power/mem_sleep >/dev/null
@@ -44,7 +42,7 @@ if [[ ! -f "$SUSPEND_APPLIED_FLAG" ]]; then
                 echo "deep" | sudo tee /sys/power/mem_sleep >/dev/null
                 echo "deep" | sudo tee /usr/share/power_manager/~/initial_suspend_mode >/dev/null
             fi
-
+            sudo restart powerd >/dev/null
             touch "$SUSPEND_APPLIED_FLAG"
         fi
     fi
