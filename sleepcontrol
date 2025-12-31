@@ -37,8 +37,10 @@ if [[ ! -f "$SUSPEND_APPLIED_FLAG" ]]; then
 
             if [[ "$SUSPEND_MODE" == "freeze" ]]; then
                 echo s2idle | sudo tee /sys/power/mem_sleep >/dev/null
+                echo s2idle | sudo tee /usr/share/power_manager/~/initial_suspend_mode
             else
                 echo deep | sudo tee /sys/power/mem_sleep >/dev/null
+                echo deep | sudo tee /usr/share/power_manager/~/initial_suspend_mode >/dev/null
             fi
 
             touch "$SUSPEND_APPLIED_FLAG"
