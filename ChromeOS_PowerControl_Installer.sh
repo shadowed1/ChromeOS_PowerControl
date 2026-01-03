@@ -674,7 +674,7 @@ fi
 start_component_now "SleepControl" "$INSTALL_DIR/sleepcontrol"
 
 mkdir -p /home/chronos/user/MyFiles/ChromeOS_PowerControl_Config
-sudo cp $INSTALL_DIR/config.sh /home/chronos/user/MyFiles/ChromeOS_PowerControl_Config
+sudo cp $INSTALL_DIR/config.sh /home/chronos/user/MyFiles/ChromeOS_PowerControl_Config/config
 
 echo ""
 echo "                                                       ${RED}████████████${RESET}           "
