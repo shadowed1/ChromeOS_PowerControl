@@ -22,7 +22,7 @@ fi
 
 load_config() {
     if [ -f "$CONFIG_FILE" ]; then
-        source "$CONFIG_FILE"
+        source "$CONFIG_FILE" 2>/dev/null
     fi
     validate_config
 }
@@ -48,7 +48,7 @@ save_config() {
 }
 
 if [[ -f "$CONFIG_FILE" ]]; then
-    source "$CONFIG_FILE"
+    source "$CONFIG_FILE" 2>/dev/null
     load_config
 else
     echo "${RED}Error: GPU config file missing. Please re-run the installer.${RESET}"
