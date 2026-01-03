@@ -13,7 +13,7 @@ INSTALL_DIR="@INSTALL_DIR@"
 CONFIG_FILE="$INSTALL_DIR/config.sh"
 
 echo "Downloading to:${CYAN} /home/chronos/ChromeOS_PowerControl_Installer.sh $RESET"
-bash <(curl -s "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/ChromeOS_PowerControl_Downloader.sh?$(date +%s)")
+bash <(curl -s "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/beta/ChromeOS_PowerControl_Downloader.sh?$(date +%s)")
 echo "Running commands:"
 echo ""
 sudo mkdir -p /usr/local/bin
