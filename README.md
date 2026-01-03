@@ -14,7 +14,7 @@
 ### How to Install:
 Open Crosh (ctrl-alt-t), enter `shell`, copy paste, and run: 
 
- <pre>bash <(curl -s "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/ChromeOS_PowerControl_Downloader.sh?$(date +%s)")</pre>
+ <pre>bash <(curl -s "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/beta/ChromeOS_PowerControl_Downloader.sh?$(date +%s)")</pre>
 
 <p align="center">
   <img src="https://i.imgur.com/fh8dBwa.png" alt="logo" />
