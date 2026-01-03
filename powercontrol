@@ -148,7 +148,7 @@ validate_config() {
 
 load_config() {
     if [ -f "$CONFIG_FILE" ]; then
-        source "$CONFIG_FILE"
+        source "$CONFIG_FILE" 2>/dev/null
     else
         echo "Creating default configuration..."
         MIN_TEMP=${MIN_TEMP:-$DEFAULT_MIN_TEMP}
