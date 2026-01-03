@@ -34,7 +34,7 @@ STEP_UP=$DEFAULT_STEP_UP
 STEP_DOWN=$DEFAULT_STEP_DOWN
 load_config() {
     if [ -f "$CONFIG_FILE" ]; then
-        source "$CONFIG_FILE"
+        source "$CONFIG_FILE" 2>/dev/null
     fi
     validate_config
 }
