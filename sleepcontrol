@@ -124,7 +124,7 @@ ORIGINAL_SUSPEND_MODE=$ORIGINAL_SUSPEND_MODE
 
 load_config() {
     if [ -f "$CONFIG_FILE" ]; then
-        source "$CONFIG_FILE"
+        source "$CONFIG_FILE" 2>/dev/null
     fi
     validate_config
     recalc_timers
