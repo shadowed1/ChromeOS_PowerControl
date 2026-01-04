@@ -22,8 +22,8 @@ class ConfigEditor(Gtk.Window):
             self.show_error_dialog(
                 "Config File Not Found",
                 "Could not find config file at either:\n"
-                "/mnt/chromeos/MyFiles/ChromeOS_PowerControl_Config/config\n"
-                "~/user/MyFiles/ChromeOS_PowerControl_Config/config\n\n"
+                "/mnt/chromeos/MyFiles/Downloads/ChromeOS_PowerControl_Config/config\n"
+                "~/user/MyFiles/Downloads/ChromeOS_PowerControl_Config/config\n\n"
                 "Please ensure the folder is shared to Crostini/chroot."
             )
             self.destroy()
