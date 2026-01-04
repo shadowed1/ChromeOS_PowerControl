@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """
-ChromeOS PowerControl GUI Attempt
+ChromeOS PowerControl Config Editor
+A GUI application for editing ChromeOS PowerControl configuration files
+Uses GTK3 (pre-installed with Crostini)
 """
 
 import gi
@@ -11,10 +13,12 @@ from pathlib import Path
 
 class ConfigEditor(Gtk.Window):
     def __init__(self):
-        super().__init__(title="ChromeOS PowerControl Config Editor")
+        super().__init__(title="ChromeOS_PowerControl GUI")
         self.set_default_size(900, 700)
         self.set_border_width(10)
-                self.config_path = self.find_config_file()
+        
+        # Try to find config file
+        self.config_path = self.find_config_file()
         self.config_data = {}
         self.widgets = {}
         
@@ -23,7 +27,7 @@ class ConfigEditor(Gtk.Window):
                 "Config File Not Found",
                 "Could not find config file at either:\n"
                 "/mnt/chromeos/MyFiles/Downloads/ChromeOS_PowerControl_Config/config\n"
-                "~/user/MyFiles/Downloads/ChromeOS_PowerControl_Config/config\n\n"
+                "~/user/MyFiles/ChromeOS_PowerControl_Config/config\n\n"
                 "Please ensure the folder is shared to Crostini/chroot."
             )
             self.destroy()
@@ -36,7 +40,7 @@ class ConfigEditor(Gtk.Window):
         """Find config file in possible locations"""
         possible_paths = [
             "/mnt/chromeos/MyFiles/ChromeOS_PowerControl_Config/config",
-            os.path.expanduser("~/user/MyFiles/ChromeOS_PowerControl_Config/config")
+            os.path.expanduser("~/user/MyFiles/Downloads/ChromeOS_PowerControl_Config/config")
         ]
         
         for path in possible_paths:
@@ -46,10 +50,12 @@ class ConfigEditor(Gtk.Window):
         return None
     
     def create_ui(self):
-        """UI"""
+        """Create the user interface"""
+        # Main vertical box
         main_vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
         self.add(main_vbox)
         
+        # Top bar with file path
         top_hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
         main_vbox.pack_start(top_hbox, False, False, 0)
         
@@ -58,7 +64,6 @@ class ConfigEditor(Gtk.Window):
         
         self.path_entry = Gtk.Entry()
         self.path_entry.set_text(self.config_path)
-
         self.path_entry.set_hexpand(True)
         top_hbox.pack_start(self.path_entry, True, True, 0)
         
@@ -66,12 +71,13 @@ class ConfigEditor(Gtk.Window):
         reload_btn.connect("clicked", self.on_reload_clicked)
         top_hbox.pack_start(reload_btn, False, False, 0)
         
+        # Scrolled window for config options
         scrolled = Gtk.ScrolledWindow()
         scrolled.set_vexpand(True)
-
         scrolled.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
         main_vbox.pack_start(scrolled, True, True, 0)
         
+        # Grid for config options
         self.grid = Gtk.Grid()
         self.grid.set_column_spacing(10)
         self.grid.set_row_spacing(5)
@@ -81,8 +87,10 @@ class ConfigEditor(Gtk.Window):
         self.grid.set_margin_bottom(10)
         scrolled.add(self.grid)
         
+        # Create config sections
         self.create_config_sections()
         
+        # Bottom buttons
         button_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
         button_box.set_halign(Gtk.Align.CENTER)
         main_vbox.pack_start(button_box, False, False, 0)
@@ -100,14 +108,14 @@ class ConfigEditor(Gtk.Window):
         button_box.pack_start(exit_btn, False, False, 0)
     
     def create_config_sections(self):
-        """Config"""
+        """Create all configuration sections with input fields"""
         sections = {
             "PowerControl": [
                 ("MAX_TEMP", "Maximum Temperature (°C)", "Temperature threshold for maximum performance"),
                 ("MIN_TEMP", "Minimum Temperature (°C)", "Temperature threshold for minimum performance"),
                 ("MAX_PERF_PCT", "Maximum Performance %", "Maximum CPU performance percentage (0-100)"),
                 ("MIN_PERF_PCT", "Minimum Performance %", "Minimum CPU performance percentage (0-100)"),
-                ("HOTZONE", "Hotzone Temperature (°C)", "Temperature considered as hotzone"),
+                ("HOTZONE", "Hotzone Temperature (°C)", "Temperature when aggressive throttling begins."),
                 ("CPU_POLL", "CPU Poll Interval (s)", "How often to check CPU temperature"),
                 ("RAMP_UP", "Ramp Up Speed", "Speed to increase performance"),
                 ("RAMP_DOWN", "Ramp Down Speed", "Speed to decrease performance"),
@@ -151,6 +159,7 @@ class ConfigEditor(Gtk.Window):
         
         row = 0
         for section_name, fields in sections.items():
+            # Section header
             header = Gtk.Label()
             header.set_markup(f"<b><big>{section_name}</big></b>")
             header.set_halign(Gtk.Align.START)
@@ -158,23 +167,29 @@ class ConfigEditor(Gtk.Window):
             header.set_margin_bottom(5)
             self.grid.attach(header, 0, row, 3, 1)
             row += 1
+            
+            # Section separator
             separator = Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL)
             separator.set_margin_bottom(10)
             self.grid.attach(separator, 0, row, 3, 1)
             row += 1
             
+            # Fields
             for key, label, tooltip in fields:
+                # Label
                 lbl = Gtk.Label(label=label)
                 lbl.set_halign(Gtk.Align.START)
                 lbl.set_margin_start(20)
                 lbl.set_tooltip_text(tooltip)
                 self.grid.attach(lbl, 0, row, 1, 1)
                 
+                # Entry
                 entry = Gtk.Entry()
                 entry.set_width_chars(20)
                 entry.set_tooltip_text(tooltip)
                 self.grid.attach(entry, 1, row, 1, 1)
                 
+                # Tooltip label
                 tooltip_lbl = Gtk.Label()
                 tooltip_lbl.set_markup(f"<small><span foreground='gray'>{tooltip}</span></small>")
                 tooltip_lbl.set_halign(Gtk.Align.START)
@@ -186,7 +201,7 @@ class ConfigEditor(Gtk.Window):
                 row += 1
     
     def load_config(self):
-        """Load"""
+        """Load configuration from file"""
         self.config_path = self.path_entry.get_text()
         
         if not os.path.exists(self.config_path):
@@ -203,6 +218,7 @@ class ConfigEditor(Gtk.Window):
                             key, value = line.split('=', 1)
                             self.config_data[key.strip()] = value.strip()
             
+            # Update widgets with loaded values
             for key, entry in self.widgets.items():
                 if key in self.config_data:
                     entry.set_text(self.config_data[key])
@@ -212,11 +228,13 @@ class ConfigEditor(Gtk.Window):
             self.show_error_dialog("Error", f"Failed to load config: {str(e)}")
     
     def save_config(self):
-        """Save"""
+        """Save configuration to file"""
         try:
+            # Read the original file to preserve comments and structure
             with open(self.config_path, 'r') as f:
                 lines = f.readlines()
-
+            
+            # Update values
             new_lines = []
             for line in lines:
                 if line.strip() and not line.strip().startswith('#'):
@@ -232,6 +250,7 @@ class ConfigEditor(Gtk.Window):
                 else:
                     new_lines.append(line)
             
+            # Write back to file
             with open(self.config_path, 'w') as f:
                 f.writelines(new_lines)
             
@@ -293,7 +312,7 @@ class ConfigEditor(Gtk.Window):
 
 def main():
     win = ConfigEditor()
-    if win.config_path:
+    if win.config_path:  # Only show window if config was found
         win.connect("destroy", Gtk.main_quit)
         win.show_all()
         Gtk.main()
