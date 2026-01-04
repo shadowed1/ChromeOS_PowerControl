@@ -136,7 +136,7 @@ class ConfigEditor(Gtk.Window):
                 ("POWER_DIM_DELAY", "Power Dim Delay (min)", "Screen dim delay on AC power"),
                 ("AUDIO_DETECTION_BATTERY", "Audio Detection (Battery)", "Prevent sleep during audio on battery (0/1)"),
                 ("AUDIO_DETECTION_POWER", "Audio Detection (Power)", "Prevent sleep during audio on AC (0/1)"),
-                ("SUSPEND_MODE", "Suspend Mode", "Sleep mode: deep, s2idle, or freeze"),
+                ("SUSPEND_MODE", "Suspend Mode", "Sleep mode: deep or s2idle"),
                 ("LIDSLEEP_BATTERY", "Lid Sleep (Battery)", "Sleep when lid closed on battery (0/1)"),
                 ("LIDSLEEP_POWER", "Lid Sleep (Power)", "Sleep when lid closed on AC (0/1)"),
             ],
