@@ -17,7 +17,6 @@ class ConfigEditor(Gtk.Window):
         self.set_default_size(900, 700)
         self.set_border_width(10)
         
-        # Try to find config file
         self.config_path = self.find_config_file()
         self.config_data = {}
         self.widgets = {}
@@ -51,11 +50,9 @@ class ConfigEditor(Gtk.Window):
     
     def create_ui(self):
         """Create the user interface"""
-        # Main vertical box
         main_vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
         self.add(main_vbox)
         
-        # Top bar with file path
         top_hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
         main_vbox.pack_start(top_hbox, False, False, 0)
         
@@ -71,13 +68,11 @@ class ConfigEditor(Gtk.Window):
         reload_btn.connect("clicked", self.on_reload_clicked)
         top_hbox.pack_start(reload_btn, False, False, 0)
         
-        # Scrolled window for config options
         scrolled = Gtk.ScrolledWindow()
         scrolled.set_vexpand(True)
         scrolled.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
         main_vbox.pack_start(scrolled, True, True, 0)
         
-        # Grid for config options
         self.grid = Gtk.Grid()
         self.grid.set_column_spacing(10)
         self.grid.set_row_spacing(5)
@@ -86,11 +81,8 @@ class ConfigEditor(Gtk.Window):
         self.grid.set_margin_top(10)
         self.grid.set_margin_bottom(10)
         scrolled.add(self.grid)
-        
-        # Create config sections
         self.create_config_sections()
         
-        # Bottom buttons
         button_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
         button_box.set_halign(Gtk.Align.CENTER)
         main_vbox.pack_start(button_box, False, False, 0)
@@ -159,7 +151,6 @@ class ConfigEditor(Gtk.Window):
         
         row = 0
         for section_name, fields in sections.items():
-            # Section header
             header = Gtk.Label()
             header.set_markup(f"<b><big>{section_name}</big></b>")
             header.set_halign(Gtk.Align.START)
@@ -168,28 +159,23 @@ class ConfigEditor(Gtk.Window):
             self.grid.attach(header, 0, row, 3, 1)
             row += 1
             
-            # Section separator
             separator = Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL)
             separator.set_margin_bottom(10)
             self.grid.attach(separator, 0, row, 3, 1)
             row += 1
             
-            # Fields
             for key, label, tooltip in fields:
-                # Label
                 lbl = Gtk.Label(label=label)
                 lbl.set_halign(Gtk.Align.START)
                 lbl.set_margin_start(20)
                 lbl.set_tooltip_text(tooltip)
                 self.grid.attach(lbl, 0, row, 1, 1)
                 
-                # Entry
                 entry = Gtk.Entry()
                 entry.set_width_chars(20)
                 entry.set_tooltip_text(tooltip)
                 self.grid.attach(entry, 1, row, 1, 1)
                 
-                # Tooltip label
                 tooltip_lbl = Gtk.Label()
                 tooltip_lbl.set_markup(f"<small><span foreground='gray'>{tooltip}</span></small>")
                 tooltip_lbl.set_halign(Gtk.Align.START)
@@ -218,7 +204,6 @@ class ConfigEditor(Gtk.Window):
                             key, value = line.split('=', 1)
                             self.config_data[key.strip()] = value.strip()
             
-            # Update widgets with loaded values
             for key, entry in self.widgets.items():
                 if key in self.config_data:
                     entry.set_text(self.config_data[key])
@@ -230,11 +215,9 @@ class ConfigEditor(Gtk.Window):
     def save_config(self):
         """Save configuration to file"""
         try:
-            # Read the original file to preserve comments and structure
             with open(self.config_path, 'r') as f:
                 lines = f.readlines()
             
-            # Update values
             new_lines = []
             for line in lines:
                 if line.strip() and not line.strip().startswith('#'):
@@ -250,7 +233,6 @@ class ConfigEditor(Gtk.Window):
                 else:
                     new_lines.append(line)
             
-            # Write back to file
             with open(self.config_path, 'w') as f:
                 f.writelines(new_lines)
             
@@ -312,7 +294,7 @@ class ConfigEditor(Gtk.Window):
 
 def main():
     win = ConfigEditor()
-    if win.config_path:  # Only show window if config was found
+    if win.config_path:
         win.connect("destroy", Gtk.main_quit)
         win.show_all()
         Gtk.main()
