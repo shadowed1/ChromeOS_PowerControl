@@ -723,10 +723,10 @@ case "$1" in
     battery|power)
     MODE=$1
 
-     if [[ "$2" == "audio" ]]; then
+    if [[ "$2" == "audio" ]]; then
         set_audio_detection "$MODE" "$3"
         exit 0
-        fi
+    fi
 
     if [[ $# -eq 4 ]]; then
         DIM_VAL=$2
