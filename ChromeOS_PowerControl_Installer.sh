@@ -443,7 +443,7 @@ declare -A defaults=(
 )
 
 if [ -f "$CONFIG_FILE" ]; then
-  source "$CONFIG_FILE"
+  source "$CONFIG_FILE" 2>/dev/null
 fi
 
 > "$CONFIG_FILE" 
