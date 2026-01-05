@@ -838,7 +838,7 @@ case "$1" in
             fi
         else
             echo "SleepControl will not startup automatically."
-            sudo rm -f /etc/init/sleepcontrol.conf >/dev/null 2>&1
+            sudo rm -f /etc/init/sleepcontrol.conf 2>/dev/null
         fi
         ;;
         status|"")
