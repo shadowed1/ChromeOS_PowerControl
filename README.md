@@ -26,7 +26,8 @@ Open Crosh (ctrl-alt-t), enter `shell`, copy paste, and run:
 ```
 sudo apt install gedit -y
 sudo curl -fsSL "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/gui.py" -o /bin/powercontrol-gui 2>/dev/null
-sudo chmod +x $CHARD_ROOT/bin/powercontrol-gui
+sudo chmod +x /bin/powercontrol-gui 2>/dev/null
+alias powercontrol-gui='sudo -E powercontrol-gui'
 ```
 
 Share Downloads folder with Linux and then run `powercontrol-gui` in Crostini. 
