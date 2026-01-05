@@ -123,7 +123,20 @@ SUSPEND_MODE=$DEFAULT_SUSPEND_MODE
 ORIGINAL_SUSPEND_MODE=$ORIGINAL_SUSPEND_MODE
 
 load_config() {
-    source "/home/chronos/user/MyFiles/Downloads/ChromeOS_PowerControl_Config/config" 2>/dev/null
+    if [ -f "$CONFIG_FILE" ]; then
+        while IFS='=' read -r key value; do
+            [[ "$key" =~ ^[[:space:]]*# ]] && continue
+            [[ -z "$key" ]] && continue
+            case "$key" in
+                BATTERY_DELAY|POWER_DELAY|BATTERY_BACKLIGHT|POWER_BACKLIGHT|\
+                BATTERY_DIM_DELAY|POWER_DIM_DELAY|AUDIO_DETECTION_BATTERY|\
+                AUDIO_DETECTION_POWER|SUSPEND_MODE|ORIGINAL_SUSPEND_MODE|\
+                LIDSLEEP_BATTERY|LIDSLEEP_POWER)
+                    eval "$key=\"$value\""
+                    ;;
+            esac
+        done < "$CONFIG_FILE"
+    fi
     validate_config
     recalc_timers
 }
