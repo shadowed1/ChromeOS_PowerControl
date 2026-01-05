@@ -1,3 +1,4 @@
+
 #!/bin/bash
 RED=$(tput setaf 1)
 GREEN=$(tput setaf 2)
@@ -231,7 +232,7 @@ for file in "${files[@]}"; do
     echo "${BLUE}Downloading $file to $dest...${RESET}"
     if sudo curl -fsSL "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/$file" -o "$dest"; then
         if grep -q "@INSTALL_DIR@" "$dest"; then
-            sudo sed -i "s|@INSTALL_DIR@|$INSTALL_DIR|g" "$dest"
+            sed -i "s|@INSTALL_DIR@|$INSTALL_DIR|g" "$dest"
         fi
         sudo chmod +x "$dest" 2>/dev/null
     else
@@ -291,7 +292,7 @@ echo "PERF_PATH: $PERF_PATH"
 echo "PERF_PATHS: ${PERF_PATHS[*]}"
 echo "TURBO_PATH: $TURBO_PATH"
 echo "$RESET"
-sudo chmod +x "$INSTALL_DIR/powercontrol" "$INSTALL_DIR/batterycontrol" "$INSTALL_DIR/fancontrol" "$INSTALL_DIR/gpucontrol" "$INSTALL_DIR/sleepcontrol" "$INSTALL_DIR/Uninstall_ChromeOS_PowerControl.sh" 2>/dev/null
+sudo chmod +x "$INSTALL_DIR/powercontrol" "$INSTALL_DIR/batterycontrol" "$INSTALL_DIR/fancontrol" "$INSTALL_DIR/gpucontrol" "$INSTALL_DIR/sleepcontrol" "$INSTALL_DIR/Uninstall_ChromeOS_PowerControl.sh" "$INSTALL_DIR/config.sh" 2>/dev/null
 sudo touch "$INSTALL_DIR/.batterycontrol_enabled" "$INSTALL_DIR/.powercontrol_enabled" "$INSTALL_DIR/.fancontrol_enabled"
 detect_gpu_freq
 echo "${MAGENTA}Detected GPU Type: $GPU_TYPE"
@@ -692,6 +693,7 @@ else
     echo ""
 fi
 start_component_now "SleepControl" "$INSTALL_DIR/sleepcontrol"
+sudo chown chronos:chronos-access /home/chronos/user/MyFiles/Downloads/ChromeOS_PowerControl_Config/config
 
 echo ""
 echo "                                                       ${RED}████████████${RESET}           "
