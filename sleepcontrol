@@ -32,7 +32,7 @@ if [[ ! -f "$SUSPEND_APPLIED_FLAG" ]]; then
     if [[ -f "$CONFIG_FILE" ]]; then
         SUSPEND_MODE=$(grep "^SUSPEND_MODE=" "$CONFIG_FILE" | cut -d'=' -f2)
         if [[ "$SUSPEND_MODE" == "freeze" || "$SUSPEND_MODE" == "deep" ]]; then
-            echo "$SUSPEND_MODE" | sudo tee /usr/share/power_manager/suspend_mode >/dev/null
+            echo "$SUSPEND_MODE" | sudo tee /usr/share/power_manager/suspend_mode 2>/dev/null
             if [[ "$SUSPEND_MODE" == "freeze" ]]; then
                 echo "s2idle" | sudo tee /usr/share/power_manager/suspend_mode 2>/dev/null
                 echo "s2idle" | sudo tee /sys/power/mem_sleep 2>/dev/null
@@ -42,7 +42,7 @@ if [[ ! -f "$SUSPEND_APPLIED_FLAG" ]]; then
                 echo "deep" | sudo tee /sys/power/mem_sleep 2>/dev/null
                 echo "deep" | sudo tee /usr/share/power_manager/~/initial_suspend_mode 2>/dev/null
             fi
-            sudo restart powerd 2>/dev/null
+            #sudo restart powerd 2>/dev/null
             touch "$SUSPEND_APPLIED_FLAG"
         fi
     fi
@@ -900,7 +900,7 @@ echo "${RESET}"
                 for f in /var/lib/power_manager/disable_dark_resume \
                          /usr/share/power_manager/disable_dark_resume \
                          /mnt/stateful_partition/encrypted/var/lib/power_manager/disable_dark_resume; do
-                    [[ -f "$f" ]] && echo 0 | sudo tee "$f" >/dev/null
+                    [[ -f "$f" ]] && echo 0 | sudo tee "$f" 2>/dev/null
                 done
             fi
         
@@ -914,7 +914,7 @@ echo "${RESET}"
                 echo "deep" | sudo tee /usr/share/power_manager/~/initial_suspend_mode 2>/dev/null
             fi
     
-            sudo restart powerd >/dev/null
+            sudo restart powerd 2>/dev/null
     
     
             save_config
