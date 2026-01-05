@@ -214,33 +214,59 @@ done
 
 echo "$INSTALL_DIR" | sudo tee "$INSTALL_DIR/.install_path" >/dev/null
 
-
 declare -a files=(
-  "powercontrol" "batterycontrol" "fancontrol" "gpucontrol" "Uninstall_ChromeOS_PowerControl.sh" "Reinstall_ChromeOS_PowerControl.sh" "LICENSE" 
-  "README.md" "no_turbo.conf" "batterycontrol.conf" "powercontrol.conf" "fancontrol.conf" "gpucontrol.conf" 
-  "sleepcontrol" "sleepcontrol.conf" "version" "config.sh"
+  "powercontrol" "batterycontrol" "fancontrol" "gpucontrol"
+  "sleepcontrol"
+  "Uninstall_ChromeOS_PowerControl.sh"
+  "Reinstall_ChromeOS_PowerControl.sh"
+  "LICENSE" "README.md" "version"
+  "no_turbo.conf" "batterycontrol.conf"
+  "powercontrol.conf" "fancontrol.conf"
+  "gpucontrol.conf" "sleepcontrol.conf"
 )
 
 for file in "${files[@]}"; do
     dest="$INSTALL_DIR/$file"
-    if [[ "$file" == "config.sh" && -f "$dest" ]]; then
-        echo "${GREEN}${BOLD}Skipping existing config: $dest ${RESET}"
-        echo ""
-        continue
-    fi
-        echo "${BLUE}Downloading $file to $dest..."
-    if curl -fsSL "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/$file" -o "$dest"; then
+
+    echo "${BLUE}Downloading $file to $dest...${RESET}"
+    if sudo curl -fsSL "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/beta/$file" -o "$dest"; then
         if grep -q "@INSTALL_DIR@" "$dest"; then
             sed -i "s|@INSTALL_DIR@|$INSTALL_DIR|g" "$dest"
         fi
-        chmod +x "$dest"
+        sudo chmod +x "$dest"
     else
         echo "${RED}Failed to download $file. Skipping.${RESET}"
     fi
     sleep 0.1
 done
 
-CONFIG_FILE="$INSTALL_DIR/config.sh"
+OLD_CONFIG_PATH="$INSTALL_DIR/config.sh"
+CONFIG_DIR="/home/chronos/user/MyFiles/Downloads/ChromeOS_PowerControl_Config"
+NEW_CONFIG_PATH="$CONFIG_DIR/config"
+CONFIG_URL="https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/beta/config"
+sudo curl -fsSL "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/beta/gui.py" -o $CHARD_ROOT/bin/powercontrol-gui 2>/dev/null
+sudo chmod +x $CHARD_ROOT/bin/powercontrol-gui
+mkdir -p "$CONFIG_DIR"
+sudo cp $INSTALL_DIR/config.sh $INSTALL_DIR/config.sh.bak 2>/dev/null
+if [[ -f "$OLD_CONFIG_PATH" ]]; then
+    echo "${YELLOW}Found legacy config.sh — migrating to fixed location${RESET}"
+    sudo mv "$OLD_CONFIG_PATH" "$NEW_CONFIG_PATH"
+    sudo chmod 666 "$NEW_CONFIG_PATH"
+
+elif [[ -f "$NEW_CONFIG_PATH" ]]; then
+    echo "${GREEN}Existing config preserved at:${RESET} $NEW_CONFIG_PATH"
+
+else
+    echo "${BLUE}No config found — downloading default config${RESET}"
+    if curl -fsSL "$CONFIG_URL" -o "$NEW_CONFIG_PATH"; then
+        sudo chmod 644 "$NEW_CONFIG_PATH"
+    else
+        echo "${RED}Failed to download default config${RESET}"
+    fi
+fi
+
+CONFIG_FILE="$NEW_CONFIG_PATH"
+
 FAN_COUNT=$(sudo ectool pwmgetnumfans | awk -F= '{print $2}' | sed -e 's/ //g')
 
 if [ "$FAN_COUNT" -eq 0 ]; then
@@ -672,6 +698,9 @@ else
     echo ""
 fi
 start_component_now "SleepControl" "$INSTALL_DIR/sleepcontrol"
+
+mkdir -p /home/chronos/user/MyFiles/Downloads/ChromeOS_PowerControl_Config
+sudo cp $INSTALL_DIR/config.sh /home/chronos/user/MyFiles/Downloads/ChromeOS_PowerControl_Config/config
 
 echo ""
 echo "                                                       ${RED}████████████${RESET}           "
