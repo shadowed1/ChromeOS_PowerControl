@@ -170,7 +170,7 @@ case "$1" in
             sudo cp "$CONF_SOURCE" "$CONF_TARGET"
             echo "${MAGENTA}Startup enabled.${RESET}"
         else
-            sudo rm -f "$CONF_TARGET" >/dev/null 2>&1
+            sudo rm -f "$CONF_TARGET" 2>/dev/null
             echo "${RED}Startup disabled.${RESET}"
         fi
         exit 0
