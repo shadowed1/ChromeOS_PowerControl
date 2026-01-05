@@ -693,7 +693,7 @@ else
     echo ""
 fi
 start_component_now "SleepControl" "$INSTALL_DIR/sleepcontrol"
-sudo chown chronos:chronos-access /home/chronos/user/MyFiles/Downloads/ChromeOS_PowerControl_Config/config
+sudo chown chronos:chronos /home/chronos/user/MyFiles/Downloads/ChromeOS_PowerControl_Config/config
 
 echo ""
 echo "                                                       ${RED}████████████${RESET}           "
