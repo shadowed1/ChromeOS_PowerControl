@@ -151,7 +151,7 @@ class ConfigEditor(Gtk.Window):
             "PowerControl": [
                 ("MAX_TEMP", "Maximum Temperature (°C)", "slider", 50, 90, 1, False),
                 ("HOTZONE", "Hotzone Temperature (°C)", "slider", 50, 90, 1, False),
-                ("MIN_TEMP", "Minimum Temperature (°C)", "slider", 30, 80, 1, False),
+                ("MIN_TEMP", "Minimum Temperature (°C)", "slider", 30, 90, 1, False),
                 ("MAX_PERF_PCT", "Maximum Performance %", "slider", 10, 100, 1, False),
                 ("MIN_PERF_PCT", "Minimum Performance %", "slider", 10, 100, 1, False),
                 ("RAMP_UP", "Ramp Up Speed (%)", "slider", 1, 50, 1, False),
@@ -164,7 +164,7 @@ class ConfigEditor(Gtk.Window):
             "FanControl": [
                 ("MIN_FAN", "Minimum Fan Speed %", "slider", 0, 100, 1, False),
                 ("MAX_FAN", "Maximum Fan Speed %", "slider", 0, 100, 1, False),
-                ("FAN_MIN_TEMP", "Fan Minimum Temp (°C)", "slider", 30, 70, 1, False),
+                ("FAN_MIN_TEMP", "Fan Minimum Temp (°C)", "slider", 30, 80, 1, False),
                 ("FAN_MAX_TEMP", "Fan Maximum Temp (°C)", "slider", 50, 80, 1, False),
                 ("STEP_UP", "Fan Step Up (%)", "slider", 1, 20, 1, False),
                 ("STEP_DOWN", "Fan Step Down (%)", "slider", 1, 20, 1, False),
