@@ -243,7 +243,7 @@ done
 OLD_CONFIG_PATH="$INSTALL_DIR/config.sh"
 CONFIG_DIR="/home/chronos/user/MyFiles/Downloads/ChromeOS_PowerControl_Config"
 NEW_CONFIG_PATH="$CONFIG_DIR/config"
-CONFIG_URL="https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/config"
+CONFIG_URL="https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/config.sh"
 sudo curl -fsSL "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/gui.py" -o $CHARD_ROOT/bin/powercontrol-gui 2>/dev/null
 sudo chmod +x $CHARD_ROOT/bin/powercontrol-gui 2>/dev/null
 mkdir -p "$CONFIG_DIR"
@@ -260,7 +260,7 @@ elif [[ -f "$NEW_CONFIG_PATH" ]]; then
 else
     echo "${BLUE}No config found — downloading default config${RESET}"
     if curl -fsSL "$CONFIG_URL" -o "$NEW_CONFIG_PATH"; then
-        sudo chmod 644 "$NEW_CONFIG_PATH" 2>/dev/null
+        sudo chmod 666 "$NEW_CONFIG_PATH" 2>/dev/null
     else
         echo "${RED}Failed to download default config${RESET}"
     fi
