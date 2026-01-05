@@ -27,7 +27,7 @@ SUSPEND_APPLIED_FLAG="/tmp/.sleepcontrol_suspend_applied"
 
 if [[ ! -f "$SUSPEND_APPLIED_FLAG" ]]; then
     INSTALL_DIR="$(dirname "$(readlink -f "$0")")"
-    CONFIG_FILE="$INSTALL_DIR/config.sh"
+    CONFIG_FILE="/home/chronos/user/MyFiles/Downloads/ChromeOS_PowerControl_Config/config"
 
     if [[ -f "$CONFIG_FILE" ]]; then
         SUSPEND_MODE=$(grep "^SUSPEND_MODE=" "$CONFIG_FILE" | cut -d'=' -f2)
