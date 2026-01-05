@@ -229,7 +229,7 @@ for file in "${files[@]}"; do
     dest="$INSTALL_DIR/$file"
 
     echo "${BLUE}Downloading $file to $dest...${RESET}"
-    if sudo curl -fsSL "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/beta/$file" -o "$dest"; then
+    if sudo curl -fsSL "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/$file" -o "$dest"; then
         if grep -q "@INSTALL_DIR@" "$dest"; then
             sed -i "s|@INSTALL_DIR@|$INSTALL_DIR|g" "$dest"
         fi
@@ -243,8 +243,8 @@ done
 OLD_CONFIG_PATH="$INSTALL_DIR/config.sh"
 CONFIG_DIR="/home/chronos/user/MyFiles/Downloads/ChromeOS_PowerControl_Config"
 NEW_CONFIG_PATH="$CONFIG_DIR/config"
-CONFIG_URL="https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/beta/config"
-sudo curl -fsSL "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/beta/gui.py" -o $CHARD_ROOT/bin/powercontrol-gui 2>/dev/null
+CONFIG_URL="https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/config"
+sudo curl -fsSL "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/gui.py" -o $CHARD_ROOT/bin/powercontrol-gui 2>/dev/null
 sudo chmod +x $CHARD_ROOT/bin/powercontrol-gui
 mkdir -p "$CONFIG_DIR"
 sudo cp $INSTALL_DIR/config.sh $INSTALL_DIR/config.sh.bak 2>/dev/null
