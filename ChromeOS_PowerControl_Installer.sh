@@ -231,7 +231,7 @@ for file in "${files[@]}"; do
     echo "${BLUE}Downloading $file to $dest...${RESET}"
     if sudo curl -fsSL "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/$file" -o "$dest"; then
         if grep -q "@INSTALL_DIR@" "$dest"; then
-            sed -i "s|@INSTALL_DIR@|$INSTALL_DIR|g" "$dest"
+            sudo sed -i "s|@INSTALL_DIR@|$INSTALL_DIR|g" "$dest"
         fi
         sudo chmod +x "$dest" 2>/dev/null
     else
@@ -267,7 +267,7 @@ if [ "$FAN_COUNT" -eq 0 ]; then
     echo "${RESET}${GREEN}Passively cooled device detected, skipping FanControl setup.${RESET}"
     echo ""
     SKIP_FANCONTROL=true
-    sed -i '/^STARTUP_FANCONTROL=/d' "$CONFIG_FILE" 2>/dev/null
+    sudo sed -i '/^STARTUP_FANCONTROL=/d' "$CONFIG_FILE" 2>/dev/null
     echo "STARTUP_FANCONTROL=0" >> "$CONFIG_FILE"
 else
     SKIP_FANCONTROL=false
@@ -692,9 +692,6 @@ else
     echo ""
 fi
 start_component_now "SleepControl" "$INSTALL_DIR/sleepcontrol"
-
-mkdir -p /home/chronos/user/MyFiles/Downloads/ChromeOS_PowerControl_Config
-sudo cp $INSTALL_DIR/config.sh /home/chronos/user/MyFiles/Downloads/ChromeOS_PowerControl_Config/config
 
 echo ""
 echo "                                                       ${RED}████████████${RESET}           "
