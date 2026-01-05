@@ -250,7 +250,8 @@ mkdir -p "$CONFIG_DIR"
 sudo cp $INSTALL_DIR/config.sh $INSTALL_DIR/config.sh.bak 2>/dev/null
 if [[ -f "$OLD_CONFIG_PATH" ]]; then
     echo "${YELLOW}Found legacy config.sh — migrating to fixed location${RESET}"
-    sudo mv "$OLD_CONFIG_PATH" "$NEW_CONFIG_PATH"
+    cp "$OLD_CONFIG_PATH" "$NEW_CONFIG_PATH"
+    sudo rm "$OLD_CONFIG_PATH"
     sudo chmod 666 "$NEW_CONFIG_PATH"
 
 elif [[ -f "$NEW_CONFIG_PATH" ]]; then
