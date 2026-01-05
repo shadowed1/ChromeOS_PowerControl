@@ -24,7 +24,7 @@ Open Crosh (ctrl-alt-t), enter `shell`, copy paste, and run:
 
   ### GUI app for Crostini (run in Linux):
 ```
-sudo apt install gedit -y
+sudo apt install gedit gnome-themes-extra gnome-icon-theme -y
 sudo curl -fsSL "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/gui.py" -o /bin/powercontrol-gui 2>/dev/null
 sudo chmod +x /bin/powercontrol-gui 2>/dev/null
 alias powercontrol-gui='sudo -E powercontrol-gui'
