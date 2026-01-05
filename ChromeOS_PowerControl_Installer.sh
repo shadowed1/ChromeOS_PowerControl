@@ -267,7 +267,7 @@ if [ "$FAN_COUNT" -eq 0 ]; then
     echo "${RESET}${GREEN}Passively cooled device detected, skipping FanControl setup.${RESET}"
     echo ""
     SKIP_FANCONTROL=true
-    sudo sed -i '/^STARTUP_FANCONTROL=/d' "$CONFIG_FILE" 2>/dev/null
+    sed -i '/^STARTUP_FANCONTROL=/d' "$CONFIG_FILE" 2>/dev/null
     echo "STARTUP_FANCONTROL=0" >> "$CONFIG_FILE"
 else
     SKIP_FANCONTROL=false
@@ -291,7 +291,7 @@ echo "PERF_PATH: $PERF_PATH"
 echo "PERF_PATHS: ${PERF_PATHS[*]}"
 echo "TURBO_PATH: $TURBO_PATH"
 echo "$RESET"
-sudo chmod +x "$INSTALL_DIR/powercontrol" "$INSTALL_DIR/batterycontrol" "$INSTALL_DIR/fancontrol" "$INSTALL_DIR/gpucontrol" "$INSTALL_DIR/sleepcontrol" "$INSTALL_DIR/Uninstall_ChromeOS_PowerControl.sh" "$INSTALL_DIR/config.sh" 2>/dev/null
+sudo chmod +x "$INSTALL_DIR/powercontrol" "$INSTALL_DIR/batterycontrol" "$INSTALL_DIR/fancontrol" "$INSTALL_DIR/gpucontrol" "$INSTALL_DIR/sleepcontrol" "$INSTALL_DIR/Uninstall_ChromeOS_PowerControl.sh" 2>/dev/null
 sudo touch "$INSTALL_DIR/.batterycontrol_enabled" "$INSTALL_DIR/.powercontrol_enabled" "$INSTALL_DIR/.fancontrol_enabled"
 detect_gpu_freq
 echo "${MAGENTA}Detected GPU Type: $GPU_TYPE"
