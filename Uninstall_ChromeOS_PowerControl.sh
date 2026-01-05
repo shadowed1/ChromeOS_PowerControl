@@ -1,3 +1,4 @@
+
 #!/bin/bash
 RED=$(tput setaf 1)
 GREEN=$(tput setaf 2)
@@ -115,6 +116,7 @@ case "$choice" in
         sudo rm -f "/usr/local/bin/sleepcontrol_conf.sh"
         sudo rm -f "/usr/local/bin/batterycontrol_conf.sh"
         sudo rm -f "/usr/local/bin/gpucontrol_conf.sh"
+        rm -rf /home/chronos/user/MyFiles/Downloads/ChromeOS_PowerControl_Config 2>/dev/null
         remove_file_with_message "$INSTALL_DIR/powercontrol"
         remove_file_with_message "$INSTALL_DIR/fancontrol"
         remove_file_with_message "$INSTALL_DIR/batterycontrol"
