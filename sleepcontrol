@@ -34,13 +34,13 @@ if [[ ! -f "$SUSPEND_APPLIED_FLAG" ]]; then
         if [[ "$SUSPEND_MODE" == "freeze" || "$SUSPEND_MODE" == "deep" ]]; then
             echo "$SUSPEND_MODE" | sudo tee /usr/share/power_manager/suspend_mode 2>/dev/null
             if [[ "$SUSPEND_MODE" == "freeze" ]]; then
-                echo "s2idle" | sudo tee /usr/share/power_manager/suspend_mode 2>/dev/null
-                echo "s2idle" | sudo tee /sys/power/mem_sleep 2>/dev/null
-                echo "s2idle" | sudo tee /usr/share/power_manager/~/initial_suspend_mode 2>/dev/null
+                sudo sh -c 'echo s2idle > /usr/share/power_manager/suspend_mode' 2>/dev/null
+                sudo sh -c 'echo s2idle > /sys/power/mem_sleep' 2>/dev/null
+                sudo sh -c 'echo s2idle > /usr/share/power_manager/~/initial_suspend_mode' 2>/dev/null
             else
-                echo "deep" | sudo tee /usr/share/power_manager/suspend_mode 2>/dev/null
-                echo "deep" | sudo tee /sys/power/mem_sleep 2>/dev/null
-                echo "deep" | sudo tee /usr/share/power_manager/~/initial_suspend_mode 2>/dev/null
+                sudo sh -c 'echo deep > /usr/share/power_manager/suspend_mode' 2>/dev/null
+                sudo sh -c 'echo deep > /sys/power/mem_sleep' 2>/dev/null
+                sudo sh -c 'echo deep > /usr/share/power_manager/~/initial_suspend_mode' 2>/dev/null
             fi
             #sudo restart powerd 2>/dev/null
             touch "$SUSPEND_APPLIED_FLAG"
@@ -905,13 +905,13 @@ echo "${RESET}"
             fi
         
             if [[ "$SUSPEND_MODE" == "freeze" ]]; then
-                echo "s2idle" | sudo tee /usr/share/power_manager/suspend_mode 2>/dev/null
-                echo "s2idle" | sudo tee /sys/power/mem_sleep 2>/dev/null
-                echo "s2idle" | sudo tee /usr/share/power_manager/~/initial_suspend_mode 2>/dev/null
+                sudo sh -c 'echo s2idle > /usr/share/power_manager/suspend_mode' 2>/dev/null
+                sudo sh -c 'echo s2idle > /sys/power/mem_sleep' 2>/dev/null
+                sudo sh -c 'echo s2idle > /usr/share/power_manager/~/initial_suspend_mode' 2>/dev/null
             else
-                echo "deep" | sudo tee /usr/share/power_manager/suspend_mode 2>/dev/null
-                echo "deep" | sudo tee /sys/power/mem_sleep 2>/dev/null
-                echo "deep" | sudo tee /usr/share/power_manager/~/initial_suspend_mode 2>/dev/null
+                sudo sh -c 'echo deep > /usr/share/power_manager/suspend_mode' 2>/dev/null
+                sudo sh -c 'echo deep > /sys/power/mem_sleep' 2>/dev/null
+                sudo sh -c 'echo deep > /usr/share/power_manager/~/initial_suspend_mode' 2>/dev/null
             fi
     
             sudo restart powerd 2>/dev/null
