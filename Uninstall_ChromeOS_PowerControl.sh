@@ -90,7 +90,8 @@ case "$choice" in
         sudo rm -f "$INSTALL_DIR/.sleepcontrol_enabled"
         sudo rm -f "$INSTALL_DIR/.last_simulated_times"
         sudo rm -f "$INSTALL_DIR/.last_fake_activity"
-        
+        sudo rm -f "$INSTALL_DIR/Reinstall_ChromeOS_PowerControl.sh" 2>/dev/null
+        sudo rm -f "$INSTALL_DIR/config.sh.bak" 2>/dev/null
         sudo rm -f "$INSTALL_DIR/.fan_curve_pid"
         sudo rm -f "$INSTALL_DIR/.fan_curve_running"
         sudo rm -f "$INSTALL_DIR/.install_path"
