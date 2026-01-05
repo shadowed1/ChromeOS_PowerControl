@@ -307,7 +307,6 @@ echo "GPU_MAX_FREQ: $GPU_MAX_FREQ"
 echo "${RESET}"
 
 LOG_DIR="/var/log"
-CONFIG_FILE="$INSTALL_DIR/config.sh"
 sudo touch "$LOG_DIR/powercontrol.log" "$LOG_DIR/batterycontrol.log" "$LOG_DIR/fancontrol.log" "$LOG_DIR/gpucontrol.log" "$LOG_DIR/sleepcontrol.log"
 sudo chmod 644 "$LOG_DIR/powercontrol.log" "$LOG_DIR/batterycontrol.log" "$LOG_DIR/fancontrol.log" "$LOG_DIR/gpucontrol.log" "$LOG_DIR/sleepcontrol.log" 2>/dev/null
 echo "${YELLOW}${BOLD}Log files for PowerControl, BatteryControl, FanControl, GPUControl, and SleepControl are stored in /var/log/$RESET"
