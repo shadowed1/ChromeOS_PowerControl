@@ -42,7 +42,7 @@ if [[ ! -f "$SUSPEND_APPLIED_FLAG" ]]; then
                 echo "deep" | sudo tee /sys/power/mem_sleep 2>/dev/null
                 echo "deep" | sudo tee /usr/share/power_manager/~/initial_suspend_mode 2>/dev/null
             fi
-            sudo restart powerd >/dev/null
+            sudo restart powerd 2>/dev/null
             touch "$SUSPEND_APPLIED_FLAG"
         fi
     fi
@@ -904,14 +904,18 @@ echo "${RESET}"
                 done
             fi
         
-            echo "$SUSPEND_MODE" | sudo tee /usr/share/power_manager/suspend_mode >/dev/null
+            if [[ "$SUSPEND_MODE" == "freeze" ]]; then
+                echo "s2idle" | sudo tee /usr/share/power_manager/suspend_mode 2>/dev/null
+                echo "s2idle" | sudo tee /sys/power/mem_sleep 2>/dev/null
+                echo "s2idle" | sudo tee /usr/share/power_manager/~/initial_suspend_mode 2>/dev/null
+            else
+                echo "deep" | sudo tee /usr/share/power_manager/suspend_mode 2>/dev/null
+                echo "deep" | sudo tee /sys/power/mem_sleep 2>/dev/null
+                echo "deep" | sudo tee /usr/share/power_manager/~/initial_suspend_mode 2>/dev/null
+            fi
+    
             sudo restart powerd >/dev/null
     
-            if [[ "$SUSPEND_MODE" == "freeze" ]]; then
-                echo s2idle | sudo tee /sys/power/mem_sleep >/dev/null
-            else
-                echo deep | sudo tee /sys/power/mem_sleep >/dev/null
-            fi
     
             save_config
             echo ""
@@ -922,7 +926,7 @@ echo "${RESET}"
             echo "Valid suspend types: freeze | deep"
             echo "Current suspend mode:"
             echo ""
-            echo "${RESET}${BOLD}${BLUE$}$(cat /sys/power/mem_sleep)${RESET}${BLUE}"
+            echo "${RESET}${BOLD}${BLUE}$(cat /sys/power/mem_sleep)${RESET}${BLUE}"
             echo ""
             echo "Note: freeze is s2idle - use freeze to apply correct value."
             echo "If set to deep, ChromeOS_PowerControl logic will continue to function when plugged in."
