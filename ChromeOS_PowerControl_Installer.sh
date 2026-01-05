@@ -233,7 +233,7 @@ for file in "${files[@]}"; do
         if grep -q "@INSTALL_DIR@" "$dest"; then
             sed -i "s|@INSTALL_DIR@|$INSTALL_DIR|g" "$dest"
         fi
-        sudo chmod +x "$dest"
+        sudo chmod +x "$dest" 2>/dev/null
     else
         echo "${RED}Failed to download $file. Skipping.${RESET}"
     fi
@@ -245,14 +245,14 @@ CONFIG_DIR="/home/chronos/user/MyFiles/Downloads/ChromeOS_PowerControl_Config"
 NEW_CONFIG_PATH="$CONFIG_DIR/config"
 CONFIG_URL="https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/config"
 sudo curl -fsSL "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/gui.py" -o $CHARD_ROOT/bin/powercontrol-gui 2>/dev/null
-sudo chmod +x $CHARD_ROOT/bin/powercontrol-gui
+sudo chmod +x $CHARD_ROOT/bin/powercontrol-gui 2>/dev/null
 mkdir -p "$CONFIG_DIR"
 sudo cp $INSTALL_DIR/config.sh $INSTALL_DIR/config.sh.bak 2>/dev/null
 if [[ -f "$OLD_CONFIG_PATH" ]]; then
     echo "${YELLOW}Found legacy config.sh — migrating to fixed location${RESET}"
     cp "$OLD_CONFIG_PATH" "$NEW_CONFIG_PATH"
     sudo rm "$OLD_CONFIG_PATH"
-    sudo chmod 666 "$NEW_CONFIG_PATH"
+    sudo chmod 666 "$NEW_CONFIG_PATH" 2>/dev/null
 
 elif [[ -f "$NEW_CONFIG_PATH" ]]; then
     echo "${GREEN}Existing config preserved at:${RESET} $NEW_CONFIG_PATH"
@@ -260,7 +260,7 @@ elif [[ -f "$NEW_CONFIG_PATH" ]]; then
 else
     echo "${BLUE}No config found — downloading default config${RESET}"
     if curl -fsSL "$CONFIG_URL" -o "$NEW_CONFIG_PATH"; then
-        sudo chmod 644 "$NEW_CONFIG_PATH"
+        sudo chmod 644 "$NEW_CONFIG_PATH" 2>/dev/null
     else
         echo "${RED}Failed to download default config${RESET}"
     fi
@@ -298,7 +298,7 @@ echo "PERF_PATH: $PERF_PATH"
 echo "PERF_PATHS: ${PERF_PATHS[*]}"
 echo "TURBO_PATH: $TURBO_PATH"
 echo "$RESET"
-sudo chmod +x "$INSTALL_DIR/powercontrol" "$INSTALL_DIR/batterycontrol" "$INSTALL_DIR/fancontrol" "$INSTALL_DIR/gpucontrol" "$INSTALL_DIR/sleepcontrol" "$INSTALL_DIR/Uninstall_ChromeOS_PowerControl.sh" "$INSTALL_DIR/config.sh"
+sudo chmod +x "$INSTALL_DIR/powercontrol" "$INSTALL_DIR/batterycontrol" "$INSTALL_DIR/fancontrol" "$INSTALL_DIR/gpucontrol" "$INSTALL_DIR/sleepcontrol" "$INSTALL_DIR/Uninstall_ChromeOS_PowerControl.sh" "$INSTALL_DIR/config.sh" 2>/dev/null
 sudo touch "$INSTALL_DIR/.batterycontrol_enabled" "$INSTALL_DIR/.powercontrol_enabled" "$INSTALL_DIR/.fancontrol_enabled"
 detect_gpu_freq
 echo "${MAGENTA}Detected GPU Type: $GPU_TYPE"
@@ -309,7 +309,7 @@ echo "${RESET}"
 LOG_DIR="/var/log"
 CONFIG_FILE="$INSTALL_DIR/config.sh"
 sudo touch "$LOG_DIR/powercontrol.log" "$LOG_DIR/batterycontrol.log" "$LOG_DIR/fancontrol.log" "$LOG_DIR/gpucontrol.log" "$LOG_DIR/sleepcontrol.log"
-sudo chmod 644 "$LOG_DIR/powercontrol.log" "$LOG_DIR/batterycontrol.log" "$LOG_DIR/fancontrol.log" "$LOG_DIR/gpucontrol.log" "$LOG_DIR/sleepcontrol.log"
+sudo chmod 644 "$LOG_DIR/powercontrol.log" "$LOG_DIR/batterycontrol.log" "$LOG_DIR/fancontrol.log" "$LOG_DIR/gpucontrol.log" "$LOG_DIR/sleepcontrol.log" 2>/dev/null
 echo "${YELLOW}${BOLD}Log files for PowerControl, BatteryControl, FanControl, GPUControl, and SleepControl are stored in /var/log/$RESET"
 
 USER_HOME="/home/chronos"
