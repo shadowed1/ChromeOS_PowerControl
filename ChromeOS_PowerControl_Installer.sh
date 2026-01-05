@@ -240,30 +240,23 @@ for file in "${files[@]}"; do
     sleep 0.1
 done
 
-OLD_CONFIG_PATH="$INSTALL_DIR/config.sh"
 CONFIG_DIR="/home/chronos/user/MyFiles/Downloads/ChromeOS_PowerControl_Config"
 NEW_CONFIG_PATH="$CONFIG_DIR/config"
 CONFIG_URL="https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/config.sh"
-sudo curl -fsSL "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/gui.py" -o $CHARD_ROOT/bin/powercontrol-gui 2>/dev/null
-sudo chmod +x $CHARD_ROOT/bin/powercontrol-gui 2>/dev/null
+
+sudo curl -fsSL "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/gui.py" -o "$CHARD_ROOT/bin/powercontrol-gui" 2>/dev/null
+sudo chmod +x "$CHARD_ROOT/bin/powercontrol-gui" 2>/dev/null
+
 mkdir -p "$CONFIG_DIR"
-sudo cp $INSTALL_DIR/config.sh $INSTALL_DIR/config.sh.bak 2>/dev/null
-if [[ -f "$OLD_CONFIG_PATH" ]]; then
-    echo "${YELLOW}Found legacy config.sh — migrating to fixed location${RESET}"
-    cp "$OLD_CONFIG_PATH" "$NEW_CONFIG_PATH"
-    sudo rm "$OLD_CONFIG_PATH"
-    sudo chmod 666 "$NEW_CONFIG_PATH" 2>/dev/null
 
-elif [[ -f "$NEW_CONFIG_PATH" ]]; then
-    echo "${GREEN}Existing config preserved at:${RESET} $NEW_CONFIG_PATH"
-
-else
+if [[ ! -f "$NEW_CONFIG_PATH" ]]; then
     echo "${BLUE}No config found — downloading default config${RESET}"
-    if curl -fsSL "$CONFIG_URL" -o "$NEW_CONFIG_PATH"; then
-        sudo chmod 666 "$NEW_CONFIG_PATH" 2>/dev/null
-    else
+    curl -fsSL "$CONFIG_URL" -o "$NEW_CONFIG_PATH" || {
         echo "${RED}Failed to download default config${RESET}"
-    fi
+    }
+    chmod 666 "$NEW_CONFIG_PATH"
+else
+    echo "${GREEN}Existing config preserved at:${RESET} $NEW_CONFIG_PATH"
 fi
 
 CONFIG_FILE="$NEW_CONFIG_PATH"
