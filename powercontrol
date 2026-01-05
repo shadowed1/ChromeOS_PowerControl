@@ -751,11 +751,11 @@ case "$1" in
                     echo "${CYAN}no_turbo.conf copied.${RESET}"
                 else
                     echo "Intel Turbo Boost will start automatically."
-                    sudo rm -f /etc/init/no_turbo.conf
+                    sudo rm -f /etc/init/no_turbo.conf 2>/dev/null
                 fi
             else
                 echo "Intel Turbo Boost enabled on startup."
-                sudo rm -r /etc/init/no_turbo.conf
+                sudo rm -r /etc/init/no_turbo.conf 2>/dev/null
             fi
         fi
     
