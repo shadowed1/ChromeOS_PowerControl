@@ -14,7 +14,7 @@ class ConfigEditor(Gtk.Window):
         settings = Gtk.Settings.get_default()
         settings.set_property("gtk-application-prefer-dark-theme", True)
         super().__init__(title="ChromeOS_PowerControl GUI")
-        self.set_default_size(800, 500)
+        self.set_default_size(700, 600)
         headerbar = Gtk.HeaderBar()
         headerbar.set_show_close_button(True)
         headerbar.props.title = "ChromeOS_PowerControl GUI"
