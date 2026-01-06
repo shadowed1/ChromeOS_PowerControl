@@ -157,9 +157,9 @@ class ConfigEditor(Gtk.Window):
         """Create all configuration sections"""
         sections = {
             "PowerControl": [
-                ("MAX_TEMP", "Maximum Temperature (°C)", "slider", 40, 90, 1, False),
-                ("HOTZONE", "Hotzone Temperature (°C)", "slider", 40, 90, 1, False),
-                ("MIN_TEMP", "Minimum Temperature (°C)", "slider", 40, 90, 1, False),
+                ("MAX_TEMP", "Maximum Temperature (°C)", "slider", 50, 90, 1, False),
+                ("HOTZONE", "Hotzone Temperature (°C)", "slider", 50, 90, 1, False),
+                ("MIN_TEMP", "Minimum Temperature (°C)", "slider", 50, 90, 1, False),
                 ("MAX_PERF_PCT", "Maximum Performance %", "slider", 10, 100, 1, False),
                 ("MIN_PERF_PCT", "Minimum Performance %", "slider", 10, 100, 1, False),
                 ("RAMP_UP", "Ramp Up Speed (%)", "slider", 1, 50, 1, False),
