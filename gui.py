@@ -20,7 +20,11 @@ class ConfigEditor(Gtk.Window):
         headerbar.props.title = "ChromeOS_PowerControl GUI"
         headerbar.set_decoration_layout("menu:minimize,maximize,close")
         self.set_titlebar(headerbar)
-        reload_btn = Gtk.Button(label="Reload")
+        
+        reload_btn = Gtk.Button()
+        reload_icon = Gtk.Image.new_from_icon_name("view-refresh-symbolic", Gtk.IconSize.BUTTON)
+        reload_btn.set_image(reload_icon)
+        reload_btn.set_tooltip_text("Reload")
         reload_btn.connect("clicked", self.on_reload_clicked)
         headerbar.pack_end(reload_btn)
         
