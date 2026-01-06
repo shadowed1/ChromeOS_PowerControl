@@ -21,12 +21,12 @@ class ConfigEditor(Gtk.Window):
         headerbar.set_decoration_layout("menu:minimize,maximize,close")
         self.set_titlebar(headerbar)
         
-        reload_btn = Gtk.Button()
+        self.reload_btn = Gtk.Button()
         reload_icon = Gtk.Image.new_from_icon_name("view-refresh-symbolic", Gtk.IconSize.BUTTON)
-        reload_btn.set_image(reload_icon)
-        reload_btn.set_tooltip_text("Reload")
-        reload_btn.connect("clicked", self.on_reload_clicked)
-        headerbar.pack_end(reload_btn)
+        self.reload_btn.set_image(reload_icon)
+        self.reload_btn.set_tooltip_text("Reload")
+        self.reload_btn.connect("clicked", self.on_reload_clicked)
+        headerbar.pack_end(self.reload_btn)
         
         self.config_path = self.find_config_file()
         self.config_data = {}
@@ -92,9 +92,9 @@ class ConfigEditor(Gtk.Window):
         button_box.set_halign(Gtk.Align.CENTER)
         main_vbox.pack_start(button_box, False, False, 0)
         
-        save_btn = Gtk.Button(label="Save Config")
-        save_btn.connect("clicked", self.on_save_clicked)
-        button_box.pack_start(save_btn, False, False, 0)
+        self.save_btn = Gtk.Button(label="Save Config")
+        self.save_btn.connect("clicked", self.on_save_clicked)
+        button_box.pack_start(self.save_btn, False, False, 0)
         
         exit_btn = Gtk.Button(label="Exit")
         exit_btn.connect("clicked", lambda x: self.destroy())
@@ -471,16 +471,55 @@ class ConfigEditor(Gtk.Window):
             with open(self.config_path, 'w') as f:
                 f.writelines(new_lines)
             
-            self.show_info_dialog("Success", "Configuration saved successfully!")
+            self.show_save_success()
         except PermissionError:
             self.show_error_dialog("Permission Denied", 
                 "Cannot write to config file.\n\n")
         except Exception as e:
             self.show_error_dialog("Error", f"Failed to save config: {str(e)}")
     
+    def show_save_success(self):
+        """Show save success by temporarily changing button appearance"""
+        original_label = self.save_btn.get_label()
+        self.save_btn.set_label("Saved!")
+        css_provider = Gtk.CssProvider()
+        css_provider.load_from_data(b"""
+            button { 
+                background: #4caf50;
+                color: white;
+            }
+        """)
+        context = self.save_btn.get_style_context()
+        context.add_provider(css_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER)
+        def reset_button():
+            self.save_btn.set_label(original_label)
+            context.remove_provider(css_provider)
+            return False
+        
+        GLib.timeout_add(1500, reset_button)
+    
+    def show_reload_success(self):
+        """Show reload success"""
+        css_provider = Gtk.CssProvider()
+        css_provider.load_from_data(b"""
+            button { 
+                background: #2196f3;
+                color: white;
+            }
+        """)
+        context = self.reload_btn.get_style_context()
+        context.add_provider(css_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER)
+        
+        def reset_button():
+            context.remove_provider(css_provider)
+            return False
+        
+        GLib.timeout_add(1000, reset_button)
+    
     def on_reload_clicked(self, button):
         """Handle reload button click"""
         self.load_config()
+        self.show_reload_success()
     
     def on_save_clicked(self, button):
         """Handle save button click"""
