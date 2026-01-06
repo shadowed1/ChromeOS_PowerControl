@@ -18,9 +18,10 @@ echo "Running commands:"
 echo ""
 sudo mkdir -p /usr/local/bin
 echo "sudo mkdir -p /usr/local/bin"
-sudo mv /home/chronos/ChromeOS_PowerControl_Installer.sh /usr/local/bin
 echo "sudo mv /home/chronos/ChromeOS_PowerControl_Installer.sh /usr/local/bin"
-sudo chmod +x /usr/local/ChromeOS_PowerControl_Installer.sh
 echo "sudo chmod +x /usr/local/ChromeOS_PowerControl_Installer.sh"
-sudo -E /usr/local/bin/ChromeOS_PowerControl_Installer.sh
 echo "sudo -E /usr/local/bin/ChromeOS_PowerControl_Installer.sh"
+sudo mkdir -p /usr/local/bin
+sudo mv /home/chronos/ChromeOS_PowerControl_Installer.sh /usr/local/bin
+sudo chmod +x /usr/local/bin/ChromeOS_PowerControl_Installer.sh
+sudo -E /usr/local/bin/ChromeOS_PowerControl_Installer.sh
