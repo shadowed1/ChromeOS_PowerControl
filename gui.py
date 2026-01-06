@@ -13,11 +13,16 @@ class ConfigEditor(Gtk.Window):
     def __init__(self):
         settings = Gtk.Settings.get_default()
         settings.set_property("gtk-application-prefer-dark-theme", True)
-        
         super().__init__(title="ChromeOS_PowerControl GUI")
         self.set_default_size(1000, 700)
-        self.set_border_width(10)
-        self.set_decorated(True)
+        headerbar = Gtk.HeaderBar()
+        headerbar.set_show_close_button(True)
+        headerbar.props.title = "ChromeOS_PowerControl GUI"
+        headerbar.set_decoration_layout("menu:minimize,maximize,close")
+        self.set_titlebar(headerbar)
+        reload_btn = Gtk.Button(label="Reload")
+        reload_btn.connect("clicked", self.on_reload_clicked)
+        headerbar.pack_end(reload_btn)
         
         self.config_path = self.find_config_file()
         self.config_data = {}
@@ -60,21 +65,14 @@ class ConfigEditor(Gtk.Window):
     def create_ui(self):
         """UI"""
         main_vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
+        main_vbox.set_border_width(10)
         self.add(main_vbox)
-        header_bar = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
-        header_bar.set_margin_bottom(1)
-        main_vbox.pack_start(header_bar, False, False, 0)
-        title_label = Gtk.Label()
-        title_label.set_halign(Gtk.Align.START)
-        title_label.set_hexpand(True)
-        header_bar.pack_start(title_label, True, True, 0)
-        reload_btn = Gtk.Button(label="Reload")
-        reload_btn.connect("clicked", self.on_reload_clicked)
-        header_bar.pack_start(reload_btn, False, False, 0)
+        
         scrolled = Gtk.ScrolledWindow()
         scrolled.set_vexpand(True)
         scrolled.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
         main_vbox.pack_start(scrolled, True, True, 0)
+        
         self.grid = Gtk.Grid()
         self.grid.set_column_spacing(5)
         self.grid.set_row_spacing(5)
@@ -83,13 +81,17 @@ class ConfigEditor(Gtk.Window):
         self.grid.set_margin_top(10)
         self.grid.set_margin_bottom(10)
         scrolled.add(self.grid)
+        
         self.create_config_sections()
+        
         button_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
         button_box.set_halign(Gtk.Align.CENTER)
         main_vbox.pack_start(button_box, False, False, 0)
+        
         save_btn = Gtk.Button(label="Save Config")
         save_btn.connect("clicked", self.on_save_clicked)
         button_box.pack_start(save_btn, False, False, 0)
+        
         exit_btn = Gtk.Button(label="Exit")
         exit_btn.connect("clicked", lambda x: self.destroy())
         button_box.pack_start(exit_btn, False, False, 0)
@@ -347,7 +349,6 @@ class ConfigEditor(Gtk.Window):
         backlight = self.widgets["BATTERY_BACKLIGHT"].get_value()
         delay = self.widgets["BATTERY_DELAY"].get_value()
         
-        # Only adjust the values that violate constraints
         if dim >= backlight:
             self.widgets["BATTERY_DIM_DELAY"].set_value(backlight - 1)
         if backlight >= delay:
@@ -364,7 +365,6 @@ class ConfigEditor(Gtk.Window):
         backlight = self.widgets["POWER_BACKLIGHT"].get_value()
         delay = self.widgets["POWER_DELAY"].get_value()
         
-        # Only adjust the values that violate constraints
         if dim >= backlight:
             self.widgets["POWER_DIM_DELAY"].set_value(backlight - 1)
         if backlight >= delay:
@@ -530,6 +530,7 @@ def main():
     settings = Gtk.Settings.get_default()
     settings.set_property("gtk-application-prefer-dark-theme", True)
     settings.set_property("gtk-theme-name", "Adwaita-dark")
+    settings.set_property("gtk-decoration-layout", "menu:minimize,maximize,close")
     
     win = ConfigEditor()
     if win.config_path:
