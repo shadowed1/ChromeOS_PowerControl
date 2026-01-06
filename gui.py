@@ -443,7 +443,7 @@ class ConfigEditor(Gtk.Window):
                             if isinstance(widget, Gtk.Scale):
                                 value = widget.get_value()
                                 if key in sleep_keys:
-                                    value = int(value * 60)
+                                    value = int(value)
                                 elif key == "CPU_POLL":
                                     new_value = f"{value:.1f}"
                                     new_lines.append(f"{key}={new_value}\n")
