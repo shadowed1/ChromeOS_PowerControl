@@ -16,7 +16,7 @@ PID_FILE="$INSTALL_DIR/.batterycontrol_pid"
 LOG_FILE="/var/log/batterycontrol.log"
 timestamp=$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1)
 
-if ! ( [[ -z "$1" ]] || [[ "$1" == "--h" || "$1" == "-h" || "$1" == "h" || "$1" == "--help" || "$1" == "-help" || "$1" == "help" || "$1" == "monitor" || "$1" == "mon" || "$1" == "status" ]] ) && [[ "$(id -u)" -ne 0 ]]; then    
+if ! ( [[ -z "$1" ]] || [[ "$1" == "--h" || "$1" == "-h" || "$1" == "h" || "$1" == "--help" || "$1" == "-help" || "$1" == "help" || "$1" == "monitor" || "$1" == "mon" || "$1" == "usage" || "$1" == "status" ]] ) && [[ "$(id -u)" -ne 0 ]]; then    
     echo "${RED}BatteryControl requires sudo to run.${RESET}"
     echo "  Try: sudo batterycontrol $*  or  sudo $0 $*"
     exit 1
@@ -99,6 +99,7 @@ echo "║  sudo batterycontrol start    # Start BatteryControl                  
 echo "║  sudo batterycontrol stop     # Stop BatteryControl                                ║"
 echo "║  sudo batterycontrol 77       # Charge limit set to 77% - Minimum allowed is 14%   ║"
 echo "║  sudo batterycontrol startup  # Copy or Remove batterycontrol.conf at: /etc/init/  ║"
+echo "║  sudo batterycontrol usage    # See power consumption in real-time!  ║"
 echo "║                                                                                    ║"
 echo "╚════════════════════════════════════════════════════════════════════════════════════╝"
 echo "${RESET}"
@@ -253,6 +254,28 @@ stop_monitoring() {
     rm -f "$RUN_FLAG"
 }
 
+usage() {
+    while true; do
+        echo "${GREEN}CTRL-C to exit"
+        data=$(sudo ectool battery 2>/dev/null)
+        voltage_mV=$(echo "$data" | awk '/Present voltage/ {print $3}' | tr -d '[:alpha:]')
+        current_mA=$(echo "$data" | awk '/Present current/ {print $3}' | tr -d '[:alpha:]')
+    
+        if [[ -z "$voltage_mV" || -z "$current_mA" ]]; then
+            echo "$(date +'%H:%M:%S') - Error reading battery data"
+            sleep 1
+            continue
+        fi
+    
+        voltage=$(echo "scale=3; $voltage_mV / 1000" | bc)
+        current=$(echo "scale=3; $current_mA / 1000" | bc)
+        power=$(echo "scale=3; $voltage * $current" | bc)
+        echo "$(date +'%H:%M:%S') - Power: ${power} W"
+        sleep 1
+    done
+    echo "${RESET}"
+}
+
 case "$1" in
     set)
         set_threshold "$2"
@@ -292,6 +315,9 @@ case "$1" in
             echo "BatteryControl will not startup automatically."
             sudo rm -r /etc/init/batterycontrol.conf 2>/dev/null
         fi
+        ;;
+    usage)
+        usage
         ;;
    --h|-h|h|--help|-help|help)
         show_help
