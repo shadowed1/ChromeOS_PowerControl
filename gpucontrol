@@ -268,7 +268,7 @@ __gpucontrol_monitor__)
         ;;
     stop)
         stop_monitoring
-        echo "${RED}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1)GPUControl stopped${RESET}" | tee -a "$LOG_FILE"
+        echo "${RED}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - GPUControl stopped${RESET}" | tee -a "$LOG_FILE"
         exit 0
         ;;
     restore)
