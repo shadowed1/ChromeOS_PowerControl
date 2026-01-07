@@ -399,6 +399,17 @@ start_monitoring_loop() {
             ramp_up=$RAMP_UP
             ramp_down=$RAMP_DOWN
             last_reload_time=$now
+            if grep -q '^STARTUP_POWERCONTROL=1' "$CONFIG_FILE"; then
+                if [[ ! -f "$CONF_TARGET" ]]; then
+                    sudo cp "$CONF_SOURCE" "$CONF_TARGET"
+                    echo "${CYAN}$(date '+%F %T') - PowerControl Startup enabled${RESET}" >> "$LOG_FILE"
+                fi
+            else
+                if [[ -f "$CONF_TARGET" ]]; then
+                    sudo rm -f "$CONF_TARGET"
+                    echo "${RED}$(date '+%F %T') - PowerControl Startup disabled${RESET}" >> "$LOG_FILE"
+                fi
+            fi
         fi
 
         temp_c=$(get_temp)
