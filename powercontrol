@@ -21,6 +21,8 @@ IS_AMD=0
 IS_INTEL=0
 IS_ARM=0
 timestamp=$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1)
+CONF_SOURCE="$INSTALL_DIR/powercontrol.conf"
+CONF_TARGET="/etc/init/powercontrol.conf"
 
 
 if ! ( [[ -z "$1" ]] || [[ "$1" == "--h" || "$1" == "-h" || "$1" == "help_all" || "$1" == "h" || "$1" == "--help" || "$1" == "-help" || "$1" == "all" || "$1" == "help" || "$1" == "monitor" || "$1" == "mon" || "$1" == "status" ]] ) && [[ "$(id -u)" -ne 0 ]]; then
