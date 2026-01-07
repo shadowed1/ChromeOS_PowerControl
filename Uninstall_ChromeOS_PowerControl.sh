@@ -81,42 +81,42 @@ case "$choice" in
         remove_file_with_message /var/log/batterycontrol.log
         remove_file_with_message /var/log/gpucontrol.log
         remove_file_with_message /var/log/sleepcontrol.log
-
-        remove_file_with_message "$INSTALL_DIR/config.sh"
-
-        sudo rm -f "$INSTALL_DIR/.fancontrol_enabled"
-        sudo rm -f "$INSTALL_DIR/.powercontrol_enabled"
-        sudo rm -f "$INSTALL_DIR/.batterycontrol_enabled"
-        sudo rm -f "$INSTALL_DIR/.sleepcontrol_enabled"
-        sudo rm -f "$INSTALL_DIR/.last_simulated_times"
-        sudo rm -f "$INSTALL_DIR/.last_fake_activity"
+        remove_file_with_message "$INSTALL_DIR/config.sh" 2>/dev/null
+        sudo rm -f "$INSTALL_DIR/.fancontrol_enabled" 2>/dev/null
+        sudo rm -f "$INSTALL_DIR/.powercontrol_enabled" 2>/dev/null
+        sudo rm -f "$INSTALL_DIR/.batterycontrol_enabled" 2>/dev/null
+        sudo rm -f "$INSTALL_DIR/.sleepcontrol_enabled" 2>/dev/null
+        sudo rm -f "$INSTALL_DIR/.last_simulated_times" 2>/dev/null
+        sudo rm -f "$INSTALL_DIR/.last_fake_activity" 2>/dev/null
         sudo rm -f "$INSTALL_DIR/Reinstall_ChromeOS_PowerControl.sh" 2>/dev/null
         sudo rm -f "$INSTALL_DIR/config.sh.bak" 2>/dev/null
-        sudo rm -f "$INSTALL_DIR/.fan_curve_pid"
-        sudo rm -f "$INSTALL_DIR/.fan_curve_running"
-        sudo rm -f "$INSTALL_DIR/.install_path"
-        sudo rm -f "$INSTALL_DIR/.fancontrol_pid"
-        sudo rm -f "$INSTALL_DIR/.powercontrol_pid"
-        sudo rm -f "$INSTALL_DIR/.batterycontrol_pid"
-        sudo rm -f "$INSTALL_DIR/.fancontrol_tail_fan_monitor.pid"
-        sudo rm -f "$INSTALL_DIR/.powercontrol_tail_fan_monitor.pid"
-        sudo rm -f "$INSTALL_DIR/.fancontrol_monitor.pid"
-        sudo rm -f "$INSTALL_DIR/.powercontrol_monitor.pid"
-        sudo rm -f "$INSTALL_DIR/.sleepcontrol_lock"
-        sudo rm -f "$INSTALL_DIR/.sleepcontrol_monitor.pid"
-        sudo rm -f "$INSTALL_DIR/.sleepcontrol_pid.lock"
-        sudo rm -f "$INSTALL_DIR/.mem_sleep_watcher.lock"
-        sudo rm -f "$INSTALL_DIR/.sleepcontrol_pid.lid"
-        sudo rm -f "$INSTALL_DIR/last_fake_activity_ts"
-        sudo rm -f "$INSTALL_DIR/last_real_activity_ts"
-        sudo rm -f "$INSTALL_DIR/.last_power_state"
-        sudo rm -rf "$INSTALL_DIR/sleep"
-        sudo rm -f "/usr/local/bin/.ChromeOS_PowerControl.install_dir"
-        sudo rm -f "/usr/local/bin/fancontrol_conf.sh"
-        sudo rm -f "/usr/local/bin/powercontrol_conf.sh"
-        sudo rm -f "/usr/local/bin/sleepcontrol_conf.sh"
-        sudo rm -f "/usr/local/bin/batterycontrol_conf.sh"
-        sudo rm -f "/usr/local/bin/gpucontrol_conf.sh"
+        sudo rm -f "$INSTALL_DIR/.fan_curve_pid" 2>/dev/null
+        sudo rm -f "$INSTALL_DIR/.fan_curve_running" 2>/dev/null
+        sudo rm -f "$INSTALL_DIR/.install_path" 2>/dev/null
+        sudo rm -f "$INSTALL_DIR/.fancontrol_pid" 2>/dev/null
+        sudo rm -f "$INSTALL_DIR/.powercontrol_pid" 2>/dev/null
+        sudo rm -f "$INSTALL_DIR/.batterycontrol_pid" 2>/dev/null
+        sudo rm -f "$INSTALL_DIR/.gpucontrol_enabled" 2>/dev/null
+        sudo rm -f "$INSTALL_DIR/.gpucontrol_pid" 2>/dev/null
+        sudo rm -f "$INSTALL_DIR/.fancontrol_tail_fan_monitor.pid" 2>/dev/null
+        sudo rm -f "$INSTALL_DIR/.powercontrol_tail_fan_monitor.pid" 2>/dev/null
+        sudo rm -f "$INSTALL_DIR/.fancontrol_monitor.pid" 2>/dev/null
+        sudo rm -f "$INSTALL_DIR/.powercontrol_monitor.pid" 2>/dev/null
+        sudo rm -f "$INSTALL_DIR/.sleepcontrol_lock" 2>/dev/null
+        sudo rm -f "$INSTALL_DIR/.sleepcontrol_monitor.pid" 2>/dev/null
+        sudo rm -f "$INSTALL_DIR/.sleepcontrol_pid.lock" 2>/dev/null
+        sudo rm -f "$INSTALL_DIR/.mem_sleep_watcher.lock" 2>/dev/null
+        sudo rm -f "$INSTALL_DIR/.sleepcontrol_pid.lid" 2>/dev/null
+        sudo rm -f "$INSTALL_DIR/last_fake_activity_ts" 2>/dev/null
+        sudo rm -f "$INSTALL_DIR/last_real_activity_ts" 2>/dev/null
+        sudo rm -f "$INSTALL_DIR/.last_power_state" 2>/dev/null
+        sudo rm -rf "$INSTALL_DIR/sleep" 2>/dev/null
+        sudo rm -f "/usr/local/bin/.ChromeOS_PowerControl.install_dir" 2>/dev/null
+        sudo rm -f "/usr/local/bin/fancontrol_conf.sh" 2>/dev/null
+        sudo rm -f "/usr/local/bin/powercontrol_conf.sh" 2>/dev/null
+        sudo rm -f "/usr/local/bin/sleepcontrol_conf.sh" 2>/dev/null
+        sudo rm -f "/usr/local/bin/batterycontrol_conf.sh" 2>/dev/null
+        sudo rm -f "/usr/local/bin/gpucontrol_conf.sh" 2>/dev/null
         rm -rf /home/chronos/user/MyFiles/Downloads/ChromeOS_PowerControl_Config 2>/dev/null
         remove_file_with_message "$INSTALL_DIR/powercontrol"
         remove_file_with_message "$INSTALL_DIR/fancontrol"
