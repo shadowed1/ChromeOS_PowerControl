@@ -7,8 +7,8 @@
  
 <p align="center">
   <img src="https://i.imgur.com/uELNNt2.png" alt="logo" width="300" />
-</p>  
-
+</p>
+ 
 <br>
 
 ### How to Install:
@@ -20,9 +20,18 @@ Open Crosh (ctrl-alt-t), enter `shell`, copy paste, and run:
   <img src="https://i.imgur.com/fh8dBwa.png" alt="logo" />
 </p>
 
-  <br> <br>
+<br> <br>
 
-  ### GUI app for Crostini (run in Linux):
+### Now with GUI support:
+
+<br>
+
+<p align="center">
+  <img src="https://i.imgur.com/jubxhuM.png" alt="logo" width="600" />
+</p>
+<br>
+
+### GUI app for Crostini (run in Linux):
 ```
 sudo apt install gedit gnome-themes-extra gnome-icon-theme -y
 sudo curl -fsSL "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/gui.py" -o /bin/powercontrol-gui 2>/dev/null
