@@ -244,8 +244,15 @@ OLD_CONFIG_PATH="$INSTALL_DIR/config.sh"
 CONFIG_DIR="/home/chronos/user/MyFiles/Downloads/ChromeOS_PowerControl_Config"
 NEW_CONFIG_PATH="$CONFIG_DIR/config"
 CONFIG_URL="https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/config.sh"
+BASHRC="/home/chronos/user/.bashrc"
 
-if [[ -n "${CHARD_ROOT:-}" ]]; then
+chard_line=$(grep -F 'source' "$BASHRC" | grep -F '.chardrc')
+if [[ -n "$chard_line" ]]; then
+    CHARD_ROOT=$(echo "$chard_line" | sed -n 's/.*source[[:space:]]*"\(.*\)\/\.chardrc".*/\1/p')
+fi
+
+if [[ -n "$CHARD_ROOT" ]]; then
+    echo "${GREEN}Downloading powercontrol-gui to: $CHARD_ROOT ${RESET}"
     sudo -E curl -fsSL "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/gui.py" -o "$CHARD_ROOT/bin/powercontrol-gui" 2>/dev/null
     sudo chmod +x "$CHARD_ROOT/bin/powercontrol-gui" 2>/dev/null
 fi
