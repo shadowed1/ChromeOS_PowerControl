@@ -259,14 +259,14 @@ if [[ -f "$OLD_CONFIG_PATH" ]]; then
     sudo chmod 666 "$NEW_CONFIG_PATH" 2>/dev/null
 
 elif [[ -f "$NEW_CONFIG_PATH" ]]; then
-    echo "${GREEN}Existing config preserved at:${RESET} $NEW_CONFIG_PATH"
+    echo "${GREEN}Existing config preserved at:${BOLD} $NEW_CONFIG_PATH"
 
 else
-    echo "${BLUE}No config found — downloading default config${RESET}"
+    echo "${RESET}${BLUE}No config found — downloading default config${RESET}"
     if curl -fsSL "$CONFIG_URL" -o "$NEW_CONFIG_PATH"; then
         sudo chmod 644 "$NEW_CONFIG_PATH" 2>/dev/null
     else
-        echo "${RED}Failed to download default config${RESET}"
+        echo "${RESET}${RED}Failed to download default config${RESET}"
     fi
 fi
 
