@@ -202,7 +202,7 @@ class ConfigEditor(Gtk.Window):
             "SleepControl - Mode": [
                 ("SUSPEND_MODE", "Suspend Mode", "combo", ["deep", "s2idle"], None, None, False),
             ],
-            "Startup": [
+            "Startup on Boot": [
                 ("STARTUP_BATTERYCONTROL", "Start BatteryControl", "switch", None, None, None, False),
                 ("STARTUP_POWERCONTROL", "Start PowerControl", "switch", None, None, None, False),
                 ("STARTUP_FANCONTROL", "Start FanControl", "switch", None, None, None, False),
