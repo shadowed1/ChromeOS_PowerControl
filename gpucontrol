@@ -276,7 +276,7 @@ __gpucontrol_monitor__)
         echo ""
         exit 0
         ;;
-    clockspeed)
+    monitor)
         clockspeed
         ;;
     startup)
