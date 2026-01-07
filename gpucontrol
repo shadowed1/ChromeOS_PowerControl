@@ -156,9 +156,6 @@ start_monitoring_loop() {
             load_config
             apply_gpu_settings
             last_reload=$now
-
-            CUR_FREQ=$(get_current_freq "$GPU_TYPE")
-            echo "$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - GPU $GPU_TYPE max=$GPU_MAX_FREQ cur=$CUR_FREQ" >> "$LOG_FILE"
         fi
 
         sleep 1
@@ -238,6 +235,9 @@ help() {
     echo "║                                                                                                                  ║"
     echo "║  gpucontrol                     # Show current GPU info and frequency                                            ║"
     echo "║  gpucontrol help                # Show help menu                                                                 ║"
+    echo "║  gpucontrol monitor             # Monitor GPU clockspeed in real-time                                            ║"
+    echo "║  sudo gpucontrol start          # Start GPUControl                                                               ║"
+    echo "║  sudo gpucontrol stop           # Stop GPUControl                                                                ║"
     echo "║  sudo gpucontrol restore        # Restore GPU max frequency to original value                                    ║"
     echo "║  sudo gpucontrol 800            # Set GPU max frequency to 800 MHz                                               ║"
     echo "║  sudo gpucontrol startup        # Enable or disable GPUControl on startup                                        ║"
@@ -268,7 +268,7 @@ __gpucontrol_monitor__)
         ;;
     stop)
         stop_monitoring
-        echo "${RED}GPUControl stopped${RESET}"
+        echo "${RED}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1)GPUControl stopped${RESET}" | tee -a "$LOG_FILE"
         exit 0
         ;;
     restore)
@@ -309,6 +309,26 @@ __gpucontrol_monitor__)
 esac
 
 if [[ $# -eq 0 ]]; then
+    RUNNING=0
+    if [[ -f "$PID_FILE" ]]; then
+        if read -r PID < "$PID_FILE" && ps -p "$PID" > /dev/null 2>&1; then
+            RUNNING=1
+        fi
+    fi
+
+    if (( RUNNING )); then
+        COLOR="$MAGENTA"
+        STATE_TEXT="GPUControl is: Running"
+    else
+        COLOR="$RED"
+        STATE_TEXT="GPUControl is: Stopped"
+    fi
+
+    echo "${COLOR}"
+    echo "═══════════════════════════════════════════════════"
+    echo "            $STATE_TEXT"
+    echo ""
+
     case "$GPU_TYPE" in
         amd) amd_set_max_freq "$GPU_MAX_FREQ" ;;
         intel)
@@ -319,30 +339,33 @@ if [[ $# -eq 0 ]]; then
             ;;
     esac
 
-    echo "${MAGENTA}"
-    echo "═══════════════════════════════════════════════════"
     CURRENT_FREQ=$(get_current_freq "$GPU_TYPE")
-    if [[ "$CURRENT_FREQ" =~ ^[0-9]+$ ]]; then
-    case "$GPU_TYPE" in
-        intel|amd)
-            DISPLAY_FREQ="$CURRENT_FREQ" ;;
-        mali|adreno)
-            DISPLAY_FREQ=$((CURRENT_FREQ / 1000000)) ;;
-        *)
-            DISPLAY_FREQ="$CURRENT_FREQ" ;;
-    esac
-    echo -n "GPUControl Max Frequency: ${RESET}${BOLD}${MAGENTA}${DISPLAY_FREQ} MHz"
-else
-    echo -n "GPUControl Max Frequency: ${RESET}${BOLD}${MAGENTA}Unavailable"
-fi
 
-    echo "${RESET}${MAGENTA}"
+    if [[ "$CURRENT_FREQ" =~ ^[0-9]+$ ]]; then
+        case "$GPU_TYPE" in
+            intel|amd)
+                DISPLAY_FREQ="$CURRENT_FREQ"
+                ;;
+            mali|adreno)
+                DISPLAY_FREQ=$((CURRENT_FREQ / 1000000))
+                ;;
+            *)
+                DISPLAY_FREQ="$CURRENT_FREQ"
+                ;;
+        esac
+        echo "GPUControl Max Frequency: ${RESET}${BOLD}${COLOR}${DISPLAY_FREQ} MHz ${RESET}${COLOR}"
+    else
+        echo "GPUControl Max Frequency: ${RESET}${BOLD}${COLOR}Unavailable ${RESET}${COLOR}"
+    fi
+
     echo "GPU Type: $GPU_TYPE"
+
     if [[ "$GPU_TYPE" == "intel" || "$GPU_TYPE" == "amd" ]]; then
         DEFAULT_MHZ=$ORIGINAL_GPU_MAX_FREQ
     else
         DEFAULT_MHZ=$((ORIGINAL_GPU_MAX_FREQ / 1000000))
     fi
+
     echo "Default Max Frequency: ${DEFAULT_MHZ} MHz"
     echo "═══════════════════════════════════════════════════"
     echo "${RESET}"
@@ -356,8 +379,10 @@ fi
             printf "║ Index %2d: %s MHz %s\n" "$index" "$freq" "$marker"
         done
     fi
+
     exit 0
 fi
+
 
 if [[ $# -eq 1 && "$1" =~ ^[0-9]+$ ]]; then
     REQUESTED_FREQ="$1"
