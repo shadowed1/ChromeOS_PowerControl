@@ -792,6 +792,8 @@ echo "║                                                                       
 echo "║  gpucontrol                     # Show current GPU info and frequency                                              ║"
 echo "║  gpucontrol help                # Help menu                                                                        ║"
 echo "║  gpucontrol monitor             # Monitor GPU clockspeed in real-time                                              ║"
+echo "║  sudo gpucontrol start          # Start GPUControl                                                                 ║"
+echo "║  sudo gpucontrol stop           # Stop GPUControl                                                                  ║"
 echo "║  sudo gpucontrol restore        # Restore GPU max frequency to original value                                      ║"
 echo "║  sudo gpucontrol 700            # Set GPU max frequency to 700 MHz                                                 ║"
 echo "║  sudo gpucontrol startup        # Copy or Remove gpucontrol.conf at: /etc/init/                                    ║"
