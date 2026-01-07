@@ -192,6 +192,9 @@ case "$1" in
         echo ""
         exit 0
         ;;
+    monitor|mon)
+        monitor
+        ;;
     startup)
         CONF_SOURCE="$INSTALL_DIR/gpucontrol.conf"
         CONF_TARGET="/etc/init/gpucontrol.conf"
@@ -337,9 +340,6 @@ case "$GPU_ARG" in
         amd_set_max_freq "$REQUESTED_FREQ"
         echo "${MAGENTA}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) AMD GPU frequency set to $REQUESTED_FREQ MHz${RESET}" | tee -a "$LOG_FILE"
         echo ""
-        ;;
-    monitor|mon)
-        monitor
         ;;
     *)
         echo ""
