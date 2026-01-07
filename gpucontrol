@@ -140,13 +140,13 @@ start_monitoring_loop() {
     touch "$RUN_FLAG"
     echo $$ > "$PID_FILE"
 
-    echo "${MAGENTA}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - GPUControl started (PID $$)${RESET}" | tee -a "$LOG_FILE"
+    echo "${MAGENTA}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - GPUControl started (PID $$)${RESET}" >> "$LOG_FILE"
 
     local last_reload=0
 
     while true; do
         if [[ ! -f "$RUN_FLAG" ]]; then
-            echo "${RED}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - GPUControl stopped${RESET}" | tee -a "$LOG_FILE"
+            echo "${RED}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - GPUControl stopped${RESET}" >> "$LOG_FILE"
             rm -f "$PID_FILE"
             exit 0
         fi
@@ -278,7 +278,7 @@ __gpucontrol_monitor__)
         ;;
     stop)
         stop_monitoring
-        echo "${RED}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - GPUControl stopped${RESET}" | tee -a "$LOG_FILE"
+        echo "${RED}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - GPUControl stopped${RESET}" >> "$LOG_FILE"
         exit 0
         ;;
     restore)
