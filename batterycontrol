@@ -270,7 +270,7 @@ usage() {
         voltage=$(echo "scale=3; $voltage_mV / 1000" | bc)
         current=$(echo "scale=3; $current_mA / 1000" | bc)
         power=$(echo "scale=3; $voltage * $current" | bc)
-        echo "$(date +'%H:%M:%S') - : ${power} W"
+        echo "$(date +'%H:%M:%S'): ${power} W"
         sleep 1
     done
     echo "${RESET}"
