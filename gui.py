@@ -164,18 +164,18 @@ class ConfigEditor(Gtk.Window):
                 ("MAX_TEMP", "Maximum Temperature (°C)", "slider", 0, 90, 1, False),
                 ("HOTZONE", "Hotzone Temperature (°C)", "slider", 0, 90, 1, False),
                 ("MIN_TEMP", "Minimum Temperature (°C)", "slider", 0, 90, 1, False),
-                ("MAX_PERF_PCT", "Maximum Performance %", "slider", 10, 100, 1, False),
-                ("MIN_PERF_PCT", "Minimum Performance %", "slider", 10, 100, 1, False),
+                ("MAX_PERF_PCT", "Maximum Performance (%)", "slider", 10, 100, 1, False),
+                ("MIN_PERF_PCT", "Minimum Performance (%)", "slider", 10, 100, 1, False),
                 ("RAMP_UP", "Ramp Up Speed (%)", "slider", 1, 50, 1, False),
                 ("RAMP_DOWN", "Ramp Down Speed (%)", "slider", 1, 50, 1, False),
                 ("CPU_POLL", "CPU Poll Interval (s)", "slider", 0.1, 5.0, 0.1, False),
             ],
             "GPUControl": [
-                ("GPU_MAX_FREQ", "GPU Max Frequency", "slider", 100, 2000, 50, False),
+                ("GPU_MAX_FREQ", "GPU Max Frequency (MHz)", "slider", 100, 2000, 50, True),
             ],
             "FanControl": [
-                ("MIN_FAN", "Minimum Fan Speed %", "slider", 0, 100, 1, False),
-                ("MAX_FAN", "Maximum Fan Speed %", "slider", 0, 100, 1, False),
+                ("MIN_FAN", "Minimum Fan Speed (%)", "slider", 0, 100, 1, False),
+                ("MAX_FAN", "Maximum Fan Speed (%)", "slider", 0, 100, 1, False),
                 ("FAN_MIN_TEMP", "Fan Minimum Temp (°C)", "slider", 0, 90, 1, False),
                 ("FAN_MAX_TEMP", "Fan Maximum Temp (°C)", "slider", 0, 90, 1, False),
                 ("STEP_UP", "Fan Step Up (%)", "slider", 1, 20, 1, False),
@@ -183,7 +183,7 @@ class ConfigEditor(Gtk.Window):
                 ("FAN_POLL", "Fan Poll Interval (s)", "slider", 1, 10, 1, False),
             ],
             "BatteryControl": [
-                ("CHARGE_MAX", "Maximum Charge %", "slider", 20, 100, 1, False),
+                ("CHARGE_MAX", "Maximum Charge (%)", "slider", 20, 100, 1, False),
             ],
             "SleepControl - Battery": [
                 ("BATTERY_DIM_DELAY", "Dim Delay (min)", "slider", 1, 10080, 1, True),
