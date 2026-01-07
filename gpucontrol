@@ -156,13 +156,17 @@ start_monitoring_loop() {
             load_config
             apply_gpu_settings
             last_reload=$now
-           if [[ "$STARTUP_GPUCONTROL" == "1" && ! -f "$CONF_TARGET" ]]; then
-               sudo cp "$CONF_SOURCE" "$CONF_TARGET"
-               echo "${MAGENTA}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - GPUControl Startup enabled" >> "$LOG_FILE"
-            elif [[ "$STARTUP_GPUCONTROL" == "0" && -f "$CONF_TARGET" ]]; then
-               sudo rm -f "$CONF_TARGET"
-               echo "${RED}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - GPUControl Startup disabled" >> "$LOG_FILE"
-           fi
+            if grep -q '^STARTUP_GPUCONTROL=1' "$CONFIG_FILE"; then
+                  if [[ ! -f "$CONF_TARGET" ]]; then
+                      sudo cp "$CONF_SOURCE" "$CONF_TARGET"
+                      echo "$(date '+%F %T') - GPUControl Startup enabled" >> "$LOG_FILE"
+                  fi
+              else
+                  if [[ -f "$CONF_TARGET" ]]; then
+                      sudo rm -f "$CONF_TARGET"
+                      echo "$(date '+%F %T') - GPUControl Startup disabled" >> "$LOG_FILE"
+                fi
+            fi
         fi
 
         sleep 1
