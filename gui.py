@@ -543,6 +543,9 @@ class ConfigEditor(Gtk.Window):
         dialog.destroy()
 
 def main():
+    os.environ['GDK_RENDERING'] = 'gl'
+    os.environ['GSK_RENDERER'] = 'gl'
+    os.environ['GDK_GL'] = '1'
     settings = Gtk.Settings.get_default()
     settings.set_property("gtk-application-prefer-dark-theme", True)
     settings.set_property("gtk-theme-name", "Adwaita-dark")
