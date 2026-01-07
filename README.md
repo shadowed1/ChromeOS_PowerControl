@@ -289,6 +289,7 @@ Added display and keyboard backlight restore in Installer when restarting powerd
 - 0.50: `Relaxed FanControl default settings. Fixed lid sleep bug. Fixed SleepControl visual timer bug. Fixed bug with redownloading scripts. Improved FanControl and BatteryControl loop resets. Fixed typo with GPUControl startup. Added 'mon' shortcut for monitor commands.` <br><br>
 - 0.51: `Replaced $date commands with printf and EPOCHSECONDS to reduce CPU usage. Created seperate Reinstall.sh file to fix harmless reinstall errors (caused by having reinstall commands inside PowerControl itself). Fixed sleepcontrol loop ending on power state change.` <br><br>
 - 0.52: `GUI app created for Crostini and Chard. Config file is now located in ~/MyFiles/Downloads/.` <br><br>
+- 0.53: `Streamlined GUI app and fixed numerous bugs with it.` <br><br>
 __Acknowledgements:__
 
 - Thanks to WesBosch for helping me learn to make an installer:
