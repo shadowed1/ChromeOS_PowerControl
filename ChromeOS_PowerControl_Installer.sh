@@ -246,9 +246,7 @@ NEW_CONFIG_PATH="$CONFIG_DIR/config"
 CONFIG_URL="https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/config.sh"
 
 if [[ -n "${CHARD_ROOT:-}" ]]; then
-    sudo curl -fsSL \
-        "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/gui.py" \
-        -o "$CHARD_ROOT/bin/powercontrol-gui" 2>/dev/null
+    sudo -E curl -fsSL "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/gui.py" -o "$CHARD_ROOT/bin/powercontrol-gui" 2>/dev/null
     sudo chmod +x "$CHARD_ROOT/bin/powercontrol-gui" 2>/dev/null
 fi
 
