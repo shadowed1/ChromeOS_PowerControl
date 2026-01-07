@@ -191,7 +191,7 @@ start_monitoring_loop() {
         fi
 
         now=$(date +%s)
-        if (( now - last_reload_time >= 30 )); then
+        if (( now - last_reload_time >= 15 )); then
             load_config
             last_reload_time=$now
 
