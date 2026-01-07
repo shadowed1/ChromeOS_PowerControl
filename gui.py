@@ -243,10 +243,11 @@ class ConfigEditor(Gtk.Window):
                 if widget_type == "slider":
                     min_val, max_val, step, with_spinbutton = field[3], field[4], field[5], field[6]
                     if key == "GPU_MAX_FREQ" and self.original_gpu_max:
-                        display_max = gpu_config_to_mhz(self.gpu_type or "mali", self.original_gpu_max)
+                        display_max = gpu_config_to_mhz(self.gpu_type, self.original_gpu_max)
                         display_min = max(100, int(display_max * 0.1))
                         max_val = display_max
                         min_val = display_min
+
                     if with_spinbutton:
                         box, scale, spinbutton = self.create_slider_with_spinbutton(min_val, max_val, step)
                         self.grid.attach(box, 1, row, 1, 1)
@@ -387,11 +388,15 @@ class ConfigEditor(Gtk.Window):
 
             if "ORIGINAL_GPU_MAX_FREQ" in self.config_data:
                 self.original_gpu_max = int(self.config_data["ORIGINAL_GPU_MAX_FREQ"])
-                self.gpu_type = "mali"
+                # read GPU_TYPE from config, default to "intel"
+                self.gpu_type = self.config_data.get("GPU_TYPE", "intel").lower()
+                
+                # update slider range if it exists
                 if "GPU_MAX_FREQ" in self.widgets:
                     display_max = gpu_config_to_mhz(self.gpu_type, self.original_gpu_max)
                     display_min = max(100, int(display_max * 0.1))
                     self.widgets["GPU_MAX_FREQ"].set_range(display_min, display_max)
+
 
             self.updating_constraints = True
             for key, widget in self.widgets.items():
