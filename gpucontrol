@@ -14,7 +14,7 @@ GPU_MAX_FREQ=
 ORIGINAL_GPU_MAX_FREQ=
 timestamp=$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1)
 
-if ! ( [[ -z "$1" ]] || [[ "$1" =~ ^(-h|--h|h|--help|-help|help|status)$ ]] ) && [[ "$(id -u)" -ne 0 ]]; then
+if ! ( [[ -z "$1" ]] || [[ "$1" =~ ^(-h|--h|h|--help|-help|help|monitor|mon|status)$ ]] ) && [[ "$(id -u)" -ne 0 ]]; then
     echo "${RED}GPUControl requires sudo to run.${RESET}"
     echo "  Try: sudo gpucontrol $*  or  sudo $0 $*"
     exit 1
@@ -120,6 +120,37 @@ get_current_freq() {
             echo ""
             ;;
     esac
+}
+
+monitor() {
+GPU_DIR="${GPU_FREQ_PATH%/*}"
+CUR_FREQ_FILE=$(ls "$GPU_DIR"/*cur_freq* 2>/dev/null | head -n 1)
+
+if [[ -z "$CUR_FREQ_FILE" || ! -f "$CUR_FREQ_FILE" ]]; then
+    echo "No file matching '*cur_freq*' found in $GPU_DIR"
+    exit 1
+fi
+
+echo "${MAGENTA}Press Ctrl + C to exit."
+
+while true; do
+    if [[ -f "$CUR_FREQ_FILE" ]]; then
+        TIMESTAMP=$(date "+%Y-%m-%d %H:%M:%S")
+        FREQ=$(cat "$CUR_FREQ_FILE")
+
+        if [[ "$GPU_TYPE" == "intel" || "$GPU_TYPE" == "amd" ]]; then
+            FREQ_MHZ=$FREQ
+        else
+            FREQ_MHZ=$((FREQ / 1000000))
+        fi
+
+        echo "$TIMESTAMP - GPU frequency: $FREQ_MHZ MHz"
+    else
+        break
+    fi
+    sleep 1
+done
+echo "${RESET}"
 }
 
 help() {
@@ -307,6 +338,9 @@ case "$GPU_ARG" in
         amd_set_max_freq "$REQUESTED_FREQ"
         echo "${MAGENTA}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) AMD GPU frequency set to $REQUESTED_FREQ MHz${RESET}" | tee -a "$LOG_FILE"
         echo ""
+        ;;
+    monitor|mon)
+        monitor
         ;;
     *)
         echo ""
