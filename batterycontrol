@@ -255,8 +255,8 @@ stop_monitoring() {
 }
 
 usage() {
+    echo "${GREEN}CTRL-C to exit"
     while true; do
-        echo "${GREEN}CTRL-C to exit"
         data=$(sudo ectool battery 2>/dev/null)
         voltage_mV=$(echo "$data" | awk '/Present voltage/ {print $3}' | tr -d '[:alpha:]')
         current_mA=$(echo "$data" | awk '/Present current/ {print $3}' | tr -d '[:alpha:]')
