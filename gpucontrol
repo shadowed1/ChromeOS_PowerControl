@@ -143,7 +143,7 @@ while true; do
         else
             FREQ_MHZ=$((FREQ / 1000000))
         fi
-        echo "$TIMESTAMP - $FREQ_MHZ MHz"
+        echo "$TIMESTAMP: $FREQ_MHZ MHz"
     else
         break
     fi
