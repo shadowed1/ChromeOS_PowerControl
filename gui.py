@@ -171,7 +171,7 @@ class ConfigEditor(Gtk.Window):
                 ("CPU_POLL", "CPU Poll Interval (s)", "slider", 0.1, 5.0, 0.1, False),
             ],
             "GPUControl": [
-                ("GPU_MAX_FREQ", "GPU Max Frequency (MHz)", "slider", 100, 2000, 10, True),
+                ("GPU_MAX_FREQ", "GPU Max Frequency (MHz)", "slider", 100, 2000, 10, False),
             ],
             "FanControl": [
                 ("MIN_FAN", "Minimum Fan Speed (%)", "slider", 0, 100, 1, False),
