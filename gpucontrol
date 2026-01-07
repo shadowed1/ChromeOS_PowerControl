@@ -131,7 +131,7 @@ if [[ -z "$CUR_FREQ_FILE" || ! -f "$CUR_FREQ_FILE" ]]; then
     exit 1
 fi
 
-echo "${MAGENTA}Press Ctrl + C to exit."
+echo "${MAGENTA}Ctrl + C to exit."
 
 while true; do
     if [[ -f "$CUR_FREQ_FILE" ]]; then
@@ -143,8 +143,7 @@ while true; do
         else
             FREQ_MHZ=$((FREQ / 1000000))
         fi
-
-        echo "$TIMESTAMP - GPU frequency: $FREQ_MHZ MHz"
+        echo "$TIMESTAMP - $FREQ_MHZ MHz"
     else
         break
     fi
