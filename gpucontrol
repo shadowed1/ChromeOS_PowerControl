@@ -13,8 +13,11 @@ CONFIG_FILE="/home/chronos/user/MyFiles/Downloads/ChromeOS_PowerControl_Config/c
 GPU_MAX_FREQ=
 ORIGINAL_GPU_MAX_FREQ=
 timestamp=$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1)
+RUN_FLAG="$INSTALL_DIR/.gpucontrol_enabled"
+PID_FILE="$INSTALL_DIR/.gpucontrol_pid"
 
-if ! ( [[ -z "$1" ]] || [[ "$1" =~ ^(-h|--h|h|--help|-help|help|monitor|mon|status)$ ]] ) && [[ "$(id -u)" -ne 0 ]]; then
+if ! ( [[ -z "$1" ]] || [[ "$1" =~ ^(-h|--h|h|--help|-help|help|clockspeed|status|start|stop|monitor)$ ]] ) \
+   && [[ "$(id -u)" -ne 0 ]]; then
     echo "${RED}GPUControl requires sudo to run.${RESET}"
     echo "  Try: sudo gpucontrol $*  or  sudo $0 $*"
     exit 1
@@ -122,7 +125,64 @@ get_current_freq() {
     esac
 }
 
-monitor() {
+start_monitoring_loop() {
+    touch "$RUN_FLAG"
+    echo $$ > "$PID_FILE"
+
+    echo "${MAGENTA}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - GPUControl started (PID $$)${RESET}" | tee -a "$LOG_FILE"
+
+    local last_reload=0
+
+    while true; do
+        if [[ ! -f "$RUN_FLAG" ]]; then
+            echo "${RED}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - GPUControl stopped${RESET}" | tee -a "$LOG_FILE"
+            rm -f "$PID_FILE"
+            exit 0
+        fi
+
+        now=$(date +%s)
+        if (( now - last_reload >= 5 )); then
+            load_config
+            apply_gpu_settings
+            last_reload=$now
+
+            CUR_FREQ=$(get_current_freq "$GPU_TYPE")
+            echo "$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - GPU $GPU_TYPE max=$GPU_MAX_FREQ cur=$CUR_FREQ" >> "$LOG_FILE"
+        fi
+
+        sleep 1
+    done
+}
+
+stop_monitoring() {
+    if [[ -f "$PID_FILE" ]]; then
+        PID=$(cat "$PID_FILE")
+        if ps -p "$PID" > /dev/null 2>&1; then
+            kill "$PID"
+        fi
+        rm -f "$PID_FILE"
+    fi
+
+    rm -f "$RUN_FLAG"
+}
+
+apply_gpu_settings() {
+    load_config
+
+    case "$GPU_TYPE" in
+        intel)
+            [[ -w "$GPU_FREQ_PATH" ]] && echo "$GPU_MAX_FREQ" | sudo tee "$GPU_FREQ_PATH" > /dev/null
+            ;;
+        mali|adreno)
+            echo "$GPU_MAX_FREQ" | sudo tee "$GPU_FREQ_PATH" > /dev/null
+            ;;
+        amd)
+            amd_set_max_freq "$GPU_MAX_FREQ"
+            ;;
+    esac
+}
+
+clockspeed() {
 GPU_DIR="${GPU_FREQ_PATH%/*}"
 CUR_FREQ_FILE=$(ls "$GPU_DIR"/*cur_freq* 2>/dev/null | head -n 1)
 
@@ -152,6 +212,10 @@ done
 echo "${RESET}"
 }
 
+monitor() {
+    tail -f "$LOG_FILE"
+}
+
 help() {
     echo "${MAGENTA}"
     echo "╔══════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
@@ -173,6 +237,26 @@ case "$1" in
         help
         exit 0
         ;;
+__gpucontrol_monitor__)
+        start_monitoring_loop
+        exit 0
+        ;;
+    start)
+        stop_monitoring >/dev/null 2>&1
+    
+        if [[ -f "$LOG_FILE" ]] && [[ $(stat -c%s "$LOG_FILE") -gt 32768 ]]; then
+            echo "$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Log truncated" > "$LOG_FILE"
+        fi
+    
+        nohup "$0" __gpucontrol_monitor__ >> "$LOG_FILE" 2>&1 &
+        echo "${GREEN}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - GPUControl started${RESET}"
+        exit 0
+        ;;
+    stop)
+        stop_monitoring
+        echo "${RED}GPUControl stopped${RESET}"
+        exit 0
+        ;;
     restore)
         echo "${MAGENTA}Restoring GPU to original max frequency...${RESET}"
         case "$GPU_TYPE" in
@@ -192,8 +276,8 @@ case "$1" in
         echo ""
         exit 0
         ;;
-    monitor|mon)
-        monitor
+    clockspeed)
+        clockspeed
         ;;
     startup)
         CONF_SOURCE="$INSTALL_DIR/gpucontrol.conf"
