@@ -151,6 +151,17 @@ sudo ectool fanduty "$initial_duty"
         if (( now - last_reload_time >= 10 )); then
             load_config
             last_reload_time=$now
+            if grep -q '^STARTUP_FANCONTROL=1' "$CONFIG_FILE"; then
+                if [[ ! -f "$CONF_TARGET" ]]; then
+                    sudo cp "$CONF_SOURCE" "$CONF_TARGET"
+                    echo "${YELLOW}$(date '+%F %T') - FanControl Startup enabled${RESET}" >> "$LOG_FILE"
+                fi
+            else
+                if [[ -f "$CONF_TARGET" ]]; then
+                    sudo rm -f "$CONF_TARGET"
+                    echo "${RED}$(date '+%F %T') - FanControl Startup disabled${RESET}" >> "$LOG_FILE"
+                fi
+            fi
         fi
 
         if read -r RAW_TEMP < "$ZONE_PATH"; then
