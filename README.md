@@ -29,6 +29,14 @@ sudo curl -fsSL "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerContr
 sudo chmod +x /bin/powercontrol-gui 2>/dev/null
 alias powercontrol-gui='sudo -E powercontrol-gui'
 ```
+<br><br>
+### GUI app for Chard (run inside ChromeOS shell):
+```
+if [[ -n "${CHARD_ROOT:-}" ]]; then
+    sudo -E curl -fsSL "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/gui.py" -o "$CHARD_ROOT/bin/powercontrol-gui" 2>/dev/null
+    sudo chmod +x "$CHARD_ROOT/bin/powercontrol-gui" 2>/dev/null
+fi
+```
 
 Share Downloads folder with Linux and then run `powercontrol-gui` in Crostini. 
 
