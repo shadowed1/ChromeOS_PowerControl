@@ -457,7 +457,7 @@ case "$GPU_ARG" in
         echo ""
         echo "$freq_hz" | sudo tee "$GPU_FREQ_PATH" > /dev/null
         DISPLAY_FREQ=$((freq_hz / 1000000))
-        echo "${MAGENTA}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) $GPU_ARG GPU frequency set to $DISPLAY_FREQ MHz${RESET}" | tee -a "$LOG_FILE"
+        echo "${MAGENTA}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) $GPU_ARG GPU frequency set to $DISPLAY_FREQ MHz${RESET}" >> "$LOG_FILE"
         GPU_MAX_FREQ="$freq_hz"
         echo ""
         save_config
@@ -471,7 +471,7 @@ case "$GPU_ARG" in
         fi
 
         amd_set_max_freq "$REQUESTED_FREQ"
-        echo "${MAGENTA}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) AMD GPU frequency set to $REQUESTED_FREQ MHz${RESET}" | tee -a "$LOG_FILE"
+        echo "${MAGENTA}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) AMD GPU frequency set to $REQUESTED_FREQ MHz${RESET}" >> "$LOG_FILE"
         echo ""
         ;;
     *)
