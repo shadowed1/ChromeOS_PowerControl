@@ -112,10 +112,21 @@ amd_set_max_freq() {
 get_current_freq() {
     case "$1" in
         intel|mali|adreno)
-            [[ -f "$GPU_FREQ_PATH" ]] && cat "$GPU_FREQ_PATH" || echo "Unavailable"
+            if [[ -f "$GPU_FREQ_PATH" ]]; then
+                read -r freq < "$GPU_FREQ_PATH" && echo "$freq" || echo "Unavailable"
+            else
+                echo "Unavailable"
+            fi
             ;;
         amd)
-            [[ -f "$GPU_FREQ_PATH" ]] && grep '*' "$GPU_FREQ_PATH" | awk '{print $2}' || echo "Unavailable"
+            if [[ -f "$GPU_FREQ_PATH" ]]; then
+                while read -r a b _; do
+                    [[ "$a" == "*" ]] && echo "$b" && return
+                done < "$GPU_FREQ_PATH"
+                echo "Unavailable"
+            else
+                echo "Unavailable"
+            fi
             ;;
         *)
             echo ""
@@ -156,9 +167,10 @@ start_monitoring_loop() {
 
 stop_monitoring() {
     if [[ -f "$PID_FILE" ]]; then
-        PID=$(cat "$PID_FILE")
-        if ps -p "$PID" > /dev/null 2>&1; then
-            kill "$PID"
+        if read -r PID < "$PID_FILE"; then
+            if ps -p "$PID" > /dev/null 2>&1; then
+                kill "$PID"
+            fi
         fi
         rm -f "$PID_FILE"
     fi
@@ -183,33 +195,35 @@ apply_gpu_settings() {
 }
 
 clockspeed() {
-GPU_DIR="${GPU_FREQ_PATH%/*}"
-CUR_FREQ_FILE=$(ls "$GPU_DIR"/*cur_freq* 2>/dev/null | head -n 1)
+    GPU_DIR="${GPU_FREQ_PATH%/*}"
+    CUR_FREQ_FILE=$(ls "$GPU_DIR"/*cur_freq* 2>/dev/null | head -n 1)
 
-if [[ -z "$CUR_FREQ_FILE" || ! -f "$CUR_FREQ_FILE" ]]; then
-    echo "No file matching '*cur_freq*' found in $GPU_DIR"
-    exit 1
-fi
-
-echo "${MAGENTA}Ctrl-C to exit"
-
-while true; do
-    if [[ -f "$CUR_FREQ_FILE" ]]; then
-        TIMESTAMP=$(date "+%Y-%m-%d %H:%M:%S")
-        FREQ=$(cat "$CUR_FREQ_FILE")
-
-        if [[ "$GPU_TYPE" == "intel" || "$GPU_TYPE" == "amd" ]]; then
-            FREQ_MHZ=$FREQ
-        else
-            FREQ_MHZ=$((FREQ / 1000000))
-        fi
-        echo "$TIMESTAMP: $FREQ_MHZ MHz"
-    else
-        break
+    if [[ -z "$CUR_FREQ_FILE" || ! -f "$CUR_FREQ_FILE" ]]; then
+        echo "No file matching '*cur_freq*' found in $GPU_DIR"
+        exit 1
     fi
-    sleep 1
-done
-echo "${RESET}"
+
+    echo "${MAGENTA}Ctrl-C to exit"
+
+    while true; do
+        if [[ -f "$CUR_FREQ_FILE" ]]; then
+            TIMESTAMP=$(date "+%Y-%m-%d %H:%M:%S")
+
+            if read -r FREQ < "$CUR_FREQ_FILE"; then
+                if [[ "$GPU_TYPE" == "intel" || "$GPU_TYPE" == "amd" ]]; then
+                    FREQ_MHZ="$FREQ"
+                else
+                    FREQ_MHZ=$((FREQ / 1000000))
+                fi
+                echo "$TIMESTAMP: $FREQ_MHZ MHz"
+            fi
+        else
+            break
+        fi
+        sleep 1
+    done
+
+    echo "${RESET}"
 }
 
 monitor() {
@@ -249,7 +263,7 @@ __gpucontrol_monitor__)
         fi
     
         nohup "$0" __gpucontrol_monitor__ >> "$LOG_FILE" 2>&1 &
-        echo "${GREEN}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - GPUControl started${RESET}"
+        echo "${MAGENTA}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - GPUControl started${RESET}"
         exit 0
         ;;
     stop)
