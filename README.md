@@ -29,6 +29,7 @@ sudo curl -fsSL "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerContr
 sudo chmod +x /bin/powercontrol-gui 2>/dev/null
 alias powercontrol-gui='sudo -E powercontrol-gui'
 ```
+Share Downloads folder with Linux and then run `powercontrol-gui` in Crostini. 
 <br><br>
 ### GUI app for Chard (run inside ChromeOS shell):
 ```
@@ -37,9 +38,6 @@ if [[ -n "${CHARD_ROOT:-}" ]]; then
     sudo chmod +x "$CHARD_ROOT/bin/powercontrol-gui" 2>/dev/null
 fi
 ```
-
-Share Downloads folder with Linux and then run `powercontrol-gui` in Crostini. 
-
 <br><br>
 - Can use global commands for ease of use, has a unified config file, and the ability to change settings in real-time. 
 - Contains a feature-rich installer, an uninstaller that cleans up after itself, and logs stored in /var/log/ for statistics.
