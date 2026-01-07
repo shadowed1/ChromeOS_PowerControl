@@ -99,7 +99,7 @@ echo "║  sudo batterycontrol start    # Start BatteryControl                  
 echo "║  sudo batterycontrol stop     # Stop BatteryControl                                ║"
 echo "║  sudo batterycontrol 77       # Charge limit set to 77% - Minimum allowed is 14%   ║"
 echo "║  sudo batterycontrol startup  # Copy or Remove batterycontrol.conf at: /etc/init/  ║"
-echo "║  sudo batterycontrol usage    # See power consumption in real-time!  ║"
+echo "║  sudo batterycontrol usage    # See power consumption in real-time!                ║"
 echo "║                                                                                    ║"
 echo "╚════════════════════════════════════════════════════════════════════════════════════╝"
 echo "${RESET}"
