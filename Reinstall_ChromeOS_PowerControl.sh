@@ -13,7 +13,7 @@ INSTALL_DIR="@INSTALL_DIR@"
 CONFIG_FILE="$INSTALL_DIR/config.sh"
 
 sudo mkdir -p /usr/local/bin
-sudo curl -fsSL "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/ChromeOS_PowerControl_Installer.sh" -o "/usr/local/bin/"
+sudo curl -fsSL "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/ChromeOS_PowerControl_Installer.sh" -o "/usr/local/bin/ChromeOS_PowerControl_Installer.sh"
 echo "sudo mkdir -p /usr/local/bin"
 echo "sudo chmod +x /usr/local/ChromeOS_PowerControl_Installer.sh"
 echo "sudo -E /usr/local/bin/ChromeOS_PowerControl_Installer.sh"
