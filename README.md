@@ -107,7 +107,9 @@ __PowerControl commands with examples:__
   `batterycontrol help          # Help menu`                                          
   `sudo batterycontrol start    # Start BatteryControl`                               
   `sudo batterycontrol stop     # Stop BatteryControl`                                
-  `sudo batterycontrol 77       # Charge limit set to 77% - Minimum allowed is 14%`   
+  `sudo batterycontrol 77       # Charge limit set to 77% - Minimum allowed is 14%`
+  `sudo batterycontrol usage    # See power consumption in real-time.`
+  `sudo batterycontrol monitor  # Toggle on/off live monitoring in terminal.` 
   `sudo batterycontrol startup  # Copy or Remove batterycontrol.conf at: /etc/init/`
 
 <br>
@@ -133,9 +135,10 @@ __PowerControl commands with examples:__
   __GPUControl commands with examples:__                                       
                                                                                                                   
   `gpucontrol                     # Show current GPU info and frequency`                                            
-  `gpucontrol help                # Show this help menu`                                                            
+  `gpucontrol help                # Show this help menu`
+  `gpucontrol monitor             # Monitor GPU clockspeed in real-time.`
   `sudo gpucontrol restore        # Restore GPU max frequency to original value`                                    
-  `sudo gpucontrol 800            # Set GPU max frequency to 800 MHz`                                               
+  `sudo gpucontrol 800            # Set GPU max frequency to 800 MHz`
   `sudo gpucontrol startup        # Enable or disable GPUControl on startup`
   <br><br>
                                                                                                                     
@@ -298,7 +301,7 @@ Added display and keyboard backlight restore in Installer when restarting powerd
 - 0.50: `Relaxed FanControl default settings. Fixed lid sleep bug. Fixed SleepControl visual timer bug. Fixed bug with redownloading scripts. Improved FanControl and BatteryControl loop resets. Fixed typo with GPUControl startup. Added 'mon' shortcut for monitor commands.` <br><br>
 - 0.51: `Replaced $date commands with printf and EPOCHSECONDS to reduce CPU usage. Created seperate Reinstall.sh file to fix harmless reinstall errors (caused by having reinstall commands inside PowerControl itself). Fixed sleepcontrol loop ending on power state change.` <br><br>
 - 0.52: `GUI app created for Crostini and Chard. Config file is now located in ~/MyFiles/Downloads/.` <br><br>
-- 0.53: `Streamlined GUI app and fixed numerous bugs with it.` <br><br>
+- 0.53: `Streamlined GUI app and fixed numerous bugs with it. Added usage command for BatteryControl. Added monitor command for GPUControl` <br><br>
 __Acknowledgements:__
 
 - Thanks to WesBosch for helping me learn to make an installer:
