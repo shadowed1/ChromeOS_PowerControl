@@ -16,11 +16,11 @@ timestamp=$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1)
 RUN_FLAG="$INSTALL_DIR/.gpucontrol_enabled"
 PID_FILE="$INSTALL_DIR/.gpucontrol_pid"
 
-if ! ( [[ -z "$1" ]] || [[ "$1" =~ ^(-h|--h|h|--help|-help|help|status|start|stop|monitor|mon)$ ]] ) \
+if ! ( [[ -z "$1" ]] || [[ "$1" =~ ^(-h|--h|h|--help|-help|help|status|start|stop|monitor|mon|__gpucontrol_monitor__)$ ]] ) \
    && [[ "$(id -u)" -ne 0 ]]; then
     echo "${RED}GPUControl requires sudo to run.${RESET}"
     echo "  Try: sudo gpucontrol $*  or  sudo $0 $*"
-    exit 1
+    exit 0
 fi
 
 load_config() {
@@ -53,16 +53,13 @@ save_config() {
 if [[ -f "$CONFIG_FILE" ]]; then
     source "$CONFIG_FILE" 2>/dev/null
     load_config
-else
-    echo "${RED}Error: GPU config file missing. Please re-run the installer.${RESET}"
-    exit 1
 fi
 
 if ! [[ "$ORIGINAL_GPU_MAX_FREQ" =~ ^[0-9]+$ ]]; then
     echo ""
     echo "${RED}Error: Could not verify original max GPU frequency. Aborting.${RESET}"
     echo ""
-    exit 1
+    exit 0
 fi
 
 amd_set_max_freq() {
@@ -71,19 +68,19 @@ amd_set_max_freq() {
 
     if (( requested_freq > ORIGINAL_GPU_MAX_FREQ )); then
         echo "${RED}Error: Requested frequency ($requested_freq MHz) exceeds original maximum ($ORIGINAL_GPU_MAX_FREQ MHz).${RESET}"
-        exit 1
+        exit 0
     fi
 
     if [[ -z "$pp_od_file" || ! -w "$pp_od_file" ]]; then
         echo "${RED}Error: Cannot write to pp_od_clk_voltage. Is the path valid and writable?${RESET}"
-        exit 1
+        exit 0
     fi
 
     local states_raw
     states_raw=$(grep '^s ' "$pp_od_file")
     if [[ -z "$states_raw" ]]; then
         echo "${RED}Error: Could not read current pp_od_clk_voltage states.${RESET}"
-        exit 1
+        exit 0
     fi
 
     local target_index
@@ -401,7 +398,7 @@ else
     echo ""
     echo "${RED}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) Invalid arguments.${RESET}"
     help
-    exit 1
+    exit 0
 fi
 
 if ! [[ "$REQUESTED_FREQ" =~ ^[0-9]+$ ]]; then
