@@ -691,6 +691,8 @@ echo ""
 sudo bash "$INSTALL_DIR/fancontrol" stop 2>/dev/null
 echo ""
 sudo bash "$INSTALL_DIR/sleepcontrol" stop 2>/dev/null
+echo ""
+sudo bash "$INSTALL_DIR/gpucontrol" stop 2>/dev/null
 sleep 1
 echo ""
 start_component_now "BatteryControl" "$INSTALL_DIR/batterycontrol"
@@ -701,8 +703,8 @@ else
     echo "${YELLOW}FanControl start skipped - passively cooled device.${RESET}"
     echo ""
 fi
+start_component_now "GPUControl" "$INSTALL_DIR/gpucontrol"
 start_component_now "SleepControl" "$INSTALL_DIR/sleepcontrol"
-
 sudo chown chronos:chronos /home/chronos/user/MyFiles/Downloads/ChromeOS_PowerControl_Config/config
 
 echo ""
