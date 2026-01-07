@@ -399,7 +399,10 @@ class ConfigEditor(Gtk.Window):
                     value = self.config_data[key]
                     if isinstance(widget, Gtk.Scale):
                         try:
-                            widget.set_value(float(value))
+                            if key == "GPU_MAX_FREQ":
+                                widget.set_value(gpu_config_to_mhz(self.gpu_type, int(value)))
+                            else:
+                                widget.set_value(float(value))
                         except ValueError:
                             widget.set_value(0)
                     elif isinstance(widget, Gtk.Switch):
@@ -435,13 +438,14 @@ class ConfigEditor(Gtk.Window):
                             value = widget.get_value()
                             if key in sleep_keys:
                                 value = int(value)
+                                new_value = str(value)
                             elif key == "CPU_POLL":
                                 new_value = f"{value:.1f}"
-                                new_lines.append(f"{key}={new_value}\n")
-                                continue
+                            elif key == "GPU_MAX_FREQ":
+                                mhz = int(value)
+                                new_value = str(gpu_mhz_to_config(self.gpu_type, mhz))
                             else:
-                                value = int(value)
-                            new_value = str(value)
+                                new_value = str(int(value))
                         elif isinstance(widget, Gtk.Switch):
                             new_value = "1" if widget.get_active() else "0"
                         elif isinstance(widget, Gtk.ComboBoxText):
