@@ -891,6 +891,7 @@ case "$1" in
     ;;
     gui)
         gui
+    ;;
     *)
         echo "Unknown command: $1"
         show_help
