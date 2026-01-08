@@ -24,7 +24,7 @@ timestamp=$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1)
 CONF_SOURCE="$INSTALL_DIR/powercontrol.conf"
 CONF_TARGET="/etc/init/powercontrol.conf"
 
-if ! ( [[ -z "$1" ]] || [[ "$1" == "--h" || "$1" == "-h" || "$1" == "help_all" || "$1" == "h" || "$1" == "--help" || "$1" == "-help" || "$1" == "all" || "$1" == "help" || "$1" == "monitor" || "$1" == "mon" || "$1" == "status" ]] ) && [[ "$(id -u)" -ne 0 ]]; then
+if ! ( [[ -z "$1" ]] || [[ "$1" == "--h" || "$1" == "-h" || "$1" == "help_all" || "$1" == "h" || "$1" == "--help" || "$1" == "-help" || "$1" == "all" || "$1" == "help" || "$1" == "monitor" || "$1" == "mon" || "$1" == "gui" || "$1" == "status" ]] ) && [[ "$(id -u)" -ne 0 ]]; then
     echo "${RED}PowerControl requires sudo to run.${RESET}"
     echo "  Try: sudo powercontrol $*  or  sudo $0 $*"
     exit 1
@@ -623,6 +623,26 @@ echo "╚═══════════════════════�
 echo "${RESET}"
 }
 
+gui() {
+echo "${RESET}${MAGENTA}"
+echo "GUI app for Crostini (run in Linux): ${BOLD}"
+echo
+echo "sudo apt install gedit gnome-themes-extra gnome-icon-theme -y"
+echo "sudo curl -fsSL "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/gui.py" -o /bin/powercontrol-gui 2>/dev/null"
+echo "sudo chmod +x /bin/powercontrol-gui 2>/dev/null"
+echo "alias powercontrol-gui='sudo -E powercontrol-gui'"
+echo "Share Downloads folder with Linux and then run powercontrol-gui in Crostini."
+echo "${RESET}"
+
+echo "${GREEN}GUI app for Chard (run inside ChromeOS shell): ${BOLD}"
+echo
+echo "if [[ -n "${CHARD_ROOT:-}" ]]; then"
+echo "    sudo -E curl -fsSL "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/gui.py" -o "$CHARD_ROOT/bin/powercontrol-gui" 2>/dev/null"
+echo "    sudo chmod +x "$CHARD_ROOT/bin/powercontrol-gui" 2>/dev/null"
+echo "fi"
+echo "${RESET}"
+}
+
 max_perf_pct() {
     local intel_path="/sys/devices/system/cpu/intel_pstate/max_perf_pct"
     local policy_paths=()
@@ -868,6 +888,8 @@ case "$1" in
     help_all)
         "$INSTALL_DIR/powercontrol" help && "$INSTALL_DIR/batterycontrol" help && "$INSTALL_DIR/fancontrol" help && "$INSTALL_DIR/gpucontrol" help && "$INSTALL_DIR/sleepcontrol" help
     ;;
+    gui)
+        gui
     *)
         echo "Unknown command: $1"
         show_help
