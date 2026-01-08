@@ -744,6 +744,7 @@ echo "║                                                                       
 echo "║  powercontrol                       # Show status                                                                  ║"
 echo "║  powercontrol help                  # Help menu                                                                    ║"
 echo "║  powercontrol monitor               # Toggle on/off live monitoring in terminal                                    ║"
+echo "║  powercontrol gui                   # Print commands to install GUI app for Crostini or Chard                      ║"
 echo "║  sudo powercontrol start            # Throttle CPU based on temperature curve                                      ║"
 echo "║  sudo powercontrol stop             # Restore default CPU settings                                                 ║"
 echo "║  sudo powercontrol no_turbo 1       # 0 = Enable, 1 = Disable Turbo Boost                                          ║"
