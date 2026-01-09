@@ -104,7 +104,7 @@ class ConfigEditor(Gtk.Window):
         button_box.set_halign(Gtk.Align.CENTER)
         main_vbox.pack_start(button_box, False, False, 0)
 
-        self.save_btn = Gtk.Button(label="Save Config")
+        self.save_btn = Gtk.Button(label="Apply")
         self.save_btn.connect("clicked", self.on_save_clicked)
         button_box.pack_start(self.save_btn, False, False, 0)
 
