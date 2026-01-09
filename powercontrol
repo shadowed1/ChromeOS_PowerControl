@@ -625,8 +625,8 @@ echo "${RESET}"
 }
 
 gui() {
-echo "${RESET}${MAGENTA}"
-echo "GUI app for Crostini (run in Linux): ${BOLD}"
+echo "${RESET}${MAGENTA}${BOLD}"
+echo "GUI app for Crostini (run in Linux): ${RESET}${MAGENTA}"
 echo
 echo "sudo apt install gedit gnome-themes-extra gnome-icon-theme -y"
 echo "sudo curl -fsSL "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/gui.py" -o /bin/powercontrol-gui 2>/dev/null"
@@ -635,7 +635,7 @@ echo "alias powercontrol-gui='sudo -E powercontrol-gui'"
 echo "Share Downloads folder with Linux and then run powercontrol-gui in Crostini."
 echo "${RESET}"
 
-echo "${GREEN}GUI app for Chard (run inside ChromeOS shell): ${BOLD}"
+echo "${GREEN}${BOLD}GUI app for Chard (run inside ChromeOS shell): ${RESET}${GREEN}"
 echo
 echo "if [[ -n "${CHARD_ROOT:-}" ]]; then"
 echo "    sudo -E curl -fsSL "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/gui.py" -o "$CHARD_ROOT/bin/powercontrol-gui" 2>/dev/null"
