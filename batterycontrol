@@ -39,7 +39,7 @@ detect_battery() {
         fi
     done
 
-    echo "No usable battery detected!"
+    echo "${RED}No battery detected! ${RESET}"
     BATTERY_PATH=""
     STATUS_PATH=""
     continue
