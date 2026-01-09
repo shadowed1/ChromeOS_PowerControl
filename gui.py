@@ -161,9 +161,9 @@ class ConfigEditor(Gtk.Window):
     def create_config_sections(self):
         sections = {
             "PowerControl": [
-                ("MAX_TEMP", "Maximum Temperature (°C)", "slider", 0, 90, 1, False),
-                ("HOTZONE", "Hotzone Temperature (°C)", "slider", 0, 90, 1, False),
-                ("MIN_TEMP", "Minimum Temperature (°C)", "slider", 0, 90, 1, False),
+                ("MAX_TEMP", "Maximum Temperature (°C)", "slider", 30, 90, 1, False),
+                ("HOTZONE", "Hotzone Temperature (°C)", "slider", 30, 90, 1, False),
+                ("MIN_TEMP", "Minimum Temperature (°C)", "slider", 30, 90, 1, False),
                 ("MAX_PERF_PCT", "Maximum Performance (%)", "slider", 10, 100, 1, False),
                 ("MIN_PERF_PCT", "Minimum Performance (%)", "slider", 10, 100, 1, False),
                 ("RAMP_UP", "Ramp Up Speed (%)", "slider", 1, 50, 1, False),
@@ -176,8 +176,8 @@ class ConfigEditor(Gtk.Window):
             "FanControl": [
                 ("MIN_FAN", "Minimum Fan Speed (%)", "slider", 0, 100, 1, False),
                 ("MAX_FAN", "Maximum Fan Speed (%)", "slider", 0, 100, 1, False),
-                ("FAN_MIN_TEMP", "Fan Minimum Temp (°C)", "slider", 0, 90, 1, False),
-                ("FAN_MAX_TEMP", "Fan Maximum Temp (°C)", "slider", 0, 90, 1, False),
+                ("FAN_MIN_TEMP", "Fan Minimum Temp (°C)", "slider", 30, 90, 1, False),
+                ("FAN_MAX_TEMP", "Fan Maximum Temp (°C)", "slider", 30, 90, 1, False),
                 ("STEP_UP", "Fan Step Up (%)", "slider", 1, 20, 1, False),
                 ("STEP_DOWN", "Fan Step Down (%)", "slider", 1, 20, 1, False),
                 ("FAN_POLL", "Fan Poll Interval (s)", "slider", 1, 10, 1, False),
@@ -193,9 +193,9 @@ class ConfigEditor(Gtk.Window):
                 ("LIDSLEEP_BATTERY", "Lid Sleep", "switch", None, None, None, False),
             ],
             "SleepControl - AC Power": [
-                ("POWER_DIM_DELAY", "Dim Delay (min)", "slider", 1, 10080, 1, True),
-                ("POWER_BACKLIGHT", "Display Off (min)", "slider", 1, 10080, 1, True),
-                ("POWER_DELAY", "Sleep Delay (min)", "slider", 1, 10080, 1, True),
+                ("POWER_DIM_DELAY", "Dim Delay (min)", "slider", 1, 4320, 1, True),
+                ("POWER_BACKLIGHT", "Display Off (min)", "slider", 1, 4320, 1, True),
+                ("POWER_DELAY", "Sleep Delay (min)", "slider", 1, 4320, 1, True),
                 ("AUDIO_DETECTION_POWER", "Audio Detection", "switch", None, None, None, False),
                 ("LIDSLEEP_POWER", "Lid Sleep", "switch", None, None, None, False),
             ],
