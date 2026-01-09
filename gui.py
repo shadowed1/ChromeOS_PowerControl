@@ -186,9 +186,9 @@ class ConfigEditor(Gtk.Window):
                 ("CHARGE_MAX", "Maximum Charge (%)", "slider", 20, 100, 1, False),
             ],
             "SleepControl - Battery": [
-                ("BATTERY_DIM_DELAY", "Dim Delay (min)", "slider", 1, 10080, 1, True),
-                ("BATTERY_BACKLIGHT", "Display Off (min)", "slider", 1, 10080, 1, True),
-                ("BATTERY_DELAY", "Sleep Delay (min)", "slider", 1, 10080, 1, True),
+                ("BATTERY_DIM_DELAY", "Dim Delay (min)", "slider", 1, 1440, 1, True),
+                ("BATTERY_BACKLIGHT", "Display Off (min)", "slider", 1, 1440, 1, True),
+                ("BATTERY_DELAY", "Sleep Delay (min)", "slider", 1, 1440, 1, True),
                 ("AUDIO_DETECTION_BATTERY", "Audio Detection", "switch", None, None, None, False),
                 ("LIDSLEEP_BATTERY", "Lid Sleep", "switch", None, None, None, False),
             ],
