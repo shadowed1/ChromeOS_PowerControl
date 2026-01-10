@@ -586,8 +586,25 @@ uninstall_script() {
 }
 
 reinstall_script() {
-    bash -c 'bash <(curl -s "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/Reinstall_ChromeOS_PowerControl.sh?$(date +%s)")'
-    exit 0
+    if [ -z "$INSTALL_DIR" ]; then
+        echo "Error: INSTALL_DIR is not set."
+        exit 1
+    fi
+
+    local script="$INSTALL_DIR/Reinstall_ChromeOS_PowerControl.sh"
+
+    if [ -d "$INSTALL_DIR" ]; then
+        if [ -x "$script" ]; then
+            echo "Reinstalling ChromeOS PowerControl..."
+            sudo bash "$script"
+        else
+            echo "${RED}Reinstall script not found or not executable at: $script${RESET}"
+            exit 1
+        fi
+    else
+        echo "${RED}Installation directory not found: $INSTALL_DIR${RESET}"
+        exit 1
+    fi
 }
 
 show_help() {
