@@ -587,6 +587,7 @@ uninstall_script() {
 
 reinstall_script() {
     bash -c 'bash <(curl -s "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/Reinstall_ChromeOS_PowerControl.sh?$(date +%s)")'
+    exit 0
 }
 
 show_help() {
