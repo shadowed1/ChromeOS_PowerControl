@@ -291,7 +291,7 @@ usage() {
             COLOR="$GREEN"
         fi
     
-        echo "$(date +'%H:%M:%S'): ${COLOR}${power} W${RESET}"
+        echo "${COLOR}$(date +'%H:%M:%S'): ${power} W${RESET}"
         sleep 1
     done
 }
