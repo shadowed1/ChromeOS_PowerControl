@@ -210,7 +210,6 @@ sudo ectool fanduty "$initial_duty"
             target_duty=$last_duty
         fi
 
-        # Check if we need kickstart: transitioning from 0 to non-zero
         need_kickstart=0
         if (( last_duty == 0 && target_duty > 0 )); then
             need_kickstart=1
@@ -224,7 +223,6 @@ sudo ectool fanduty "$initial_duty"
             target_duty=$MIN_FAN
         fi
         
-        # Apply kickstart when transitioning from 0% to any positive duty
         if (( need_kickstart == 1 && target_duty > 0 )); then
             echo "Applying kickstart ramp-up from 0% to ${target_duty}%" >> "$LOG_FILE"
             for duty in 4 8 12; do
@@ -234,13 +232,11 @@ sudo ectool fanduty "$initial_duty"
             done
         fi
         
-        # Now set the actual target duty
         if (( target_duty == 0 )); then
-            # Going to 0% - only kickstart if we weren't already at 0%
             if (( last_duty > 0 )); then
-                echo "Applying kickstart before stopping fan" >> "$LOG_FILE"
+                echo "${YELLOW}Applying kickstart before stopping fan" >> "$LOG_FILE"
                 for duty in 4 8 12; do
-                    echo "  - Kickstart: ${duty}%" >> "$LOG_FILE"
+                    echo "  - Kickstart: ${duty}% ${RESET}" >> "$LOG_FILE"
                     sudo ectool fanduty "$duty" | grep -v "Fan duty cycle set for all fans." >> "$LOG_FILE"
                     sleep 0.5
                 done
