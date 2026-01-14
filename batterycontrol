@@ -269,14 +269,14 @@ stop_monitoring() {
 }
 
 usage() {
-    echo "${GREEN}CTRL-C to exit"
+    echo "${GREEN}CTRL-C to exit${RESET}"
     while true; do
         data=$(sudo ectool battery 2>/dev/null)
         voltage_mV=$(echo "$data" | awk '/Present voltage/ {print $3}' | tr -d '[:alpha:]')
         current_mA=$(echo "$data" | awk '/Present current/ {print $3}' | tr -d '[:alpha:]')
     
         if [[ -z "$voltage_mV" || -z "$current_mA" ]]; then
-            echo "$(date +'%H:%M:%S') - Error reading battery data"
+            echo "${RED}$(date +'%H:%M:%S') - Error reading battery${RESET}"
             sleep 1
             continue
         fi
@@ -284,10 +284,16 @@ usage() {
         voltage=$(echo "scale=3; $voltage_mV / 1000" | bc)
         current=$(echo "scale=3; $current_mA / 1000" | bc)
         power=$(echo "scale=3; $voltage * $current" | bc)
-        echo "$(date +'%H:%M:%S'): ${power} W"
+    
+        if [[ $(echo "$power < 0" | bc -l) -eq 1 ]]; then
+            COLOR="$YELLOW"
+        else
+            COLOR="$GREEN"
+        fi
+    
+        echo "$(date +'%H:%M:%S'): ${COLOR}${power} W${RESET}"
         sleep 1
     done
-    echo "${RESET}"
 }
 
 case "$1" in
