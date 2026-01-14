@@ -124,6 +124,7 @@ SUSPEND_MODE=$DEFAULT_SUSPEND_MODE
 ORIGINAL_SUSPEND_MODE=$ORIGINAL_SUSPEND_MODE
 
 load_config() {
+    source "$CONFIG_FILE" 2>/dev/null
     if [ -f "$CONFIG_FILE" ]; then
         while IFS='=' read -r key value; do
             [[ "$key" =~ ^[[:space:]]*# ]] && continue
@@ -420,7 +421,7 @@ monitor_idle_activity() {
                 done < "$CONFIG_FILE"
             fi
             validate_config
-            
+            load_config
             config_changed=0
             if [[ "$STATUS" == "Discharging" ]]; then
                 if (( BATTERY_DELAY != prev_battery_delay || \
