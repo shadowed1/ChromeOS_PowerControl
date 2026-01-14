@@ -49,7 +49,7 @@ if [[ ! -f "$SUSPEND_APPLIED_FLAG" ]]; then
     fi
 fi
 
-source $CONFIG_FILE
+source $CONFIG_FILE 2>/dev/null
 
 get_battery_info() {
     local line
