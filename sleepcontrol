@@ -314,7 +314,6 @@ monitor_idle_activity() {
     last_ts=$EPOCHSECONDS
     last_log_ts=$EPOCHSECONDS
 
-    # Store initial config values to detect changes
     prev_battery_delay=$BATTERY_DELAY
     prev_battery_backlight=$BATTERY_BACKLIGHT
     prev_battery_dim=$BATTERY_DIM_DELAY
@@ -411,9 +410,7 @@ monitor_idle_activity() {
     while read -r line <&3; do
         now=$EPOCHSECONDS
 
-        # Periodic config reload and startup check (every 10 seconds)
         if (( now - last_reload_time >= 10 )); then
-            # Reload config file
             if [ -f "$CONFIG_FILE" ]; then
                 while IFS='=' read -r key value; do
                     [[ "$key" =~ ^[[:space:]]*# ]] && continue
@@ -430,7 +427,6 @@ monitor_idle_activity() {
             fi
             validate_config
             
-            # Check if any timing settings changed
             config_changed=0
             if [[ "$STATUS" == "Discharging" ]]; then
                 if (( BATTERY_DELAY != prev_battery_delay || \
@@ -452,7 +448,6 @@ monitor_idle_activity() {
                 fi
             fi
             
-            # If config changed, recalculate timers and reset idle tracking
             if (( config_changed == 1 )); then
                 recalc_timers
                 last_ts=$now
@@ -462,7 +457,6 @@ monitor_idle_activity() {
             
             last_reload_time=$now
     
-            # Handle startup config
             if grep -q '^STARTUP_SLEEPCONTROL=1' "$CONFIG_FILE"; then
                 if [[ ! -f "$CONF_TARGET" ]]; then
                     sudo cp "$CONF_SOURCE" "$CONF_TARGET"
@@ -476,7 +470,6 @@ monitor_idle_activity() {
             fi
         fi
 
-        # Set audio detection based on current power state
         if [[ "$STATUS" == "Discharging" ]]; then
             AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_BATTERY
         else
@@ -485,7 +478,6 @@ monitor_idle_activity() {
 
         (( AUDIO_DETECTION_ENABLED == 0 )) && audio_active=0
 
-        # Set lid sleep based on current power state
         if [[ "$STATUS" == "Discharging" ]]; then
             LIDSLEEP_ENABLED=$LIDSLEEP_BATTERY
         else
@@ -576,12 +568,10 @@ monitor_idle_activity() {
             fi
         
             if [[ "$STATUS" != "$prev_status" ]]; then
-                # Power state changed - recalculate timers and reset idle tracking
                 recalc_timers
                 last_ts=$now
                 idle_elapsed=0
                 
-                # Update stored config values for the new power state
                 if [[ "$STATUS" == "Discharging" ]]; then
                     prev_battery_delay=$BATTERY_DELAY
                     prev_battery_backlight=$BATTERY_BACKLIGHT
