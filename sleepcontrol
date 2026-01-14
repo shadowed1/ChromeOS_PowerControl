@@ -139,7 +139,7 @@ load_config() {
         done < "$CONFIG_FILE"
     fi
     validate_config
-    recalc_timers
+    #recalc_timers
 }
 
 last_reload_time=$EPOCHSECONDS
