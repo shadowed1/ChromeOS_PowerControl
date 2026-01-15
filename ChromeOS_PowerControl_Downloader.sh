@@ -50,7 +50,7 @@ echo "╚═══════════════════════�
 echo "${RESET}"
 echo ""
 echo ""
-curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/ChromeOS_PowerControl_Installer.sh -o /home/chronos/ChromeOS_PowerControl_Installer.sh
+curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/ChromeOS_PowerControl_Installer.sh -o /home/chronos/user/ChromeOS_PowerControl_Installer.sh
 echo "${CYAN}╔══════════════════════════════════════════════════════════════════════╗${RESET}"
 echo "${GREEN}║  Downloading to: /home/chronos/ChromeOS_PowerControl_Installer.sh    ║${RESET}"
 echo "${YELLOW}║  Run the installer with VT-2 or enable sudo in crosh.                ║${RESET}"
@@ -58,9 +58,7 @@ echo "${MAGENTA}║  ${RESET}${MAGENTA}Move it to an executable location ${BOLD}
 echo "${BLUE}╚══════════════════════════════════════════════════════════════════════╝${RESET}"
 echo "${BOLD}${YELLOW}"
 echo "sudo mkdir -p /usr/local/bin"
-echo "sudo mv /home/chronos/ChromeOS_PowerControl_Installer.sh /usr/local/bin"
-echo "sudo chmod +x /usr/local/bin/ChromeOS_PowerControl_Installer.sh"
-echo "sudo -E /usr/local/bin/ChromeOS_PowerControl_Installer.sh"
+echo "sudo bash ~/ChromeOS_PowerControl_Installer.sh"
 echo "${RESET}"
 echo ""
 echo "${RESET}${YELLOW}╔${RESET}${BLUE}═${RESET}${YELLOW}═${RESET}${BLUE}═${RESET}${YELLOW}═${RESET}${BLUE}═${RESET}${YELLOW}═${RESET}${BLUE}═${RESET}${YELLOW}═${RESET}${BLUE}═${RESET}${YELLOW}═${RESET}${BLUE}═${RESET}${YELLOW}═${RESET}${BLUE}═${RESET}${YELLOW}═${RESET}${BLUE}═${RESET}${YELLOW}═${RESET}${BLUE}═${RESET}${YELLOW}═${RESET}${BLUE}═${RESET}${YELLOW}═${RESET}${BLUE}═${RESET}${YELLOW}═${RESET}${BLUE}═${RESET}${YELLOW}═${RESET}${BLUE}═${RESET}${YELLOW}═${RESET}${BLUE}═${RESET}${YELLOW}═${RESET}${BLUE}═${RESET}${YELLOW}═${RESET}${BLUE}═${RESET}${YELLOW}═${RESET}${BLUE}═${RESET}${YELLOW}═${RESET}${BLUE}═${RESET}${YELLOW}═${RESET}${BLUE}═${RESET}${YELLOW}═${RESET}${BLUE}═${RESET}${YELLOW}═${RESET}${BLUE}═${RESET}${YELLOW}═${RESET}${BLUE}═${RESET}${YELLOW}═${RESET}${BLUE}═${RESET}${YELLOW}═${RESET}${BLUE}═${RESET}${YELLOW}═${RESET}${BLUE}═${RESET}${YELLOW}═${RESET}${BLUE}═${RESET}${YELLOW}═${RESET}${BLUE}═${RESET}${YELLOW}═${RESET}${BLUE}═${RESET}${YELLOW}═${RESET}${BLUE}═${RESET}${YELLOW}═${RESET}${BLUE}═${RESET}${YELLOW}═${RESET}${BLUE}═${RESET}${YELLOW}═${RESET}${BLUE}═${RESET}${YELLOW}═${RESET}${BLUE}═${RESET}${YELLOW}═${RESET}${BLUE}═${RESET}${YELLOW}═${RESET}${BLUE}═${RESET}${YELLOW}═${RESET}${BLUE}═${RESET}${YELLOW}═${RESET}${BLUE}═${RESET}${YELLOW}═${RESET}${BLUE}═${RESET}${YELLOW}═${RESET}${BLUE}═${RESET}${YELLOW}═${RESET}${BLUE}═${RESET}${YELLOW}═${RESET}${BLUE}═${RESET}${YELLOW}═${RESET}${BLUE}═${RESET}${YELLOW}═${RESET}${BLUE}═${RESET}${YELLOW}═${RESET}${BLUE}═${RESET}${YELLOW}═${RESET}${BLUE}═${RESET}${YELLOW}═${RESET}${BLUE}═${RESET}${YELLOW}═${RESET}${BLUE}═${RESET}${YELLOW}═${RESET}${BLUE}═${RESET}${YELLOW}═${RESET}${BLUE}═${RESET}${YELLOW}═${RESET}${BLUE}═${RESET}${YELLOW}═${RESET}${BLUE}═${RESET}${YELLOW}═${RESET}${BLUE}═${RESET}${YELLOW}═${RESET}${BLUE}═${RESET}${YELLOW}═${RESET}${BLUE}═${RESET}${YELLOW}═${RESET}${BLUE}═${RESET}${YELLOW}═${RESET}${BLUE}╗${RESET}"
