@@ -263,7 +263,7 @@ save_current_brightness() {
             if read -r brightness_val < "$BRIGHTNESS_PATH" 2>/dev/null; then
                 echo "$brightness_val" > "$SAVED_BRIGHTNESS_FILE"
                 saved_display_brightness="$brightness_val"
-                echo "$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Saved brightness: $brightness_val" >> "$LOG_FILE"
+                echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Saved brightness: ${RESET}${YELLOW}$brightness_val${RESET}" >> "$LOG_FILE"
             else
                 echo "$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Could not read from $BRIGHTNESS_PATH" >> "$LOG_FILE"
             fi
