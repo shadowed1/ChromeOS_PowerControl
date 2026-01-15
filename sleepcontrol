@@ -347,7 +347,7 @@ monitor_idle_activity() {
     last_power_check_time=0
     
     send_fake_activity() {
-        now=$EPOCHSECONDS
+        local now=$EPOCHSECONDS
 
         if (( monitor_idle == 1 || audio_active == 1 )); then
             dbus-send --system --type=method_call \
@@ -379,16 +379,12 @@ monitor_idle_activity() {
         if (( sending_fake_activity == 1 )); then
             kill "$fake_activity_pid" 2>/dev/null
             wait "$fake_activity_pid" 2>/dev/null
-    
+
             sending_fake_activity=0
             fake_activity_pid=0
-    
+
             echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Stopping simulated activity loop...${RESET}" >> "$LOG_FILE"
         fi
-        
-        last_ts=$EPOCHSECONDS
-        idle_elapsed=0
-        monitor_idle=0
     }
 
     exec 3< <(
@@ -487,6 +483,9 @@ monitor_idle_activity() {
             PRESENTATION_MODE=1
             echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Presentation mode/External display detected${RESET}" >> "$LOG_FILE"
             stop_fake_activity
+            monitor_idle=0
+            last_ts=$now
+            idle_elapsed=0
             lid_closed=0
             ;;
         *"Chrome is using normal display mode"*)
@@ -530,6 +529,9 @@ monitor_idle_activity() {
                 echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Lid closed, lid sleep on!${RESET}" >> "$LOG_FILE"
                 sleep 3
                 stop_fake_activity
+                monitor_idle=0
+                last_ts=$now
+                idle_elapsed=0
             else
                 echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Lid closed, lid sleep off!${RESET}" >> "$LOG_FILE"
                 sleep 5
@@ -540,6 +542,7 @@ monitor_idle_activity() {
             lid_closed=0
             monitor_idle=0
             last_ts=$now
+            idle_elapsed=0
             active=1
             stop_fake_activity
             backlight_off=0
@@ -595,6 +598,7 @@ monitor_idle_activity() {
         *"Enabling wakeup for"*|*"User triggered wake"*|*"Updated audio devices"*|*"User activity ongoing"*)
             monitor_idle=0
             last_ts=$now
+            idle_elapsed=0
             active=1
             stop_fake_activity
             backlight_off=0
@@ -625,11 +629,11 @@ monitor_idle_activity() {
             if (( monitor_idle == 1 )); then
                 echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - User activity resumed - Timers reset${RESET}" >> "$LOG_FILE"
             fi
-            stop_fake_activity
             monitor_idle=0
             active=1
             last_ts=$now
             idle_elapsed=0
+            stop_fake_activity
             backlight_off=0
             if (( kb_brightness_restored == 0 )); then
                 kb_brightness_restored=1
@@ -652,6 +656,7 @@ monitor_idle_activity() {
         *"Got user-triggered request to set brightness to "*)
             monitor_idle=0
             last_ts=$now
+            idle_elapsed=0
             active=1
             stop_fake_activity
             backlight_off=0
