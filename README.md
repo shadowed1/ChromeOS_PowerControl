@@ -221,12 +221,9 @@ __How It Works:__
 - When idle, SleepControl uses dbus to send an empty input every 4m until interrupted/sleeping with the configurable timer.  
 - By using epoch timestamps, SleepControl is able to verify when its simulated inputs are to be ignored.
 - Allows user to customize when display can dim, turn off, and delays sleep.
-- Requires sleep to be enabled in settings -> power since SleepControl will not send a sleep command to OS; only delay it. 
+- Requires sleep to be enabled in settings -> power since SleepControl will not send a sleep command to OS; only delay it.
+
 <br>
-
-__Bonus:__
-
-
 <br>
 
 *Changelog:*
