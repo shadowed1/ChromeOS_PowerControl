@@ -303,6 +303,7 @@ Added display and keyboard backlight restore in Installer when restarting powerd
 - 0.52: `GUI app created for Crostini and Chard. Config file is now located in ~/MyFiles/Downloads/.` <br><br>
 - 0.53: `Streamlined GUI app and fixed numerous bugs with it. Added usage command for BatteryControl. Added monitor command for GPUControl. GPUControl now runs in a loop for dynamic config adjustments. Startup commands can now be altered with GUI app.` <br><br>
 - 0.54: `Fixed fancontrol zero rpm mode issue when adjusting min_fan speed while at zero rpm.` <br><br>
+- 0.55: `Fixed sleepcontrol not saving values due to moving config file to noexec mount for GUI.` <br><br>
 __Acknowledgements:__
 
 - Thanks to WesBosch for helping me learn to make an installer:
