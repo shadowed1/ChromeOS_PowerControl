@@ -164,7 +164,7 @@ done
 
 detect_suspend_mode() {
     if [ -f /usr/share/power_manager/suspend_mode ]; then
-        SUSPEND_MODE=$(cat /usr/share/power_manager/suspend_mode)
+        SUSPEND_MODE=$(cat /usr/share/power_manager/suspend_mode) 2>/dev/null
     else
         SUSPEND_MODE="deep"
     fi
@@ -518,7 +518,6 @@ enable_component_on_boot() {
     read -rp "${COLOR}Do you want $component enabled on boot?${RESET}${BOLD} (Y/n):${RESET} " move_config
     if [[ -z "$move_config" || "$move_config" =~ ^[Yy]$ ]]; then
         sudo cp "$config_file" "$target_file"
-        echo "$component will start on boot."
         echo "$var_name=1" | sudo tee -a "$CONFIG_FILE" > /dev/null
         echo ""
     else
@@ -589,18 +588,19 @@ start_component_now() {
             read -rp "${BOLD}${GREEN}Do you want to set suspend mode from freeze to deep, allowing BatteryControl to function while sleeping when charging? Display brightness will change once when enabling (powerd restarts)${RESET}${BOLD} (Y/n): ${RESET} " set_deep
             if [[ -z "$set_deep" || "$set_deep" =~ ^[Yy]$ ]]; then
                  for file in \
-                    /usr/share/power_manager/suspend_mode \
-                    /sys/power/mem_sleep \
-                    /usr/share/power_manager/~/initial_suspend_mode; do
-                    [[ -f "$file" ]] && echo deep | sudo tee "$file" 2>/dev/null
-                done
+                /usr/share/power_manager/suspend_mode \
+                /sys/power/mem_sleep \
+                /usr/share/power_manager/~/initial_suspend_mode; do
+                [[ -f "$file" ]] && echo deep | sudo tee "$file" >/dev/null 2>&1
+            done
+
                 
         
                 for file in \
                     /var/lib/power_manager/disable_dark_resume \
                     /usr/share/power_manager/disable_dark_resume \
                     /mnt/stateful_partition/encrypted/var/lib/power_manager/disable_dark_resume; do
-                    [[ -f "$file" ]] && echo 0 | sudo tee "$file" 2>/dev/null
+                    [[ -f "$file" ]] && echo 0 | sudo tee "$file" >/dev/null 2>&1
                 done
         
                 saved_kb_brightness=$(sudo ectool pwmgetkblight 2>/dev/null | awk '{print $NF}')
