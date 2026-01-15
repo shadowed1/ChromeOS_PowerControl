@@ -22,6 +22,8 @@ LAST_FAKE_ACTIVITY_FILE="${INSTALL_DIR}/.last_fake_activity"
 LAST_POWER_STATE="${INSTALL_DIR}/.last_power_state"
 FAKE_ACTIVITY_GRACE=1
 timestamp=$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1)
+SAVED_BRIGHTNESS_FILE="$INSTALL_DIR/.saved_brightness"
+
 
 SUSPEND_APPLIED_FLAG="/tmp/.sleepcontrol_suspend_applied"
 
@@ -120,7 +122,18 @@ ORIGINAL_SUSPEND_MODE=$ORIGINAL_SUSPEND_MODE
 
 load_config() {
     if [ -f "$CONFIG_FILE" ]; then
-        source "$CONFIG_FILE"
+        while IFS='=' read -r key value; do
+            [[ "$key" =~ ^[[:space:]]*# ]] && continue
+            [[ -z "$key" ]] && continue
+            case "$key" in
+                BATTERY_DELAY|POWER_DELAY|BATTERY_BACKLIGHT|POWER_BACKLIGHT|\
+                BATTERY_DIM_DELAY|POWER_DIM_DELAY|AUDIO_DETECTION_BATTERY|\
+                AUDIO_DETECTION_POWER|SUSPEND_MODE|ORIGINAL_SUSPEND_MODE|\
+                LIDSLEEP_BATTERY|LIDSLEEP_POWER|BRIGHTNESS_PATH|MAX_BRIGHTNESS_PATH)
+                    eval "$key=\"$value\""
+                    ;;
+            esac
+        done < "$CONFIG_FILE"
     fi
     validate_config
     recalc_timers
@@ -246,17 +259,25 @@ set_display_brightness() {
 
 save_current_brightness() {
     if [[ $was_dimmed -eq 0 ]]; then
-        if [[ -f "$BRIGHTNESS_PATH" ]]; then
-            if read -r saved_display_brightness < "$BRIGHTNESS_PATH"; then
-                :
+        if [[ -f "$BRIGHTNESS_PATH" && -r "$BRIGHTNESS_PATH" ]]; then
+            if read -r brightness_val < "$BRIGHTNESS_PATH" 2>/dev/null; then
+                echo "$brightness_val" > "$SAVED_BRIGHTNESS_FILE"
+                saved_display_brightness="$brightness_val"
+                echo "$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Saved brightness: $brightness_val" >> "$LOG_FILE"
             else
-                echo "$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Could not read brightness from $BRIGHTNESS_PATH" >> "$LOG_FILE"
+                echo "$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Could not read from $BRIGHTNESS_PATH" >> "$LOG_FILE"
             fi
         else
-            echo "$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Could not save brightness: $BRIGHTNESS_PATH not found" >> "$LOG_FILE"
+            echo "$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Brightness path not accessible: $BRIGHTNESS_PATH" >> "$LOG_FILE"
         fi
+    fi
+}
+
+get_saved_brightness() {
+    if [[ -f "$SAVED_BRIGHTNESS_FILE" ]]; then
+        cat "$SAVED_BRIGHTNESS_FILE" 2>/dev/null || echo "0"
     else
-        echo "$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Skipping because display is dimmed." >> "$LOG_FILE"
+        echo "0"
     fi
 }
 
@@ -293,6 +314,7 @@ monitor_idle_activity() {
     }
 
     load_config
+    saved_display_brightness=$(get_saved_brightness)
     recalc_timers
     last_reload_time=$EPOCHSECONDS
     last_ts=$EPOCHSECONDS
