@@ -597,7 +597,7 @@ start_component_now() {
                     /usr/share/power_manager/suspend_mode \
                     /sys/power/mem_sleep \
                     /usr/share/power_manager/~/initial_suspend_mode; do
-                    [[ -f "$file" ]] && echo deep | sudo tee "$file" >/dev/null
+                    [[ -f "$file" ]] && echo deep | sudo tee "$file" 2>/dev/null
                 done
                 
         
