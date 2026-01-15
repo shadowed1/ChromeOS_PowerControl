@@ -592,7 +592,7 @@ monitor_idle_activity() {
                 echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Power state changed to: ${RESET}${GREEN}${STATUS}${RESET}${BLUE} - Timers recalculated${RESET}" >> "$LOG_FILE"
             fi
             ;;
-        *"Enabling wakeup for"*|*"User triggered wake"*|*"User activity ongoing"*)
+        *"Enabling wakeup for"*|*"User triggered wake"*|*"Updated audio devices"*|*"User activity ongoing"*)
             monitor_idle=0
             last_ts=$now
             active=1
