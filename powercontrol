@@ -595,7 +595,6 @@ reinstall_script() {
 
     if [ -d "$INSTALL_DIR" ]; then
         if [ -x "$script" ]; then
-            echo "Reinstalling ChromeOS PowerControl..."
             sudo bash "$script"
         else
             echo "${RED}Reinstall script not found or not executable at: $script${RESET}"
