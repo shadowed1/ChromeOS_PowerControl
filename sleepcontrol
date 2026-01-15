@@ -30,17 +30,15 @@ if [[ ! -f "$SUSPEND_APPLIED_FLAG" ]]; then
     if [[ -f "$CONFIG_FILE" ]]; then
         SUSPEND_MODE=$(grep "^SUSPEND_MODE=" "$CONFIG_FILE" | cut -d'=' -f2)
         if [[ "$SUSPEND_MODE" == "freeze" || "$SUSPEND_MODE" == "deep" ]]; then
-            echo "$SUSPEND_MODE" | sudo tee /usr/share/power_manager/suspend_mode 2>/dev/null
+            echo "$SUSPEND_MODE" | sudo tee /usr/share/power_manager/suspend_mode >/dev/null
+            sudo restart powerd >/dev/null
+
             if [[ "$SUSPEND_MODE" == "freeze" ]]; then
-                sudo sh -c 'echo s2idle > /usr/share/power_manager/suspend_mode' 2>/dev/null
-                sudo sh -c 'echo s2idle > /sys/power/mem_sleep' 2>/dev/null
-                sudo sh -c 'echo s2idle > /usr/share/power_manager/~/initial_suspend_mode' 2>/dev/null
+                echo s2idle | sudo tee /sys/power/mem_sleep >/dev/null
             else
-                sudo sh -c 'echo deep > /usr/share/power_manager/suspend_mode' 2>/dev/null
-                sudo sh -c 'echo deep > /sys/power/mem_sleep' 2>/dev/null
-                sudo sh -c 'echo deep > /usr/share/power_manager/~/initial_suspend_mode' 2>/dev/null
+                echo deep | sudo tee /sys/power/mem_sleep >/dev/null
             fi
-            #sudo restart powerd 2>/dev/null
+
             touch "$SUSPEND_APPLIED_FLAG"
         fi
     fi
@@ -94,6 +92,7 @@ DEFAULT_AUDIO_DETECTION_POWER=1
 DEFAULT_LIDSLEEP_BATTERY=1
 DEFAULT_LIDSLEEP_POWER=1
 
+
 AUDIO_DETECTION_BATTERY=
 AUDIO_DETECTION_POWER=
 BATTERY_DELAY=
@@ -121,18 +120,7 @@ ORIGINAL_SUSPEND_MODE=$ORIGINAL_SUSPEND_MODE
 
 load_config() {
     if [ -f "$CONFIG_FILE" ]; then
-        while IFS='=' read -r key value; do
-            [[ "$key" =~ ^[[:space:]]*# ]] && continue
-            [[ -z "$key" ]] && continue
-            case "$key" in
-                BATTERY_DELAY|POWER_DELAY|BATTERY_BACKLIGHT|POWER_BACKLIGHT|\
-                BATTERY_DIM_DELAY|POWER_DIM_DELAY|AUDIO_DETECTION_BATTERY|\
-                AUDIO_DETECTION_POWER|SUSPEND_MODE|ORIGINAL_SUSPEND_MODE|\
-                LIDSLEEP_BATTERY|LIDSLEEP_POWER)
-                    eval "$key=\"$value\""
-                    ;;
-            esac
-        done < "$CONFIG_FILE"
+        source "$CONFIG_FILE"
     fi
     validate_config
     recalc_timers
@@ -519,7 +507,7 @@ send_fake_activity() {
                 echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Saved power state: ${RESET}${GREEN}${STATUS}${RESET}" >> "$LOG_FILE"
             fi
             ;;
-        *"Enabling wakeup for"*|*"User triggered wake"*|*"Updated audio devices"*|*"User activity ongoing"*)
+         *"Enabling wakeup for"*|*"User triggered wake"*|*"User activity ongoing"*)
             monitor_idle=0
             last_ts=$now
             active=1
@@ -731,10 +719,10 @@ case "$1" in
     battery|power)
     MODE=$1
 
-    if [[ "$2" == "audio" ]]; then
+     if [[ "$2" == "audio" ]]; then
         set_audio_detection "$MODE" "$3"
         exit 0
-    fi
+        fi
 
     if [[ $# -eq 4 ]]; then
         DIM_VAL=$2
@@ -846,7 +834,7 @@ case "$1" in
             fi
         else
             echo "SleepControl will not startup automatically."
-            sudo rm -f /etc/init/sleepcontrol.conf 2>/dev/null
+            sudo rm -f /etc/init/sleepcontrol.conf >/dev/null 2>&1
         fi
         ;;
         status|"")
@@ -908,22 +896,18 @@ echo "${RESET}"
                 for f in /var/lib/power_manager/disable_dark_resume \
                          /usr/share/power_manager/disable_dark_resume \
                          /mnt/stateful_partition/encrypted/var/lib/power_manager/disable_dark_resume; do
-                    [[ -f "$f" ]] && echo 0 | sudo tee "$f" 2>/dev/null
+                    [[ -f "$f" ]] && echo 0 | sudo tee "$f" >/dev/null
                 done
             fi
         
+            echo "$SUSPEND_MODE" | sudo tee /usr/share/power_manager/suspend_mode >/dev/null
+            sudo restart powerd >/dev/null
+    
             if [[ "$SUSPEND_MODE" == "freeze" ]]; then
-                sudo sh -c 'echo s2idle > /usr/share/power_manager/suspend_mode' 2>/dev/null
-                sudo sh -c 'echo s2idle > /sys/power/mem_sleep' 2>/dev/null
-                sudo sh -c 'echo s2idle > /usr/share/power_manager/~/initial_suspend_mode' 2>/dev/null
+                echo s2idle | sudo tee /sys/power/mem_sleep >/dev/null
             else
-                sudo sh -c 'echo deep > /usr/share/power_manager/suspend_mode' 2>/dev/null
-                sudo sh -c 'echo deep > /sys/power/mem_sleep' 2>/dev/null
-                sudo sh -c 'echo deep > /usr/share/power_manager/~/initial_suspend_mode' 2>/dev/null
+                echo deep | sudo tee /sys/power/mem_sleep >/dev/null
             fi
-    
-            sudo restart powerd 2>/dev/null
-    
     
             save_config
             echo ""
@@ -934,7 +918,7 @@ echo "${RESET}"
             echo "Valid suspend types: freeze | deep"
             echo "Current suspend mode:"
             echo ""
-            echo "${RESET}${BOLD}${BLUE}$(cat /sys/power/mem_sleep)${RESET}${BLUE}"
+            echo "${RESET}${BOLD}${BLUE$}$(cat /sys/power/mem_sleep)${RESET}${BLUE}"
             echo ""
             echo "Note: freeze is s2idle - use freeze to apply correct value."
             echo "If set to deep, ChromeOS_PowerControl logic will continue to function when plugged in."
