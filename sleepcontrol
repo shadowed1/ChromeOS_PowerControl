@@ -380,15 +380,15 @@ monitor_idle_activity() {
             kill "$fake_activity_pid" 2>/dev/null
             wait "$fake_activity_pid" 2>/dev/null
     
-            last_ts=$EPOCHSECONDS
-            idle_elapsed=0
-            monitor_idle=0
-    
             sending_fake_activity=0
             fake_activity_pid=0
     
             echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Stopping simulated activity loop...${RESET}" >> "$LOG_FILE"
         fi
+        
+        last_ts=$EPOCHSECONDS
+        idle_elapsed=0
+        monitor_idle=0
     }
 
     exec 3< <(
@@ -623,13 +623,13 @@ monitor_idle_activity() {
                 continue
             fi
             if (( monitor_idle == 1 )); then
-                echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - User activity resumed${RESET}" >> "$LOG_FILE"
+                echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - User activity resumed - Timers reset${RESET}" >> "$LOG_FILE"
             fi
+            stop_fake_activity
             monitor_idle=0
             active=1
             last_ts=$now
             idle_elapsed=0
-            stop_fake_activity
             backlight_off=0
             if (( kb_brightness_restored == 0 )); then
                 kb_brightness_restored=1
