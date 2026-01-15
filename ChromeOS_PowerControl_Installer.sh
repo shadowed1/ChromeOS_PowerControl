@@ -483,28 +483,21 @@ for category in "${ordered_categories[@]}"; do
 done
 echo "${GREEN}${BOLD}Installing to: $INSTALL_DIR $RESET"
 echo ""
-
-
-read -rp "Enable ${BOLD}Global Commands${RESET} for ${RESET}${BOLD}${CYAN}PowerControl${RESET}, ${GREEN}${BOLD}BatteryControl${RESET}, ${YELLOW}${BOLD}FanControl${RESET}, ${BOLD}${MAGENTA}GPUControl${RESET}, ${BOLD}${BLUE}SleepControl${RESET}?${RESET}${BOLD} (Y/n):$RESET " link_cmd
-if [[ -z "$link_cmd" || "$link_cmd" =~ ^[Yy]$ ]]; then
+    sudo rm -r /usr/local/bin/powercontrol 2>/dev/null
+    sudo rm -r /usr/local/bin/batterycontrol 2>/dev/null
+    sudo rm -r /usr/local/bin/fancontrol 2>/dev/null
+    sudo rm -r /usr/local/bin/gpucontrol 2>/dev/null
+    sudo rm -r /usr/local/bin/sleepcontrol 2>/dev/null
+    
     sudo ln -sf "$INSTALL_DIR/powercontrol" /usr/local/bin/powercontrol
     sudo ln -sf "$INSTALL_DIR/batterycontrol" /usr/local/bin/batterycontrol
     sudo ln -sf "$INSTALL_DIR/fancontrol" /usr/local/bin/fancontrol
     sudo ln -sf "$INSTALL_DIR/gpucontrol" /usr/local/bin/gpucontrol
     sudo ln -sf "$INSTALL_DIR/sleepcontrol" /usr/local/bin/sleepcontrol
-    echo "Symbolic links created!"
+
     echo ""
-else
-    echo "Skipped creating global commands."
-    sudo rm -r /usr/local/bin/powercontrol > /dev/null 2>&1
-    sudo rm -r /usr/local/bin/batterycontrol > /dev/null 2>&1
-    sudo rm -r /usr/local/bin/fancontrol > /dev/null 2>&1
-    sudo rm -r /usr/local/bin/gpucontrol > /dev/null 2>&1
-    sudo rm -r /usr/local/bin/sleepcontrol > /dev/null 2>&1
-    echo ""
-fi
-enable_component_on_boot() {
     
+enable_component_on_boot() {
     local COLOR
     local component="$1"
     local config_file="$2"
