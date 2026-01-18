@@ -222,7 +222,7 @@ set_max_perf_pct() {
 
     if (( IS_INTEL == 1 )) && [[ "$PERF_PATH" == *intel_pstate/max_perf_pct ]] && [[ -f "$PERF_PATH" ]]; then
         if [ -w "$PERF_PATH" ]; then
-            echo "$pct" | sudo tee "$PERF_PATH" > /dev/null
+            echo "$pct" | sudo tee "$PERF_PATH" 2>/dev/null
         else
             echo "${RED}Permission denied: Cannot write to $PERF_PATH${RESET}" >&2
             exit 1
@@ -254,7 +254,7 @@ set_max_perf_pct() {
                 fi
 
                 if [ -w "$path" ]; then
-                    echo "$target_freq" | sudo tee "$path" > /dev/null
+                    echo "$target_freq" | sudo tee "$path" 2>/dev/null
                 else
                     echo "${RED}Warning: Cannot write to $path; skipping.${RESET}" >&2
                 fi
@@ -327,7 +327,7 @@ set_no_turbo() {
     fi
 
     if [ "$IS_INTEL" -eq 1 ] && [ -w "$TURBO_PATH" ]; then
-        echo "$value" | sudo tee "$TURBO_PATH" > /dev/null
+        echo "$value" | sudo tee "$TURBO_PATH" 2>/dev/null
         if [ "$value" -eq 1 ]; then
             echo "Intel Turbo Boost ${CYAN}Disabled${RESET}" | tee -a "$LOG_FILE"
         else
@@ -479,7 +479,7 @@ show_status() {
 
     if [ -f "$PID_FILE" ]; then
         PID=$(cat "$PID_FILE")
-        if ps -p "$PID" > /dev/null 2>&1; then
+        if ps -p "$PID" 2>/dev/null 2>&1; then
             echo "${CYAN}"
             echo "══════════════════════════════════════════════"
             echo "  PowerControl Status: RUNNING (PID $PID)    "
@@ -549,7 +549,7 @@ fi
 stop_monitoring() {
     if [[ -f "$PID_FILE" ]]; then
         PID=$(<"$PID_FILE")
-        if ps -p "$PID" > /dev/null 2>&1; then
+        if ps -p "$PID" 2>/dev/null 2>&1; then
             restore_default_cpu_state
             kill -- -"$PID" 2>/dev/null
             sleep 1
