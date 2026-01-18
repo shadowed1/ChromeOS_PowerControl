@@ -10,16 +10,7 @@ BOLD=$(tput bold)
 RESET=$(tput sgr0)
 
 INSTALL_DIR="@INSTALL_DIR@"
-CONFIG_FILE="$INSTALL_DIR/config.sh"
-
+CONFIG_FILE="/home/chronos/user/MyFiles/Downloads/ChromeOS_PowerControl_Config/config"
+bash <(curl -s "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/ChromeOS_PowerControl_Downloader.sh?$(date +%s)")
 sudo mkdir -p /usr/local/bin
-sudo curl -fsSL "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/ChromeOS_PowerControl_Installer.sh" -o "/usr/local/bin/ChromeOS_PowerControl_Installer.sh"
-echo
-echo "${RESET}${GREEN}Running commands: ${RESET}${CYAN}"
-echo "sudo mkdir -p /usr/local/bin"
-echo "sudo chmod +x /usr/local/ChromeOS_PowerControl_Installer.sh"
-echo "sudo -E /usr/local/bin/ChromeOS_PowerControl_Installer.sh"
-echo "${RESET}"
-sudo mkdir -p /usr/local/bin
-sudo chmod +x /usr/local/bin/ChromeOS_PowerControl_Installer.sh
-sudo -E /usr/local/bin/ChromeOS_PowerControl_Installer.sh 2>/dev/null
+sudo bash ~/ChromeOS_PowerControl_Installer.sh
