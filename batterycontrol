@@ -1,3 +1,4 @@
+
 #!/bin/bash
 RED=$(tput setaf 1)
 GREEN=$(tput setaf 2)
@@ -128,7 +129,7 @@ battery_status() {
     if [ -f "$RUN_FLAG" ]; then
         if [ -f "$PID_FILE" ]; then
             PID=$(cat "$PID_FILE")
-            if ps -p "$PID" 2>/dev/null 2>&1; then
+            if ps -p "$PID" > /dev/null 2>&1; then
 echo "${GREEN}"
 echo "═════════════════════════════════════════════════════════════════════════════"
 echo "                BatteryControl is: RUNNING (PID $PID)"
@@ -258,7 +259,7 @@ start_monitoring_loop() {
 stop_monitoring() {
     if [ -f "$PID_FILE" ]; then
         PID=$(cat "$PID_FILE")
-        if ps -p "$PID" 2>/dev/null 2>&1; then
+        if ps -p "$PID" > /dev/null 2>&1; then
             kill "$PID"
             echo "${RED}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - BatteryControl Stopped (PID $PID)${RESET}" | tee -a "$LOG_FILE"
         fi
