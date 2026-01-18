@@ -318,7 +318,7 @@ monitor_idle_activity() {
     last_reload_time=$EPOCHSECONDS
     last_ts=$EPOCHSECONDS
 
-    if pgrep -f "$0 __sleepcontrol_monitor__" | grep -v "^$$\$" > /dev/null; then
+    if pgrep -f "$0 __sleepcontrol_monitor__" | grep -v "^$$\$" 2>/dev/null; then
         exit 0
     fi
 
@@ -674,7 +674,7 @@ send_fake_activity() {
 stop_monitoring() {
     if [ -f "$PID_FILE" ]; then
         PID=$(cat "$PID_FILE")
-        if ps -p "$PID" > /dev/null 2>&1; then
+        if ps -p "$PID" 2>/dev/null 2>&1; then
             echo "Stopping SleepControl (PGID: $PID)..."
             kill -- -"$PID" 2>/dev/null
             sleep 1
@@ -697,7 +697,7 @@ case "$1" in
             exit 1
         }
 
-        if pgrep -f "$0 __sleepcontrol_monitor__" > /dev/null; then
+        if pgrep -f "$0 __sleepcontrol_monitor__" 2>/dev/null; then
             echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - SleepControl is already running. ${RESET}" | tee -a "$LOG_FILE"
             exit 0
         fi
@@ -862,7 +862,7 @@ case "$1" in
         load_config
         if [ -f "$RUN_FLAG" ]; then
             PID=$(cat "$PID_FILE")
-            if ps -p "$PID" > /dev/null 2>&1; then
+            if ps -p "$PID" 2>/dev/null 2>&1; then
 echo "${BLUE}"
 echo "═════════════════════════════════════════════════════════════════════════════════════════════════"
 echo "                          SleepControl Status: RUNNING (PID $PID)                                  "                                 
