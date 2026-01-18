@@ -317,6 +317,7 @@ monitor_idle_activity() {
     recalc_timers
     last_reload_time=$EPOCHSECONDS
     last_ts=$EPOCHSECONDS
+    local last_log_ts=0
 
     if pgrep -f "$0 __sleepcontrol_monitor__" | grep -v "^$$\$" > /dev/null; then
         exit 0
@@ -441,17 +442,21 @@ send_fake_activity() {
             PRESENTATION_MODE=0
             ;;
         *"Audio activity started"*|*"Audio activity ongoing"*)
-            (( AUDIO_DETECTION_ENABLED == 1 )) && audio_active=1
-            start_fake_activity
-            last_ts=$now
-            monitor_idle=1
-            active=0
+            if (( AUDIO_DETECTION_ENABLED == 1 )); then
+                audio_active=1
+                start_fake_activity
+                last_ts=$now
+                monitor_idle=1
+                active=0
+            fi
             ;;
         *"Audio activity stopped"*)
-            (( AUDIO_DETECTION_ENABLED == 1 )) && audio_active=0
-            last_ts=$EPOCHSECONDS
-            idle_elapsed=0
-            active=1
+            if (( AUDIO_DETECTION_ENABLED == 1 )); then
+                audio_active=0
+                last_ts=$EPOCHSECONDS
+                idle_elapsed=0
+                active=1
+            fi
             ;;
       *"User activity stopped"*)
             if (( audio_active == 0 )) && (( now - last_ts > 5 )) && (( now - idle_since > 5 )); then
