@@ -11,7 +11,9 @@ SHOW_POWERCONTROL_NOTICE=0
 SHOW_BATTERYCONTROL_NOTICE=0
 SHOW_SLEEPCONTROL_NOTICE=0
 SHOW_GPUCONTROL_NOTICE=0
-
+echo
+echo "${MAGENTA}noexec warning can be safely ignored. ${RESET}"
+echo
 detect_backlight_path() {
     BACKLIGHT_BASE="/sys/class/backlight"
     BRIGHTNESS_PATH=""
@@ -162,7 +164,7 @@ done
 
 detect_suspend_mode() {
     if [ -f /usr/share/power_manager/suspend_mode ]; then
-        SUSPEND_MODE=$(cat /usr/share/power_manager/suspend_mode)
+        SUSPEND_MODE=$(cat /usr/share/power_manager/suspend_mode) 2>/dev/null
     else
         SUSPEND_MODE="deep"
     fi
@@ -483,28 +485,21 @@ for category in "${ordered_categories[@]}"; do
 done
 echo "${GREEN}${BOLD}Installing to: $INSTALL_DIR $RESET"
 echo ""
-
-
-read -rp "Enable ${BOLD}Global Commands${RESET} for ${RESET}${BOLD}${CYAN}PowerControl${RESET}, ${GREEN}${BOLD}BatteryControl${RESET}, ${YELLOW}${BOLD}FanControl${RESET}, ${BOLD}${MAGENTA}GPUControl${RESET}, ${BOLD}${BLUE}SleepControl${RESET}?${RESET}${BOLD} (Y/n):$RESET " link_cmd
-if [[ -z "$link_cmd" || "$link_cmd" =~ ^[Yy]$ ]]; then
+    sudo rm -r /usr/local/bin/powercontrol 2>/dev/null
+    sudo rm -r /usr/local/bin/batterycontrol 2>/dev/null
+    sudo rm -r /usr/local/bin/fancontrol 2>/dev/null
+    sudo rm -r /usr/local/bin/gpucontrol 2>/dev/null
+    sudo rm -r /usr/local/bin/sleepcontrol 2>/dev/null
+    
     sudo ln -sf "$INSTALL_DIR/powercontrol" /usr/local/bin/powercontrol
     sudo ln -sf "$INSTALL_DIR/batterycontrol" /usr/local/bin/batterycontrol
     sudo ln -sf "$INSTALL_DIR/fancontrol" /usr/local/bin/fancontrol
     sudo ln -sf "$INSTALL_DIR/gpucontrol" /usr/local/bin/gpucontrol
     sudo ln -sf "$INSTALL_DIR/sleepcontrol" /usr/local/bin/sleepcontrol
-    echo "Symbolic links created!"
+
     echo ""
-else
-    echo "Skipped creating global commands."
-    sudo rm -r /usr/local/bin/powercontrol > /dev/null 2>&1
-    sudo rm -r /usr/local/bin/batterycontrol > /dev/null 2>&1
-    sudo rm -r /usr/local/bin/fancontrol > /dev/null 2>&1
-    sudo rm -r /usr/local/bin/gpucontrol > /dev/null 2>&1
-    sudo rm -r /usr/local/bin/sleepcontrol > /dev/null 2>&1
-    echo ""
-fi
-enable_component_on_boot() {
     
+enable_component_on_boot() {
     local COLOR
     local component="$1"
     local config_file="$2"
@@ -523,7 +518,6 @@ enable_component_on_boot() {
     read -rp "${COLOR}Do you want $component enabled on boot?${RESET}${BOLD} (Y/n):${RESET} " move_config
     if [[ -z "$move_config" || "$move_config" =~ ^[Yy]$ ]]; then
         sudo cp "$config_file" "$target_file"
-        echo "$component will start on boot."
         echo "$var_name=1" | sudo tee -a "$CONFIG_FILE" > /dev/null
         echo ""
     else
@@ -594,18 +588,19 @@ start_component_now() {
             read -rp "${BOLD}${GREEN}Do you want to set suspend mode from freeze to deep, allowing BatteryControl to function while sleeping when charging? Display brightness will change once when enabling (powerd restarts)${RESET}${BOLD} (Y/n): ${RESET} " set_deep
             if [[ -z "$set_deep" || "$set_deep" =~ ^[Yy]$ ]]; then
                  for file in \
-                    /usr/share/power_manager/suspend_mode \
-                    /sys/power/mem_sleep \
-                    /usr/share/power_manager/~/initial_suspend_mode; do
-                    [[ -f "$file" ]] && echo deep | sudo tee "$file" 2>/dev/null
-                done
+                /usr/share/power_manager/suspend_mode \
+                /sys/power/mem_sleep \
+                /usr/share/power_manager/~/initial_suspend_mode; do
+                [[ -f "$file" ]] && echo deep | sudo tee "$file" >/dev/null 2>&1
+            done
+
                 
         
                 for file in \
                     /var/lib/power_manager/disable_dark_resume \
                     /usr/share/power_manager/disable_dark_resume \
                     /mnt/stateful_partition/encrypted/var/lib/power_manager/disable_dark_resume; do
-                    [[ -f "$file" ]] && echo 0 | sudo tee "$file" 2>/dev/null
+                    [[ -f "$file" ]] && echo 0 | sudo tee "$file" >/dev/null 2>&1
                 done
         
                 saved_kb_brightness=$(sudo ectool pwmgetkblight 2>/dev/null | awk '{print $NF}')
