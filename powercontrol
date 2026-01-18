@@ -595,12 +595,10 @@ reinstall_script() {
     if [ -d "$INSTALL_DIR" ]; then
         if [ -x "$script" ]; then
             sudo bash "$script"
-        else
-            echo "${RED}Reinstall script not found or not executable at: $script${RESET}"
             exit 1
         fi
     else
-        echo "${RED}Installation directory not found: $INSTALL_DIR${RESET}"
+        bash <(curl -s "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/Reinstall_ChromeOS_PowerControl.sh?$(date +%s)")
         exit 1
     fi
 }
