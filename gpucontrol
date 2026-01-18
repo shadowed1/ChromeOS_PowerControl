@@ -103,8 +103,8 @@ amd_set_max_freq() {
     done <<< "$states_raw"
     echo ""
     printf -v new_cmd_expanded "%b" "$new_cmd"
-    echo -e "$new_cmd_expanded" | sudo tee "$pp_od_file" 2>/dev/null
-    echo "c" | sudo tee "$pp_od_file" 2>/dev/null
+    echo -e "$new_cmd_expanded" | sudo tee "$pp_od_file" > /dev/null
+    echo "c" | sudo tee "$pp_od_file" > /dev/null
     GPU_MAX_FREQ="$requested_freq"
     save_config
     echo ""
@@ -200,7 +200,7 @@ start_monitoring_loop() {
 stop_monitoring() {
     if [[ -f "$PID_FILE" ]]; then
         if read -r PID < "$PID_FILE"; then
-            if ps -p "$PID" 2>/dev/null 2>&1; then
+            if ps -p "$PID" > /dev/null 2>&1; then
                 kill "$PID"
             fi
         fi
@@ -217,10 +217,10 @@ apply_gpu_settings() {
 
     case "$GPU_TYPE" in
         intel)
-            [[ -w "$GPU_FREQ_PATH" ]] && echo "$GPU_MAX_FREQ" | sudo tee "$GPU_FREQ_PATH" 2>/dev/null
+            [[ -w "$GPU_FREQ_PATH" ]] && echo "$GPU_MAX_FREQ" | sudo tee "$GPU_FREQ_PATH" > /dev/null
             ;;
         mali|adreno)
-            echo "$GPU_MAX_FREQ" | sudo tee "$GPU_FREQ_PATH" 2>/dev/null
+            echo "$GPU_MAX_FREQ" | sudo tee "$GPU_FREQ_PATH" > /dev/null
             ;;
         amd)
             amd_set_max_freq "$GPU_MAX_FREQ"
@@ -311,7 +311,7 @@ __gpucontrol_monitor__)
         echo "${MAGENTA}Restoring GPU to original max frequency...${RESET}"
         case "$GPU_TYPE" in
             intel|adreno|mali)
-                [[ -w "$GPU_FREQ_PATH" ]] && echo "$ORIGINAL_GPU_MAX_FREQ" | sudo tee "$GPU_FREQ_PATH" 2>/dev/null
+                [[ -w "$GPU_FREQ_PATH" ]] && echo "$ORIGINAL_GPU_MAX_FREQ" | sudo tee "$GPU_FREQ_PATH" > /dev/null
                 ;;
             amd)
                 amd_set_max_freq "$ORIGINAL_GPU_MAX_FREQ"
@@ -347,7 +347,7 @@ esac
 if [[ $# -eq 0 ]]; then
     RUNNING=0
     if [[ -f "$PID_FILE" ]]; then
-        if read -r PID < "$PID_FILE" && ps -p "$PID" 2>/dev/null 2>&1; then
+        if read -r PID < "$PID_FILE" && ps -p "$PID" > /dev/null 2>&1; then
             RUNNING=1
         fi
     fi
