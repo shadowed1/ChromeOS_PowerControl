@@ -12,7 +12,7 @@ SHOW_BATTERYCONTROL_NOTICE=0
 SHOW_SLEEPCONTROL_NOTICE=0
 SHOW_GPUCONTROL_NOTICE=0
 echo
-echo "${MAGENTA}noexec warning can be safely ignored. ${RESET}"
+echo "${MAGENTA}${BOLD}noexec warning can be safely ignored. ${RESET}"
 echo
 detect_backlight_path() {
     BACKLIGHT_BASE="/sys/class/backlight"
