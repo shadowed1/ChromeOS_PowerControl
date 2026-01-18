@@ -295,7 +295,7 @@ start() {
 stop() {
     if [ -f "$PID_FILE" ]; then
         PID=$(cat "$PID_FILE")
-        if ps -p "$PID" 2>/dev/null 2>&1; then
+        if ps -p "$PID" > /dev/null 2>&1; then
             PGID=$(ps -o pgid= "$PID" | grep -o '[0-9]*')
             echo "${RED}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - FanControl Stopped (PGID $PGID)...${RESET}" | tee -a "$LOG_FILE"
             kill -- -"$PGID" 2>/dev/null
@@ -313,7 +313,7 @@ stop() {
 monitor() {
     if [ -f "$MONITOR_PID_FILE" ]; then
         MONITOR_PID=$(cat "$MONITOR_PID_FILE")
-        if ps -p "$MONITOR_PID" 2>/dev/null 2>&1; then
+        if ps -p "$MONITOR_PID" > /dev/null 2>&1; then
             echo "Stopping monitor (PID $MONITOR_PID)..."
             kill "$MONITOR_PID"
             rm -f "$MONITOR_PID_FILE"
@@ -501,7 +501,7 @@ case "$1" in
         load_config
         if [ -f "$RUN_FLAG" ]; then
             PID=$(cat "$PID_FILE")
-            if ps -p "$PID" 2>/dev/null 2>&1; then
+            if ps -p "$PID" > /dev/null 2>&1; then
 echo "${YELLOW}"
 echo "══════════════════════════════════════════════════════════"
 echo "         FanControl Status: RUNNING (PID $PID)"
@@ -517,8 +517,8 @@ echo "════════════════════════�
 echo "                FanControl Status: STOPPED               "
         fi
 echo ""
-echo -n "  "; sudo ectool pwmgetnumfans
-echo -n "  "; sudo ectool pwmgetfanrpm all
+echo -n "  "; sudo ectool pwmgetnumfans 2>/dev/null
+echo -n "  "; sudo ectool pwmgetfanrpm all 2>/dev/null
 echo "  CPU temp: $(get_temp)°C"
 echo "  Fan Curve: $FAN_MIN_TEMP°C = ${MIN_FAN}% RPM -> $FAN_MAX_TEMP°C = ${MAX_FAN}% RPM"
 echo "  Polling rate: ${FAN_POLL}s"
