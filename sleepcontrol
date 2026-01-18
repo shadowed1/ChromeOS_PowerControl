@@ -24,7 +24,6 @@ FAKE_ACTIVITY_GRACE=1
 timestamp=$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1)
 SAVED_BRIGHTNESS_FILE="$INSTALL_DIR/.saved_brightness"
 
-
 SUSPEND_APPLIED_FLAG="/tmp/.sleepcontrol_suspend_applied"
 
 if [[ ! -f "$SUSPEND_APPLIED_FLAG" ]]; then
@@ -265,10 +264,10 @@ save_current_brightness() {
                 saved_display_brightness="$brightness_val"
                 echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Saved brightness: ${RESET}${YELLOW}$brightness_val${RESET}" >> "$LOG_FILE"
             else
-                echo "$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Could not read from $BRIGHTNESS_PATH" >> "$LOG_FILE"
+                echo "${YELLOW}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Could not read from $BRIGHTNESS_PATH ${RESET}" >> "$LOG_FILE"
             fi
         else
-            echo "$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Brightness path not accessible: $BRIGHTNESS_PATH" >> "$LOG_FILE"
+            echo "${YELLOW}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Brightness path not accessible: $BRIGHTNESS_PATH ${RESET}" >> "$LOG_FILE"
         fi
     fi
 }
