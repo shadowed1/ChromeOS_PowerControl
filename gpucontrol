@@ -17,7 +17,6 @@ RUN_FLAG="$INSTALL_DIR/.gpucontrol_enabled"
 PID_FILE="$INSTALL_DIR/.gpucontrol_pid"
 CONF_SOURCE="$INSTALL_DIR/gpucontrol.conf"
 CONF_TARGET="/etc/init/gpucontrol.conf"
-      
 
 if ! ( [[ -z "$1" ]] || [[ "$1" =~ ^(-h|--h|h|--help|-help|help|status|start|stop|monitor|mon|__gpucontrol_monitor__)$ ]] ) \
    && [[ "$(id -u)" -ne 0 ]]; then
@@ -53,7 +52,6 @@ save_config() {
     fi
 }
 
-# Only load config for non-monitor commands
 if [[ "$1" != "__gpucontrol_monitor__" ]]; then
     if [[ -f "$CONFIG_FILE" ]]; then
         source "$CONFIG_FILE" 2>/dev/null
@@ -157,12 +155,10 @@ start_monitoring_loop() {
 
         now=$(date +%s)
         if (( now - last_reload >= 5 )); then
-            # Try to load config if not yet loaded or if it's time to reload
             if [[ -f "$CONFIG_FILE" ]]; then
                 source "$CONFIG_FILE" 2>/dev/null
                 load_config
                 
-                # Check if we have valid configuration
                 if [[ "$ORIGINAL_GPU_MAX_FREQ" =~ ^[0-9]+$ ]] && [[ -n "$GPU_TYPE" ]]; then
                     if (( config_loaded == 0 )); then
                         echo "${MAGENTA}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Configuration loaded successfully${RESET}" >> "$LOG_FILE"
@@ -182,7 +178,6 @@ start_monitoring_loop() {
             
             last_reload=$now
             
-            # Handle startup configuration
             if [[ -f "$CONFIG_FILE" ]]; then
                 if grep -q '^STARTUP_GPUCONTROL=1' "$CONFIG_FILE" 2>/dev/null; then
                     if [[ ! -f "$CONF_TARGET" ]]; then
@@ -216,7 +211,6 @@ stop_monitoring() {
 }
 
 apply_gpu_settings() {
-    # Only apply if we have valid configuration
     if [[ ! "$ORIGINAL_GPU_MAX_FREQ" =~ ^[0-9]+$ ]] || [[ -z "$GPU_TYPE" ]]; then
         return
     fi
