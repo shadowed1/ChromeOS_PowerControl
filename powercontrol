@@ -151,7 +151,6 @@ load_config() {
     if [ -f "$CONFIG_FILE" ]; then
         source "$CONFIG_FILE" 2>/dev/null
     else
-        echo "Creating default configuration..."
         MIN_TEMP=${MIN_TEMP:-$DEFAULT_MIN_TEMP}
         MAX_TEMP=${MAX_TEMP:-$DEFAULT_MAX_TEMP}
         MIN_PERF_PCT=${MIN_PERF_PCT:-$DEFAULT_MIN_PERF_PCT}
