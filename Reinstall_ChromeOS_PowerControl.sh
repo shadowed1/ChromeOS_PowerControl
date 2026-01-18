@@ -22,4 +22,4 @@ echo "sudo -E /usr/local/bin/ChromeOS_PowerControl_Installer.sh"
 echo "${RESET}"
 sudo mkdir -p /usr/local/bin
 sudo chmod +x /usr/local/bin/ChromeOS_PowerControl_Installer.sh
-sudo -E /usr/local/bin/ChromeOS_PowerControl_Installer.sh
+sudo -E /usr/local/bin/ChromeOS_PowerControl_Installer.sh 2>/dev/null
