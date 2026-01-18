@@ -109,8 +109,9 @@ save_config() {
 }
 
 cleanup() {
-    echo "${YELLOW} $(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Restoring automatic fan control...${RESET}" | tee -a "$LOG_FILE"
-    sudo ectool autofanctrl
+    echo "${YELLOW} $(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Restoring automatic fan control..." | tee -a "$LOG_FILE"
+    sudo ectool autofanctrl 2>/dev/null
+    echo "${RESET}"
     rm -f "$RUN_FLAG" "$PID_FILE"
     exit 0
 }
