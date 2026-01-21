@@ -214,6 +214,18 @@ while true; do
     esac
 done
 
+echo "${BLUE}Stopping any existing components of ChromeOS_PowerControl (in case of reinstall)${RESET}"
+sudo ectool backlight 1 >/dev/null 2>&1
+sudo bash "$INSTALL_DIR/powercontrol" stop 2>/dev/null
+echo ""
+sudo bash "$INSTALL_DIR/batterycontrol" stop 2>/dev/null
+echo ""
+sudo bash "$INSTALL_DIR/fancontrol" stop 2>/dev/null
+echo ""
+sudo bash "$INSTALL_DIR/sleepcontrol" stop 2>/dev/null
+echo ""
+sudo bash "$INSTALL_DIR/gpucontrol" stop 2>/dev/null
+sleep 1
 echo "$INSTALL_DIR" | sudo tee "$INSTALL_DIR/.install_path" >/dev/null
 
 declare -a files=(
@@ -682,21 +694,7 @@ start_component_now() {
     fi
 }
 
-
-
-echo "${BLUE}Stopping any existing components of ChromeOS_PowerControl (in case of reinstall)${RESET}"
-sudo ectool backlight 1 >/dev/null 2>&1
-sudo bash "$INSTALL_DIR/powercontrol" stop 2>/dev/null
-echo ""
-sudo bash "$INSTALL_DIR/batterycontrol" stop 2>/dev/null
-echo ""
-sudo bash "$INSTALL_DIR/fancontrol" stop 2>/dev/null
-echo ""
-sudo bash "$INSTALL_DIR/sleepcontrol" stop 2>/dev/null
-echo ""
-sudo bash "$INSTALL_DIR/gpucontrol" stop 2>/dev/null
-sleep 1
-echo ""
+echo
 start_component_now "BatteryControl" "$INSTALL_DIR/batterycontrol"
 start_component_now "PowerControl" "$INSTALL_DIR/powercontrol"
 if [ "$SKIP_FANCONTROL" = false ]; then
