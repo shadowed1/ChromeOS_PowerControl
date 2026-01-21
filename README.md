@@ -49,8 +49,6 @@ Categories=Utility
 Version=1.0
 EOF
 
-sudo chmod +x /usr/share/applications/powercontrol-gui.desktop
-
 sudo curl -Ls https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/ChromeOS_PowerControl.png -o /usr/share/icons/hicolor/256x256/apps/ChromeOS_PowerControl.png
 
 ```
