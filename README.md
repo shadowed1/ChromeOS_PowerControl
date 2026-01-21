@@ -43,13 +43,13 @@ sudo tee /usr/share/applications/powercontrol-gui.desktop > /dev/null <<'EOF'
 Exec=/usr/bin/powercontrol-gui
 StartupNotify=true
 Terminal=false
-Icon=ChromeOS_PowerControl
+Icon=ChromeOS_PowerControl_Icon
 Type=Application
 Categories=Utility
 Version=1.0
 EOF
 
-sudo curl -Ls https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/ChromeOS_PowerControl.png -o /usr/share/icons/hicolor/256x256/apps/ChromeOS_PowerControl.png
+sudo curl -Ls https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/ChromeOS_PowerControl_Icon.png -o /usr/share/icons/hicolor/256x256/apps/ChromeOS_PowerControl_Icon.png
 
 ```
 Share Downloads folder with Linux and then run `powercontrol-gui` in Crostini. 
