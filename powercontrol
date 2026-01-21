@@ -589,7 +589,6 @@ reinstall_script() {
         echo "Error: INSTALL_DIR is not set."
         exit 1
     fi
-    sudo "$INSTALL_DIR/powercontrol stop"
     local script="$INSTALL_DIR/Reinstall_ChromeOS_PowerControl.sh" 2>/dev/null
 
     if [ -d "$INSTALL_DIR" ]; then
