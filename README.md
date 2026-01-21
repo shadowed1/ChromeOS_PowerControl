@@ -38,7 +38,7 @@ sudo curl -fsSL "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerContr
 sudo chmod +x /bin/powercontrol-gui 2>/dev/null
 alias powercontrol-gui='sudo -E powercontrol-gui'
 
-cat <<'EOF' | sudo tee /usr/share/applications/powercontrol-gui.desktop > /dev/null
+sudo tee /usr/share/applications/powercontrol-gui.desktop > /dev/null <<'EOF'
 [Desktop Entry]
 Exec=/usr/bin/powercontrol-gui
 StartupNotify=true
