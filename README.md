@@ -331,4 +331,21 @@ https://github.com/Saragon4005
 __Support:__
 
 - Feel free to post any issues or on the ChromeOS discord - there is a thread dedicated to ChromeOS_PowerControl: https://discord.gg/chromeos
+
+```
+cat <<'EOF' | sudo tee /usr/share/applications/powercontrol-gui.desktop > /dev/null
+[Desktop Entry]
+Exec=/usr/bin/powercontrol-gui
+StartupNotify=true
+Terminal=false
+Icon=ChromeOS_PowerControl
+Type=Application
+Categories=Utility
+Version=1.0
+EOF
+
+sudo curl -Ls \
+https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/ChromeOS_PowerControl.png \
+-o /usr/share/icons/hicolor/256x256/apps/ChromeOS_PowerControl.png
+```
   
