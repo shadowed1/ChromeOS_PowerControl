@@ -44,7 +44,7 @@ cat <<'EOF' | tee ~/.local/share/applications/powercontrol-gui.desktop > /dev/nu
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=ChromeOS_PowerControl
+Name=PowerControl
 Comment=Get the power to control your CPU, Battery, Fan Curve, GPU, and Sleep for ChromeOS!
 Exec=/bin/powercontrol-gui
 Icon=ChromeOS_PowerControl_Icon
