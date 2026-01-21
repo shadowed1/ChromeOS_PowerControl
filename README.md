@@ -53,7 +53,7 @@ Categories=Utility;System;
 StartupNotify=true
 EOF
 
-curl -Ls https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/ChromeOS_PowerControl_Icon.png -o ~/.local/share/icons/ChromeOS_PowerControl_Icon.png
+curl -Ls https://github.com/shadowed1/ChromeOS_PowerControl/blob/main/icons/ChromeOS_PowerControl_256.png?raw=true -o ~/.local/share/icons/ChromeOS_PowerControl_Icon.png
 
 chmod +x ~/.local/share/applications/powercontrol-gui.desktop
 
