@@ -38,18 +38,24 @@ sudo curl -fsSL "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerContr
 sudo chmod +x /bin/powercontrol-gui 2>/dev/null
 alias powercontrol-gui='sudo -E powercontrol-gui'
 
-sudo tee /usr/share/applications/powercontrol-gui.desktop > /dev/null <<'EOF'
+mkdir -p ~/.local/share/applications ~/.local/share/icons
+
+cat <<'EOF' | tee ~/.local/share/applications/powercontrol-gui.desktop > /dev/null
 [Desktop Entry]
-Exec=/usr/bin/powercontrol-gui
-StartupNotify=true
-Terminal=false
-Icon=ChromeOS_PowerControl_Icon
-Type=Application
-Categories=Utility
 Version=1.0
+Type=Application
+Name=ChromeOS_PowerControl
+Comment=Get the power to control your CPU, Battery, Fan Curve, GPU, and Sleep for ChromeOS!
+Exec=/bin/powercontrol-gui
+Icon=ChromeOS_PowerControl_Icon
+Terminal=false
+Categories=Utility;System;
+StartupNotify=true
 EOF
 
-sudo curl -Ls https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/ChromeOS_PowerControl_Icon.png -o /usr/share/icons/hicolor/256x256/apps/ChromeOS_PowerControl_Icon.png
+curl -Ls https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/ChromeOS_PowerControl_Icon.png -o ~/.local/share/icons/ChromeOS_PowerControl_Icon.png
+
+chmod +x ~/.local/share/applications/powercontrol-gui.desktop
 
 ```
 Share Downloads folder with Linux and then run `powercontrol-gui` in Crostini. 
