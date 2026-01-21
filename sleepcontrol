@@ -252,7 +252,7 @@ load_config
 set_display_brightness() {
     local value=$1
     if [[ -n "$BRIGHTNESS_PATH" ]]; then
-        echo "$value" | sudo tee "$BRIGHTNESS_PATH" 2>/dev/null
+        echo "$value" | sudo tee "$BRIGHTNESS_PATH" > /dev/null 2>&1
     fi
     }
 
@@ -313,7 +313,7 @@ monitor_idle_activity() {
     }
 
     load_config
-    saved_display_brightness=$(get_saved_brightness)
+    saved_display_brightness=$(get_saved_brightness) 2>/dev/null
     recalc_timers
     last_reload_time=$EPOCHSECONDS
     last_ts=$EPOCHSECONDS
@@ -358,8 +358,7 @@ send_fake_activity() {
             /org/chromium/PowerManager \
             org.chromium.PowerManager.HandleUserActivity int32:0 int32:0
 
-        echo "$now" | sudo tee "$LAST_FAKE_ACTIVITY_FILE" 2>/dev/null
-
+        echo "$now" | sudo tee "$LAST_FAKE_ACTIVITY_FILE" > /dev/null 2>&1
         echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Simulated user activity${RESET}" >> "$LOG_FILE"
     fi
 }
@@ -503,7 +502,7 @@ send_fake_activity() {
                 fi
         
                 if [[ -n "$saved_display_brightness" && "$saved_display_brightness" -ge 0 ]]; then
-                    set_display_brightness "$saved_display_brightness"
+                    set_display_brightness "$saved_display_brightness" > /dev/null 2>&1
                 fi
             fi
             ;;
