@@ -37,6 +37,22 @@ sudo apt install gedit gnome-themes-extra gnome-icon-theme -y
 sudo curl -fsSL "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/gui.py" -o /bin/powercontrol-gui 2>/dev/null
 sudo chmod +x /bin/powercontrol-gui 2>/dev/null
 alias powercontrol-gui='sudo -E powercontrol-gui'
+
+cat <<'EOF' | sudo tee /usr/share/applications/powercontrol-gui.desktop > /dev/null
+[Desktop Entry]
+Exec=/usr/bin/powercontrol-gui
+StartupNotify=true
+Terminal=false
+Icon=ChromeOS_PowerControl
+Type=Application
+Categories=Utility
+Version=1.0
+EOF
+
+sudo chmod +x /usr/share/applications/powercontrol-gui.desktop
+
+sudo curl -Ls https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/ChromeOS_PowerControl.png -o /usr/share/icons/hicolor/256x256/apps/ChromeOS_PowerControl.png
+
 ```
 Share Downloads folder with Linux and then run `powercontrol-gui` in Crostini. 
 <br><br>
