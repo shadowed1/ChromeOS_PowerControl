@@ -590,14 +590,14 @@ reinstall_script() {
         exit 1
     fi
     sudo "$INSTALL_DIR/powercontrol stop"
-    local script="$INSTALL_DIR/Reinstall_ChromeOS_PowerControl.sh"
+    local script="$INSTALL_DIR/Reinstall_ChromeOS_PowerControl.sh" 2>/dev/null
 
     if [ -d "$INSTALL_DIR" ]; then
         if [ -x "$script" ]; then
             sudo bash "$script"
         fi
     else
-        bash <(curl -s "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/Reinstall_ChromeOS_PowerControl.sh?$(date +%s)")
+        bash <(curl -s "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/Reinstall_ChromeOS_PowerControl.sh?$(date +%s)") 2>/dev/null
     fi
 }
 
