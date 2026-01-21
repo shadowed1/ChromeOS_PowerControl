@@ -589,13 +589,15 @@ reinstall_script() {
         echo "Error: INSTALL_DIR is not set."
         exit 1
     fi
+
     local script="$INSTALL_DIR/Reinstall_ChromeOS_PowerControl.sh"
+
     if [ -d "$INSTALL_DIR" ]; then
         if [ -x "$script" ]; then
-            sudo bash "$script" 2>&1 | grep -v "syntax error near unexpected token"
+            sudo bash "$script"
         fi
     else
-        bash <(curl -s "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/Reinstall_ChromeOS_PowerControl.sh?$(date +%s)") 2>&1 | grep -v "syntax error near unexpected token"
+        bash <(curl -s "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/Reinstall_ChromeOS_PowerControl.sh?$(date +%s)")
     fi
 }
 
