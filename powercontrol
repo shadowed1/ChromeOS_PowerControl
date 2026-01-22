@@ -865,11 +865,12 @@ case "$1" in
             LATEST_VER_NO=$(echo "$LATEST_VER" | sed -e 's/VERSION=//' -e 's/"//g' -e 's/\.//g' -e 's/^0*//')
     
             if (( 10#$CURRENT_VER_NO < 10#$LATEST_VER_NO )); then
-                echo "${CYAN}You're using $CURRENT_VER which is NOT the latest version.${RESET}"
+                echo "${CYAN}You're using $CURRENT_VER which is NOT the latest version."
+                echo "${BOLD}"
                 read -rp "Would you like to 'reinstall' to get $LATEST_VER ? (Y/n): " choice
                 choice=${choice:-Y}
                 if [[ "$choice" =~ ^[Yy]$ ]]; then
-                    echo "${CYAN}Reinstalling!${RESET}"
+                    echo "${RESET}${GREEN}Reinstalling!${RESET}"
                     bash <(curl -s "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/Reinstall_ChromeOS_PowerControl.sh?$(date +%s)")
                 else
                     echo "${RED}Skipping reinstall.${RESET}"
