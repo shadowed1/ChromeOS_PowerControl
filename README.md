@@ -70,6 +70,8 @@ fi
 - Contains a feature-rich installer, an uninstaller that cleans up after itself, and logs stored in /var/log/ for statistics.
 - Optionally have BatteryControl, PowerControl, FanControl, GPUControl, and SleepControl start on boot if user has rootfs verification disabled.
 - Requires Developer Mode - Supports AMD, ARM, and Intel.
+- GUI app is available for Crostini and Chard.
+- Start on boot has a built-in 120-180s delay.
 
 
 <br> <br> 
