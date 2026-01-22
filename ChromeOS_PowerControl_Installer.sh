@@ -532,7 +532,7 @@ enable_component_on_boot() {
         *)                COLOR=${RESET} ;;
     esac
     
-    read -rp "${COLOR}Do you want $component enabled on boot?${RESET}${BOLD} (Y/n):${RESET} " move_config
+    read -rp "${COLOR}Do you want $component enabled on boot? (3 minute delay)${RESET}${BOLD} (Y/n):${RESET} " move_config
     if [[ -z "$move_config" || "$move_config" =~ ^[Yy]$ ]]; then
         sudo cp "$config_file" "$target_file"
         echo "$var_name=1" | sudo tee -a "$CONFIG_FILE" > /dev/null
