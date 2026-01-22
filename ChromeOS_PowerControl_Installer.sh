@@ -874,11 +874,24 @@ echo ""
 fi
 sleep 1
 echo "                                      ${RED}╔═══════════════════════════════╗${RESET}"
+sleep 0.1
 echo "                                      ${YELLOW}║ ╔═══════════════════════════╗ ║${RESET}"
+sleep 0.1
+
 echo "                                      ${GREEN}║ ║ ╔═══════════════════════╗ ║ ║${RESET}"
+sleep 0.1
+
 echo "                                      ${RESET}║ ║ ║ Installation Complete ║ ║ ║${RESET}"
+sleep 0.1
+
 echo "                                      ${CYAN}║ ║ ╚═══════════════════════╝ ║ ║${RESET}"
+sleep 0.1
+
 echo "                                      ${BLUE}║ ╚═══════════════════════════╝ ║${RESET}"
+sleep 0.1
+
 echo "                                      ${MAGENTA}╚═══════════════════════════════╝${RESET}"
+sleep 0.1
+
 echo ""
 echo ""
