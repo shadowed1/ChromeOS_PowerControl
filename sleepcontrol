@@ -261,7 +261,7 @@ save_current_brightness() {
         if [[ -f "$BRIGHTNESS_PATH" && -r "$BRIGHTNESS_PATH" ]]; then
             if read -r brightness_val < "$BRIGHTNESS_PATH" 2>/dev/null; then
                 printf '%s\n' "$brightness_val" | sudo tee "$SAVED_BRIGHTNESS_FILE" >/dev/null 2>&1
-                saved_display_brightness="$brightness_val" 2>/dev/null
+                saved_display_brightness="$brightness_val" >/dev/null 2>&1
                 echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Saved brightness: ${RESET}${YELLOW}$brightness_val${RESET}" >> "$LOG_FILE"
             else
                 echo "${YELLOW}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Could not read from $BRIGHTNESS_PATH ${RESET}" >> "$LOG_FILE"
@@ -600,7 +600,7 @@ send_fake_activity() {
             brightness_value=$(echo "$line" | sed -n 's/.*Setting brightness to \([0-9]\+\) (.*/\1/p')
         
             if [[ -n "$brightness_value" && "$brightness_value" -gt 0 && $lid_closed -eq 0 && $backlight_off -eq 0 ]]; then
-                saved_display_brightness="$brightness_value"
+                saved_display_brightness="$brightness_value" >/dev/null 2>&1
                 echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Saved display brightness: ${RESET}${YELLOW}$saved_display_brightness${RESET}" >> "$LOG_FILE"
             fi
             ;;
