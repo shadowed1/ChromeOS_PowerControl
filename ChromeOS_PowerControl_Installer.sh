@@ -226,6 +226,11 @@ sudo bash "$INSTALL_DIR/sleepcontrol" stop 2>/dev/null
 echo ""
 sudo bash "$INSTALL_DIR/gpucontrol" stop 2>/dev/null
 sleep 1
+sudo pkill -f "/usr/local/bin/gpucontrol" >/dev/null 2>&1
+sudo pkill -f "/usr/local/bin/fancontrol" >/dev/null 2>&1
+sudo pkill -f "/usr/local/bin/sleepcontrol" >/dev/null 2>&1
+sudo pkill -f "/usr/local/bin/batterycontrol" >/dev/null 2>&1
+sudo pkill -f "/usr/local/bin/powercontrol" >/dev/null 2>&1
 echo "$INSTALL_DIR" | sudo tee "$INSTALL_DIR/.install_path" >/dev/null
 
 declare -a files=(
@@ -870,3 +875,7 @@ echo "                                      ${BLUE}║ ╚═══════�
 echo "                                      ${MAGENTA}╚═══════════════════════════════╝${RESET}"
 echo ""
 echo ""
+
+trap '' SIGTERM
+
+exit 0
