@@ -711,7 +711,7 @@ fi
 start_component_now "GPUControl" "$INSTALL_DIR/gpucontrol"
 start_component_now "SleepControl" "$INSTALL_DIR/sleepcontrol"
 sudo chown chronos:chronos /home/chronos/user/MyFiles/Downloads/ChromeOS_PowerControl_Config/config
-
+sleep 1
 echo ""
 echo "                                                       ${RED}████████████${RESET}           "
 echo "                                                   ${RED}████${RESET}        ${RED}████${RESET}       "
@@ -733,6 +733,7 @@ echo "                                         ${BLUE}║ ╚══════�
 echo "                                         ${MAGENTA}╚═══════════════════════════════╝${RESET}"
 echo ""
 echo ""
+sleep 2
 echo "                                              Commands with examples:"
 echo "${CYAN}"
 echo "╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
@@ -757,6 +758,7 @@ echo "║  sudo powercontrol ramp_down 20     # % in steps CPU will decrease in 
 echo "║  sudo powercontrol startup          # Copy or Remove no_turbo.conf & powercontrol.conf at: /etc/init/              ║"
 echo "║                                                                                                                    ║"
 echo "╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝"
+sleep 1
 echo "${RESET}${GREEN}╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
 echo "║                                                 BatteryControl:                                                    ║"
 echo "╠════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣"
@@ -772,6 +774,7 @@ echo "║  sudo batterycontrol usage    # Monitor power consumption in real-time
 echo "║  sudo batterycontrol startup  # Copy or Remove batterycontrol.conf at: /etc/init/                                  ║"
 echo "║                                                                                                                    ║"
 echo "╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝"
+sleep 1
 echo "${RESET}${YELLOW}╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
 echo "║                                                  FanControl:                                                       ║"
 echo "╠════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣"
@@ -791,6 +794,7 @@ echo "║  sudo fancontrol poll 2           # FanControl polling rate in seconds
 echo "║  sudo fancontrol startup          # Copy or Remove fancontrol.conf at: /etc/init/                                  ║"
 echo "║                                                                                                                    ║"
 echo "╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝"
+sleep 1
 echo "${RESET}${MAGENTA}╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
 echo "║                                                   GPUControl:                                                      ║"
 echo "╠════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣"
@@ -805,6 +809,7 @@ echo "║  sudo gpucontrol 700            # Set GPU max frequency to 700 MHz    
 echo "║  sudo gpucontrol startup        # Copy or Remove gpucontrol.conf at: /etc/init/                                    ║"
 echo "║                                                                                                                    ║"
 echo "╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝"
+sleep 1
 echo "${RESET}${BLUE}╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
 echo "║                                                  SleepControl                                                      ║"
 echo "╠════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣"
@@ -826,6 +831,7 @@ echo "║  sudo sleepcontrol mode deep        # Change suspend mode to deep; ena
 echo "║  sudo sleepcontrol startup          # Copy or Remove sleepcontrol.conf at: /etc/init/                              ║"
 echo "║                                                                                                                    ║"
 echo "╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝"
+sleep 1
 echo "${RESET}${CYAN}${BOLD}╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
 echo "║                                              ChromeOS_PowerControl                                                 ║"
 echo "╠════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣"
@@ -841,7 +847,7 @@ echo "╚═══════════════════════�
 echo "   sudo bash "$INSTALL_DIR/Uninstall_ChromeOS_PowerControl.sh"  # Alternate uninstall method"
 echo " ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════"
 echo "${RESET}"
-
+sleep 1
 if [[ "$SHOW_BATTERYCONTROL_NOTICE" -eq 1 ]]; then
 echo "${GREEN}"
 echo "╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
@@ -857,7 +863,7 @@ fi
 #echo "║  As a precaution GPUControl has a 2 minute delay before applying custom clockspeed on boot.                        ║"
 #echo "╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝${RESET}"
 #fi
-
+sleep 1
 if [[ "$SHOW_SLEEPCONTROL_NOTICE" -eq 1 ]]; then
 echo "${BLUE}╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
 echo "║  ${RESET}${BLUE}${BOLD}SleepControl Notice:${RESET}${BLUE}                                                                                              ║"
@@ -866,6 +872,7 @@ echo "║  Cannot override sleep when lid is closed setting when enabled; but al
 echo "╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝${RESET}"
 echo ""
 fi
+sleep 1
 echo "                                      ${RED}╔═══════════════════════════════╗${RESET}"
 echo "                                      ${YELLOW}║ ╔═══════════════════════════╗ ║${RESET}"
 echo "                                      ${GREEN}║ ║ ╔═══════════════════════╗ ║ ║${RESET}"
