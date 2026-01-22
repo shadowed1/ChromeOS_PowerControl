@@ -320,7 +320,7 @@ Added display and keyboard backlight restore in Installer when restarting powerd
 - 0.54: `Fixed fancontrol zero rpm mode issue when adjusting min_fan speed while at zero rpm.` <br><br>
 - 0.55: `Fixed sleepcontrol not saving values due to moving config file to noexec mount for GUI. Simplified installer. ` <br><br>
 - 0.56: `Fixed GPUControl on startup not working. Removed sudo error warning on status pages.` <br><br>
-- 0.57: `Fixed audio detection settings and duplicate log entries for SleepControl. Installer will now stop scripts prior to downloading to fix bash error. Fixed version command so Y is default. Thanks to Denny for reporting.`
+- 0.57: `Fixed audio detection settings and duplicate log entries for SleepControl. Installer will now stop scripts prior to downloading to fix bash error. Added icon support for GUI app running in Crostini. Fixed version command so Y is default. Thanks to Denny for reporting.`
 __Acknowledgements:__
 
 - Thanks to WesBosch for helping me learn to make an installer:
