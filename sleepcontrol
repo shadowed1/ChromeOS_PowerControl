@@ -31,13 +31,13 @@ if [[ ! -f "$SUSPEND_APPLIED_FLAG" ]]; then
     if [[ -f "$CONFIG_FILE" ]]; then
         SUSPEND_MODE=$(grep "^SUSPEND_MODE=" "$CONFIG_FILE" | cut -d'=' -f2)
         if [[ "$SUSPEND_MODE" == "freeze" || "$SUSPEND_MODE" == "deep" ]]; then
-            echo "$SUSPEND_MODE" | sudo tee /usr/share/power_manager/suspend_mode 2>/dev/null
+            printf '%s\n' "$SUSPEND_MODE" | sudo tee /usr/share/power_manager/suspend_mode >/dev/null 2>&1
             sudo restart powerd >/dev/null
 
             if [[ "$SUSPEND_MODE" == "freeze" ]]; then
-                echo s2idle | sudo tee /sys/power/mem_sleep 2>/dev/null
+                printf '%s\n' s2idle | sudo tee /sys/power/mem_sleep >/dev/null 2>&1
             else
-                echo deep | sudo tee /sys/power/mem_sleep 2>/dev/null
+                printf '%s\n' deep | sudo tee /sys/power/mem_sleep >/dev/null 2>&1
             fi
 
             touch "$SUSPEND_APPLIED_FLAG"
@@ -252,7 +252,7 @@ load_config
 set_display_brightness() {
     local value=$1
     if [[ -n "$BRIGHTNESS_PATH" ]]; then
-        echo "$value" | sudo tee "$BRIGHTNESS_PATH" > /dev/null 2>&1
+        printf '%s\n' "$value" | sudo tee "$BRIGHTNESS_PATH" >/dev/null 2>&1
     fi
     }
 
@@ -358,7 +358,7 @@ send_fake_activity() {
             /org/chromium/PowerManager \
             org.chromium.PowerManager.HandleUserActivity int32:0 int32:0
 
-        echo "$now" | sudo tee "$LAST_FAKE_ACTIVITY_FILE" > /dev/null 2>&1
+        printf '%s\n' "$now" | sudo tee "$LAST_FAKE_ACTIVITY_FILE" >/dev/null 2>&1
         echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Simulated user activity${RESET}" >> "$LOG_FILE"
     fi
 }
@@ -518,7 +518,7 @@ send_fake_activity() {
             if [[ "$STATUS" != "$prev_status" ]]; then
                 recalc_timers
                 last_ts=$now
-                echo "$STATUS" | sudo tee "$LAST_POWER_STATE" 2>/dev/null
+                printf '%s\n' "$STATUS" | sudo tee "$LAST_POWER_STATE" 2>/dev/null
                 if [[ -n "$saved_display_brightness" && "$saved_display_brightness" -ge 0 ]]; then
                     set_display_brightness "$saved_display_brightness"
                 fi
@@ -586,7 +586,7 @@ send_fake_activity() {
                 save_current_brightness
             fi
             if [[ -n "$saved_display_brightness" && "$saved_display_brightness" -gt 0 ]]; then
-                echo "$saved_display_brightness" | sudo tee "$BRIGHTNESS_PATH" 2>/dev/null
+                printf '%s\n' "$saved_display_brightness" | sudo tee "$BRIGHTNESS_PATH" >/dev/null 2>&1
             fi
             ;;
         *"Got user-triggered request to set brightness to "*)
