@@ -38,7 +38,7 @@ sudo curl -fsSL "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerContr
 sudo chmod +x /bin/powercontrol-gui 2>/dev/null
 alias powercontrol-gui='sudo -E powercontrol-gui'
 
-mkdir -p ~/.local/share/applications ~/.local/share/icons
+sudo mkdir -p /usr/share/applications/ /usr/share/icons/hicolor/48x48/apps/
 
 cat <<'EOF' | sudo tee /usr/share/applications/powercontrol-gui.desktop > /dev/null
 [Desktop Entry]
