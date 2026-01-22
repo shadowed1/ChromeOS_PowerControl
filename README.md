@@ -40,22 +40,20 @@ alias powercontrol-gui='sudo -E powercontrol-gui'
 
 mkdir -p ~/.local/share/applications ~/.local/share/icons
 
-cat <<'EOF' | tee ~/.local/share/applications/powercontrol-gui.desktop > /dev/null
+cat <<'EOF' | sudo tee /usr/share/applications/powercontrol-gui.desktop > /dev/null
 [Desktop Entry]
 Version=1.0
 Type=Application
 Name=PowerControl
 Comment=Get the power to control your CPU, Battery, Fan Curve, GPU, and Sleep for ChromeOS!
 Exec=/bin/powercontrol-gui
-Icon=ChromeOS_PowerControl_Icon
+Icon=powercontrol
 Terminal=false
 Categories=Utility;System;
 StartupNotify=true
 EOF
 
-curl -Ls https://github.com/shadowed1/ChromeOS_PowerControl/blob/main/icons/ChromeOS_PowerControl_256.png?raw=true -o ~/.local/share/icons/ChromeOS_PowerControl_Icon.png
-
-chmod +x ~/.local/share/applications/powercontrol-gui.desktop
+sudo curl -Ls https://github.com/shadowed1/ChromeOS_PowerControl/blob/main/icons/powercontrol_200p.png?raw=true -o /usr/share/icons/hicolor/48x48/apps/powercontrol.png
 
 ```
 Share Downloads folder with Linux and then run `powercontrol-gui` in Crostini. 
