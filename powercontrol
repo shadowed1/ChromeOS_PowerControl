@@ -642,10 +642,25 @@ echo
 echo "sudo apt install gedit gnome-themes-extra gnome-icon-theme -y"
 echo "sudo curl -fsSL "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/gui.py" -o /bin/powercontrol-gui 2>/dev/null"
 echo "sudo chmod +x /bin/powercontrol-gui 2>/dev/null"
-echo "alias powercontrol-gui='sudo -E powercontrol-gui'"
-echo "Share Downloads folder with Linux and then run powercontrol-gui in Crostini."
+echo "alias powercontrol-gui='sudo -E powercontrol-gui' "
+echo
+echo "sudo mkdir -p /usr/share/applications/ /usr/share/icons/hicolor/48x48/apps/"
+echo
+echo "cat <<'EOF' | sudo tee /usr/share/applications/powercontrol-gui.desktop > /dev/null"
+echo "[Desktop Entry]"
+echo "Version=1.0"
+echo "Type=Application"
+echo "Name=PowerControl"
+echo "Comment=Get the power to control your CPU, Battery, Fan Curve, GPU, and Sleep for ChromeOS! "
+echo "Exec=/bin/powercontrol-gui"
+echo "Icon=powercontrol"
+echo "Terminal=false"
+echo "Categories=Utility;System; "
+echo "StartupNotify=true"
+echo "EOF"
+echo
+echo "sudo curl -Ls https://github.com/shadowed1/ChromeOS_PowerControl/blob/main/icons/powercontrol_200p.png?raw=true -o /usr/share/icons/hicolor/48x48/apps/powercontrol.png"
 echo "${RESET}"
-
 echo "${GREEN}${BOLD}GUI app for Chard (run inside ChromeOS shell): ${RESET}${GREEN}"
 echo
 echo "if [[ -n "${CHARD_ROOT:-}" ]]; then"
