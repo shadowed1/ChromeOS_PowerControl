@@ -887,4 +887,6 @@ echo ""
 echo ""
 sleep 5
 
+trap '' SIGTERM
+
 exit 0
