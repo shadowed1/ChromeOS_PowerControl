@@ -260,7 +260,7 @@ save_current_brightness() {
     if [[ $was_dimmed -eq 0 ]]; then
         if [[ -f "$BRIGHTNESS_PATH" && -r "$BRIGHTNESS_PATH" ]]; then
             if read -r brightness_val < "$BRIGHTNESS_PATH" 2>/dev/null; then
-                echo "$brightness_val" > "$SAVED_BRIGHTNESS_FILE" &>/dev/null
+                printf '%s\n' "$brightness_val" | sudo tee "$SAVED_BRIGHTNESS_FILE" >/dev/null 2>&1
                 saved_display_brightness="$brightness_val" 2>/dev/null
                 echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Saved brightness: ${RESET}${YELLOW}$brightness_val${RESET}" >> "$LOG_FILE"
             else
@@ -298,7 +298,7 @@ get_saved_brightness() {
 }
 
 update_power_state_file() {
-    echo "$STATUS" | sudo tee "$LAST_POWER_STATE" 2>/dev/null
+    printf '%s\n' "$STATUS" | sudo tee "$LAST_POWER_STATE" >/dev/null 2>&1
 }
 
 idle_elapsed=0
