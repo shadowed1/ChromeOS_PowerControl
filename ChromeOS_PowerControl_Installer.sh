@@ -882,7 +882,6 @@ echo "                                      ${BLUE}║ ╚═══════�
 echo "                                      ${MAGENTA}╚═══════════════════════════════╝${RESET}"
 echo ""
 echo ""
-
-trap '' SIGTERM
+sleep 5
 
 exit 0
