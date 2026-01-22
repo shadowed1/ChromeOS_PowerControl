@@ -11,6 +11,9 @@ SHOW_POWERCONTROL_NOTICE=0
 SHOW_BATTERYCONTROL_NOTICE=0
 SHOW_SLEEPCONTROL_NOTICE=0
 SHOW_GPUCONTROL_NOTICE=0
+
+trap 'echo "${RED}Installer interrupted. ${RESET}"; exit 1' SIGINT SIGTERM
+
 echo
 echo "${MAGENTA}${BOLD}noexec warning can be safely ignored. ${RESET}"
 echo
