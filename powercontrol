@@ -471,7 +471,7 @@ start_monitoring_loop() {
     done
 
     echo "${RED}PowerControl stopped.${RESET}" | tee -a "$LOG_FILE"
-    rm -f "$PID_FILE"
+    sudo rm -f "$PID_FILE"
 }
 
 show_status() {
@@ -484,8 +484,8 @@ show_status() {
             echo "══════════════════════════════════════════════"
             echo "  PowerControl Status: RUNNING (PID $PID)    "
         else
-            rm -f "$PID_FILE"
-            rm -f "$RUN_FLAG"
+            sudo rm -f "$PID_FILE"
+            sudo rm -f "$RUN_FLAG"
             echo "${RED}"
             echo "══════════════════════════════════════════════"
             echo "        PowerControl Status: STOPPED        "
