@@ -607,6 +607,7 @@ start_component_now() {
                  for file in \
                 /usr/share/power_manager/suspend_mode \
                 /sys/power/mem_sleep \
+                /var/run/power_manager/power/initial_suspend_mode \
                 /usr/share/power_manager/~/initial_suspend_mode; do
                 [[ -f "$file" ]] && echo deep | sudo tee "$file" >/dev/null 2>&1
             done
