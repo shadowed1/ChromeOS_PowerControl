@@ -458,11 +458,11 @@ case "$GPU_ARG" in
         fi
 
         echo ""
-        echo "$REQUESTED_FREQ" | sudo tee "$GPU_FREQ_PATH" 2>/dev/null
-        DISPLAY_FREQ="$REQUESTED_FREQ"
+        echo "$REQUESTED_FREQ" | sudo tee "$GPU_FREQ_PATH" >/dev/null 2>&1
+        DISPLAY_FREQ="$REQUESTED_FREQ" >/dev/null 2>&1
         echo "${MAGENTA}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) Intel GPU frequency set to $DISPLAY_FREQ MHz${RESET}" | tee -a "$LOG_FILE"
         echo ""
-        GPU_MAX_FREQ="$REQUESTED_FREQ"
+        GPU_MAX_FREQ="$REQUESTED_FREQ" >/dev/null 2>&1
         save_config
         ;;
     mali|adreno)
@@ -481,7 +481,7 @@ case "$GPU_ARG" in
         fi
 
         echo ""
-        echo "$freq_hz" | sudo tee "$GPU_FREQ_PATH" 2>/dev/null
+        echo "$freq_hz" | sudo tee "$GPU_FREQ_PATH" >/dev/null 2>&1
         echo "${MAGENTA}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) $GPU_ARG GPU frequency set to $DISPLAY_FREQ MHz${RESET}" >> "$LOG_FILE"
         GPU_MAX_FREQ="$freq_hz"
         echo ""
