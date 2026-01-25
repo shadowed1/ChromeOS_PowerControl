@@ -78,7 +78,7 @@ while true; do
   end_time="$(cat /sys/class/rtc/rtc0/since_epoch)"
   actual_sleep_time=$(( end_time - start_time ))
 
-  echo "${MAGENTA}Slept for ${BOLD}${actual_sleep_time} seconds${RESET}${MAGENTA} (expected ${FLAGS_suspend_duration})"
+  echo "${MAGENTA}Slept for ${BOLD}${actual_sleep_time} seconds${RESET}${MAGENTA} (expected ${FLAGS_suspend_duration} seconds)${RESET}"
 
   if [ -n "${FLAGS_post_resume_command}" ]; then
     eval "${FLAGS_post_resume_command}"
