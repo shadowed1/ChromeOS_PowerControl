@@ -199,9 +199,6 @@ class ConfigEditor(Gtk.Window):
                 ("AUDIO_DETECTION_POWER", "Audio Detection", "switch", None, None, None, False),
                 ("LIDSLEEP_POWER", "Lid Sleep", "switch", None, None, None, False),
             ],
-            "SleepControl - Mode": [
-                ("SUSPEND_MODE", "Suspend Mode", "combo", ["deep", "s2idle"], None, None, False),
-            ],
             "Start on Boot": [
                 ("STARTUP_BATTERYCONTROL", "BatteryControl", "switch", None, None, None, False),
                 ("STARTUP_POWERCONTROL", "PowerControl", "switch", None, None, None, False),
