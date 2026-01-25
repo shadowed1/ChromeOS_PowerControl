@@ -1,14 +1,4 @@
 #!/bin/sh
-
-RED=$(tput setaf 1)
-GREEN=$(tput setaf 2)
-YELLOW=$(tput setaf 3)
-BLUE=$(tput setaf 4)
-MAGENTA=$(tput setaf 5)
-CYAN=$(tput setaf 6)
-BOLD=$(tput bold)
-RESET=$(tput sgr0)
-
 . "/usr/share/misc/shflags"
 
 for f in suspend_duration backup_rtc pre_suspend_command post_resume_command; do
@@ -16,14 +6,14 @@ for f in suspend_duration backup_rtc pre_suspend_command post_resume_command; do
     unset "FLAGS_$f" 2>/dev/null || true
 done
 
-DEFINE_integer suspend_duration 300 "seconds" 2>/dev/null
+DEFINE_integer suspend_duration 15 "seconds" 2>/dev/null
 DEFINE_boolean backup_rtc "${FLAGS_FALSE}" "rtc for backup" 2>/dev/null
 DEFINE_string pre_suspend_command "" "eval before suspend" 2>/dev/null
 DEFINE_string post_resume_command "" "eval after resume" 2>/dev/null
 
 FLAGS "$@" || exit 1
 
-FLAGS_suspend_duration=${FLAGS_suspend_duration:-300}
+FLAGS_suspend_duration=${FLAGS_suspend_duration:-15}
 FLAGS_backup_rtc=${FLAGS_backup_rtc:-${FLAGS_FALSE}}
 FLAGS_pre_suspend_command=${FLAGS_pre_suspend_command:-""}
 FLAGS_post_resume_command=${FLAGS_post_resume_command:-""}
@@ -79,7 +69,7 @@ while true; do
   end_time="$(cat /sys/class/rtc/rtc0/since_epoch)"
   actual_sleep_time=$(( end_time - start_time ))
 
-  echo "${MAGENTA}Slept for ${actual_sleep_time} seconds (expected ${FLAGS_suspend_duration}) ${RESET}"
+  echo "Slept for ${actual_sleep_time} seconds (expected ${FLAGS_suspend_duration})"
 
   if [ -n "${FLAGS_post_resume_command}" ]; then
     eval "${FLAGS_post_resume_command}"
@@ -87,11 +77,11 @@ while true; do
 
   sudo start tlsdated 2>/dev/null
 
-  lower_bound=$(( FLAGS_suspend_duration - 5 ))
-  upper_bound=$(( FLAGS_suspend_duration + 5 ))
+  lower_bound=$(( FLAGS_suspend_duration - 3 ))
+  upper_bound=$(( FLAGS_suspend_duration + 3 ))
   if [ "${actual_sleep_time}" -lt "${lower_bound}" ] || [ "${actual_sleep_time}" -gt "${upper_bound}" ]; then
-    echo "${BLUE}Sleep time ${actual_sleep_time}s out of range (${lower_bound}-${upper_bound}s). ${RESET}"
+    echo "Sleep time ${actual_sleep_time}s out of range (${lower_bound}-${upper_bound}s)."
     break
   fi
-  sleep 15
+  sleep 5
 done
