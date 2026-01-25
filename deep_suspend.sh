@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 . "/usr/share/misc/shflags"
 
 for f in suspend_duration backup_rtc pre_suspend_command post_resume_command; do
