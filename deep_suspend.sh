@@ -93,5 +93,5 @@ while true; do
     echo "${BLUE}Sleep time ${actual_sleep_time}s out of range (${lower_bound}-${upper_bound}s). ${RESET}"
     break
   fi
-  sleep 5
+  sleep 30
 done
