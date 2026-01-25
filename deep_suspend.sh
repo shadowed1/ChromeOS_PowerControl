@@ -1,4 +1,14 @@
 #!/bin/sh
+
+RED=$(tput setaf 1)
+GREEN=$(tput setaf 2)
+YELLOW=$(tput setaf 3)
+BLUE=$(tput setaf 4)
+MAGENTA=$(tput setaf 5)
+CYAN=$(tput setaf 6)
+BOLD=$(tput bold)
+RESET=$(tput sgr0)
+
 . "/usr/share/misc/shflags"
 
 for f in suspend_duration backup_rtc pre_suspend_command post_resume_command; do
@@ -69,7 +79,7 @@ while true; do
   end_time="$(cat /sys/class/rtc/rtc0/since_epoch)"
   actual_sleep_time=$(( end_time - start_time ))
 
-  echo "Slept for ${actual_sleep_time} seconds (expected ${FLAGS_suspend_duration})"
+  echo "${MAGENTA}Slept for ${actual_sleep_time} seconds (expected ${FLAGS_suspend_duration}) ${RESET}"
 
   if [ -n "${FLAGS_post_resume_command}" ]; then
     eval "${FLAGS_post_resume_command}"
@@ -80,7 +90,7 @@ while true; do
   lower_bound=$(( FLAGS_suspend_duration - 5 ))
   upper_bound=$(( FLAGS_suspend_duration + 5 ))
   if [ "${actual_sleep_time}" -lt "${lower_bound}" ] || [ "${actual_sleep_time}" -gt "${upper_bound}" ]; then
-    echo "Sleep time ${actual_sleep_time}s out of range (${lower_bound}-${upper_bound}s)."
+    echo "${BLUE}Sleep time ${actual_sleep_time}s out of range (${lower_bound}-${upper_bound}s). ${RESET}"
     break
   fi
   sleep 5
