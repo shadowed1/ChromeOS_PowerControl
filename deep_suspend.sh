@@ -1,102 +1,69 @@
 #!/bin/sh
 . "/usr/share/misc/shflags"
-DEFINE_integer suspend_duration 600 "seconds"
-DEFINE_boolean force_deep_sleep "${FLAGS_TRUE}" "S3 deep sleep vs 2idle"
-DEFINE_boolean backup_rtc "${FLAGS_FALSE}" "rtc for backup"
-DEFINE_string pre_suspend_command "" "eval before suspend"
-DEFINE_string post_resume_command "" "eval after resume"
-FLAGS "$@"
 
+for f in suspend_duration backup_rtc pre_suspend_command post_resume_command; do
+    FLAGS_DEFINED=("${FLAGS_DEFINED[@]/$f/}")
+    unset "FLAGS_$f" 2>/dev/null || true
+done
+
+DEFINE_integer suspend_duration 10 "seconds" 2>/dev/null
+DEFINE_boolean backup_rtc "${FLAGS_FALSE}" "rtc for backup" 2>/dev/null
+DEFINE_string pre_suspend_command "" "eval before suspend" 2>/dev/null
+DEFINE_string post_resume_command "" "eval after resume" 2>/dev/null
+
+FLAGS "$@" || exit 1
+
+FLAGS_suspend_duration=${FLAGS_suspend_duration:-10} 2>/dev/null
+FLAGS_backup_rtc=${FLAGS_backup_rtc:-${FLAGS_FALSE}} 2>/dev/null
+FLAGS_pre_suspend_command=${FLAGS_pre_suspend_command:-""} 2>/dev/null
+FLAGS_post_resume_command=${FLAGS_post_resume_command:-""} 2>/dev/null
 
 if [ "${FLAGS_backup_rtc}" -eq "${FLAGS_TRUE}" ] &&
    [ ! -e /sys/class/rtc/rtc1/wakealarm ]; then
-  echo "rtc1 not present. No wakealarm"
   FLAGS_backup_rtc=${FLAGS_FALSE}
 fi
 
-check_sleep_mode() {
-  if [ -e /sys/power/mem_sleep ]; then
-    cat /sys/power/mem_sleep
-  else
-    echo "Cannot determine sleep mode"
-  fi
-}
-
-set_deep_sleep() {
-  if [ -e /sys/power/mem_sleep ]; then
-    if grep -q '\[deep\]' /sys/power/mem_sleep; then
-      echo "Deep sleep already enabled"
-      return 0
-    elif grep -q 'deep' /sys/power/mem_sleep; then
-      echo "Enabling deep sleep (S3)..."
-      echo deep | sudo tee /sys/power/mem_sleep > /dev/null
-      if grep -q '\[deep\]' /sys/power/mem_sleep; then
-        echo "Successfully enabled deep sleep"
-        return 0
-      else
-        echo "Failed to enable deep sleep"
-        return 1
-      fi
-    else
-      echo "Deep sleep not available!"
-      return 1
-    fi
-  else
+set_sleep_mode() {
+  if [ ! -e /sys/power/mem_sleep ]; then
     echo "/sys/power/mem_sleep not found."
     return 1
   fi
-}
 
-set_s2idle() {
-  if [ -e /sys/power/mem_sleep ]; then
-    if grep -q '\[s2idle\]' /sys/power/mem_sleep || grep -q 's2idle' /sys/power/mem_sleep; then
-      echo "Falling back to s2idle sleep mode"
-      echo s2idle | sudo tee /sys/power/mem_sleep > /dev/null
+  if grep -q '\[deep\]' /sys/power/mem_sleep || grep -q 'deep' /sys/power/mem_sleep; then
+    echo deep | sudo tee /sys/power/mem_sleep > /dev/null
+    if grep -q '\[deep\]' /sys/power/mem_sleep || grep -q 'deep' /sys/power/mem_sleep; then
       return 0
-    else
-      echo "s2idle not available! Available modes: $(cat /sys/power/mem_sleep)"
-      return 1
     fi
-  else
-    echo "/sys/power/mem_sleep not found."
-    return 1
   fi
+
+  if grep -q '\[s2idle\]' /sys/power/mem_sleep || grep -q 's2idle' /sys/power/mem_sleep; then
+    echo s2idle | sudo tee /sys/power/mem_sleep > /dev/null
+    return 0
+  fi
+
+  return 1
 }
 
-echo "Current sleep mode: $(check_sleep_mode)"
-
-if [ "${FLAGS_force_deep_sleep}" -eq "${FLAGS_TRUE}" ]; then
-  if ! set_deep_sleep; then
-    echo "Deep sleep failed, trying s2idle..."
-    if ! set_s2idle; then
-      echo "Failed to set any supported sleep mode. Exiting."
-      exit 1
-    fi
-  fi
-fi
+set_sleep_mode
 
 echo "Sleep duration: ${FLAGS_suspend_duration} seconds"
-echo "Backup RTC: $([ "${FLAGS_backup_rtc}" -eq "${FLAGS_TRUE}" ] && echo "enabled" || echo "disabled")"
 
 sync
 
-echo "Setting wake alarm for ${FLAGS_suspend_duration} seconds from now..."
 echo 0 | sudo tee /sys/class/rtc/rtc0/wakealarm > /dev/null
 echo "+${FLAGS_suspend_duration}" | sudo tee /sys/class/rtc/rtc0/wakealarm > /dev/null
 
 if [ "${FLAGS_backup_rtc}" -eq "${FLAGS_TRUE}" ]; then
-  echo "Setting backup RTC alarm..."
   echo 0 | sudo tee /sys/class/rtc/rtc1/wakealarm > /dev/null
   echo "+$(( FLAGS_suspend_duration + 5 ))" | sudo tee /sys/class/rtc/rtc1/wakealarm > /dev/null
 fi
 
 if [ -n "${FLAGS_pre_suspend_command}" ]; then
-  echo "Running pre-suspend command: ${FLAGS_pre_suspend_command}"
   eval "${FLAGS_pre_suspend_command}"
 fi
 
 start_time="$(cat /sys/class/rtc/rtc0/since_epoch)"
-stop tlsdated 2>/dev/null
+sudo stop tlsdated 2>/dev/null
 echo mem | sudo tee /sys/power/state > /dev/null
 end_time="$(cat /sys/class/rtc/rtc0/since_epoch)"
 actual_sleep_time=$(( end_time - start_time ))
@@ -104,8 +71,7 @@ actual_sleep_time=$(( end_time - start_time ))
 echo "Slept for ${actual_sleep_time} seconds (expected ${FLAGS_suspend_duration})"
 
 if [ -n "${FLAGS_post_resume_command}" ]; then
-  echo "Running post-resume command: ${FLAGS_post_resume_command}"
   eval "${FLAGS_post_resume_command}"
 fi
 
-start tlsdated 2>/dev/null
+sudo start tlsdated 2>/dev/null
