@@ -486,6 +486,8 @@ send_fake_activity() {
                 echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Lid closed, lid sleep on!${RESET}" >> "$LOG_FILE"
                 sleep 3
                 stop_fake_activity
+                sleep 2
+                sudo "$INSTALL_DIR/deep_suspend.sh"
             else
                 echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Lid closed, lid sleep off!${RESET}" >> "$LOG_FILE"
                 sleep 5
@@ -671,6 +673,8 @@ send_fake_activity() {
                     idle_since=$now
                     last_ts=$now
                     idle_elapsed=0
+                    sleep 3
+                    sudo "$INSTALL_DIR/deep_suspend.sh"
                 fi
             fi
         fi
