@@ -323,7 +323,7 @@ Added display and keyboard backlight restore in Installer when restarting powerd
 - 0.55: `Fixed sleepcontrol not saving values due to moving config file to noexec mount for GUI. Simplified installer. ` <br><br>
 - 0.56: `Fixed GPUControl on startup not working. Removed sudo error warning on status pages.` <br><br>
 - 0.57: `Fixed audio detection settings and duplicate log entries for SleepControl. Installer will now stop scripts prior to downloading. Added icon support for GUI app running in Crostini. Fixed version command so Y is default. Thanks to Denny for reporting.` <br><br>
-- 0.58: `Implemented Sleep Loop script to allow preserving charge status while sleeping while in any sleep state.
+- 0.58: `Implemented Sleep Loop script to allow preserving charge status while sleeping in any sleep state.
 Removed deep sleep syntax support since that is no longer needed. Removed old sleep logic from Installer.` <br><br>
 __Acknowledgements:__
 
