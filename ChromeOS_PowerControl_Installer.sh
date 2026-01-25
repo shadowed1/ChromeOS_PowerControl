@@ -297,7 +297,7 @@ else
 fi
 
 CONFIG_FILE="$NEW_CONFIG_PATH"
-
+echo
 FAN_COUNT=$(sudo ectool pwmgetnumfans | awk -F= '{print $2}' | sed -e 's/ //g')
 
 if [ "$FAN_COUNT" -eq 0 ]; then
