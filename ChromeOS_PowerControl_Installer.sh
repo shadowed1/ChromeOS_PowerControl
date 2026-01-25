@@ -817,8 +817,7 @@ sleep 1
 if [[ "$SHOW_SLEEPCONTROL_NOTICE" -eq 1 ]]; then
 echo "${BLUE}╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
 echo "║  ${RESET}${BLUE}${BOLD}SleepControl Notice:${RESET}${BLUE}                                                                                              ║"
-echo "║  SleepControl requires Sleep to be enabled in Settings -> Power -> While Inactive plugged-in and battery.          ║"
-echo "║  Cannot override sleep when lid is closed setting when enabled; but allows custom lid sleep logic.                 ║"
+echo "║  SleepControl requires Sleep to be DISABLED in Settings -> Power                                                   ║"
 echo "╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝${RESET}"
 echo ""
 fi
