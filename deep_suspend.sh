@@ -6,17 +6,17 @@ for f in suspend_duration backup_rtc pre_suspend_command post_resume_command; do
     unset "FLAGS_$f" 2>/dev/null || true
 done
 
-DEFINE_integer suspend_duration 10 "seconds" 2>/dev/null
+DEFINE_integer suspend_duration 300 "seconds" 2>/dev/null
 DEFINE_boolean backup_rtc "${FLAGS_FALSE}" "rtc for backup" 2>/dev/null
 DEFINE_string pre_suspend_command "" "eval before suspend" 2>/dev/null
 DEFINE_string post_resume_command "" "eval after resume" 2>/dev/null
 
 FLAGS "$@" || exit 1
 
-FLAGS_suspend_duration=${FLAGS_suspend_duration:-10} 2>/dev/null
-FLAGS_backup_rtc=${FLAGS_backup_rtc:-${FLAGS_FALSE}} 2>/dev/null
-FLAGS_pre_suspend_command=${FLAGS_pre_suspend_command:-""} 2>/dev/null
-FLAGS_post_resume_command=${FLAGS_post_resume_command:-""} 2>/dev/null
+FLAGS_suspend_duration=${FLAGS_suspend_duration:-300}
+FLAGS_backup_rtc=${FLAGS_backup_rtc:-${FLAGS_FALSE}}
+FLAGS_pre_suspend_command=${FLAGS_pre_suspend_command:-""}
+FLAGS_post_resume_command=${FLAGS_post_resume_command:-""}
 
 if [ "${FLAGS_backup_rtc}" -eq "${FLAGS_TRUE}" ] &&
    [ ! -e /sys/class/rtc/rtc1/wakealarm ]; then
@@ -48,30 +48,40 @@ set_sleep_mode
 
 echo "Sleep duration: ${FLAGS_suspend_duration} seconds"
 
-sync
+while true; do
+  sync
 
-echo 0 | sudo tee /sys/class/rtc/rtc0/wakealarm > /dev/null
-echo "+${FLAGS_suspend_duration}" | sudo tee /sys/class/rtc/rtc0/wakealarm > /dev/null
+  echo 0 | sudo tee /sys/class/rtc/rtc0/wakealarm > /dev/null
+  echo "+${FLAGS_suspend_duration}" | sudo tee /sys/class/rtc/rtc0/wakealarm > /dev/null
 
-if [ "${FLAGS_backup_rtc}" -eq "${FLAGS_TRUE}" ]; then
-  echo 0 | sudo tee /sys/class/rtc/rtc1/wakealarm > /dev/null
-  echo "+$(( FLAGS_suspend_duration + 5 ))" | sudo tee /sys/class/rtc/rtc1/wakealarm > /dev/null
-fi
+  if [ "${FLAGS_backup_rtc}" -eq "${FLAGS_TRUE}" ]; then
+    echo 0 | sudo tee /sys/class/rtc/rtc1/wakealarm > /dev/null
+    echo "+$(( FLAGS_suspend_duration + 5 ))" | sudo tee /sys/class/rtc/rtc1/wakealarm > /dev/null
+  fi
 
-if [ -n "${FLAGS_pre_suspend_command}" ]; then
-  eval "${FLAGS_pre_suspend_command}"
-fi
+  if [ -n "${FLAGS_pre_suspend_command}" ]; then
+    eval "${FLAGS_pre_suspend_command}"
+  fi
 
-start_time="$(cat /sys/class/rtc/rtc0/since_epoch)"
-sudo stop tlsdated 2>/dev/null
-echo mem | sudo tee /sys/power/state > /dev/null
-end_time="$(cat /sys/class/rtc/rtc0/since_epoch)"
-actual_sleep_time=$(( end_time - start_time ))
+  start_time="$(cat /sys/class/rtc/rtc0/since_epoch)"
+  sudo stop tlsdated 2>/dev/null
+  echo mem | sudo tee /sys/power/state > /dev/null
+  end_time="$(cat /sys/class/rtc/rtc0/since_epoch)"
+  actual_sleep_time=$(( end_time - start_time ))
 
-echo "Slept for ${actual_sleep_time} seconds (expected ${FLAGS_suspend_duration})"
+  echo "Slept for ${actual_sleep_time} seconds (expected ${FLAGS_suspend_duration})"
 
-if [ -n "${FLAGS_post_resume_command}" ]; then
-  eval "${FLAGS_post_resume_command}"
-fi
+  if [ -n "${FLAGS_post_resume_command}" ]; then
+    eval "${FLAGS_post_resume_command}"
+  fi
 
-sudo start tlsdated 2>/dev/null
+  sudo start tlsdated 2>/dev/null
+
+  lower_bound=$(( FLAGS_suspend_duration - 5 ))
+  upper_bound=$(( FLAGS_suspend_duration + 5 ))
+  if [ "${actual_sleep_time}" -lt "${lower_bound}" ] || [ "${actual_sleep_time}" -gt "${upper_bound}" ]; then
+    echo "Sleep time ${actual_sleep_time}s out of range (${lower_bound}-${upper_bound}s)."
+    break
+  fi
+  sleep 5
+done
