@@ -1,6 +1,6 @@
 #!/bin/sh
 . "/usr/share/misc/shflags"
-DEFINE_integer suspend_duration 3600 "Duration to sleep in seconds (default: 1 hour)" d
+DEFINE_integer suspend_duration 600 "seconds"
 DEFINE_boolean force_deep_sleep "${FLAGS_TRUE}" "S3 deep sleep vs 2idle"
 DEFINE_boolean backup_rtc "${FLAGS_FALSE}" "rtc for backup"
 DEFINE_string pre_suspend_command "" "eval before suspend"
