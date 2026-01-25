@@ -464,6 +464,8 @@ send_fake_activity() {
             if (( audio_active == 0 )) && (( now - last_ts > 5 )) && (( now - idle_since > 5 )); then
                 if (( LIDSLEEP_ENABLED == 1 && lid_closed == 1 )); then
                     echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Lid sleep enabled and lid closed, skipping fake activity${RESET}" >> "$LOG_FILE"
+                    sleep 3
+                    sudo "$INSTALL_DIR/deep_suspend.sh" 2>/dev/null
                 else
                     monitor_idle=1
                     active=0
