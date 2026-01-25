@@ -5,12 +5,7 @@ DEFINE_boolean force_deep_sleep "${FLAGS_TRUE}" "S3 deep sleep vs 2idle"
 DEFINE_boolean backup_rtc "${FLAGS_FALSE}" "rtc for backup"
 DEFINE_string pre_suspend_command "" "eval before suspend"
 DEFINE_string post_resume_command "" "eval after resume"
-FLAGS "$@" || exit 1
-
-if [ "$(id -u)" -ne 0 ]; then
-  echo "This script must be run as root." 1>&2
-  exit 1
-fi
+FLAGS "$@"
 
 if [ "${FLAGS_backup_rtc}" -eq "${FLAGS_TRUE}" ] &&
    [ ! -e /sys/class/rtc/rtc1/wakealarm ]; then
@@ -33,7 +28,7 @@ set_deep_sleep() {
       return 0
     elif grep -q 'deep' /sys/power/mem_sleep; then
       echo "Enabling deep sleep (S3)..."
-      echo deep > /sys/power/mem_sleep
+      echo deep | sudo tee /sys/power/mem_sleep > /dev/null
       if grep -q '\[deep\]' /sys/power/mem_sleep; then
         echo "Successfully enabled deep sleep"
         return 0
@@ -67,13 +62,13 @@ echo "Backup RTC: $([ "${FLAGS_backup_rtc}" -eq "${FLAGS_TRUE}" ] && echo "enabl
 sync
 
 echo "Setting wake alarm for ${FLAGS_suspend_duration} seconds from now..."
-echo 0 > /sys/class/rtc/rtc0/wakealarm
-echo "+${FLAGS_suspend_duration}" > /sys/class/rtc/rtc0/wakealarm
+echo 0 | sudo tee /sys/class/rtc/rtc0/wakealarm > /dev/null
+echo "+${FLAGS_suspend_duration}" | sudo tee /sys/class/rtc/rtc0/wakealarm > /dev/null
 
 if [ "${FLAGS_backup_rtc}" -eq "${FLAGS_TRUE}" ]; then
   echo "Setting backup RTC alarm..."
-  echo 0 > /sys/class/rtc/rtc1/wakealarm
-  echo "+$(( FLAGS_suspend_duration + 5 ))" > /sys/class/rtc/rtc1/wakealarm
+  echo 0 | sudo tee /sys/class/rtc/rtc1/wakealarm > /dev/null
+  echo "+$(( FLAGS_suspend_duration + 5 ))" | sudo tee /sys/class/rtc/rtc1/wakealarm > /dev/null
 fi
 
 if [ -n "${FLAGS_pre_suspend_command}" ]; then
@@ -83,7 +78,7 @@ fi
 
 start_time="$(cat /sys/class/rtc/rtc0/since_epoch)"
 stop tlsdated 2>/dev/null
-echo mem > /sys/power/state
+echo mem | sudo tee /sys/power/state > /dev/null
 end_time="$(cat /sys/class/rtc/rtc0/since_epoch)"
 actual_sleep_time=$(( end_time - start_time ))
 
@@ -95,5 +90,3 @@ if [ -n "${FLAGS_post_resume_command}" ]; then
 fi
 
 start tlsdated 2>/dev/null
-
-exit 0
