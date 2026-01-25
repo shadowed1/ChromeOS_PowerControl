@@ -531,6 +531,23 @@ send_fake_activity() {
                 fi
 
                 echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Saved power state: ${RESET}${GREEN}${STATUS}${RESET}" >> "$LOG_FILE"
+                
+                if (( lid_closed == 1 )); then
+                    if [[ "$STATUS" == "Discharging" ]]; then
+                        LIDSLEEP_ENABLED=$LIDSLEEP_BATTERY
+                    else
+                        LIDSLEEP_ENABLED=$LIDSLEEP_POWER
+                    fi
+                    
+                    if (( LIDSLEEP_ENABLED == 1 )); then
+                        echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Lid is closed and lid sleep enabled on ${STATUS}, going back to sleep!${RESET}" >> "$LOG_FILE"
+                        stop_fake_activity
+                        sleep 3
+                        sudo "$INSTALL_DIR/deep_suspend.sh"
+                    else
+                        echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Lid is closed but lid sleep disabled on ${STATUS}${RESET}" >> "$LOG_FILE"
+                    fi
+                fi
             fi
             ;;
          *"Enabling wakeup for"*|*"User triggered wake"*|*"User activity ongoing"*)
