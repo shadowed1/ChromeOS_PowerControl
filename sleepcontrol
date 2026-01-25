@@ -242,7 +242,6 @@ echo "║  sudo sleepcontrol battery 3 7 12   # When idle, display dims in 3m ->
 echo "║  sudo sleepcontrol power 5 15 30    # When idle, display dims in 5m -> timeout -> 15m -> sleeps in 30m plugged-in  ║"
 echo "║  sudo sleepcontrol battery audio 0  # Disable audio detection on battery; sleep can occur during media playback    ║"
 echo "║  sudo sleepcontrol power audio 1    # Enable audio detection on power; delaying sleep until audio is stopped       ║"
-echo "║  sudo sleepcontrol mode deep        # Change suspend mode to freeze, enabling batterycontrol to work asleep        ║"
 echo "║  sudo sleepcontrol lid power 0      # Prevent closing lid from putting system to sleep when on power               ║"
 echo "║  sudo sleepcontrol lid battery 0    # Prevent closing lid from putting system to sleep when on battery             ║"
 echo "║  sudo sleepcontrol startup          # Copy or Remove sleepcontrol.conf at: /etc/init/                              ║"
@@ -529,12 +528,6 @@ send_fake_activity() {
                     set_display_brightness "$saved_display_brightness"
                 fi
 
-                for file in \
-                    /var/lib/power_manager/disable_dark_resume \
-                    /usr/share/power_manager/disable_dark_resume \
-                    /mnt/stateful_partition/encrypted/var/lib/power_manager/disable_dark_resume; do
-                    [[ -f "$file" ]] && echo 0 | sudo tee "$file" >/dev/null 2>&1
-                done
                 echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Saved power state: ${RESET}${GREEN}${STATUS}${RESET}" >> "$LOG_FILE"
             fi
             ;;
@@ -894,7 +887,6 @@ echo "                              SleepControl Status: STOPPED                
         fi
 echo "  Battery = Dim: $((BATTERY_DIM_DELAY)) min -> Display off: $((BATTERY_BACKLIGHT)) min -> Sleep: $((BATTERY_DELAY)) min | Audio Detection: $AUDIO_DETECTION_BATTERY | Lid Sleep: $LIDSLEEP_BATTERY "
 echo "  Power   = Dim: $((POWER_DIM_DELAY)) min -> Display off: $((POWER_BACKLIGHT)) min -> Sleep: $((POWER_DELAY)) min | Audio Detection: $AUDIO_DETECTION_POWER | Lid Sleep: $LIDSLEEP_POWER "
-echo "  Suspend Mode: ${SUSPEND_MODE}"
 echo "═════════════════════════════════════════════════════════════════════════════════════════════════"
 echo "${RESET}"
        
