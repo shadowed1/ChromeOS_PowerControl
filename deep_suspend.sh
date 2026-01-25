@@ -55,7 +55,7 @@ set_sleep_mode() {
 
 set_sleep_mode
 
-echo "${BLUE}Sleep duration: ${FLAGS_suspend_duration} seconds ${RESET}"
+echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) Sleep duration: ${FLAGS_suspend_duration} seconds ${RESET}"
 
 while true; do
   sync
@@ -78,7 +78,7 @@ while true; do
   end_time="$(cat /sys/class/rtc/rtc0/since_epoch)"
   actual_sleep_time=$(( end_time - start_time ))
 
-  echo "${MAGENTA}Slept for ${BOLD}${actual_sleep_time} seconds${RESET}${MAGENTA} (expected ${FLAGS_suspend_duration} seconds)${RESET}"
+  echo "${MAGENTA}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) Slept for ${BOLD}${actual_sleep_time} seconds${RESET}${MAGENTA} (expected ${FLAGS_suspend_duration} seconds)${RESET}"
 
   if [ -n "${FLAGS_post_resume_command}" ]; then
     eval "${FLAGS_post_resume_command}"
