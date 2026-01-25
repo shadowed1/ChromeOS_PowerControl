@@ -235,7 +235,7 @@ echo "$INSTALL_DIR" | sudo tee "$INSTALL_DIR/.install_path" >/dev/null
 
 declare -a files=(
   "powercontrol" "batterycontrol" "fancontrol" "gpucontrol"
-  "sleepcontrol"
+  "sleepcontrol" "deep_suspend.sh"
   "Uninstall_ChromeOS_PowerControl.sh"
   "Reinstall_ChromeOS_PowerControl.sh"
   "LICENSE" "README.md" "version"
