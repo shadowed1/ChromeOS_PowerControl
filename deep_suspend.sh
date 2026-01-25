@@ -7,6 +7,7 @@ DEFINE_string pre_suspend_command "" "eval before suspend"
 DEFINE_string post_resume_command "" "eval after resume"
 FLAGS "$@"
 
+
 if [ "${FLAGS_backup_rtc}" -eq "${FLAGS_TRUE}" ] &&
    [ ! -e /sys/class/rtc/rtc1/wakealarm ]; then
   echo "rtc1 not present. No wakealarm"
@@ -37,8 +38,23 @@ set_deep_sleep() {
         return 1
       fi
     else
-      echo "Deep sleep not available! "
-      echo "Available modes: $(cat /sys/power/mem_sleep)"
+      echo "Deep sleep not available!"
+      return 1
+    fi
+  else
+    echo "/sys/power/mem_sleep not found."
+    return 1
+  fi
+}
+
+set_s2idle() {
+  if [ -e /sys/power/mem_sleep ]; then
+    if grep -q '\[s2idle\]' /sys/power/mem_sleep || grep -q 's2idle' /sys/power/mem_sleep; then
+      echo "Falling back to s2idle sleep mode"
+      echo s2idle | sudo tee /sys/power/mem_sleep > /dev/null
+      return 0
+    else
+      echo "s2idle not available! Available modes: $(cat /sys/power/mem_sleep)"
       return 1
     fi
   else
@@ -51,8 +67,11 @@ echo "Current sleep mode: $(check_sleep_mode)"
 
 if [ "${FLAGS_force_deep_sleep}" -eq "${FLAGS_TRUE}" ]; then
   if ! set_deep_sleep; then
-    echo "Cannot enable deep sleep. Exiting."
-    exit 1
+    echo "Deep sleep failed, trying s2idle..."
+    if ! set_s2idle; then
+      echo "Failed to set any supported sleep mode. Exiting."
+      exit 1
+    fi
   fi
 fi
 
