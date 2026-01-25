@@ -46,7 +46,7 @@ set_sleep_mode() {
 
 set_sleep_mode
 
-echo "Sleep duration: ${FLAGS_suspend_duration} seconds"
+echo "${BLUE}Sleep duration: ${FLAGS_suspend_duration} seconds ${RESET}"
 
 while true; do
   sync
@@ -64,8 +64,8 @@ while true; do
   fi
 
   start_time="$(cat /sys/class/rtc/rtc0/since_epoch)"
-  sudo stop tlsdated 2>/dev/null
-  echo mem | sudo tee /sys/power/state > /dev/null
+  sudo stop tlsdated >/dev/null 2>&1
+  echo mem | sudo tee /sys/power/state >/dev/null 2>&1
   end_time="$(cat /sys/class/rtc/rtc0/since_epoch)"
   actual_sleep_time=$(( end_time - start_time ))
 
@@ -75,7 +75,7 @@ while true; do
     eval "${FLAGS_post_resume_command}"
   fi
 
-  sudo start tlsdated 2>/dev/null
+  sudo start tlsdated >/dev/null 2>&1
 
   lower_bound=$(( FLAGS_suspend_duration - 5 ))
   upper_bound=$(( FLAGS_suspend_duration + 5 ))
