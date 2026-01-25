@@ -69,7 +69,7 @@ while true; do
   end_time="$(cat /sys/class/rtc/rtc0/since_epoch)"
   actual_sleep_time=$(( end_time - start_time ))
 
-  echo "Slept for ${actual_sleep_time} seconds (expected ${FLAGS_suspend_duration})"
+  echo "${MAGENTA}Slept for ${BOLD}${actual_sleep_time} seconds${RESET}${MAGENTA} (expected ${FLAGS_suspend_duration})"
 
   if [ -n "${FLAGS_post_resume_command}" ]; then
     eval "${FLAGS_post_resume_command}"
@@ -80,7 +80,7 @@ while true; do
   lower_bound=$(( FLAGS_suspend_duration - 5 ))
   upper_bound=$(( FLAGS_suspend_duration + 5 ))
   if [ "${actual_sleep_time}" -lt "${lower_bound}" ] || [ "${actual_sleep_time}" -gt "${upper_bound}" ]; then
-    echo "Sleep time ${actual_sleep_time}s out of range (${lower_bound}-${upper_bound}s)."
+    echo "${BLUE}Sleep time ${BOLD}${actual_sleep_time}s${RESET} out of range (${lower_bound}-${upper_bound}s). ${RESET}"
     break
   fi
   sleep 15
