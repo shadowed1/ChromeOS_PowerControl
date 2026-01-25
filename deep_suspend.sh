@@ -1,10 +1,10 @@
 #!/bin/sh
 . "/usr/share/misc/shflags"
 DEFINE_integer suspend_duration 3600 "Duration to sleep in seconds (default: 1 hour)" d
-DEFINE_boolean force_deep_sleep "${FLAGS_TRUE}" "Force S3 deep sleep instead of s2idle"
-DEFINE_boolean backup_rtc "${FLAGS_FALSE}" "Use second rtc if present for backup"
-DEFINE_string pre_suspend_command "" "eval this string before suspend"
-DEFINE_string post_resume_command "" "eval this string after resume"
+DEFINE_boolean force_deep_sleep "${FLAGS_TRUE}" "S3 deep sleep vs 2idle"
+DEFINE_boolean backup_rtc "${FLAGS_FALSE}" "rtc for backup"
+DEFINE_string pre_suspend_command "" "eval before suspend"
+DEFINE_string post_resume_command "" "eval after resume"
 FLAGS "$@" || exit 1
 
 if [ "$(id -u)" -ne 0 ]; then
@@ -14,7 +14,7 @@ fi
 
 if [ "${FLAGS_backup_rtc}" -eq "${FLAGS_TRUE}" ] &&
    [ ! -e /sys/class/rtc/rtc1/wakealarm ]; then
-  echo "rtc1 not present, not setting second wakealarm"
+  echo "rtc1 not present. No wakealarm"
   FLAGS_backup_rtc=${FLAGS_FALSE}
 fi
 
@@ -42,12 +42,12 @@ set_deep_sleep() {
         return 1
       fi
     else
-      echo "Deep sleep not available on this system"
+      echo "Deep sleep not available! "
       echo "Available modes: $(cat /sys/power/mem_sleep)"
       return 1
     fi
   else
-    echo "/sys/power/mem_sleep not found - cannot configure sleep mode"
+    echo "/sys/power/mem_sleep not found."
     return 1
   fi
 }
