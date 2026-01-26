@@ -240,6 +240,7 @@ __How It Works:__
 - By using epoch timestamps, SleepControl is able to verify when its simulated inputs are to be ignored.
 - Allows user to customize when display can dim, turn off, and delays sleep.
 - Requires sleep to be disabled in settings -> power.
+- Uses a custom sleep loop that wakes up device periodically to allow battery charge limit to remain preserved.
 
 <br>
 <br>
