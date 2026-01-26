@@ -19,8 +19,6 @@ else
 fi
 
 LOG_FILE="/var/log/powercontrol.log"
-
-LOG_FILE="/var/log/powercontrol.log"
 RUN_FLAG="$INSTALL_DIR/.powercontrol_enabled"
 PID_FILE="$INSTALL_DIR/.powercontrol_pid"
 VERSION_FILE="$INSTALL_DIR/version"
