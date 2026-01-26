@@ -515,15 +515,18 @@ send_fake_activity() {
             monitor_idle=0
             last_ts=$now
             active=1
-            stop_fake_activity
             backlight_off=0
-            echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Lid opened! "
+            was_dimmed=0
+            stop_fake_activity
+            sleep 0.1
+            echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Lid opened!${RESET}" >> "$LOG_FILE"
+            
             if (( PRESENTATION_MODE == 0 )); then
                 if (( kb_brightness_restored == 0 )); then
                     kb_brightness_restored=1
                 fi
         
-                if [[ -n "$saved_display_brightness" && "$saved_display_brightness" -ge 0 ]]; then
+                if [[ -n "$saved_display_brightness" && "$saved_display_brightness" -gt 0 ]]; then
                     set_display_brightness "$saved_display_brightness" > /dev/null 2>&1
                 fi
             fi
