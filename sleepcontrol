@@ -422,7 +422,7 @@ send_fake_activity() {
     while read -r line <&3; do
         now=$EPOCHSECONDS
 
-        (( now - last_reload_time >= 10 )) && { load_config; last_reload_time=$now; }
+        (( now - last_reload_time >= 5 )) && { load_config; last_reload_time=$now; }
 
         if [[ "$STATUS" == "Discharging" ]]; then
             AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_BATTERY
