@@ -232,7 +232,6 @@ __How It Works:__
 
 *SleepControl:*
 
-- SleepControl does not send sleep commands to the OS, but simulates activity when idle on a configurable timer. 
 - By passively reading powerd.LATEST log, SleepControl monitors when the powerd daemon reports 'User activity stopped'.
 - Parsing strings like 'User activity started' or 'User activiting ongoing' tells SleepControl the user is active.
 - If 'User activity stopped' is parsed, SleepControl assumes the user is away and sleep timers begin.
@@ -241,7 +240,7 @@ __How It Works:__
 - When idle, SleepControl uses dbus to send an empty input every 4m until interrupted/sleeping with the configurable timer.  
 - By using epoch timestamps, SleepControl is able to verify when its simulated inputs are to be ignored.
 - Allows user to customize when display can dim, turn off, and delays sleep.
-- Requires sleep to be enabled in settings -> power since SleepControl will not send a sleep command to OS; only delay it.
+- Requires sleep to be disabled in settings -> power.
 
 <br>
 <br>
