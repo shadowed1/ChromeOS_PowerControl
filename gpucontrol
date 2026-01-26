@@ -18,6 +18,14 @@ PID_FILE="$INSTALL_DIR/.gpucontrol_pid"
 CONF_SOURCE="$INSTALL_DIR/gpucontrol.conf"
 CONF_TARGET="/etc/init/gpucontrol.conf"
 
+if [ -f "$INSTALL_DIR/config" ]; then
+    CONFIG_FILE="$INSTALL_DIR/config"
+elif [ -f "/home/chronos/user/MyFiles/Downloads/ChromeOS_PowerControl_Config/config" ]; then
+    CONFIG_FILE="/home/chronos/user/MyFiles/Downloads/ChromeOS_PowerControl_Config/config"
+else
+    CONFIG_FILE="$INSTALL_DIR/config"
+fi
+
 if ! ( [[ -z "$1" ]] || [[ "$1" =~ ^(-h|--h|h|--help|-help|help|status|start|stop|monitor|mon|__gpucontrol_monitor__)$ ]] ) \
    && [[ "$(id -u)" -ne 0 ]]; then
     echo "${RED}GPUControl requires sudo to run.${RESET}"
