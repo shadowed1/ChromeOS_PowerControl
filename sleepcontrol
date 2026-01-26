@@ -576,7 +576,7 @@ send_fake_activity() {
                 last_fake_ts=0
             fi
             if (( last_fake_ts > 0 && now - last_fake_ts <= FAKE_ACTIVITY_GRACE )); then
-                rm -f "$LAST_FAKE_ACTIVITY_FILE" 2>/dev/null || true
+                sudo rm -f "$LAST_FAKE_ACTIVITY_FILE" 2>/dev/null || true
                 continue
             fi
             if (( monitor_idle == 1 )); then
@@ -704,9 +704,9 @@ stop_monitoring() {
             echo "${RED}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - SleepControl Stopped (PID $PID)${RESET}"
         fi
     fi
-    rm -f "$RUN_FLAG"
-    rm -f "$PID_FILE"
-    rm -f "$PID_FILE.lock"
+    sudo rm -f "$RUN_FLAG"
+    sudo rm -f "$PID_FILE"
+    sudo rm -f "$PID_FILE.lock"
 }
 
 case "$1" in
