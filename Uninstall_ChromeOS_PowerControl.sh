@@ -53,7 +53,7 @@ case "$choice" in
         sudo bash "$INSTALL_DIR/gpucontrol" restore 2>/dev/null
         sudo bash "$INSTALL_DIR/sleepcontrol" mode freeze 2>/dev/null
         sudo bash "$INSTALL_DIR/sleepcontrol" stop 2>/dev/null
-
+        sudo ectool chargecontrol normal 2>/dev/null
         remove_file_with_message "$INSTALL_DIR/no_turbo.conf"
         remove_file_with_message "$INSTALL_DIR/batterycontrol.conf"
         remove_file_with_message "$INSTALL_DIR/powercontrol.conf"
