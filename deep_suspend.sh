@@ -76,7 +76,7 @@ while true; do
   end_time="$(cat /sys/class/rtc/rtc0/since_epoch)"
   actual_sleep_time=$(( end_time - start_time ))
 
-  echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Slept for ${RESET}${YELLOW}${actual_sleep_time} / ${FLAGS_suspend_duration} seconds${RESET}"
+  echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Slept for ${RESET}${YELLOW}${actual_sleep_time} / ${FLAGS_suspend_duration} seconds${RESET}" >> "$LOG_FILE"
 
   if [ -n "${FLAGS_post_resume_command}" ]; then
     eval "${FLAGS_post_resume_command}"
@@ -87,9 +87,9 @@ while true; do
   lower_bound=$(( FLAGS_suspend_duration - 5 ))
   upper_bound=$(( FLAGS_suspend_duration + 5 ))
   if [ "${actual_sleep_time}" -lt "${lower_bound}" ] || [ "${actual_sleep_time}" -gt "${upper_bound}" ]; then
-    echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Ending Suspend Loop${RESET}"
+    echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Ending Suspend Loop${RESET}" >> "$LOG_FILE"
     break
   fi
   sleep 15
-echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Restarting Sleep Loop${RESET}"
+echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Restarting Sleep Loop${RESET}" >> "$LOG_FILE"
 done
