@@ -324,6 +324,7 @@ Added display and keyboard backlight restore in Installer when restarting powerd
 - 0.57: `Fixed audio detection settings and duplicate log entries for SleepControl. Installer will now stop scripts prior to downloading. Added icon support for GUI app running in Crostini. Fixed version command so Y is default. Thanks to Denny for reporting.` <br><br>
 - 0.58: `Implemented Sleep Loop script to allow preserving charge status while sleeping in any sleep state.
 Removed deep sleep syntax support since that is no longer needed. Removed old sleep logic from Installer.` <br><br>
+- 0.59: `Fixed slow startup issues,` <br><br>
 __Acknowledgements:__
 
 - Thanks to WesBosch for helping me learn to make an installer:
