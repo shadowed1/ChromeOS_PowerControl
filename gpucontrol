@@ -58,6 +58,7 @@ save_config() {
             echo "GPU_MAX_FREQ=$GPU_MAX_FREQ" >> "$CONFIG_FILE"
         fi
     fi
+    sudo cp "$INSTALL_DIR/config" "/home/chronos/user/MyFiles/Downloads/ChromeOS_PowerControl_Config/config"
 }
 
 if [[ "$1" != "__gpucontrol_monitor__" ]]; then
