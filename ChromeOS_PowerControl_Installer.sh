@@ -581,6 +581,9 @@ fi
 if grep -q '^STARTUP_POWERCONTROL=1' "$CONFIG_FILE"; then
     SHOW_POWERCONTROL_NOTICE=1
 fi
+
+sudo ln -sf "/home/chronos/user/MyFiles/Downloads/ChromeOS_PowerControl_Config/config" "$INSTALL_DIR/config"
+
 start_component_now() {
     local component="$1"
     local command="$2"
