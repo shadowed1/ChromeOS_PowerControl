@@ -685,7 +685,7 @@ send_fake_activity() {
                     (( sending_fake_activity == 0 )) && start_fake_activity
                 else
                     stop_fake_activity
-                    sleep 0.1
+                    sleep 0.2
                     echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Sleep threshold elapsed; going to sleep!" >> "$LOG_FILE"
                     monitor_idle=0
                     idle_since=$now
