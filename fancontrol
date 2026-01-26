@@ -18,13 +18,23 @@ timestamp=$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1)
 CONF_SOURCE="$INSTALL_DIR/fancontrol.conf"
 CONF_TARGET="/etc/init/fancontrol.conf"
 
-if [ -f "$INSTALL_DIR/config" ]; then
-    CONFIG_FILE="$INSTALL_DIR/config"
-elif [ -f "/home/chronos/user/MyFiles/Downloads/ChromeOS_PowerControl_Config/config" ]; then
-    CONFIG_FILE="/home/chronos/user/MyFiles/Downloads/ChromeOS_PowerControl_Config/config"
-else
-    CONFIG_FILE="$INSTALL_DIR/config"
-fi
+wait_for_config() {
+    local config_dir="/home/chronos/user/MyFiles/Downloads/ChromeOS_PowerControl_Config"
+    local max_wait=300
+    local elapsed=0
+    
+    while [ $elapsed -lt $max_wait ]; do
+        if [ -f "$CONFIG_FILE" ]; then
+            return 0
+        fi
+        
+        sleep 5
+        elapsed=$((elapsed + 5))
+    done
+    
+    echo "${RED}Error: Config file not available after 5 minutes${RESET}" | tee -a "$LOG_FILE"
+    return 1
+}
 
 if ! ( [[ -z "$1" ]] || [[ "$1" == "--h" || "$1" == "-h" || "$1" == "h" || "$1" == "--help" || "$1" == "-help" || "$1" == "monitor" || "$1" == "mon" || "$1" == "help" || "$1" == "status" ]] ) && [[ "$(id -u)" -ne 0 ]]; then    echo "${RED}FanControl requires sudo to run.${RESET}"
     echo "  Try: sudo fancontrol $*  or  sudo $0 $*"
@@ -114,7 +124,6 @@ save_config() {
     sed -i "s/^FAN_POLL=.*/FAN_POLL=$FAN_POLL/" "$CONFIG_FILE" || echo "FAN_POLL=$FAN_POLL" >> "$CONFIG_FILE"
     sed -i "s/^STEP_UP=.*/STEP_UP=$STEP_UP/" "$CONFIG_FILE" || echo "STEP_UP=$STEP_UP" >> "$CONFIG_FILE"
     sed -i "s/^STEP_DOWN=.*/STEP_DOWN=$STEP_DOWN/" "$CONFIG_FILE" || echo "STEP_DOWN=$STEP_DOWN" >> "$CONFIG_FILE"
-    sudo cp "$INSTALL_DIR/config" "/home/chronos/user/MyFiles/Downloads/ChromeOS_PowerControl_Config/config"
 }
 
 cleanup() {
