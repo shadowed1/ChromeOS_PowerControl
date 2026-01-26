@@ -208,9 +208,6 @@ save_config() {
     if [[ -n "$PERF_PATHS" ]]; then
         IFS=' ' read -r -a PERF_PATHS <<< "$PERF_PATHS"
     fi
-    
-    sudo cp "$INSTALL_DIR/config" "/home/chronos/user/MyFiles/Downloads/ChromeOS_PowerControl_Config/config"
-
 }
 
 detect_cpu_type
