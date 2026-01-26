@@ -149,7 +149,7 @@ start_monitoring_loop() {
     while true; do
         if [[ ! -f "$RUN_FLAG" ]]; then
             echo "${RED}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - GPUControl stopped${RESET}" >> "$LOG_FILE"
-            rm -f "$PID_FILE"
+            sudo rm -f "$PID_FILE"
             exit 0
         fi
 
@@ -204,10 +204,10 @@ stop_monitoring() {
                 kill "$PID"
             fi
         fi
-        rm -f "$PID_FILE"
+        sudo rm -f "$PID_FILE"
     fi
 
-    rm -f "$RUN_FLAG"
+    sudo rm -f "$RUN_FLAG"
 }
 
 apply_gpu_settings() {
