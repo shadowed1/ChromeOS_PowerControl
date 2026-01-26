@@ -87,8 +87,8 @@ while true; do
   lower_bound=$(( FLAGS_suspend_duration - 5 ))
   upper_bound=$(( FLAGS_suspend_duration + 5 ))
   if [ "${actual_sleep_time}" -lt "${lower_bound}" ] || [ "${actual_sleep_time}" -gt "${upper_bound}" ]; then
-    break
     echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Ending Suspend Loop${RESET}"
+    break
   fi
   sleep 15
 echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Restarting Sleep Loop${RESET}"
