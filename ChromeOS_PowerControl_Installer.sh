@@ -814,7 +814,7 @@ sleep 1
 if [[ "$SHOW_SLEEPCONTROL_NOTICE" -eq 1 ]]; then
 echo "${BLUE}╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
 echo "║  ${RESET}${BLUE}${BOLD}SleepControl Notice:${RESET}${BLUE}                                                                                              ║"
-echo "║  SleepControl requires Sleep to be DISABLED in Settings -> Power                                                   ║"
+echo "║  SleepControl requires Sleep to be DISABLED in Settings → System Preferences → Power                               ║"
 echo "╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝${RESET}"
 echo ""
 fi
