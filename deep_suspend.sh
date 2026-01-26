@@ -69,8 +69,7 @@ while true; do
   
   start_time="$(cat /sys/class/rtc/rtc0/since_epoch)"
   sudo stop tlsdated >/dev/null 2>&1
-  sudo initctl stop cras >/dev/null 2>&1
-  sleep 0.2
+  cras_test_client --suspend 5 >/dev/null 2>&1
   echo mem | sudo tee /sys/power/state >/dev/null 2>&1
   end_time="$(cat /sys/class/rtc/rtc0/since_epoch)"
   actual_sleep_time=$(( end_time - start_time ))
@@ -87,7 +86,7 @@ while true; do
   
   if [ "${actual_sleep_time}" -lt "${lower_bound}" ] || [ "${actual_sleep_time}" -gt "${upper_bound}" ]; then
     echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Ending Suspend Loop${RESET}" >> "$LOG_FILE"
-    sudo initctl start cras >/dev/null 2>&1
+    cras_test_client --suspend 0 >/dev/null 2>&1
     sleep 0.2
     suspend_counter=0
     break
