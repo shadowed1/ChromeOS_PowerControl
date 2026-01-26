@@ -215,11 +215,13 @@ start_monitoring_loop() {
             if grep -q '^STARTUP_BATTERYCONTROL=1' "$CONFIG_FILE"; then
                 if [[ ! -f "$CONF_TARGET" ]]; then
                     sudo cp "$CONF_SOURCE" "$CONF_TARGET"
+                    sudo bash "$INSTALL_DIR/batterycontrol" start 2>/dev/null
                     echo "${GREEN}$(date '+%F %T') - BatteryControl Startup enabled${RESET}" >> "$LOG_FILE"
                 fi
             else
                 if [[ -f "$CONF_TARGET" ]]; then
                     sudo rm -f "$CONF_TARGET"
+                    sudo bash "$INSTALL_DIR/batterycontrol" stop 2>/dev/null
                     echo "${RED}$(date '+%F %T') - BatteryControl Startup disabled${RESET}" >> "$LOG_FILE"
                 fi
             fi
