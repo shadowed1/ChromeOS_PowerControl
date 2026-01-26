@@ -666,265 +666,265 @@ start_component_now "SleepControl" "$INSTALL_DIR/sleepcontrol"
 sudo chown chronos:chronos /home/chronos/user/MyFiles/Downloads/ChromeOS_PowerControl_Config/config
 sleep 1
 echo ""
-sleep 0.1
+sleep 0.05
 echo "                                                       ${RED}████████████${RESET}           "
-sleep 0.1
+sleep 0.05
 echo "                                                   ${RED}████${RESET}        ${RED}████${RESET}       "
-sleep 0.1
+sleep 0.05
 echo "                                                 ${RED}██${RESET}              ${YELLOW}██${RESET}     "
-sleep 0.1
+sleep 0.05
 echo "                                               ${GREEN}██${RESET}     ${BLUE}██████${RESET}     ${YELLOW}██${RESET}   "
-sleep 0.1
+sleep 0.05
 echo "                                              ${GREEN}██${RESET}     ${BLUE}████████${RESET}     ${YELLOW}██${RESET}  "
-sleep 0.1
+sleep 0.05
 echo "                                              ${GREEN}██${RESET}     ${BLUE}████████${RESET}     ${YELLOW}██${RESET}  "
-sleep 0.1
+sleep 0.05
 echo "                                               ${GREEN}██${RESET}     ${BLUE}██████${RESET}     ${YELLOW}██${RESET}   "
-sleep 0.1
+sleep 0.05
 echo "                                                 ${GREEN}██${RESET}              ${YELLOW}██${RESET}     "
-sleep 0.1
+sleep 0.05
 echo "                                                   ${GREEN}████${RESET}        ${YELLOW}████${RESET}       "
-sleep 0.1
+sleep 0.05
 echo "                                                       ${GREEN}████████████${RESET}           "
-sleep 0.1
+sleep 0.05
 echo ""
-sleep 0.1
+sleep 0.05
 echo "                                         ${RED}╔═══════════════════════════════╗${RESET}"
-sleep 0.1
+sleep 0.05
 echo "                                         ${YELLOW}║ ╔═══════════════════════════╗ ║${RESET}"
-sleep 0.1
+sleep 0.05
 echo "                                         ${GREEN}║ ║ ╔═══════════════════════╗ ║ ║${RESET}"
-sleep 0.1
+sleep 0.05
 echo "                                         ${RESET}║ ║ ║ ChromeOS_PowerControl ║ ║ ║${RESET}"
-sleep 0.1
+sleep 0.05
 echo "                                         ${CYAN}║ ║ ╚═══════════════════════╝ ║ ║${RESET}"
-sleep 0.1
+sleep 0.05
 echo "                                         ${BLUE}║ ╚═══════════════════════════╝ ║${RESET}"
-sleep 0.1
+sleep 0.05
 echo "                                         ${MAGENTA}╚═══════════════════════════════╝${RESET}"
-sleep 0.1
+sleep 0.05
 echo ""
-sleep 0.1
+sleep 0.05
 echo ""
 sleep 1
 echo "                                              Commands with examples:"
-sleep 0.1
+sleep 0.05
 echo "${CYAN}"
-sleep 0.1
+sleep 0.05
 echo "╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
-sleep 0.1
+sleep 0.05
 echo "║                                                  PowerControl:                                                     ║"
-sleep 0.1
+sleep 0.05
 echo "╠════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣"
-sleep 0.1
+sleep 0.05
 echo "║                                                                                                                    ║"
-sleep 0.1
+sleep 0.05
 echo "║  powercontrol                       # Show status                                                                  ║"
-sleep 0.1
+sleep 0.05
 echo "║  powercontrol help                  # Help menu                                                                    ║"
-sleep 0.1
+sleep 0.05
 echo "║  powercontrol monitor               # Toggle on/off live monitoring in terminal                                    ║"
-sleep 0.1
+sleep 0.05
 echo "║  powercontrol gui                   # Print commands to install GUI app for Crostini or Chard                      ║"
-sleep 0.1
+sleep 0.05
 echo "║  sudo powercontrol start            # Throttle CPU based on temperature curve                                      ║"
-sleep 0.1
+sleep 0.05
 echo "║  sudo powercontrol stop             # Restore default CPU settings                                                 ║"
-sleep 0.1
+sleep 0.05
 echo "║  sudo powercontrol no_turbo 1       # 0 = Enable, 1 = Disable Turbo Boost                                          ║"
-sleep 0.1
+sleep 0.05
 echo "║  sudo powercontrol max 75           # Set max performance percentage                                               ║"
-sleep 0.1
+sleep 0.05
 echo "║  sudo powercontrol min 20           # Set minimum performance at max temp                                          ║"
-sleep 0.1
+sleep 0.05
 echo "║  sudo powercontrol max_temp 86      # Max temperature threshold - Limit is 90°C                                    ║"
-sleep 0.1
+sleep 0.05
 echo "║  sudo powercontrol min_temp 60      # Min temperature threshold                                                    ║"
-sleep 0.1
+sleep 0.05
 echo "║  sudo powercontrol hotzone 78       # Temperature threshold for aggressive thermal management                      ║"
-sleep 0.1
+sleep 0.05
 echo "║  sudo powercontrol cpu_poll 1       # Interval in seconds PowerControl operates at (0.1s to 5s)                    ║"
-sleep 0.1
+sleep 0.05
 echo "║  sudo powercontrol ramp_up 15       # % in steps CPU will increase in clockspeed per second                        ║"
-sleep 0.1
+sleep 0.05
 echo "║  sudo powercontrol ramp_down 20     # % in steps CPU will decrease in clockspeed per second                        ║"
-sleep 0.1
+sleep 0.05
 echo "║  sudo powercontrol startup          # Copy or Remove no_turbo.conf & powercontrol.conf at: /etc/init/              ║"
-sleep 0.1
+sleep 0.05
 echo "║                                                                                                                    ║"
-sleep 0.1
+sleep 0.05
 echo "╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝"
 sleep 1
 echo "${RESET}${GREEN}╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
-sleep 0.1
+sleep 0.05
 echo "║                                                 BatteryControl:                                                    ║"
-sleep 0.1
+sleep 0.05
 echo "╠════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣"
-sleep 0.1
+sleep 0.05
 echo "║                                                                                                                    ║"
-sleep 0.1
+sleep 0.05
 echo "║  batterycontrol               # Check BatteryControl status                                                        ║"
-sleep 0.1
+sleep 0.05
 echo "║  batterycontrol monitor       # Toggle on/off live monitoring in terminal                                          ║"
-sleep 0.1
+sleep 0.05
 echo "║  batterycontrol help          # Help menu                                                                          ║"
-sleep 0.1
+sleep 0.05
 echo "║  batterycontrol monitor       # Monitor batterycontrol activity                                                    ║"
-sleep 0.1
+sleep 0.05
 echo "║  sudo batterycontrol start    # Start BatteryControl                                                               ║"
-sleep 0.1
+sleep 0.05
 echo "║  sudo batterycontrol stop     # Stop BatteryControl                                                                ║"
-sleep 0.1
+sleep 0.05
 echo "║  sudo batterycontrol 77       # Charge limit set to 77% - minimum of 14% allowed                                   ║"
-sleep 0.1
+sleep 0.05
 echo "║  sudo batterycontrol usage    # Monitor power consumption in real-time                                             ║"
-sleep 0.1
+sleep 0.05
 echo "║  sudo batterycontrol startup  # Copy or Remove batterycontrol.conf at: /etc/init/                                  ║"
-sleep 0.1
+sleep 0.05
 echo "║                                                                                                                    ║"
 echo "╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝"
 sleep 1
 echo "${RESET}${YELLOW}╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
-sleep 0.1
+sleep 0.05
 echo "║                                                  FanControl:                                                       ║"
-sleep 0.1
+sleep 0.05
 echo "╠════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣"
-sleep 0.1
+sleep 0.05
 echo "║                                                                                                                    ║"
-sleep 0.1
+sleep 0.05
 echo "║  fancontrol                       # Show FanControl status                                                         ║"
-sleep 0.1
+sleep 0.05
 echo "║  fancontrol help                  # Help menu                                                                      ║"
-sleep 0.1
+sleep 0.05
 echo "║  fancontrol monitor               # Toggle on/off live monitoring in terminal                                      ║"
-sleep 0.1
+sleep 0.05
 echo "║  sudo fancontrol start            # Start FanControl                                                               ║"
-sleep 0.1
+sleep 0.05
 echo "║  sudo fancontrol stop             # Stop FanControl                                                                ║"
-sleep 0.1
+sleep 0.05
 echo "║  sudo fancontrol min_temp 48      # Min temp threshold                                                             ║"
-sleep 0.1
+sleep 0.05
 echo "║  sudo fancontrol max_temp 81      # Max temp threshold - Limit is 90°C                                             ║"
-sleep 0.1
+sleep 0.05
 echo "║  sudo fancontrol min 0            # Min fan speed %                                                                ║"
-sleep 0.1
+sleep 0.05
 echo "║  sudo fancontrol max 100          # Max fan speed %                                                                ║"
-sleep 0.1
+sleep 0.05
 echo "║  sudo fancontrol step_up 20       # Fan step-up %                                                                  ║"
-sleep 0.1
+sleep 0.05
 echo "║  sudo fancontrol step_down 1      # Fan step-down %                                                                ║"
-sleep 0.1
+sleep 0.05
 echo "║  sudo fancontrol poll 2           # FanControl polling rate in seconds (1 to 10s)                                  ║"
-sleep 0.1
+sleep 0.05
 echo "║  sudo fancontrol startup          # Copy or Remove fancontrol.conf at: /etc/init/                                  ║"
-sleep 0.1
+sleep 0.05
 echo "║                                                                                                                    ║"
-sleep 0.1
+sleep 0.05
 echo "╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝"
 sleep 1
 echo "${RESET}${MAGENTA}╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
 echo "║                                                   GPUControl:                                                      ║"
-sleep 0.1
+sleep 0.05
 echo "╠════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣"
-sleep 0.1
+sleep 0.05
 echo "║                                                                                                                    ║"
-sleep 0.1
+sleep 0.05
 echo "║  gpucontrol                     # Show current GPU info and frequency                                              ║"
-sleep 0.1
+sleep 0.05
 echo "║  gpucontrol help                # Help menu                                                                        ║"
-sleep 0.1
+sleep 0.05
 echo "║  gpucontrol monitor             # Monitor GPU clockspeed in real-time                                              ║"
-sleep 0.1
+sleep 0.05
 echo "║  sudo gpucontrol start          # Start GPUControl                                                                 ║"
-sleep 0.1
+sleep 0.05
 echo "║  sudo gpucontrol stop           # Stop GPUControl                                                                  ║"
-sleep 0.1
+sleep 0.05
 echo "║  sudo gpucontrol restore        # Restore GPU max frequency to original value                                      ║"
-sleep 0.1
+sleep 0.05
 echo "║  sudo gpucontrol 700            # Set GPU max frequency to 700 MHz                                                 ║"
-sleep 0.1
+sleep 0.05
 echo "║  sudo gpucontrol startup        # Copy or Remove gpucontrol.conf at: /etc/init/                                    ║"
-sleep 0.1
+sleep 0.05
 echo "║                                                                                                                    ║"
-sleep 0.1
+sleep 0.05
 echo "╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝"
 sleep 1
 echo "${RESET}${BLUE}╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
 echo "║                                                  SleepControl                                                      ║"
-sleep 0.1
+sleep 0.05
 echo "╠════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣"
-sleep 0.1
+sleep 0.05
 echo "║                                                                                                                    ║"
-sleep 0.1
+sleep 0.05
 echo "║  sleepcontrol                       # Show SleepControl status                                                     ║"
-sleep 0.1
+sleep 0.05
 echo "║  sleepcontrol help                  # Help menu                                                                    ║"
-sleep 0.1
+sleep 0.05
 echo "║  sleepcontrol monitor               # Monitor sleepcontrol's log in realtime (ctrl-c to exit)                      ║"
-sleep 0.1
+sleep 0.05
 echo "║  sleepcontrol powerd                # Monitor powerd.LATEST log in realtime (ctrl-c to exit)                       ║"
-sleep 0.1
+sleep 0.05
 echo "║  sudo sleepcontrol start            # Start SleepControl                                                           ║"
-sleep 0.1
+sleep 0.05
 echo "║  sudo sleepcontrol stop             # Stop SleepControl                                                            ║"
-sleep 0.1
+sleep 0.05
 echo "║  sudo sleepcontrol battery 3 7 12   # When idle, display dims in 3m -> timeout in 7m -> sleeps in 12m on battery   ║"
-sleep 0.1
+sleep 0.05
 echo "║  sudo sleepcontrol power 5 15 30    # When idle, display dims in 5m -> timeout -> 15m -> sleeps in 30m plugged-in  ║"
-sleep 0.1
+sleep 0.05
 echo "║  sudo sleepcontrol battery audio 0  # Disable audio detection on battery; sleep can occur during media playback    ║"
-sleep 0.1
+sleep 0.05
 echo "║  sudo sleepcontrol power audio 1    # Enable audio detection on power; delaying sleep until audio is stopped       ║"
-sleep 0.1
+sleep 0.05
 echo "║  sudo sleepcontrol lid battery 1    # Enable sleep on closing the lid on battery.                                  ║"
-sleep 0.1
+sleep 0.05
 echo "║  sudo sleepcontrol lid power 0      # Disable sleep on closing the lid on power.                                   ║"
-sleep 0.1
+sleep 0.05
 echo "║  sudo sleepcontrol startup          # Copy or Remove sleepcontrol.conf at: /etc/init/                              ║"
-sleep 0.1
+sleep 0.05
 echo "║                                                                                                                    ║"
-sleep 0.1
+sleep 0.05
 echo "╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝"
 sleep 1
 echo "${RESET}${CYAN}${BOLD}╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
-sleep 0.1
+sleep 0.05
 echo "║                                              ChromeOS_PowerControl                                                 ║"
-sleep 0.1
+sleep 0.05
 echo "╠════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣"
-sleep 0.1
+sleep 0.05
 echo "║                                                                                                                    ║"
-sleep 0.1
+sleep 0.05
 echo "║  powercontrol all               # Show status of all ChromeOS_PowerControl components                              ║"
-sleep 0.1
+sleep 0.05
 echo "║  powercontrol help_all          # Global help menu                                                                 ║"
-sleep 0.1
+sleep 0.05
 echo "║  sudo powercontrol version      # Check PowerControl version                                                       ║"
-sleep 0.1
+sleep 0.05
 echo "║  sudo powercontrol startup_all  # Copy or Remove all .conf files at: /etc/init/                                    ║"
-sleep 0.1
+sleep 0.05
 echo "║  sudo powercontrol reinstall    # Download and reinstall ChromeOS_PowerControl                                     ║"
-sleep 0.1
+sleep 0.05
 echo "║  sudo powercontrol uninstall    # Run uninstaller                                                                  ║"
-sleep 0.1
+sleep 0.05
 echo "║                                                                                                                    ║"
-sleep 0.1
+sleep 0.05
 echo "╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝"
-sleep 0.1
+sleep 0.05
 echo "   sudo bash "$INSTALL_DIR/Uninstall_ChromeOS_PowerControl.sh"  # Alternate uninstall method"
-sleep 0.1
+sleep 0.05
 echo " ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════"
-sleep 0.1
+sleep 0.05
 echo "${RESET}"
 sleep 1
 if [[ "$SHOW_BATTERYCONTROL_NOTICE" -eq 1 ]]; then
 echo "${GREEN}"
-sleep 0.1
+sleep 0.05
 echo "╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
-sleep 0.1
+sleep 0.05
 echo "║   ${RESET}${GREEN}${BOLD}BatteryControl Notice:${RESET}${GREEN}                                                                                           ║"
-sleep 0.1
+sleep 0.05
 echo "║   Disable Adaptive Charging in Settings → System Preferences → Power to avoid notification spam.                   ║"
-sleep 0.1
+sleep 0.05
 echo "╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝${RESET}"
 fi
 
@@ -937,35 +937,35 @@ fi
 sleep 1
 if [[ "$SHOW_SLEEPCONTROL_NOTICE" -eq 1 ]]; then
 echo "${BLUE}╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
-sleep 0.1
+sleep 0.05
 echo "║  ${RESET}${BLUE}${BOLD}SleepControl Notice:${RESET}${BLUE}                                                                                              ║"
-sleep 0.1
+sleep 0.05
 echo "║  Disable Sleep in Settings → System Preferences → Power to allow SleepControl to function properly.                ║"
-sleep 0.1
+sleep 0.05
 echo "╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝${RESET}"
-sleep 0.1
+sleep 0.05
 echo ""
 fi
 sleep 1
 echo "                                      ${RED}╔═══════════════════════════════╗${RESET}"
-sleep 0.1
+sleep 0.05
 echo "                                      ${YELLOW}║ ╔═══════════════════════════╗ ║${RESET}"
-sleep 0.1
+sleep 0.05
 
 echo "                                      ${GREEN}║ ║ ╔═══════════════════════╗ ║ ║${RESET}"
-sleep 0.1
+sleep 0.05
 
 echo "                                      ${RESET}║ ║ ║ Installation Complete ║ ║ ║${RESET}"
-sleep 0.1
+sleep 0.05
 
 echo "                                      ${CYAN}║ ║ ╚═══════════════════════╝ ║ ║${RESET}"
-sleep 0.1
+sleep 0.05
 
 echo "                                      ${BLUE}║ ╚═══════════════════════════╝ ║${RESET}"
-sleep 0.1
+sleep 0.05
 
 echo "                                      ${MAGENTA}╚═══════════════════════════════╝${RESET}"
-sleep 0.1
+sleep 0.05
 
 echo ""
 echo ""
