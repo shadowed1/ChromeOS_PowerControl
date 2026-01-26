@@ -294,7 +294,7 @@ __gpucontrol_monitor__)
         ;;
     start)
         stop_monitoring >/dev/null 2>&1
-    
+        echo "${MAGENTA}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Starting GPUControl - Output is logged to $LOG_FILE${RESET}" | tee -a "$LOG_FILE"
         if [[ -f "$LOG_FILE" ]] && [[ $(stat -c%s "$LOG_FILE") -gt 32768 ]]; then
             echo "$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Log truncated" > "$LOG_FILE"
         fi
