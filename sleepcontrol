@@ -23,8 +23,15 @@ LAST_POWER_STATE="${INSTALL_DIR}/.last_power_state"
 FAKE_ACTIVITY_GRACE=1
 timestamp=$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1)
 SAVED_BRIGHTNESS_FILE="$INSTALL_DIR/.saved_brightness"
-
 SUSPEND_APPLIED_FLAG="/tmp/.sleepcontrol_suspend_applied"
+
+if [ -f "$INSTALL_DIR/config" ]; then
+    CONFIG_FILE="$INSTALL_DIR/config"
+elif [ -f "/home/chronos/user/MyFiles/Downloads/ChromeOS_PowerControl_Config/config" ]; then
+    CONFIG_FILE="/home/chronos/user/MyFiles/Downloads/ChromeOS_PowerControl_Config/config"
+else
+    CONFIG_FILE="$INSTALL_DIR/config"
+fi
 
 if [[ ! -f "$SUSPEND_APPLIED_FLAG" ]]; then
     INSTALL_DIR="$(dirname "$(readlink -f "$0")")"
