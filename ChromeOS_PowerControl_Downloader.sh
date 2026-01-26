@@ -50,6 +50,7 @@ echo "╚═══════════════════════�
 echo "${RESET}"
 echo ""
 echo ""
+rm -f /home/chronos/user/ChromeOS_PowerControl_Installer.sh 2>/dev/null
 curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/ChromeOS_PowerControl_Installer.sh -o /home/chronos/user/ChromeOS_PowerControl_Installer.sh
 echo "${CYAN}╔══════════════════════════════════════════════════════════════════════╗${RESET}"
 echo "${GREEN}║  Downloading to: /home/chronos/ChromeOS_PowerControl_Installer.sh    ║${RESET}"
