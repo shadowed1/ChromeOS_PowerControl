@@ -397,7 +397,7 @@ start_monitoring_loop() {
     while [ -f "$RUN_FLAG" ]; do
         now=$EPOCHSECONDS
     
-        if (( now - last_reload_time >= 10 )); then
+        if (( now - last_reload_time >= 5 )); then
             load_config
             validate_config
             min_temp_c=$MIN_TEMP
