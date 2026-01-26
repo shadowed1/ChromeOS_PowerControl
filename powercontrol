@@ -9,6 +9,17 @@ BOLD=$(tput bold)
 RESET=$(tput sgr0)
 INSTALL_DIR="@INSTALL_DIR@"
 CONFIG_FILE="/home/chronos/user/MyFiles/Downloads/ChromeOS_PowerControl_Config/config"
+
+if [ -f "$INSTALL_DIR/config" ]; then
+    CONFIG_FILE="$INSTALL_DIR/config"
+elif [ -f "/home/chronos/user/MyFiles/Downloads/ChromeOS_PowerControl_Config/config" ]; then
+    CONFIG_FILE="/home/chronos/user/MyFiles/Downloads/ChromeOS_PowerControl_Config/config"
+else
+    CONFIG_FILE="$INSTALL_DIR/config"
+fi
+
+LOG_FILE="/var/log/powercontrol.log"
+
 LOG_FILE="/var/log/powercontrol.log"
 RUN_FLAG="$INSTALL_DIR/.powercontrol_enabled"
 PID_FILE="$INSTALL_DIR/.powercontrol_pid"
