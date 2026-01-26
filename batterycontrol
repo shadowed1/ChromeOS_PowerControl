@@ -85,7 +85,6 @@ validate_config() {
 save_config() {
     validate_config
     sed -i "s/^CHARGE_MAX=.*/CHARGE_MAX=$CHARGE_MAX/" "$CONFIG_FILE" || echo "CHARGE_MAX=$CHARGE_MAX" >> "$CONFIG_FILE"
-    sudo cp "$INSTALL_DIR/config" "/home/chronos/user/MyFiles/Downloads/ChromeOS_PowerControl_Config/config"
 }
 
 load_config
