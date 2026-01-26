@@ -464,7 +464,7 @@ send_fake_activity() {
             if (( audio_active == 0 )) && (( now - last_ts > 5 )) && (( now - idle_since > 5 )); then
                 if (( LIDSLEEP_ENABLED == 1 && lid_closed == 1 )); then
                     echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Lid sleep enabled and lid closed, skipping fake activity${RESET}" >> "$LOG_FILE"
-                    sleep 3
+                    sleep 1
                     sudo "$INSTALL_DIR/deep_suspend.sh" 2>/dev/null
                 else
                     monitor_idle=1
@@ -485,13 +485,12 @@ send_fake_activity() {
 
             if (( LIDSLEEP_ENABLED == 1 )); then
                 echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Lid closed, lid sleep on! ${RESET}" >> "$LOG_FILE"
-                sleep 3
                 stop_fake_activity
-                sleep 2
+                sleep 1
                 sudo "$INSTALL_DIR/deep_suspend.sh"
             else
                 echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Lid closed, lid sleep off!${RESET}" >> "$LOG_FILE"
-                sleep 5
+                sleep 3
                 start_fake_activity
             fi
             ;;
@@ -542,7 +541,7 @@ send_fake_activity() {
                     if (( LIDSLEEP_ENABLED == 1 )); then
                         echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Lid is closed and lid sleep enabled on ${STATUS}, going back to sleep!${RESET}" >> "$LOG_FILE"
                         stop_fake_activity
-                        sleep 3
+                        sleep 1
                         sudo "$INSTALL_DIR/deep_suspend.sh"
                     else
                         echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Lid is closed but lid sleep disabled on ${STATUS}${RESET}" >> "$LOG_FILE"
@@ -679,13 +678,12 @@ send_fake_activity() {
                     (( sending_fake_activity == 0 )) && start_fake_activity
                 else
                     stop_fake_activity
-                    sleep 2
+                    sleep 1
                     echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Sleep threshold elapsed; going to sleep!" >> "$LOG_FILE"
                     monitor_idle=0
                     idle_since=$now
                     last_ts=$now
                     idle_elapsed=0
-                    sleep 3
                     sudo "$INSTALL_DIR/deep_suspend.sh"
                 fi
             fi
