@@ -69,7 +69,7 @@ while true; do
   
   start_time="$(cat /sys/class/rtc/rtc0/since_epoch)"
   sudo stop tlsdated >/dev/null 2>&1
-  cras_test_client --suspend 5 >/dev/null 2>&1
+  cras_test_client --suspend 30 >/dev/null 2>&1
   echo mem | sudo tee /sys/power/state >/dev/null 2>&1
   end_time="$(cat /sys/class/rtc/rtc0/since_epoch)"
   actual_sleep_time=$(( end_time - start_time ))
