@@ -90,10 +90,10 @@ while true; do
   fi
   
   suspend_counter=$(( suspend_counter + 1 ))
-  echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Suspend count: ${YELLOW}${suspend_counter} / 500${RESET}" >> "$LOG_FILE"
+  echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Suspend count: ${YELLOW}${suspend_counter} / 512${RESET}" >> "$LOG_FILE"
   
-  if [ "${suspend_counter}" -ge 500 ]; then
-    echo "${RED}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Reached 500 consecutive suspend cycles. Powering down.${RESET}" >> "$LOG_FILE"
+  if [ "${suspend_counter}" -ge 512 ]; then
+    echo "${RED}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Reached 512 consecutive suspend cycles. Powering down! ${RESET}" >> "$LOG_FILE"
     sudo shutdown -h now
     exit 0
   fi
