@@ -605,9 +605,7 @@ reinstall_script() {
             sudo bash "$script"
         fi
     else
-        curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/ChromeOS_PowerControl_Installer.sh -o /home/chronos/user/ChromeOS_PowerControl_Installer.sh
-        sudo mkdir -p /usr/local/bin
-        sudo bash /home/chronos/user/ChromeOS_PowerControl_Installer.sh
+        bash <(curl -s "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/Reinstall_ChromeOS_PowerControl.sh?$(date +%s)") 2>/dev/null
     fi
     exit 0
 }
