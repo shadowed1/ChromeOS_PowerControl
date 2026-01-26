@@ -25,13 +25,23 @@ timestamp=$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1)
 SAVED_BRIGHTNESS_FILE="$INSTALL_DIR/.saved_brightness"
 SUSPEND_APPLIED_FLAG="/tmp/.sleepcontrol_suspend_applied"
 
-if [ -f "$INSTALL_DIR/config" ]; then
-    CONFIG_FILE="$INSTALL_DIR/config"
-elif [ -f "/home/chronos/user/MyFiles/Downloads/ChromeOS_PowerControl_Config/config" ]; then
-    CONFIG_FILE="/home/chronos/user/MyFiles/Downloads/ChromeOS_PowerControl_Config/config"
-else
-    CONFIG_FILE="$INSTALL_DIR/config"
-fi
+wait_for_config() {
+    local config_dir="/home/chronos/user/MyFiles/Downloads/ChromeOS_PowerControl_Config"
+    local max_wait=300
+    local elapsed=0
+    
+    while [ $elapsed -lt $max_wait ]; do
+        if [ -f "$CONFIG_FILE" ]; then
+            return 0
+        fi
+        
+        sleep 5
+        elapsed=$((elapsed + 5))
+    done
+    
+    echo "${RED}Error: Config file not available after 5 minutes${RESET}" | tee -a "$LOG_FILE"
+    return 1
+}
 
 if [[ ! -f "$SUSPEND_APPLIED_FLAG" ]]; then
     INSTALL_DIR="$(dirname "$(readlink -f "$0")")"
@@ -230,8 +240,6 @@ save_config() {
     sed -i "s/^ORIGINAL_SUSPEND_MODE=.*/ORIGINAL_SUSPEND_MODE=$ORIGINAL_SUSPEND_MODE/" "$CONFIG_FILE" || echo "ORIGINAL_SUSPEND_MODE=$ORIGINAL_SUSPEND_MODE" >> "$CONFIG_FILE"
     sed -i "s/^LIDSLEEP_BATTERY=.*/LIDSLEEP_BATTERY=$LIDSLEEP_BATTERY/" "$CONFIG_FILE" || echo "LIDSLEEP_BATTERY=$LIDSLEEP_BATTERY" >> "$CONFIG_FILE"
     sed -i "s/^LIDSLEEP_POWER=.*/LIDSLEEP_POWER=$LIDSLEEP_POWER/" "$CONFIG_FILE" || echo "LIDSLEEP_POWER=$LIDSLEEP_POWER" >> "$CONFIG_FILE"
-    sudo cp "$INSTALL_DIR/config" "/home/chronos/user/MyFiles/Downloads/ChromeOS_PowerControl_Config/config"
-
 }
 
 show_help() {
