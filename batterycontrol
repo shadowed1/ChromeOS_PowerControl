@@ -322,8 +322,8 @@ case "$1" in
         stop_monitoring >/dev/null 2>&1
         LOG_FILE="/var/log/batterycontrol.log"
 
-        if [ -f "$LOG_FILE" ] && [ "$(stat -c%s "$LOG_FILE")" -gt 32768 ]; then
-            echo "$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Truncated log file (exceeded 32KB)" > "$LOG_FILE"
+        if [ -f "$LOG_FILE" ] && [ "$(stat -c%s "$LOG_FILE")" -gt 131072 ]; then
+            echo "$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Truncated log file (exceeded 128KB)" > "$LOG_FILE"
         fi
 
 
