@@ -128,9 +128,9 @@ validate_config() {
         MIN_TEMP=$(( MAX_TEMP - 10 ))
     fi
 
-    if (( HOTZONE < 60 )); then
-        echo "Warning: HOTZONE below 60, resetting."
-        HOTZONE=60
+    if (( HOTZONE < 50 )); then
+        echo "Warning: HOTZONE below 50, resetting."
+        HOTZONE=50
     elif (( HOTZONE > 90 )); then
         echo "Warning: HOTZONE above 90, resetting."
         HOTZONE=90
