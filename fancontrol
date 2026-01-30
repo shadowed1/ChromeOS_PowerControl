@@ -41,7 +41,7 @@ if ! ( [[ -z "$1" ]] || [[ "$1" == "--h" || "$1" == "-h" || "$1" == "h" || "$1" 
     exit 1
 fi
 
-DEFAULT_FAN_MIN_TEMP=54
+DEFAULT_FAN_MIN_TEMP=50
 DEFAULT_FAN_MAX_TEMP=85
 DEFAULT_MIN_FAN=0
 DEFAULT_MAX_FAN=100  
