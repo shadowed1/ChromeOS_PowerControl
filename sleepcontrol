@@ -279,14 +279,22 @@ save_current_brightness() {
     if [[ $was_dimmed -eq 0 ]]; then
         if [[ -f "$BRIGHTNESS_PATH" && -r "$BRIGHTNESS_PATH" ]]; then
             if read -r brightness_val < "$BRIGHTNESS_PATH" 2>/dev/null; then
-                echo "$brightness_val" | sudo tee "$SAVED_BRIGHTNESS_FILE" >/dev/null 2>&1
-                saved_display_brightness="$brightness_val" >/dev/null 2>&1
-                echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Saved brightness: ${RESET}${YELLOW}$brightness_val${RESET}" >> "$LOG_FILE"
-            else
-                echo "${YELLOW}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Could not read from $BRIGHTNESS_PATH ${RESET}" >> "$LOG_FILE"
+                if [[ -f "$MAX_BRIGHTNESS_PATH" && -r "$MAX_BRIGHTNESS_PATH" ]]; then
+                    max_brightness=$(cat "$MAX_BRIGHTNESS_PATH" 2>/dev/null)
+                    min_threshold=$((max_brightness * 5 / 100))
+                    if [[ "$brightness_val" =~ ^[0-9]+$ ]] && [[ "$brightness_val" -ge "$min_threshold" ]] && [[ "$brightness_val" -le "$max_brightness" ]]; then
+                        echo "$brightness_val" | sudo tee "$SAVED_BRIGHTNESS_FILE" >/dev/null 2>&1
+                        saved_display_brightness="$brightness_val"
+                        echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Saved brightness: ${RESET}${YELLOW}$brightness_val${RESET}" >> "$LOG_FILE"
+                    else
+                        echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Brightness too low ${RESET}${YELLOW}($brightness_val < $min_threshold)${RESET}${BLUE}, not saving${RESET}" >> "$LOG_FILE"
+                    fi
+                else
+                    echo "$brightness_val" | sudo tee "$SAVED_BRIGHTNESS_FILE" >/dev/null 2>&1
+                    saved_display_brightness="$brightness_val"
+                    echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Saved brightness: ${RESET}${YELLOW}$brightness_val${RESET}" >> "$LOG_FILE"
+                fi
             fi
-        else
-            echo "${YELLOW}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Brightness path not accessible: $BRIGHTNESS_PATH ${RESET}" >> "$LOG_FILE"
         fi
     fi
 }
