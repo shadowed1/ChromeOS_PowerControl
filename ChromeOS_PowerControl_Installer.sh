@@ -1,4 +1,4 @@
-#!/bin/bash
+f#!/bin/bash
 RED=$(tput setaf 1)
 GREEN=$(tput setaf 2)
 YELLOW=$(tput setaf 3)
@@ -413,7 +413,7 @@ if [[ -z "${RAMP_DOWN}" ]]; then RAMP_DOWN=10; fi
 if [[ -z "${CHARGE_MAX}" ]]; then CHARGE_MAX=77; fi
 if [[ -z "${MIN_FAN}" ]]; then MIN_FAN=0; fi
 if [[ -z "${MAX_FAN}" ]]; then MAX_FAN=100; fi
-if [[ -z "${FAN_MIN_TEMP}" ]]; then FAN_MIN_TEMP=54; fi
+if [[ -z "${FAN_MIN_TEMP}" ]]; then FAN_MIN_TEMP=50; fi
 if [[ -z "${FAN_MAX_TEMP}" ]]; then FAN_MAX_TEMP=85; fi
 if [[ -z "${STEP_UP}" ]]; then STEP_UP=4; fi
 if [[ -z "${STEP_DOWN}" ]]; then STEP_DOWN=1; fi
