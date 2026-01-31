@@ -281,7 +281,7 @@ save_current_brightness() {
             if read -r brightness_val < "$BRIGHTNESS_PATH" 2>/dev/null; then
                 if [[ -f "$MAX_BRIGHTNESS_PATH" && -r "$MAX_BRIGHTNESS_PATH" ]]; then
                     max_brightness=$(cat "$MAX_BRIGHTNESS_PATH" 2>/dev/null)
-                    min_threshold=$((max_brightness * 5 / 100))
+                    min_threshold=$((max_brightness * 1 / 100))
                     if [[ "$brightness_val" =~ ^[0-9]+$ ]] && [[ "$brightness_val" -ge "$min_threshold" ]] && [[ "$brightness_val" -le "$max_brightness" ]]; then
                         echo "$brightness_val" | sudo tee "$SAVED_BRIGHTNESS_FILE" >/dev/null 2>&1
                         saved_display_brightness="$brightness_val"
