@@ -618,20 +618,14 @@ send_fake_activity() {
             if (( kb_brightness_restored == 0 )); then
                 kb_brightness_restored=1
             fi
-    
+        
             if [[ -n "$saved_display_brightness" && "$saved_display_brightness" -ge 0 ]]; then
                 set_display_brightness "$saved_display_brightness"
             fi
-
+        
             power_backlight_ts=$now
             battery_backlight_ts=$now
             was_dimmed=0
-            if (( was_dimmed == 0 )); then
-                save_current_brightness
-            fi
-            if [[ -n "$saved_display_brightness" && "$saved_display_brightness" -gt 0 ]]; then
-                echo "$saved_display_brightness" | sudo tee "$BRIGHTNESS_PATH" >/dev/null 2>&1
-            fi
             ;;
         *"Got user-triggered request to set brightness to "*)
             monitor_idle=0
@@ -643,9 +637,17 @@ send_fake_activity() {
             line=$(grep "Setting brightness to" /var/log/power_manager/powerd.LATEST | tail -n1)
             brightness_value=$(echo "$line" | sed -n 's/.*Setting brightness to \([0-9]\+\) (.*/\1/p')
         
-            if [[ -n "$brightness_value" && "$brightness_value" -gt 0 && $lid_closed -eq 0 && $backlight_off -eq 0 ]]; then
-                saved_display_brightness="$brightness_value" >/dev/null 2>&1
-                echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Saved display brightness: ${RESET}${YELLOW}$saved_display_brightness${RESET}" >> "$LOG_FILE"
+            if [[ -n "$brightness_value" && "$brightness_value" -gt 0 && $lid_closed -eq 0 && $backlight_off -eq 0 && $was_dimmed -eq 0 ]]; then
+                if [[ -f "$MAX_BRIGHTNESS_PATH" && -r "$MAX_BRIGHTNESS_PATH" ]]; then
+                    max_brightness=$(cat "$MAX_BRIGHTNESS_PATH" 2>/dev/null)
+                    min_threshold=$((max_brightness * 5 / 100))
+                    
+                    if [[ "$brightness_value" -ge "$min_threshold" ]]; then
+                        saved_display_brightness="$brightness_value"
+                        echo "$brightness_value" | sudo tee "$SAVED_BRIGHTNESS_FILE" >/dev/null 2>&1
+                        echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Saved display brightness: ${RESET}${YELLOW}$saved_display_brightness${RESET}" >> "$LOG_FILE"
+                    fi
+                fi
             fi
             ;;
         esac
