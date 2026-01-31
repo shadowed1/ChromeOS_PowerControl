@@ -640,7 +640,7 @@ send_fake_activity() {
             if [[ -n "$brightness_value" && "$brightness_value" -gt 0 && $lid_closed -eq 0 && $backlight_off -eq 0 && $was_dimmed -eq 0 ]]; then
                 if [[ -f "$MAX_BRIGHTNESS_PATH" && -r "$MAX_BRIGHTNESS_PATH" ]]; then
                     max_brightness=$(cat "$MAX_BRIGHTNESS_PATH" 2>/dev/null)
-                    min_threshold=$((max_brightness * 5 / 100))
+                    min_threshold=$((max_brightness * 1 / 100))
                     
                     if [[ "$brightness_value" -ge "$min_threshold" ]]; then
                         saved_display_brightness="$brightness_value"
