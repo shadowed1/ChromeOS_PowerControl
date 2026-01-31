@@ -28,11 +28,10 @@ case "$CMD" in
             if [ "$state" != "T" ]; then
                 sudo kill -STOP "$pid"
             else
-                echo "${RESET}${CYAN}ARCVM pid $pid already frozen${RESET}"
+                echo "${RESET}${CYAN}ARCVM PID $pid: FROZEN${RESET}"
             fi
         done
         ;;
-
     start)
         pids=$(ARC_PIDS)
         if [ -z "$pids" ]; then
@@ -44,7 +43,6 @@ case "$CMD" in
             sudo kill -CONT "$pid"
         done
         ;;
-
     status)
         pids=$(ARC_PIDS)
         if [ -z "$pids" ]; then
@@ -55,14 +53,13 @@ case "$CMD" in
         for pid in $pids; do
             state=$(awk '{print $3}' /proc/$pid/stat)
             case "$state" in
-                T) echo "${CYAN}ARCVM pid $pid: FROZEN${RESET}" ;;
-                *) echo "${GREEN}ARCVM pid $pid: RUNNING ($state)${RESET}" ;;
+                T) echo "${RED}ARCVM PID $pid: FROZEN${RESET}" ;;
+                *) echo "${GREEN}ARCVM PID $pid: RUNNING - ($state) ${RESET}" ;;
             esac
         done
         ;;
 
     *)
-        echo "${CYAN}Usage: arc [start|stop|status]${RESET}"
         exit 1
         ;;
 esac
