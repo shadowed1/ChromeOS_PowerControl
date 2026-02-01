@@ -67,12 +67,11 @@ fi
 ```
 <br><br>
 - Can use global commands for ease of use, has a unified config file, and the ability to change settings in real-time. 
-- Contains a feature-rich installer, an uninstaller that cleans up after itself, and logs stored in /var/log/ for statistics.
-- Optionally have BatteryControl, PowerControl, FanControl, GPUControl, and SleepControl start on boot if user has rootfs verification disabled.
+- Supports an installer, uninstaller, and logs stored in /var/log/ for debugging.
+- Have BatteryControl, PowerControl, FanControl, GPUControl, and SleepControl start on boot if user has rootfs verification disabled.
 - Requires Developer Mode - Supports AMD, ARM, and Intel.
 - GUI app is available for Crostini and Chard.
 - Start on boot has a built-in 120-180s delay.
-
 
 <br> <br> 
 
