@@ -29,7 +29,7 @@ case "$CMD" in
             if [ "$state" != "T" ]; then
                 sudo kill -STOP "$pid"
             else
-                echo "${RESET}${CYAN}ARCVM PID $pid: FROZEN${RESET}"
+                echo "${RESET}${RED}ARCVM PID $pid: FROZEN${RESET}"
             fi
         done
         ;;
