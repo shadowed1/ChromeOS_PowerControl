@@ -242,7 +242,14 @@ __How It Works:__
 - Requires sleep to be disabled in settings -> power.
 - Uses a custom sleep loop that wakes up device periodically to allow battery charge limit to remain preserved.
 
+*If using SleepControl, disable ChromeOS sleep in Settings:*
+
 <br>
+
+  <img src="https://i.imgur.com/Qw9gLMa.png" alt="logo" width="400" />
+</p>
+<br>
+
 <br>
 
 *Changelog:*
