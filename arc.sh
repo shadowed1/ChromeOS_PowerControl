@@ -1,4 +1,5 @@
 #!/bin/bash
+# Toggle On/Off ArcVM
 
 RED=$(tput setaf 1)
 GREEN=$(tput setaf 2)
