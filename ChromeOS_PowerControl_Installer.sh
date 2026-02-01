@@ -925,7 +925,7 @@ echo "╔═══════════════════════�
 sleep 0.01
 echo "║   ${RESET}${GREEN}${BOLD}BatteryControl Notice:${RESET}${GREEN}                                                                                           ║"
 sleep 0.01
-echo "║   Disable Adaptive Charging in Settings → System Preferences → Power to avoid notification spam.                   ║"
+echo "║   DISABLE Adaptive Charging in Settings → System Preferences → Power to avoid notification spam.                   ║"
 sleep 0.01
 echo "╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝${RESET}"
 fi
@@ -942,7 +942,7 @@ echo "${BLUE}╔═════════════════════�
 sleep 0.01
 echo "║  ${RESET}${BLUE}${BOLD}SleepControl Notice:${RESET}${BLUE}                                                                                              ║"
 sleep 0.01
-echo "║  ${BOLD}Disable${RESET}${BLUE} Sleep in Settings → System Preferences → Power to allow SleepControl to function properly.                ║"
+echo "║  DISABLE Sleep in Settings → System Preferences → Power to allow SleepControl to function properly.                ║"
 sleep 0.01
 echo "╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝${RESET}"
 sleep 0.01
