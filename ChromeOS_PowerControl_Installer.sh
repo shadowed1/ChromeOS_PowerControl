@@ -239,7 +239,7 @@ declare -a files=(
   "sleepcontrol" "deep_suspend.sh"
   "Uninstall_ChromeOS_PowerControl.sh"
   "Reinstall_ChromeOS_PowerControl.sh"
-  "LICENSE" "README.md" "version"
+  "LICENSE" "README.md" "version" "arc.sh"
   "no_turbo.conf" "batterycontrol.conf"
   "powercontrol.conf" "fancontrol.conf"
   "gpucontrol.conf" "sleepcontrol.conf"
@@ -514,6 +514,7 @@ echo ""
     sudo ln -sf "$INSTALL_DIR/fancontrol" /usr/local/bin/fancontrol
     sudo ln -sf "$INSTALL_DIR/gpucontrol" /usr/local/bin/gpucontrol
     sudo ln -sf "$INSTALL_DIR/sleepcontrol" /usr/local/bin/sleepcontrol
+    sudo ln -sf "$INSTALL_DIR/arc.sh" /usr/local/bin/arc
 
     echo ""
     
