@@ -15,14 +15,14 @@ for f in suspend_duration backup_rtc pre_suspend_command post_resume_command; do
     unset "FLAGS_$f" 2>/dev/null || true
 done
 
-DEFINE_integer suspend_duration 600 "seconds" 2>/dev/null
+DEFINE_integer suspend_duration 900 "seconds" 2>/dev/null
 DEFINE_boolean backup_rtc "${FLAGS_FALSE}" "rtc for backup" 2>/dev/null
 DEFINE_string pre_suspend_command "" "eval before suspend" 2>/dev/null
 DEFINE_string post_resume_command "" "eval after resume" 2>/dev/null
 
 FLAGS "$@" || exit 1
 
-FLAGS_suspend_duration=${FLAGS_suspend_duration:-600}
+FLAGS_suspend_duration=${FLAGS_suspend_duration:-900}
 FLAGS_backup_rtc=${FLAGS_backup_rtc:-${FLAGS_FALSE}}
 FLAGS_pre_suspend_command=${FLAGS_pre_suspend_command:-""}
 FLAGS_post_resume_command=${FLAGS_post_resume_command:-""}
