@@ -196,84 +196,77 @@ echo "${RESET}"
 
 start_monitoring_loop() {
     detect_battery
-    : > "$RUN_FLAG"
-    printf '%s\n' "$$" > "$PID_FILE"
-    printf -v now '%(%Y-%m-%d %H:%M:%S)T' -1
-    printf "%b%s - BatteryControl started. (PID %s).%b\n" \
-        "$GREEN" "$now" "$$" "$RESET"
+    touch "$RUN_FLAG"
+    echo $$ > "$PID_FILE"
+
+    echo "${GREEN}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - BatteryControl started. (PID $$).${RESET}"
+
     local last_reload_time=0
-    local now epoch
-    local CHARGE STATUS BATTERY_CHARGE STATE
-    local ACTIVE_PORT AC_ON CHARGER_PATH
-    local startup_enabled=0
-    local last_charge_mode=""
-    while :; do
-        [[ -f "$RUN_FLAG" ]] || {
-            printf -v now '%(%Y-%m-%d %H:%M:%S)T' -1
-            printf "%b%s - BatteryControl Stopped%b\n" \
-                "$RED" "$now" "$RESET" >> "$LOG_FILE"
+
+    while true; do
+        if [ ! -f "$RUN_FLAG" ]; then
+            echo "${RED}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - BatteryControl Stopped${RESET}." | tee -a "$LOG_FILE"
             sudo rm -f "$PID_FILE"
             exit 0
-        }
-        printf -v epoch '%(%s)T' -1
-        if (( epoch - last_reload_time >= 10 )); then
+        fi
+
+        now=$(date +%s)
+        if (( now - last_reload_time >= 10 )); then
             load_config
-            last_reload_time=$epoch
+            last_reload_time=$now
+
             if read -r BATTERY_CHARGE < "$BATTERY_PATH"; then
                 read -r STATE < "$STATUS_PATH" || STATE="Unknown"
-                printf -v now '%(%Y-%m-%d %H:%M:%S)T' -1
-                printf "%b%s - Battery: %s%% - Charge Limit: %s%% - State: %s%b\n" \
-                    "$GREEN" "$now" "$BATTERY_CHARGE" "$CHARGE_MAX" "$STATE" "$RESET" \
-                    >> "$LOG_FILE"
+                echo "${GREEN}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Battery: ${BATTERY_CHARGE}% - Charge Limit: ${CHARGE_MAX}% - State: $STATE${RESET}" >> "$LOG_FILE"
+            else
+                echo "Failed to read $BATTERY_PATH" >&2
             fi
-            startup_enabled=0
-            while IFS='=' read -r key val; do
-                [[ $key == STARTUP_BATTERYCONTROL && $val == 1 ]] && startup_enabled=1
-            done < "$CONFIG_FILE"
-            if (( startup_enabled )); then
+
+            if grep -q '^STARTUP_BATTERYCONTROL=1' "$CONFIG_FILE"; then
                 if [[ ! -f "$CONF_TARGET" ]]; then
                     sudo cp "$CONF_SOURCE" "$CONF_TARGET"
-                    printf -v now '%(%Y-%m-%d %H:%M:%S)T' -1
-                    printf "%b%s - BatteryControl Startup enabled%b\n" \
-                        "$GREEN" "$now" "$RESET" >> "$LOG_FILE"
+                    echo "${GREEN}$(date '+%F %T') - BatteryControl Startup enabled${RESET}" >> "$LOG_FILE"
                 fi
             else
                 if [[ -f "$CONF_TARGET" ]]; then
                     sudo rm -f "$CONF_TARGET"
-                    printf -v now '%(%Y-%m-%d %H:%M:%S)T' -1
-                    printf "%b%s - BatteryControl Startup disabled%b\n" \
-                        "$RED" "$now" "$RESET" >> "$LOG_FILE"
+                    echo "${RED}$(date '+%F %T') - BatteryControl Startup disabled${RESET}" >> "$LOG_FILE"
                 fi
             fi
         fi
 
-        read -r CHARGE < "$BATTERY_PATH" || { sleep 5; continue; }
-        read -r STATUS < "$STATUS_PATH" || STATUS="Unknown"
+        if ! read -r CHARGE < "$BATTERY_PATH"; then
+            echo "Failed to read $BATTERY_PATH" >&2
+            sleep 5
+            continue
+        fi
+
+        if ! read -r STATUS < "$STATUS_PATH"; then
+            STATUS="Unknown"
+        fi
 
         ACTIVE_PORT=$(detect_active_usbpd_port)
-        if [[ $ACTIVE_PORT != -1 ]]; then
+        if [ "$ACTIVE_PORT" != "-1" ]; then
             CHARGER_PATH="/sys/class/power_supply/CROS_USBPD_CHARGER${ACTIVE_PORT}/online"
-            read -r AC_ON < "$CHARGER_PATH" || AC_ON=0
+            if [ -f "$CHARGER_PATH" ]; then
+                read -r AC_ON < "$CHARGER_PATH" || AC_ON=0
+            else
+                AC_ON=0
+            fi
         else
             AC_ON=0
         fi
 
         CHARGE_MIN=$((CHARGE_MAX - 4))
 
-        desired_mode="normal"
-        if (( AC_ON == 1 )); then
+        if [ "$AC_ON" -eq 1 ]; then
             if (( CHARGE >= CHARGE_MAX )); then
-                desired_mode="idle"
+                sudo ectool chargecontrol idle >/dev/null 2>&1
             elif (( CHARGE <= CHARGE_MIN )); then
-                desired_mode="normal"
-            else
-                desired_mode="$last_charge_mode"
+                sudo ectool chargecontrol normal >/dev/null 2>&1
             fi
-        fi
-
-        if [[ $desired_mode != "$last_charge_mode" && -n $desired_mode ]]; then
-            sudo ectool chargecontrol "$desired_mode" >/dev/null 2>&1
-            last_charge_mode="$desired_mode"
+        else
+            sudo ectool chargecontrol normal >/dev/null 2>&1
         fi
 
         sleep 7
@@ -297,40 +290,26 @@ usage() {
     echo "${GREEN}CTRL-C to exit${RESET}"
     while true; do
         data=$(sudo ectool battery 2>/dev/null)
-        voltage_mV=
-        current_mA=
-        while IFS= read -r line; do
-            case "$line" in
-                *"Present voltage"*)
-                    set -- $line
-                    voltage_mV=${3//[!0-9-]}
-                    ;;
-                *"Present current"*)
-                    set -- $line
-                    current_mA=${3//[!0-9-]}
-                    ;;
-            esac
-        done <<< "$data"
-        printf -v now '%(%H:%M:%S)T' -1
+        voltage_mV=$(echo "$data" | awk '/Present voltage/ {print $3}' | tr -d '[:alpha:]')
+        current_mA=$(echo "$data" | awk '/Present current/ {print $3}' | tr -d '[:alpha:]')
+    
         if [[ -z "$voltage_mV" || -z "$current_mA" ]]; then
-            echo "${RED}${now} - Error reading battery${RESET}"
+            echo "${RED}$(date +'%H:%M:%S') - Error reading battery${RESET}"
             sleep 1
             continue
         fi
-        power_uW=$(( voltage_mV * current_mA ))
-        abs_uW=${power_uW#-}
-        watts_int=$(( abs_uW / 1000000 ))
-        watts_frac=$(( (abs_uW % 1000000) / 1000 ))
-        printf -v power_fmt "%d.%03d" "$watts_int" "$watts_frac"
-        if (( power_uW > 0 )); then
-            COLOR="$GREEN"
-            SIGN="+"
-        else
+    
+        voltage=$(echo "scale=3; $voltage_mV / 1000" | bc)
+        current=$(echo "scale=3; $current_mA / 1000" | bc)
+        power=$(echo "scale=3; $voltage * $current" | bc)
+    
+        if [[ $(echo "$power < 0" | bc -l) -eq 1 ]]; then
             COLOR="$YELLOW"
-            SIGN="-"
+        else
+            COLOR="$GREEN"
         fi
-        printf "%b%s: %s%s W%b\n" \
-            "$COLOR" "$now" "$SIGN" "$power_fmt" "$RESET"
+    
+        echo "${COLOR}$(date +'%H:%M:%S'): ${power} W${RESET}"
         sleep 1
     done
 }
