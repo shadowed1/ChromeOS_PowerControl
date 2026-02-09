@@ -150,9 +150,6 @@ detect_gpu_freq() {
             fi
         fi
     fi
-    echo "${MAGENTA}GPU_TYPE=$GPU_TYPE"
-    echo "GPU_FREQ_PATH=$GPU_FREQ_PATH"
-    echo "GPU_MAX_FREQ=$GPU_MAX_FREQ ${RESET}"
 }
 
 detect_suspend_mode() {
