@@ -157,42 +157,36 @@ get_current_freq() {
 
 start_monitoring_loop() {
     wait_for_config
-    save_default_cpu_state
     touch "$RUN_FLAG"
     echo $$ > "$PID_FILE"
 
-    echo "${CYAN}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - PowerControl started (PID $$)${RESET}" >> "$LOG_FILE"
+    echo "${MAGENTA}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - GPUControl started (PID $$)${RESET}" >> "$LOG_FILE"
 
-    last_reload_time=0
-    cooldown_mode=false
-    last_pct=0
-    config_loaded=0
+    local last_reload=0
+    local config_loaded=0
 
-    while [ -f "$RUN_FLAG" ]; do
-        now=$EPOCHSECONDS
-    
-        if (( now - last_reload_time >= 5 )); then
+    while true; do
+        if [[ ! -f "$RUN_FLAG" ]]; then
+            echo "${RED}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - GPUControl stopped${RESET}" >> "$LOG_FILE"
+            sudo rm -f "$PID_FILE"
+            exit 0
+        fi
+
+        now=$(date +%s)
+        if (( now - last_reload >= 5 )); then
             if [[ -f "$CONFIG_FILE" ]]; then
                 source "$CONFIG_FILE" 2>/dev/null
                 load_config
-                validate_config
                 
-                if [[ -n "$MAX_TEMP" ]] && [[ "$MAX_TEMP" =~ ^[0-9]+$ ]] && \
-                   [[ -n "$MIN_TEMP" ]] && [[ "$MIN_TEMP" =~ ^[0-9]+$ ]]; then
+                if [[ "$ORIGINAL_GPU_MAX_FREQ" =~ ^[0-9]+$ ]] && [[ -n "$GPU_TYPE" ]]; then
                     if (( config_loaded == 0 )); then
-                        echo "${CYAN}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Configuration loaded successfully${RESET}" >> "$LOG_FILE"
+                        echo "${MAGENTA}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Configuration loaded successfully${RESET}" >> "$LOG_FILE"
                         config_loaded=1
                     fi
-                    
-                    min_temp_c=$MIN_TEMP
-                    high_temp_c=$MAX_TEMP
-                    min_perf_pct=$MIN_PERF_PCT
-                    max_perf_pct=$MAX_PERF_PCT
-                    ramp_up=$RAMP_UP
-                    ramp_down=$RAMP_DOWN
+                    apply_gpu_settings
                 else
                     if (( config_loaded == 0 )); then
-                        echo "${YELLOW}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Waiting for valid configuration...${RESET}" >> "$LOG_FILE"
+                        echo "${YELLOW}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Waiting for valid GPU configuration...${RESET}" >> "$LOG_FILE"
                     fi
                 fi
             else
@@ -201,89 +195,25 @@ start_monitoring_loop() {
                 fi
             fi
             
-            last_reload_time=$now
+            last_reload=$now
             
             if [[ -f "$CONFIG_FILE" ]]; then
-                if grep -q '^STARTUP_POWERCONTROL=1' "$CONFIG_FILE" 2>/dev/null; then
+                if grep -q '^STARTUP_GPUCONTROL=1' "$CONFIG_FILE" 2>/dev/null; then
                     if [[ ! -f "$CONF_TARGET" ]]; then
                         sudo cp "$CONF_SOURCE" "$CONF_TARGET"
-                        echo "${CYAN}$(date '+%F %T') - PowerControl Startup enabled${RESET}" >> "$LOG_FILE"
+                        echo "${MAGENTA}$(date '+%F %T') - GPUControl Startup enabled${RESET}" >> "$LOG_FILE"
                     fi
                 else
                     if [[ -f "$CONF_TARGET" ]]; then
                         sudo rm -f "$CONF_TARGET"
-                        echo "${RED}$(date '+%F %T') - PowerControl Startup disabled${RESET}" >> "$LOG_FILE"
+                        echo "${RED}$(date '+%F %T') - GPUControl Startup disabled${RESET}" >> "$LOG_FILE"
                     fi
                 fi
             fi
         fi
 
-        if (( config_loaded == 0 )); then
-            sleep 1
-            continue
-        fi
-
-        temp_c=$(get_temp)
-        if [ $? -ne 0 ] || [ -z "$temp_c" ]; then
-            echo "Failed to get temperature. Retrying..."
-            sleep 1
-            continue
-        fi
-
-        if (( temp_c <= min_temp_c )); then
-            target_pct=$max_perf_pct
-        elif (( temp_c < HOTZONE )); then
-            delta_c=$((HOTZONE - min_temp_c))
-            temp_offset=$(( temp_c - min_temp_c ))
-            if (( delta_c > 0 && temp_offset > 0 )); then
-                reduction=$(( (max_perf_pct - min_perf_pct) * temp_offset / (2 * delta_c) ))
-                target_pct=$(( max_perf_pct - reduction ))
-                (( target_pct >= max_perf_pct )) && target_pct=$((max_perf_pct - 1))
-                (( target_pct < min_perf_pct )) && target_pct=$min_perf_pct
-            else
-                target_pct=$((max_perf_pct - 1))
-            fi
-        elif (( temp_c < high_temp_c )); then
-            delta_c=$(( high_temp_c - HOTZONE ))
-            temp_offset=$(( temp_c - HOTZONE ))
-            if (( delta_c > 0 && temp_offset >= 0 )); then
-                reduction_hotzone=$(( (max_perf_pct - min_perf_pct) / 2 ))
-                reduction=$(( reduction_hotzone + ((max_perf_pct - min_perf_pct) * temp_offset / (2 * delta_c)) ))
-                target_pct=$(( max_perf_pct - reduction ))
-                (( target_pct >= max_perf_pct )) && target_pct=$((max_perf_pct - 1))
-                (( target_pct < min_perf_pct )) && target_pct=$min_perf_pct
-            else
-                target_pct=$min_perf_pct
-            fi
-        else
-            target_pct=$min_perf_pct
-        fi
-
-        if (( last_pct < 1 )); then
-            pct=$target_pct
-        elif (( target_pct > last_pct )); then
-            pct=$(( last_pct + ramp_up ))
-            (( pct > target_pct )) && pct=$target_pct
-        elif (( target_pct < last_pct )); then
-            pct=$(( last_pct - ramp_down ))
-            (( pct < target_pct )) && pct=$target_pct
-        else
-            pct=$last_pct
-        fi
-
-        if [[ "$last_pct" != "$pct" ]]; then
-            printf -v ts '%(%Y-%m-%d %H:%M:%S)T' -1
-            echo "${CYAN}${ts} - CPU ${temp_c}°C -> Clockspeed ${pct}%${RESET}" >> "$LOG_FILE"
-        fi
-        
-        set_max_perf_pct "$pct"
-        last_pct=$pct
-
-        sleep "$CPU_POLL"
+        sleep 1
     done
-
-    echo "${RED}PowerControl stopped.${RESET}" | tee -a "$LOG_FILE"
-    sudo rm -f "$PID_FILE"
 }
 
 stop_monitoring() {
