@@ -195,6 +195,7 @@ echo "${RESET}"
 }
 
 start_monitoring_loop() {
+    wait_for_config
     detect_battery
     touch "$RUN_FLAG"
     echo $$ > "$PID_FILE"
