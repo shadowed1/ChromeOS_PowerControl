@@ -331,6 +331,7 @@ update_power_state_file() {
 idle_elapsed=0
 
 monitor_idle_activity() {
+    wait_for_config
     exec 200>"$PID_FILE.lock"
     flock -n 200 || {
         echo "${BLUE}"
