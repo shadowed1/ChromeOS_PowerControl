@@ -7,6 +7,7 @@ MAGENTA=$(tput setaf 5)
 CYAN=$(tput setaf 6)
 BOLD=$(tput bold)
 RESET=$(tput sgr0)
+sleep 30
 INSTALL_DIR="@INSTALL_DIR@"
 CONFIG_FILE="/home/chronos/user/MyFiles/Downloads/ChromeOS_PowerControl_Config/config"
 LOG_FILE="/var/log/powercontrol.log"
