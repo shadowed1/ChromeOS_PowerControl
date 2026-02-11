@@ -135,6 +135,7 @@ cleanup() {
 }
 
 run_loop() {
+wait_for_config
 if read -r RAW_TEMP < "$ZONE_PATH"; then
     :
 else
