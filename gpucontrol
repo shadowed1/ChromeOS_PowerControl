@@ -35,6 +35,7 @@ wait_for_config() {
     echo "${RED}Error: Config file not available after 5 minutes${RESET}" | tee -a "$LOG_FILE"
     return 1
 }
+wait_for_config
 
 if ! ( [[ -z "$1" ]] || [[ "$1" =~ ^(-h|--h|h|--help|-help|help|status|start|stop|monitor|mon|__gpucontrol_monitor__)$ ]] ) \
    && [[ "$(id -u)" -ne 0 ]]; then
@@ -156,7 +157,6 @@ get_current_freq() {
 }
 
 start_monitoring_loop() {
-    wait_for_config
     touch "$RUN_FLAG"
     echo $$ > "$PID_FILE"
 
