@@ -391,6 +391,7 @@ restore_default_cpu_state() {
 
 
 start_monitoring_loop() {
+    wait_for_config
     save_default_cpu_state
     detect_cpu_type
     load_config
