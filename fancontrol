@@ -34,7 +34,7 @@ wait_for_config() {
     echo "${RED}Error: Config file not available after 5 minutes${RESET}" | tee -a "$LOG_FILE"
     return 1
 }
-
+wait_for_config
 if ! ( [[ -z "$1" ]] || [[ "$1" == "--h" || "$1" == "-h" || "$1" == "h" || "$1" == "--help" || "$1" == "-help" || "$1" == "monitor" || "$1" == "mon" || "$1" == "help" || "$1" == "status" ]] ) && [[ "$(id -u)" -ne 0 ]]; then    echo "${RED}FanControl requires sudo to run.${RESET}"
     echo "  Try: sudo fancontrol $*  or  sudo $0 $*"
     exit 1
