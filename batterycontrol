@@ -7,7 +7,6 @@ MAGENTA=$(tput setaf 5)
 CYAN=$(tput setaf 6)
 BOLD=$(tput bold)
 RESET=$(tput sgr0)
-sleep 30
 INSTALL_DIR="@INSTALL_DIR@"
 CONFIG_FILE="/home/chronos/user/MyFiles/Downloads/ChromeOS_PowerControl_Config/config"
 BATTERY_PATH=""
@@ -44,7 +43,7 @@ fi
 
 DEFAULT_CHARGE_MAX=77
 CHARGE_MAX=
-
+wait_for_config
 detect_battery() {
     for d in /sys/class/power_supply/*; do
         if [ -f "$d/capacity" ] && [ -f "$d/status" ]; then
@@ -195,7 +194,6 @@ echo "${RESET}"
 }
 
 start_monitoring_loop() {
-    wait_for_config
     detect_battery
     touch "$RUN_FLAG"
     echo $$ > "$PID_FILE"
