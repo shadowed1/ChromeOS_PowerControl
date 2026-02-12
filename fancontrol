@@ -116,13 +116,15 @@ validate_config() {
 }
 
 save_config() {
-    sed -i "s/^FAN_MAX_TEMP=.*/FAN_MAX_TEMP=$FAN_MAX_TEMP/" "$CONFIG_FILE" || echo "FAN_MAX_TEMP=$FAN_MAX_TEMP" >> "$CONFIG_FILE"
-    sed -i "s/^FAN_MIN_TEMP=.*/FAN_MIN_TEMP=$FAN_MIN_TEMP/" "$CONFIG_FILE" || echo "FAN_MIN_TEMP=$FAN_MIN_TEMP" >> "$CONFIG_FILE"
-    sed -i "s/^MAX_FAN=.*/MAX_FAN=$MAX_FAN/" "$CONFIG_FILE" || echo "MAX_FAN=$MAX_FAN" >> "$CONFIG_FILE"
-    sed -i "s/^MIN_FAN=.*/MIN_FAN=$MIN_FAN/" "$CONFIG_FILE" || echo "MIN_FAN=$MIN_FAN" >> "$CONFIG_FILE"
-    sed -i "s/^FAN_POLL=.*/FAN_POLL=$FAN_POLL/" "$CONFIG_FILE" || echo "FAN_POLL=$FAN_POLL" >> "$CONFIG_FILE"
-    sed -i "s/^STEP_UP=.*/STEP_UP=$STEP_UP/" "$CONFIG_FILE" || echo "STEP_UP=$STEP_UP" >> "$CONFIG_FILE"
-    sed -i "s/^STEP_DOWN=.*/STEP_DOWN=$STEP_DOWN/" "$CONFIG_FILE" || echo "STEP_DOWN=$STEP_DOWN" >> "$CONFIG_FILE"
+    if [[ -f "$CONFIG_FILE" ]]; then
+        sed -i "s/^FAN_MAX_TEMP=.*/FAN_MAX_TEMP=$FAN_MAX_TEMP/" "$CONFIG_FILE" || echo "FAN_MAX_TEMP=$FAN_MAX_TEMP" >> "$CONFIG_FILE"
+        sed -i "s/^FAN_MIN_TEMP=.*/FAN_MIN_TEMP=$FAN_MIN_TEMP/" "$CONFIG_FILE" || echo "FAN_MIN_TEMP=$FAN_MIN_TEMP" >> "$CONFIG_FILE"
+        sed -i "s/^MAX_FAN=.*/MAX_FAN=$MAX_FAN/" "$CONFIG_FILE" || echo "MAX_FAN=$MAX_FAN" >> "$CONFIG_FILE"
+        sed -i "s/^MIN_FAN=.*/MIN_FAN=$MIN_FAN/" "$CONFIG_FILE" || echo "MIN_FAN=$MIN_FAN" >> "$CONFIG_FILE"
+        sed -i "s/^FAN_POLL=.*/FAN_POLL=$FAN_POLL/" "$CONFIG_FILE" || echo "FAN_POLL=$FAN_POLL" >> "$CONFIG_FILE"
+        sed -i "s/^STEP_UP=.*/STEP_UP=$STEP_UP/" "$CONFIG_FILE" || echo "STEP_UP=$STEP_UP" >> "$CONFIG_FILE"
+        sed -i "s/^STEP_DOWN=.*/STEP_DOWN=$STEP_DOWN/" "$CONFIG_FILE" || echo "STEP_DOWN=$STEP_DOWN" >> "$CONFIG_FILE"
+    fi
 }
 
 cleanup() {
