@@ -333,6 +333,7 @@ Removed deep sleep syntax support since that is no longer needed. Removed old sl
 - 0.59: `Fixed slow startup issues and added safety fallback logic for startup. Removed cpu_detect logic repetition in PowerControl for lower cpu usage. Lowered config refresh interval on all scripts by a few seconds. Added sudo to PID and run flag removal.` <br><br>
 - 0.60: `Fixed sleepcontrol from saving extremely dim display values. Added arc script to toggle on/off Android VM. Lowered default min_temp FanControl value.` <br><br>
 - 0.61: `Improved GPU detection script, thanks to DennyL for reporting bug and testing updated script.` <br><br>
+- 0.62: `Removed junk code from GPUControl that was intented for PowerControl. Fixed Reinstall command.` <br><br>
 __Acknowledgements:__
 
 - Thanks to WesBosch for helping me learn to make an installer:
