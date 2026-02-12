@@ -160,9 +160,6 @@ validate_config() {
             MAX_PERF_PCT=100
         fi
     fi
-
-    
-
 }
 
 load_config() {
@@ -182,33 +179,33 @@ load_config() {
 }
 
 save_config() {
-
-    wait_for_config
     validate_config
-
-    sed -i "s/^MAX_TEMP=.*/MAX_TEMP=$MAX_TEMP/" "$CONFIG_FILE" || echo "MAX_TEMP=$MAX_TEMP" >> "$CONFIG_FILE"
-    sed -i "s/^MIN_TEMP=.*/MIN_TEMP=$MIN_TEMP/" "$CONFIG_FILE" || echo "MIN_TEMP=$MIN_TEMP" >> "$CONFIG_FILE"
-    sed -i "s/^MAX_PERF_PCT=.*/MAX_PERF_PCT=$MAX_PERF_PCT/" "$CONFIG_FILE" || echo "MAX_PERF_PCT=$MAX_PERF_PCT" >> "$CONFIG_FILE"
-    sed -i "s/^MIN_PERF_PCT=.*/MIN_PERF_PCT=$MIN_PERF_PCT/" "$CONFIG_FILE" || echo "MIN_PERF_PCT=$MIN_PERF_PCT" >> "$CONFIG_FILE"
-    sed -i "s/^RAMP_UP=.*/RAMP_UP=$RAMP_UP/" "$CONFIG_FILE" || echo "RAMP_UP=$RAMP_UP" >> "$CONFIG_FILE"
-    sed -i "s/^RAMP_DOWN=.*/RAMP_DOWN=$RAMP_DOWN/" "$CONFIG_FILE" || echo "RAMP_DOWN=$RAMP_DOWN" >> "$CONFIG_FILE"
-    sed -i "s/^HOTZONE=.*/HOTZONE=$HOTZONE/" "$CONFIG_FILE" || echo "HOTZONE=$HOTZONE" >> "$CONFIG_FILE"
-    sed -i "s/^CPU_POLL=.*/CPU_POLL=$CPU_POLL/" "$CONFIG_FILE" || echo "CPU_POLL=$CPU_POLL" >> "$CONFIG_FILE"
-
-    if [[ ${#PERF_PATHS[@]} -gt 0 ]]; then
-        PERF_PATHS_STR="$(printf ' %q' "${PERF_PATHS[@]}")"
-        PERF_PATHS_LINE="PERF_PATHS=(${PERF_PATHS_STR})"
     
-        if grep -q '^PERF_PATHS=' "$CONFIG_FILE"; then
-            sed -i "s|^PERF_PATHS=.*|$PERF_PATHS_LINE|" "$CONFIG_FILE"
-        else
-            echo "$PERF_PATHS_LINE" >> "$CONFIG_FILE"
-        fi
-    fi
+    if [[ -f "$CONFIG_FILE" ]]; then
+        sed -i "s/^MAX_TEMP=.*/MAX_TEMP=$MAX_TEMP/" "$CONFIG_FILE" || echo "MAX_TEMP=$MAX_TEMP" >> "$CONFIG_FILE"
+        sed -i "s/^MIN_TEMP=.*/MIN_TEMP=$MIN_TEMP/" "$CONFIG_FILE" || echo "MIN_TEMP=$MIN_TEMP" >> "$CONFIG_FILE"
+        sed -i "s/^MAX_PERF_PCT=.*/MAX_PERF_PCT=$MAX_PERF_PCT/" "$CONFIG_FILE" || echo "MAX_PERF_PCT=$MAX_PERF_PCT" >> "$CONFIG_FILE"
+        sed -i "s/^MIN_PERF_PCT=.*/MIN_PERF_PCT=$MIN_PERF_PCT/" "$CONFIG_FILE" || echo "MIN_PERF_PCT=$MIN_PERF_PCT" >> "$CONFIG_FILE"
+        sed -i "s/^RAMP_UP=.*/RAMP_UP=$RAMP_UP/" "$CONFIG_FILE" || echo "RAMP_UP=$RAMP_UP" >> "$CONFIG_FILE"
+        sed -i "s/^RAMP_DOWN=.*/RAMP_DOWN=$RAMP_DOWN/" "$CONFIG_FILE" || echo "RAMP_DOWN=$RAMP_DOWN" >> "$CONFIG_FILE"
+        sed -i "s/^HOTZONE=.*/HOTZONE=$HOTZONE/" "$CONFIG_FILE" || echo "HOTZONE=$HOTZONE" >> "$CONFIG_FILE"
+        sed -i "s/^CPU_POLL=.*/CPU_POLL=$CPU_POLL/" "$CONFIG_FILE" || echo "CPU_POLL=$CPU_POLL" >> "$CONFIG_FILE"
 
-    source "$CONFIG_FILE" 2>/dev/null
-    if [[ -n "$PERF_PATHS" ]]; then
-        IFS=' ' read -r -a PERF_PATHS <<< "$PERF_PATHS"
+        if [[ ${#PERF_PATHS[@]} -gt 0 ]]; then
+            PERF_PATHS_STR="$(printf ' %q' "${PERF_PATHS[@]}")"
+            PERF_PATHS_LINE="PERF_PATHS=(${PERF_PATHS_STR})"
+        
+            if grep -q '^PERF_PATHS=' "$CONFIG_FILE"; then
+                sed -i "s|^PERF_PATHS=.*|$PERF_PATHS_LINE|" "$CONFIG_FILE"
+            else
+                echo "$PERF_PATHS_LINE" >> "$CONFIG_FILE"
+            fi
+        fi
+
+        source "$CONFIG_FILE" 2>/dev/null
+        if [[ -n "$PERF_PATHS" ]]; then
+            IFS=' ' read -r -a PERF_PATHS <<< "$PERF_PATHS"
+        fi
     fi
 }
 
