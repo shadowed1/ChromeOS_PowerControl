@@ -291,26 +291,40 @@ usage() {
     echo "${GREEN}CTRL-C to exit${RESET}"
     while true; do
         data=$(sudo ectool battery 2>/dev/null)
-        voltage_mV=$(echo "$data" | awk '/Present voltage/ {print $3}' | tr -d '[:alpha:]')
-        current_mA=$(echo "$data" | awk '/Present current/ {print $3}' | tr -d '[:alpha:]')
-    
+        voltage_mV=
+        current_mA=
+        while IFS= read -r line; do
+            case "$line" in
+                *"Present voltage"*)
+                    set -- $line
+                    voltage_mV=${3//[!0-9-]}
+                    ;;
+                *"Present current"*)
+                    set -- $line
+                    current_mA=${3//[!0-9-]}
+                    ;;
+            esac
+        done <<< "$data"
+        printf -v now '%(%H:%M:%S)T' -1
         if [[ -z "$voltage_mV" || -z "$current_mA" ]]; then
-            echo "${RED}$(date +'%H:%M:%S') - Error reading battery${RESET}"
+            echo "${RED}${now} - Error reading battery${RESET}"
             sleep 1
             continue
         fi
-    
-        voltage=$(echo "scale=3; $voltage_mV / 1000" | bc)
-        current=$(echo "scale=3; $current_mA / 1000" | bc)
-        power=$(echo "scale=3; $voltage * $current" | bc)
-    
-        if [[ $(echo "$power < 0" | bc -l) -eq 1 ]]; then
-            COLOR="$YELLOW"
-        else
+        power_uW=$(( voltage_mV * current_mA ))
+        abs_uW=${power_uW#-}
+        watts_int=$(( abs_uW / 1000000 ))
+        watts_frac=$(( (abs_uW % 1000000) / 1000 ))
+        printf -v power_fmt "%d.%03d" "$watts_int" "$watts_frac"
+        if (( power_uW > 0 )); then
             COLOR="$GREEN"
+            SIGN="+"
+        else
+            COLOR="$YELLOW"
+            SIGN="-"
         fi
-    
-        echo "${COLOR}$(date +'%H:%M:%S'): ${power} W${RESET}"
+        printf "%b%s: %s%s W%b\n" \
+            "$COLOR" "$now" "$SIGN" "$power_fmt" "$RESET"
         sleep 1
     done
 }
