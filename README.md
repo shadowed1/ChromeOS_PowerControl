@@ -332,7 +332,7 @@ Removed deep sleep syntax support since that is no longer needed. Removed old sl
 - 0.61: `Improved GPU detection script, thanks to DennyL for reporting bug and testing updated script.` <br><br>
 - 0.62: `Removed junk code from GPUControl that was intented for PowerControl. Fixed Reinstall command.` <br><br>
 - 0.63: `Added startup logic for SleepControl in GUI app. Lowered CPU usage for PowerControl, BatteryControl,
-GPUControl, Fancontrol, and SleepControl.` <br><br>
+GPUControl, Fancontrol, and SleepControl. Added check to skip on-boot startup prompts if rootfs verification in disabled. Cleaned up GPUControl status display.` <br><br>
 __Acknowledgements:__
 
 - Thanks to WesBosch for helping me learn to make an installer:
