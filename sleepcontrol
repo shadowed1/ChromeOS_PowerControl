@@ -248,7 +248,7 @@ save_config() {
 
 show_help() {
 echo "${BLUE}"
-echo "╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
+echo "╔══════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
 echo "║                                                                                                                    ║"
 echo "║                                          SleepControl commands with examples:                                      ║"
 echo "║                                                                                                                    ║"
@@ -937,12 +937,12 @@ case "$1" in
             PID=$(cat "$PID_FILE")
             if ps -p "$PID" > /dev/null 2>&1; then
 echo "${BLUE}"
-echo "═════════════════════════════════════════════════════════════════════════════════════════════════"
+echo "══════════════════════════════════════════════════════════════════════════════════════════════════"
 echo "                          SleepControl Status: RUNNING (PID $PID)                                  "                                 
 echo ""
             else
 echo "${RED}"
-echo "═════════════════════════════════════════════════════════════════════════════════════════════════"
+echo "══════════════════════════════════════════════════════════════════════════════════════════════════"
 echo " SleepControl Status: RUN FLAG PRESENT, but process not yet running (120s delay on boot)"
 echo ""
 
@@ -950,12 +950,12 @@ echo ""
 
          else
 echo "${RED}"
-echo "═════════════════════════════════════════════════════════════════════════════════════════════════"
+echo "══════════════════════════════════════════════════════════════════════════════════════════════════"
 echo "                              SleepControl Status: STOPPED                                       "
         fi
 echo "  Battery = Dim: $((BATTERY_DIM_DELAY)) min -> Display off: $((BATTERY_BACKLIGHT)) min -> Sleep: $((BATTERY_DELAY)) min | Audio Detection: $AUDIO_DETECTION_BATTERY | Lid Sleep: $LIDSLEEP_BATTERY "
 echo "  Power   = Dim: $((POWER_DIM_DELAY)) min -> Display off: $((POWER_BACKLIGHT)) min -> Sleep: $((POWER_DELAY)) min | Audio Detection: $AUDIO_DETECTION_POWER | Lid Sleep: $LIDSLEEP_POWER "
-echo "═════════════════════════════════════════════════════════════════════════════════════════════════"
+echo "══════════════════════════════════════════════════════════════════════════════════════════════════"
 echo "${RESET}"
        
         ;;
