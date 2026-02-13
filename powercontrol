@@ -410,8 +410,7 @@ start_monitoring_loop() {
     while [[ -f $RUN_FLAG ]]; do
         local now=$EPOCHSECONDS
 
-        if (( now - last_reload_time >= config_check_interval )); then
-            load_config
+
             validate_config
             min_temp_c=$MIN_TEMP
             high_temp_c=$MAX_TEMP
@@ -426,9 +425,11 @@ start_monitoring_loop() {
             max_delta=$((high_temp_c - hotzone))
             last_reload_time=$now
 
-            local startup_enabled=0
-            if grep -q '^STARTUP_POWERCONTROL=1' "$CONFIG_FILE" 2>/dev/null; then
-                startup_enabled=1
+            startup_enabled=0
+            if [[ -f "$CONFIG_FILE" ]]; then
+                while IFS='=' read -r k v; do
+                    [[ $k == STARTUP_POWERCONTROL ]] && { [[ $v == 1 ]] && startup_enabled=1; break; }
+                done < "$CONFIG_FILE"
             fi
 
             if (( startup_enabled )); then
