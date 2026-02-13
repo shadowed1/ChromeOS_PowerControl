@@ -213,34 +213,37 @@ start_monitoring_loop() {
         fi
 
         now=$(date +%s)
-        if (( now - last_reload_time >= 10 )); then
-            load_config
-            last_reload_time=$now
-
-            if read -r BATTERY_CHARGE < "$BATTERY_PATH"; then
-                read -r STATE < "$STATUS_PATH" || STATE="Unknown"
-                echo "${GREEN}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Battery: ${BATTERY_CHARGE}% - Charge Limit: ${CHARGE_MAX}% - State: $STATE${RESET}" >> "$LOG_FILE"
-            else
-                echo "Failed to read $BATTERY_PATH" >&2
-            fi
-
-            startup_enabled=0
-            while IFS='=' read -r k v; do
-                [[ $k == STARTUP_BATTERYCONTROL ]] && { [[ $v == 1 ]] && startup_enabled=1; break; }
-            done < "$CONFIG_FILE"
-    
-            if (( startup_enabled )); then
-                if [[ ! -f $CONF_TARGET ]]; then
-                    sudo cp "$CONF_SOURCE" "$CONF_TARGET"
-                    printf '%s%(%F %T)T - BatteryControl Startup enabled%s\n' "$GREEN" -1 "$RESET" >> "$LOG_FILE"
+        if [[ -f "$CONF_TARGET" ]]; then
+            if (( now - last_reload_time >= 10 )); then
+                load_config
+                last_reload_time=$now
+        
+                if read -r BATTERY_CHARGE < "$BATTERY_PATH"; then
+                    read -r STATE < "$STATUS_PATH" || STATE="Unknown"
+                    echo "${GREEN}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Battery: ${BATTERY_CHARGE}% - Charge Limit: ${CHARGE_MAX}% - State: $STATE${RESET}" >> "$LOG_FILE"
+                else
+                    echo "Failed to read $BATTERY_PATH" >&2
                 fi
-            else
-                if [[ -f $CONF_TARGET ]]; then
-                    sudo rm -f "$CONF_TARGET"
-                    printf '%s%(%F %T)T - BatteryControl Startup disabled%s\n' "$RED" -1 "$RESET" >> "$LOG_FILE"
+        
+                startup_enabled=0
+                if [[ -f "$CONFIG_FILE" ]]; then
+                    while IFS='=' read -r k v; do
+                        [[ $k == STARTUP_BATTERYCONTROL ]] && { [[ $v == 1 ]] && startup_enabled=1; break; }
+                    done < "$CONFIG_FILE"
+        
+                    if (( startup_enabled )); then
+                        if [[ ! -f "$CONF_TARGET" ]]; then
+                            sudo cp "$CONF_SOURCE" "$CONF_TARGET"
+                            printf '%s%(%F %T)T - BatteryControl Startup enabled%s\n' "$GREEN" -1 "$RESET" >> "$LOG_FILE"
+                        fi
+                    else
+                        sudo rm -f "$CONF_TARGET"
+                        printf '%s%(%F %T)T - BatteryControl Startup disabled%s\n' "$RED" -1 "$RESET" >> "$LOG_FILE"
+                    fi
                 fi
             fi
         fi
+
 
         if ! read -r CHARGE < "$BATTERY_PATH"; then
             echo "${RED}Failed to read $BATTERY_PATH ${RESET}" >&2
