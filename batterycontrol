@@ -234,18 +234,18 @@ start_monitoring_loop() {
             if (( startup_enabled )); then
                 if [[ ! -f $CONF_TARGET ]]; then
                     sudo cp "$CONF_SOURCE" "$CONF_TARGET"
-                    printf '%(%F %T)T - BatteryControl Startup enabled\n' -1 >> "$LOG_FILE"
+                    printf '%s%(%F %T)T - BatteryControl Startup enabled%s\n' "$GREEN" -1 "$RESET" >> "$LOG_FILE"
                 fi
             else
                 if [[ -f $CONF_TARGET ]]; then
                     sudo rm -f "$CONF_TARGET"
-                    printf '%(%F %T)T - BatteryControl Startup disabled\n' -1 >> "$LOG_FILE"
+                    printf '%s%(%F %T)T - BatteryControl Startup disabled%s\n' "$RED" -1 "$RESET" >> "$LOG_FILE"
                 fi
             fi
         fi
 
         if ! read -r CHARGE < "$BATTERY_PATH"; then
-            echo "Failed to read $BATTERY_PATH" >&2
+            echo "${RED}Failed to read $BATTERY_PATH ${RESET}" >&2
             sleep 5
             continue
         fi
