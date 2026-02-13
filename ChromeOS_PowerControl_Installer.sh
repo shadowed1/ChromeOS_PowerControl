@@ -11,7 +11,7 @@ SHOW_POWERCONTROL_NOTICE=0
 SHOW_BATTERYCONTROL_NOTICE=0
 SHOW_SLEEPCONTROL_NOTICE=0
 SHOW_GPUCONTROL_NOTICE=0
-TEST_FILE="/etc/init/.boot_test"y
+TEST_FILE="/etc/init/.boot_test"
 echo
 echo "${MAGENTA}${BOLD}noexec warning can be safely ignored. ${RESET}"
 echo
