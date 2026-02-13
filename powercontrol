@@ -49,7 +49,7 @@ if ! ( [[ -z "$1" ]] || [[ "$1" == "--h" || "$1" == "-h" || "$1" == "help_all" |
 fi
 
 detect_cpu_type() {
-    CPU_VENDOR=$(grep -m1 'vendor_id' /proc/cpuinfo | awk '{print $3}' || echo "unknown")
+    CPU_VENDOR="unknown"
     IS_INTEL=0
     IS_AMD=0
     IS_ARM=0
@@ -57,28 +57,42 @@ detect_cpu_type() {
     PERF_PATHS=()
     TURBO_PATH=""
 
-    case "$CPU_VENDOR" in
+    while IFS=':' read -r key value; do
+        [[ $key == "vendor_id" ]] || continue
+        CPU_VENDOR=${value//[[:space:]]/}
+        break
+    done < /proc/cpuinfo
+
+    case $CPU_VENDOR in
         GenuineIntel)
             IS_INTEL=1
-            if [ -f "/sys/devices/system/cpu/intel_pstate/max_perf_pct" ]; then
-                PERF_PATH="/sys/devices/system/cpu/intel_pstate/max_perf_pct"
-                TURBO_PATH="/sys/devices/system/cpu/intel_pstate/no_turbo"
-            fi
+            p="/sys/devices/system/cpu/intel_pstate/max_perf_pct"
+            [[ -f $p ]] && PERF_PATH=$p
+            t="/sys/devices/system/cpu/intel_pstate/no_turbo"
+            [[ -f $t ]] && TURBO_PATH=$t
             ;;
+
         AuthenticAMD)
             IS_AMD=1
-            if [ -f "/sys/devices/system/cpu/amd_pstate/max_perf_pct" ]; then
-                PERF_PATH="/sys/devices/system/cpu/amd_pstate/max_perf_pct"
+            p="/sys/devices/system/cpu/amd_pstate/max_perf_pct"
+            if [[ -f $p ]]; then
+                PERF_PATH=$p
             else
-                mapfile -t PERF_PATHS < <(find /sys/devices/system/cpu/cpufreq/ -type f -name 'scaling_max_freq' 2>/dev/null)
+                for f in /sys/devices/system/cpu/cpufreq/policy*/scaling_max_freq; do
+                    [[ -f $f ]] && PERF_PATHS+=("$f")
+                done
             fi
             ;;
+
         *)
             IS_ARM=1
-            mapfile -t PERF_PATHS < <(find /sys/devices/system/cpu/cpufreq/ -type f -name 'scaling_max_freq' 2>/dev/null)
+            for f in /sys/devices/system/cpu/cpufreq/policy*/scaling_max_freq; do
+                [[ -f $f ]] && PERF_PATHS+=("$f")
+            done
             ;;
     esac
 }
+
 
     DEFAULT_HOTZONE=79
     DEFAULT_MIN_TEMP=63
