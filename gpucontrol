@@ -214,12 +214,12 @@ start_monitoring_loop() {
                 if (( startup_enabled )); then
                     [[ ! -f "$CONF_TARGET" ]] && {
                         sudo cp "$CONF_SOURCE" "$CONF_TARGET" 2>/dev/null
-                        printf '%(%F %T)T - GPUControl Startup enabled\n' -1 >> "$LOG_FILE"
+                        printf '%s%(%F %T)T - GPUControl Startup enabled%s\n' "$MAGENTA" -1 "$RESET" >> "$LOG_FILE"
                     }
                 else
                     [[ -f "$CONF_TARGET" ]] && {
                         sudo rm -f "$CONF_TARGET" 2>/dev/null
-                        printf '%(%F %T)T - GPUControl Startup disabled\n' -1 >> "$LOG_FILE"
+                        printf '%s%(%F %T)T - GPUControl Startup disabled%s\n' "$RED" -1 "$RESET" >> "$LOG_FILE"
                     }
                 fi
             fi
@@ -249,10 +249,10 @@ apply_gpu_settings() {
 
     case "$GPU_TYPE" in
         intel)
-            [[ -w "$GPU_FREQ_PATH" ]] && echo "$GPU_MAX_FREQ" | sudo tee "$GPU_FREQ_PATH" > /dev/null 2>&1
+            [[ -w "$GPU_FREQ_PATH" ]] && printf '%s\n' "$GPU_MAX_FREQ" | sudo tee "$GPU_FREQ_PATH" > /dev/null 2>&1
             ;;
         mali|adreno)
-            echo "$GPU_MAX_FREQ" | sudo tee "$GPU_FREQ_PATH" > /dev/null 2>&1
+            printf '%s\n' "$GPU_MAX_FREQ" | sudo tee "$GPU_FREQ_PATH" > /dev/null 2>&1
             ;;
         amd)
             amd_set_max_freq "$GPU_MAX_FREQ"
@@ -346,7 +346,7 @@ __gpucontrol_monitor__)
         echo "${MAGENTA}Restoring GPU to original max frequency...${RESET}"
         case "$GPU_TYPE" in
             intel|adreno|mali)
-                [[ -w "$GPU_FREQ_PATH" ]] && echo "$ORIGINAL_GPU_MAX_FREQ" | sudo tee "$GPU_FREQ_PATH" > /dev/null 2>&1
+                [[ -w "$GPU_FREQ_PATH" ]] && printf '%s\n' "$ORIGINAL_GPU_MAX_FREQ" | sudo tee "$GPU_FREQ_PATH" > /dev/null 2>&1
                 ;;
             amd)
                 amd_set_max_freq "$ORIGINAL_GPU_MAX_FREQ"
@@ -403,10 +403,10 @@ if [[ $# -eq 0 ]]; then
     case "$GPU_TYPE" in
         amd) amd_set_max_freq "$GPU_MAX_FREQ" ;;
         intel)
-            echo "$GPU_MAX_FREQ" | sudo tee "$GPU_FREQ_PATH" > /dev/null 2>&1
+            printf '%s\n' "$GPU_MAX_FREQ" | sudo tee "$GPU_FREQ_PATH" > /dev/null 2>&1
             ;;
         mali|adreno)
-            echo "$GPU_MAX_FREQ" | sudo tee "$GPU_FREQ_PATH" > /dev/null 2>&1
+            printf '%s\n' "$GPU_MAX_FREQ" | sudo tee "$GPU_FREQ_PATH" > /dev/null 2>&1
             ;;
     esac
 
@@ -493,7 +493,7 @@ case "$GPU_ARG" in
         fi
 
         echo ""
-        echo "$REQUESTED_FREQ" | sudo tee "$GPU_FREQ_PATH" > /dev/null 2>&1
+        printf '%s\n' "$REQUESTED_FREQ" | sudo tee "$GPU_FREQ_PATH" > /dev/null 2>&1_
         DISPLAY_FREQ="$REQUESTED_FREQ"
         echo "${MAGENTA}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) Intel GPU frequency set to $DISPLAY_FREQ MHz${RESET}" | tee -a "$LOG_FILE"
         echo ""
@@ -516,7 +516,7 @@ case "$GPU_ARG" in
         fi
 
         echo ""
-        echo "$freq_hz" | sudo tee "$GPU_FREQ_PATH" > /dev/null 2>&1
+        printf '%s\n' "$freq_hz" | sudo tee "$GPU_FREQ_PATH" > /dev/null 2>&1
         DISPLAY_FREQ=$((freq_hz / 1000000))
         echo "${MAGENTA}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) $GPU_ARG GPU frequency set to $DISPLAY_FREQ MHz${RESET}" >> "$LOG_FILE"
         GPU_MAX_FREQ="$freq_hz"
