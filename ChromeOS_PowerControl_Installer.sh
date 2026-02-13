@@ -11,6 +11,7 @@ SHOW_POWERCONTROL_NOTICE=0
 SHOW_BATTERYCONTROL_NOTICE=0
 SHOW_SLEEPCONTROL_NOTICE=0
 SHOW_GPUCONTROL_NOTICE=0
+TEST_FILE="/etc/init/.boot_test"y
 echo
 echo "${MAGENTA}${BOLD}noexec warning can be safely ignored. ${RESET}"
 echo
@@ -97,7 +98,6 @@ detect_gpu_freq() {
     GPU_TYPE="unknown"
     
     # Intel Xe
-    # This might be culprit
     if [ -f /sys/class/drm/card0/gt_max_freq_mhz ]; then
         GPU_TYPE="intel"
         GPU_FREQ_PATH="/sys/class/drm/card0/gt_max_freq_mhz"
@@ -540,21 +540,28 @@ enable_component_on_boot() {
     fi
 }
 
-if [[ -z "$link_cmd" || "$link_cmd" =~ ^[Yy]$ ]]; then
-    enable_component_on_boot "BatteryControl" "$INSTALL_DIR/batterycontrol.conf"
-    enable_component_on_boot "PowerControl" "$INSTALL_DIR/powercontrol.conf"
 
-    if [ "$SKIP_FANCONTROL" = false ]; then
-        enable_component_on_boot "FanControl" "$INSTALL_DIR/fancontrol.conf"
+if sudo touch "$TEST_FILE" 2>/dev/null; then
+    sudo rm -f "$TEST_FILE"
+
+    if [[ -z "$link_cmd" || "$link_cmd" =~ ^[Yy]$ ]]; then
+        enable_component_on_boot "BatteryControl" "$INSTALL_DIR/batterycontrol.conf"
+        enable_component_on_boot "PowerControl" "$INSTALL_DIR/powercontrol.conf"
+
+        if [ "$SKIP_FANCONTROL" = false ]; then
+            enable_component_on_boot "FanControl" "$INSTALL_DIR/fancontrol.conf"
+        else
+            echo "${GREEN}Skipping FanControl boot setup. No fan to control.${RESET}"
+            echo ""
+        fi
+
+        enable_component_on_boot "GPUControl" "$INSTALL_DIR/gpucontrol.conf"
+        enable_component_on_boot "SleepControl" "$INSTALL_DIR/sleepcontrol.conf"
     else
-        echo "${GREEN}Skipping FanControl boot setup. No fan to control.${RESET}"
-        echo ""
+        echo "Skipping boot-time setup since global commands were declined."
     fi
-
-    enable_component_on_boot "GPUControl" "$INSTALL_DIR/gpucontrol.conf"
-    enable_component_on_boot "SleepControl" "$INSTALL_DIR/sleepcontrol.conf"
 else
-    echo "Skipping boot-time setup since global commands were declined."
+    echo "${YELLOW}Cannot write to /etc/init. Skipping on-boot prompt.${RESET}"
 fi
 
 if grep -q '^STARTUP_GPUCONTROL=1' "$CONFIG_FILE"; then
@@ -568,6 +575,7 @@ fi
 if grep -q '^STARTUP_SLEEPCONTROL=1' "$CONFIG_FILE"; then
     SHOW_SLEEPCONTROL_NOTICE=1
 fi
+
 if grep -q '^STARTUP_POWERCONTROL=1' "$CONFIG_FILE"; then
     SHOW_POWERCONTROL_NOTICE=1
 fi
