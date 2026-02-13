@@ -157,6 +157,7 @@ get_current_freq() {
 }
 
 start_monitoring_loop() {
+    wait_for_config
     touch "$RUN_FLAG"
     echo $$ > "$PID_FILE"
 
