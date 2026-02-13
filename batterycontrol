@@ -225,11 +225,9 @@ start_monitoring_loop() {
             fi
 
             startup_enabled=0
-            if [[ -f "$CONFIG_FILE" ]]; then
-                while IFS='=' read -r k v; do
-                    [[ $k == STARTUP_BATTERYCONTROL ]] && { [[ $v == 1 ]] && startup_enabled=1; break; }
-                done < "$CONFIG_FILE"
-            fi
+            while IFS='=' read -r k v; do
+                [[ $k == STARTUP_BATTERYCONTROL ]] && { [[ $v == 1 ]] && startup_enabled=1; break; }
+            done < "$CONFIG_FILE"
     
             if (( startup_enabled )); then
                 if [[ ! -f $CONF_TARGET ]]; then
