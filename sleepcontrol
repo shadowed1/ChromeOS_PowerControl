@@ -460,12 +460,12 @@ send_fake_activity() {
             if (( startup_enabled )); then
                 if [[ ! -f $CONF_TARGET ]]; then
                     sudo cp "$CONF_SOURCE" "$CONF_TARGET" 2>/dev/null
-                    printf '%(%F %T)T - SleepControl Startup enabled\n' -1 >> "$LOG_FILE"
+                    printf '%s%(%F %T)T - SleepControl Startup enabled%s\n' "$BLUE" -1 "$RESET" >> "$LOG_FILE"
                 fi
             else
                 if [[ -f $CONF_TARGET ]]; then
                     sudo rm -f "$CONF_TARGET" 2>/dev/null
-                    printf '%(%F %T)T - SleepControl Startup disabled\n' -1 >> "$LOG_FILE"
+                    printf '%s%(%F %T)T - SleepControl Startup disabled%s\n' "$RED" -1 "$RESET" >> "$LOG_FILE"
                 fi
             fi
         fi
