@@ -173,9 +173,11 @@ sudo ectool fanduty "$initial_duty"
             load_config
             last_reload_time=$now
             startup_enabled=0
-            while IFS='=' read -r k v; do
-                [[ $k == STARTUP_FANCONTROL ]] && { [[ $v == 1 ]] && startup_enabled=1; break; }
-            done < "$CONFIG_FILE"
+            if [[ -f "$CONFIG_FILE" ]]; then
+                while IFS='=' read -r k v; do
+                    [[ $k == STARTUP_FANCONTROL ]] && { [[ $v == 1 ]] && startup_enabled=1; break; }
+                done < "$CONFIG_FILE"
+            fi
     
             if (( startup_enabled )); then
                 if [[ ! -f $CONF_TARGET ]]; then
