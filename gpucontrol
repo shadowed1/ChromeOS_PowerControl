@@ -198,15 +198,20 @@ start_monitoring_loop() {
             last_reload=$now
             
             if [[ -f "$CONFIG_FILE" ]]; then
-                if grep -q '^STARTUP_GPUCONTROL=1' "$CONFIG_FILE" 2>/dev/null; then
-                    if [[ ! -f "$CONF_TARGET" ]]; then
+                startup_enabled=0
+                while IFS='=' read -r k v; do
+                    [[ $k == STARTUP_GPUCONTROL ]] && { [[ $v == 1 ]] && startup_enabled=1; break; }
+                done < "$CONFIG_FILE"
+        
+                if (( startup_enabled )); then
+                    if [[ ! -f $CONF_TARGET ]]; then
                         sudo cp "$CONF_SOURCE" "$CONF_TARGET"
-                        echo "${MAGENTA}$(date '+%F %T') - GPUControl Startup enabled${RESET}" >> "$LOG_FILE"
+                        printf '%(%F %T)T - GPUControl Startup enabled\n' -1 >> "$LOG_FILE"
                     fi
                 else
-                    if [[ -f "$CONF_TARGET" ]]; then
+                    if [[ -f $CONF_TARGET ]]; then
                         sudo rm -f "$CONF_TARGET"
-                        echo "${RED}$(date '+%F %T') - GPUControl Startup disabled${RESET}" >> "$LOG_FILE"
+                        printf '%(%F %T)T - GPUControl Startup disabled\n' -1 >> "$LOG_FILE"
                     fi
                 fi
             fi
