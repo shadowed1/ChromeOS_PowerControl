@@ -394,74 +394,85 @@ start_monitoring_loop() {
     save_default_cpu_state
     detect_cpu_type
     load_config
+
     touch "$RUN_FLAG"
     echo $$ > "$PID_FILE"
 
     last_reload_time=0
-    cooldown_mode=false
     last_pct=0
 
-    while [ -f "$RUN_FLAG" ]; do
+    while [[ -f $RUN_FLAG ]]; do
         now=$EPOCHSECONDS
-    
+
         if (( now - last_reload_time >= 5 )); then
             load_config
             validate_config
+
             min_temp_c=$MIN_TEMP
             high_temp_c=$MAX_TEMP
             min_perf_pct=$MIN_PERF_PCT
             max_perf_pct=$MAX_PERF_PCT
             ramp_up=$RAMP_UP
             ramp_down=$RAMP_DOWN
+
+            perf_span=$((max_perf_pct - min_perf_pct))
+            half_span=$((perf_span / 2))
+
             last_reload_time=$now
-            if grep -q '^STARTUP_POWERCONTROL=1' "$CONFIG_FILE"; then
-                if [[ ! -f "$CONF_TARGET" ]]; then
+
+            startup_enabled=0
+            while IFS='=' read -r k v; do
+                [[ $k == STARTUP_POWERCONTROL ]] && { [[ $v == 1 ]] && startup_enabled=1; break; }
+            done < "$CONFIG_FILE"
+
+            if (( startup_enabled )); then
+                if [[ ! -f $CONF_TARGET ]]; then
                     sudo cp "$CONF_SOURCE" "$CONF_TARGET"
-                    echo "${CYAN}$(date '+%F %T') - PowerControl Startup enabled${RESET}" >> "$LOG_FILE"
+                    printf '%(%F %T)T - PowerControl Startup enabled\n' -1 >> "$LOG_FILE"
                 fi
             else
-                if [[ -f "$CONF_TARGET" ]]; then
+                if [[ -f $CONF_TARGET ]]; then
                     sudo rm -f "$CONF_TARGET"
-                    echo "${RED}$(date '+%F %T') - PowerControl Startup disabled${RESET}" >> "$LOG_FILE"
+                    printf '%(%F %T)T - PowerControl Startup disabled\n' -1 >> "$LOG_FILE"
                 fi
             fi
         fi
 
-        temp_c=$(get_temp)
-        if [ $? -ne 0 ] || [ -z "$temp_c" ]; then
-            echo "Failed to get temperature. Retrying..."
+        if ! temp_c=$(get_temp) || [[ -z $temp_c ]]; then
             sleep 1
             continue
         fi
 
         if (( temp_c <= min_temp_c )); then
             target_pct=$max_perf_pct
+
         elif (( temp_c < HOTZONE )); then
             delta_c=$((HOTZONE - min_temp_c))
-            temp_offset=$(( temp_c - min_temp_c ))
+            temp_offset=$((temp_c - min_temp_c))
+
             if (( delta_c > 0 && temp_offset > 0 )); then
-                reduction=$(( (max_perf_pct - min_perf_pct) * temp_offset / (2 * delta_c) ))
+                reduction=$(( perf_span * temp_offset / (2 * delta_c) ))
                 target_pct=$(( max_perf_pct - reduction ))
-                (( target_pct >= max_perf_pct )) && target_pct=$((max_perf_pct - 1))
-                (( target_pct < min_perf_pct )) && target_pct=$min_perf_pct
             else
                 target_pct=$((max_perf_pct - 1))
             fi
+
         elif (( temp_c < high_temp_c )); then
-            delta_c=$(( high_temp_c - HOTZONE ))
-            temp_offset=$(( temp_c - HOTZONE ))
-            if (( delta_c > 0 && temp_offset >= 0 )); then
-                reduction_hotzone=$(( (max_perf_pct - min_perf_pct) / 2 ))
-                reduction=$(( reduction_hotzone + ((max_perf_pct - min_perf_pct) * temp_offset / (2 * delta_c)) ))
+            delta_c=$((high_temp_c - HOTZONE))
+            temp_offset=$((temp_c - HOTZONE))
+
+            if (( delta_c > 0 )); then
+                reduction=$(( half_span + (perf_span * temp_offset / (2 * delta_c)) ))
                 target_pct=$(( max_perf_pct - reduction ))
-                (( target_pct >= max_perf_pct )) && target_pct=$((max_perf_pct - 1))
-                (( target_pct < min_perf_pct )) && target_pct=$min_perf_pct
             else
                 target_pct=$min_perf_pct
             fi
         else
             target_pct=$min_perf_pct
         fi
+
+        (( target_pct > max_perf_pct )) && target_pct=$max_perf_pct
+        (( target_pct < min_perf_pct )) && target_pct=$min_perf_pct
 
         if (( last_pct < 1 )); then
             pct=$target_pct
@@ -475,20 +486,20 @@ start_monitoring_loop() {
             pct=$last_pct
         fi
 
-         if [[ "$last_pct" != "$pct" ]]; then
-            printf -v ts '%(%Y-%m-%d %H:%M:%S)T' -1
-            echo "${CYAN}${ts} - CPU ${temp_c}°C -> Clockspeed ${pct}%${RESET}" >> "$LOG_FILE"
+        if (( pct != last_pct )); then
+            printf '%(%F %T)T - CPU %d°C -> Clockspeed %d%%\n' -1 "$temp_c" "$pct" >> "$LOG_FILE"
         fi
-        
+
         set_max_perf_pct "$pct"
         last_pct=$pct
 
         sleep "$CPU_POLL"
     done
 
-    echo "${RED}PowerControl stopped.${RESET}" | tee -a "$LOG_FILE"
+    echo "PowerControl stopped." | tee -a "$LOG_FILE"
     sudo rm -f "$PID_FILE"
 }
+
 
 show_status() {
     detect_cpu_type
