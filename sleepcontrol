@@ -444,41 +444,44 @@ send_fake_activity() {
     last_ts=$EPOCHSECONDS
 
     while read -r line <&3; do
-        now=$EPOCHSECONDS
-
-        (( now - last_reload_time >= 5 )) && { load_config; last_reload_time=$now; }
-
+    now=$EPOCHSECONDS
+    
+        if (( now - last_reload_time >= 5 )); then
+            load_config
+            last_reload_time=$now
+            
+            startup_enabled=0
+            if [[ -f "$CONFIG_FILE" ]]; then
+                while IFS='=' read -r k v; do
+                    [[ $k == STARTUP_SLEEPCONTROL ]] && { [[ $v == 1 ]] && startup_enabled=1; break; }
+                done < "$CONFIG_FILE"
+            fi
+            
+            if (( startup_enabled )); then
+                if [[ ! -f $CONF_TARGET ]]; then
+                    sudo cp "$CONF_SOURCE" "$CONF_TARGET" 2>/dev/null
+                    printf '%(%F %T)T - SleepControl Startup enabled\n' -1 >> "$LOG_FILE"
+                fi
+            else
+                if [[ -f $CONF_TARGET ]]; then
+                    sudo rm -f "$CONF_TARGET" 2>/dev/null
+                    printf '%(%F %T)T - SleepControl Startup disabled\n' -1 >> "$LOG_FILE"
+                fi
+            fi
+        fi
+    
         if [[ "$STATUS" == "Discharging" ]]; then
             AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_BATTERY
         else
             AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_POWER
         fi
-
+        
         (( AUDIO_DETECTION_ENABLED == 0 )) && audio_active=0
-
+        
         if [[ "$STATUS" == "Discharging" ]]; then
             LIDSLEEP_ENABLED=$LIDSLEEP_BATTERY
         else
             LIDSLEEP_ENABLED=$LIDSLEEP_POWER
-        fi
-
-        startup_enabled=0
-        if [[ -f "$CONFIG_FILE" ]]; then
-            while IFS='=' read -r k v; do
-                [[ $k == STARTUP_SLEEPCONTROL ]] && { [[ $v == 1 ]] && startup_enabled=1; break; }
-            done < "$CONFIG_FILE"
-        fi
-
-        if (( startup_enabled )); then
-            if [[ ! -f $CONF_TARGET ]]; then
-                sudo cp "$CONF_SOURCE" "$CONF_TARGET"
-                printf '%(%F %T)T - SleepControl Startup enabled\n' -1 >> "$LOG_FILE"
-            fi
-        else
-            if [[ -f $CONF_TARGET ]]; then
-                sudo rm -f "$CONF_TARGET"
-                printf '%(%F %T)T - SleepControl Startup disabled\n' -1 >> "$LOG_FILE"
-            fi
         fi
 
        (( LIDSLEEP_ENABLED == 0 )) && lid_closed=0
