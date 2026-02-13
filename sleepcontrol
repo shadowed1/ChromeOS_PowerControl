@@ -44,7 +44,7 @@ wait_for_config() {
     echo "${RED}Error: Config file not available after 5 minutes${RESET}" | tee -a "$LOG_FILE"
     return 1
 }
-
+wait_for_config
 if [[ ! -f "$SUSPEND_APPLIED_FLAG" ]]; then
     INSTALL_DIR="$(dirname "$(readlink -f "$0")")"
     if [[ -f "$CONFIG_FILE" ]]; then
