@@ -561,7 +561,7 @@ if sudo touch "$TEST_FILE" 2>/dev/null; then
         echo "Skipping boot-time setup since global commands were declined."
     fi
 else
-    echo "${YELLOW}Cannot write to /etc/init. Skipping on-boot prompt.${RESET}"
+    echo "${YELLOW}Rootfs verification must be disabled to allow startup on boot. ${RESET}"
 fi
 
 if grep -q '^STARTUP_GPUCONTROL=1' "$CONFIG_FILE"; then
