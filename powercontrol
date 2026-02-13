@@ -57,7 +57,6 @@ detect_cpu_type() {
     PERF_PATHS=()
     TURBO_PATH=""
 
-    # Use a single read operation instead of while loop
     local vendor_line
     vendor_line=$(grep -m1 'vendor_id' /proc/cpuinfo)
     CPU_VENDOR=$(echo "$vendor_line" | awk -F': ' '{print $2}' | tr -d '[:space:]')
@@ -77,7 +76,6 @@ detect_cpu_type() {
             if [[ -f $p ]]; then
                 PERF_PATH=$p
             else
-                # Use mapfile for more efficient array population
                 mapfile -t PERF_PATHS < <(find /sys/devices/system/cpu/cpufreq -name 'scaling_max_freq' -type f 2>/dev/null)
             fi
             ;;
@@ -223,7 +221,6 @@ detect_cpu_type
 load_config
 
 get_temp() {
-    # Cache the thermal zone path after first read
     local temp_celsius
     if read -r temp_celsius 2>/dev/null < /sys/class/thermal/thermal_zone0/temp; then
         if (( temp_celsius >= 0 )); then
@@ -494,7 +491,7 @@ start_monitoring_loop() {
         fi
 
         if (( pct != last_pct )); then
-            printf '%(%F %T)T - ${CYAN}CPU %d°C -> Clockspeed %d%%\n' -1 "$temp_c" "$pct" ${RESET} >> "$LOG_FILE"
+            printf '%(%F %T)T - %sCPU %d°C -> Clockspeed %d%%%s\n' -1 "$CYAN" "$temp_c" "$pct" "$RESET" >> "$LOG_FILE"
             set_max_perf_pct "$pct"
             last_pct=$pct
         fi
