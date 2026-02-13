@@ -182,12 +182,12 @@ sudo ectool fanduty "$initial_duty"
             if (( startup_enabled )); then
                 if [[ ! -f $CONF_TARGET ]]; then
                     sudo cp "$CONF_SOURCE" "$CONF_TARGET"
-                    printf '%(%F %T)T - FanControl Startup enabled\n' -1 >> "$LOG_FILE"
+                    printf '%s%(%F %T)T - FanControl Startup enabled%s\n' "$YELLOW" -1 "$RESET" >> "$LOG_FILE"
                 fi
             else
                 if [[ -f $CONF_TARGET ]]; then
                     sudo rm -f "$CONF_TARGET"
-                    printf '%(%F %T)T - FanControl Startup disabled\n' -1 >> "$LOG_FILE"
+                    printf '%s%(%F %T)T - FanControl Startup enabled%s\n' "$YELLOW" -1 "$RESET" >> "$LOG_FILE"
                 fi
             fi
         fi
