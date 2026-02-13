@@ -491,7 +491,7 @@ start_monitoring_loop() {
         fi
 
         if (( pct != last_pct )); then
-            printf '%(%F %T)T - %sCPU %d°C -> Clockspeed %d%%%s\n' -1 "$CYAN" "$temp_c" "$pct" "$RESET" >> "$LOG_FILE"
+            printf '%s%(%F %T)T - CPU %d°C -> Clockspeed %d%%%s\n' "$CYAN" -1 "$temp_c" "$pct" "$RESET" >> "$LOG_FILE"
             set_max_perf_pct "$pct"
             last_pct=$pct
         fi
