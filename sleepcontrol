@@ -24,8 +24,6 @@ FAKE_ACTIVITY_GRACE=1
 timestamp=$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1)
 SAVED_BRIGHTNESS_FILE="$INSTALL_DIR/.saved_brightness"
 SUSPEND_APPLIED_FLAG="/tmp/.sleepcontrol_suspend_applied"
-CONF_SOURCE="$INSTALL_DIR/sleepcontrol.conf"
-CONF_TARGET="/etc/init/sleepcontrol.conf"
 
 wait_for_config() {
     local config_dir="/home/chronos/user/MyFiles/Downloads/ChromeOS_PowerControl_Config"
@@ -285,14 +283,14 @@ save_current_brightness() {
                     max_brightness=$(cat "$MAX_BRIGHTNESS_PATH" 2>/dev/null)
                     min_threshold=$((max_brightness * 1 / 100))
                     if [[ "$brightness_val" =~ ^[0-9]+$ ]] && [[ "$brightness_val" -ge "$min_threshold" ]] && [[ "$brightness_val" -le "$max_brightness" ]]; then
-                        printf '%s' "$brightness_val" | sudo tee "$SAVED_BRIGHTNESS_FILE" >/dev/null 2>&1
+                        echo "$brightness_val" | sudo tee "$SAVED_BRIGHTNESS_FILE" >/dev/null 2>&1
                         saved_display_brightness="$brightness_val"
                         echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Saved brightness: ${RESET}${YELLOW}$brightness_val${RESET}" >> "$LOG_FILE"
                     else
                         echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Brightness too low ${RESET}${YELLOW}($brightness_val < $min_threshold)${RESET}${BLUE}, not saving${RESET}" >> "$LOG_FILE"
                     fi
                 else
-                    printf '%s' "$brightness_val" | sudo tee "$SAVED_BRIGHTNESS_FILE" >/dev/null 2>&1
+                    echo "$brightness_val" | sudo tee "$SAVED_BRIGHTNESS_FILE" >/dev/null 2>&1
                     saved_display_brightness="$brightness_val"
                     echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Saved brightness: ${RESET}${YELLOW}$brightness_val${RESET}" >> "$LOG_FILE"
                 fi
@@ -302,13 +300,12 @@ save_current_brightness() {
 }
 
 get_saved_brightness() {
-    local val=0
-    if [[ -r "$SAVED_BRIGHTNESS_FILE" ]]; then
-        IFS= read -r val < "$SAVED_BRIGHTNESS_FILE"
-        [[ $val =~ ^[0-9]+$ ]] || val=0
+    if [[ -f "$SAVED_BRIGHTNESS_FILE" ]]; then
+        cat "$SAVED_BRIGHTNESS_FILE" 2>/dev/null || echo "0" 
+    else
+        echo "0"
     fi
 }
-
 
    set_audio_detection() {
     local mode=$1
@@ -328,9 +325,8 @@ get_saved_brightness() {
 }
 
 update_power_state_file() {
-    printf '%s' "$STATUS" | sudo tee "$LAST_POWER_STATE" >/dev/null 2>&1
+    echo "$STATUS" | sudo tee "$LAST_POWER_STATE" >/dev/null 2>&1
 }
-
 
 idle_elapsed=0
 
@@ -355,7 +351,7 @@ monitor_idle_activity() {
         exit 0
     fi
 
-    printf '%s\n' "$BASHPID" > "$PID_FILE"
+    echo "$BASHPID" > "$PID_FILE"
     touch "$RUN_FLAG"
     echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - SleepControl started (PID $$)${RESET}" > "$LOG_FILE"
 
@@ -390,7 +386,7 @@ send_fake_activity() {
             /org/chromium/PowerManager \
             org.chromium.PowerManager.HandleUserActivity int32:0 int32:0
 
-        printf '%s' "$now" | sudo tee "$LAST_FAKE_ACTIVITY_FILE" >/dev/null 2>&1
+        echo "$now" | sudo tee "$LAST_FAKE_ACTIVITY_FILE" >/dev/null 2>&1
         echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Simulated user activity${RESET}" >> "$LOG_FILE"
     fi
 }
@@ -573,7 +569,7 @@ send_fake_activity() {
             if [[ "$STATUS" != "$prev_status" ]]; then
                 recalc_timers
                 last_ts=$now
-                printf '%s' "$STATUS" | sudo tee "$LAST_POWER_STATE" >/dev/null 2>&1
+                echo "$STATUS" | sudo tee "$LAST_POWER_STATE" >/dev/null 2>&1
                 if [[ -n "$saved_display_brightness" && "$saved_display_brightness" -ge 0 ]]; then
                     set_display_brightness "$saved_display_brightness"
                 fi
@@ -619,22 +615,18 @@ send_fake_activity() {
             fi
             ;;
         *"User activity reported"*)
-            last_fake_ts=0
-            if [[ -r "$LAST_FAKE_ACTIVITY_FILE" ]]; then
-                IFS= read -r tmp < "$LAST_FAKE_ACTIVITY_FILE"
-                [[ $tmp =~ ^[0-9]+$ ]] && last_fake_ts=$tmp
+            if [[ -f "$LAST_FAKE_ACTIVITY_FILE" ]]; then
+                last_fake_ts=$(head -n1 "$LAST_FAKE_ACTIVITY_FILE" 2>/dev/null || echo 0)
+            else
+                last_fake_ts=0
             fi
-            
             if (( last_fake_ts > 0 && now - last_fake_ts <= FAKE_ACTIVITY_GRACE )); then
-                [[ -f "$LAST_FAKE_ACTIVITY_FILE" ]] && sudo rm -f "$LAST_FAKE_ACTIVITY_FILE" 2>/dev/null
+                sudo rm -f "$LAST_FAKE_ACTIVITY_FILE" 2>/dev/null || true
                 continue
             fi
-            
             if (( monitor_idle == 1 )); then
-                printf -v ts '%(%Y-%m-%d %H:%M:%S)T' -1
-                printf '%s - User activity resumed\n' "${BLUE}${ts}${RESET}" >> "$LOG_FILE"
+                echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - User activity resumed${RESET}" >> "$LOG_FILE"
             fi
-
             monitor_idle=0
             active=1
             last_ts=$now
@@ -660,18 +652,8 @@ send_fake_activity() {
             stop_fake_activity
             backlight_off=0
         
-            line=""
-
-            while IFS= read -r l; do
-                [[ $l == *"Setting brightness to"* ]] && line=$l
-            done < /var/log/power_manager/powerd.LATEST
-
-            brightness_value=""
-            
-            if [[ $line =~ Setting[[:space:]]+brightness[[:space:]]+to[[:space:]]+([0-9]+) ]]; then
-                brightness_value=${BASH_REMATCH[1]}
-            fi
-
+            line=$(grep "Setting brightness to" /var/log/power_manager/powerd.LATEST | tail -n1)
+            brightness_value=$(echo "$line" | sed -n 's/.*Setting brightness to \([0-9]\+\) (.*/\1/p')
         
             if [[ -n "$brightness_value" && "$brightness_value" -gt 0 && $lid_closed -eq 0 && $backlight_off -eq 0 && $was_dimmed -eq 0 ]]; then
                 if [[ -f "$MAX_BRIGHTNESS_PATH" && -r "$MAX_BRIGHTNESS_PATH" ]]; then
@@ -680,9 +662,8 @@ send_fake_activity() {
                     
                     if [[ "$brightness_value" -ge "$min_threshold" ]]; then
                         saved_display_brightness="$brightness_value"
-                        printf '%s' "$brightness_value" | sudo tee "$SAVED_BRIGHTNESS_FILE" >/dev/null 2>&1
-                        printf -v ts '%(%Y-%m-%d %H:%M:%S)T' -1
-                        printf '%s - ${BLUE}Saved display brightness: %s\n' "${ts}${RESET}" "${YELLOW}${saved_display_brightness}${RESET}" >> "$LOG_FILE"
+                        echo "$brightness_value" | sudo tee "$SAVED_BRIGHTNESS_FILE" >/dev/null 2>&1
+                        echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Saved display brightness: ${RESET}${YELLOW}$saved_display_brightness${RESET}" >> "$LOG_FILE"
                     fi
                 fi
             fi
@@ -704,6 +685,7 @@ send_fake_activity() {
                 (( remaining_dim < 0 )) && remaining_dim=0
                 (( remaining_backlight < 0 )) && remaining_backlight=0
                 (( remaining_suspend < 0 )) && remaining_suspend=0
+            
                 echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - ${RESET}${CYAN}Dim: ${BOLD}${remaining_dim}s${RESET}${CYAN} -> ${RESET}${GREEN}Display off: ${BOLD}${remaining_backlight}s${RESET}${GREEN} -> ${RESET}${MAGENTA}Idle: ${BOLD}${remaining_suspend}s${RESET}" >> "$LOG_FILE"
                 last_log_ts=$now
             fi
@@ -792,20 +774,10 @@ case "$1" in
         if [[ -n "$BRIGHTNESS_PATH" ]]; then
             current_brightness=$(cat "$BRIGHTNESS_PATH" 2>/dev/null)
             if [[ -z "$current_brightness" || "$current_brightness" -eq 0 ]]; then
-                line=""
-
-                while IFS= read -r l; do
-                    [[ $l == *"Setting brightness to"* ]] && line=$l
-                done < /var/log/power_manager/powerd.LATEST
-
-                last_brightness=""
-
-                if [[ $line =~ Setting[[:space:]]+brightness[[:space:]]+to[[:space:]]+([0-9]+) ]]; then
-                    last_brightness=${BASH_REMATCH[1]}
-                fi
-
-                if [[ -n $last_brightness && $last_brightness -gt 0 ]]; then
-                    printf '%s' "$last_brightness" | sudo tee "$BRIGHTNESS_PATH" >/dev/null
+                line=$(grep "Setting brightness to" /var/log/power_manager/powerd.LATEST | tail -n1)
+                last_brightness=$(echo "$line" | sed -n 's/.*Setting brightness to \([0-9]\+\) (.*/\1/p')
+                if [[ -n "$last_brightness" && "$last_brightness" -gt 0 ]]; then
+                    echo "$last_brightness" | sudo tee "$BRIGHTNESS_PATH" 2>/dev/null
                 fi
             fi
         fi
@@ -823,22 +795,11 @@ case "$1" in
         if [[ -n "$BRIGHTNESS_PATH" ]]; then
             current_brightness=$(cat "$BRIGHTNESS_PATH" 2>/dev/null)
             if [[ -z "$current_brightness" || "$current_brightness" -eq 0 ]]; then
-                line=""
-
-                while IFS= read -r l; do
-                    [[ $l == *"Setting brightness to"* ]] && line=$l
-                done < /var/log/power_manager/powerd.LATEST
-
-                last_brightness=""
-                
-                if [[ $line =~ Setting[[:space:]]+brightness[[:space:]]+to[[:space:]]+([0-9]+) ]]; then
-                    last_brightness=${BASH_REMATCH[1]}
+                line=$(grep "Setting brightness to" /var/log/power_manager/powerd.LATEST | tail -n1)
+                last_brightness=$(echo "$line" | sed -n 's/.*Setting brightness to \([0-9]\+\) (.*/\1/p')
+                if [[ -n "$last_brightness" && "$last_brightness" -gt 0 ]]; then
+                    echo "$last_brightness" | sudo tee "$BRIGHTNESS_PATH" 2>/dev/null
                 fi
-
-                if [[ -n $last_brightness && $last_brightness -gt 0 ]]; then
-                    printf '%s' "$last_brightness" > "$BRIGHTNESS_PATH"
-                fi
-
             fi
         fi
 
