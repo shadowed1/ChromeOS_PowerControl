@@ -1,4 +1,4 @@
-#!/bin/bash
+-#!/bin/bash
 RED=$(tput setaf 1)
 GREEN=$(tput setaf 2)
 YELLOW=$(tput setaf 3)
@@ -682,7 +682,7 @@ send_fake_activity() {
                         saved_display_brightness="$brightness_value"
                         printf '%s' "$brightness_value" | sudo tee "$SAVED_BRIGHTNESS_FILE" >/dev/null 2>&1
                         printf -v ts '%(%Y-%m-%d %H:%M:%S)T' -1
-                        printf '%s - Saved display brightness: %s\n' "${BLUE}${ts}${RESET}" "${YELLOW}${saved_display_brightness}${RESET}" >> "$LOG_FILE"
+                        printf '%s - ${BLUE}Saved display brightness: %s\n' "${ts}${RESET}" "${YELLOW}${saved_display_brightness}${RESET}" >> "$LOG_FILE"
                     fi
                 fi
             fi
