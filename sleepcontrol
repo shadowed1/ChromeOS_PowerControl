@@ -44,6 +44,7 @@ wait_for_config() {
     echo "${RED}Error: Config file not available after 5 minutes${RESET}" | tee -a "$LOG_FILE"
     return 1
 }
+
 wait_for_config
 
 if [[ ! -f "$SUSPEND_APPLIED_FLAG" ]]; then
@@ -334,7 +335,6 @@ update_power_state_file() {
 idle_elapsed=0
 
 monitor_idle_activity() {
-    wait_for_config
     exec 200>"$PID_FILE.lock"
     flock -n 200 || {
         echo "${BLUE}"
@@ -343,6 +343,7 @@ monitor_idle_activity() {
         exit 1
     }
 
+    wait_for_config
     load_config
     saved_display_brightness=$(get_saved_brightness) 2>/dev/null
     recalc_timers
