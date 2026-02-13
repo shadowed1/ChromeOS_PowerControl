@@ -71,27 +71,25 @@ if [[ ! -f "$SUSPEND_APPLIED_FLAG" ]]; then
 fi
 
 get_battery_info() {
-    local line
-    line=$(grep -E "On (battery|AC)|line_power (connected|online)" "$BATTERY_STATUS_PATH" | tail -n1)
+    local line last=""
+    while IFS= read -r line; do
+        case $line in
+            *"On battery at "*%|*"On AC"*|*"line_power connected"*|*"line_power online"*)
+                last=$line
+                ;;
+        esac
+    done < "$BATTERY_STATUS_PATH"
 
-    if [[ "$line" =~ On\ battery\ at\ ([0-9]+)% ]]; then
-        CHARGE="${BASH_REMATCH[1]}"
+    if [[ $last =~ On\ battery\ at\ ([0-9]+)% ]]; then
+        CHARGE=${BASH_REMATCH[1]}
         STATUS="Discharging"
 
-    elif [[ "$line" =~ On\ AC ]]; then
-        if [[ "$line" =~ battery\ at\ ([0-9]+)% ]]; then
-            CHARGE="${BASH_REMATCH[1]}"
-        else
-            CHARGE=""
-        fi
+    elif [[ $last =~ On\ AC ]]; then
+        [[ $last =~ battery\ at\ ([0-9]+)% ]] && CHARGE=${BASH_REMATCH[1]} || CHARGE=""
         STATUS="Charging"
 
-    elif [[ "$line" == *"line_power connected"* || "$line" == *"line_power online"* ]]; then
-        if [[ "$line" =~ at\ ([0-9]+)% ]]; then
-            CHARGE="${BASH_REMATCH[1]}"
-        else
-            CHARGE=""
-        fi
+    elif [[ $last == *"line_power connected"* || $last == *"line_power online"* ]]; then
+        [[ $last =~ at\ ([0-9]+)% ]] && CHARGE=${BASH_REMATCH[1]} || CHARGE=""
         STATUS="Charging"
 
     else
@@ -99,7 +97,6 @@ get_battery_info() {
         STATUS="Unknown"
     fi
 }
-
 
 if ! ( [[ -z "$1" ]] || [[ "$1" == "--h" || "$1" == "-h" || "$1" == "h" || "$1" == "--help" || "$1" == "-help" || "$1" == "help" || "$1" == "help_all" || "$1" == "monitor" || "$1" == "mon" || "$1" == "powerd" || "$1" == "status" ]] ) && [[ "$(id -u)" -ne 0 ]]; then    echo "${RED}SleepControl requires sudo to run${RESET}"
     echo "  Try: sudo sleepcontrol $*  or  sudo $0 $*"
