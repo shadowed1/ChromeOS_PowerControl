@@ -388,10 +388,8 @@ start_monitoring_loop() {
     save_default_cpu_state
     detect_cpu_type
     load_config
-
     touch "$RUN_FLAG"
     echo $$ > "$PID_FILE"
-
     local last_reload_time=0
     local last_pct=0
     local config_check_interval=5
@@ -406,11 +404,11 @@ start_monitoring_loop() {
     local half_span=$((perf_span / 2))
     local hotzone_delta=$((hotzone - min_temp_c))
     local max_delta=$((high_temp_c - hotzone))
-
+    
     while [[ -f $RUN_FLAG ]]; do
         local now=$EPOCHSECONDS
-
-
+        
+        if (( now - last_reload_time >= config_check_interval )); then
             validate_config
             min_temp_c=$MIN_TEMP
             high_temp_c=$MAX_TEMP
@@ -424,14 +422,14 @@ start_monitoring_loop() {
             hotzone_delta=$((hotzone - min_temp_c))
             max_delta=$((high_temp_c - hotzone))
             last_reload_time=$now
-
+            
             startup_enabled=0
             if [[ -f "$CONFIG_FILE" ]]; then
                 while IFS='=' read -r k v; do
                     [[ $k == STARTUP_POWERCONTROL ]] && { [[ $v == 1 ]] && startup_enabled=1; break; }
                 done < "$CONFIG_FILE"
             fi
-
+            
             if (( startup_enabled )); then
                 if [[ ! -f $CONF_TARGET ]]; then
                     sudo cp "$CONF_SOURCE" "$CONF_TARGET" 2>/dev/null
@@ -444,13 +442,13 @@ start_monitoring_loop() {
                 fi
             fi
         fi
-
+        
         local temp_c
         if ! temp_c=$(get_temp) || [[ -z $temp_c ]]; then
             sleep "$CPU_POLL"
             continue
         fi
-
+        
         local target_pct
         
         if (( temp_c <= min_temp_c )); then
@@ -474,10 +472,10 @@ start_monitoring_loop() {
         else
             target_pct=$min_perf_pct
         fi
-
+        
         (( target_pct > max_perf_pct )) && target_pct=$max_perf_pct
         (( target_pct < min_perf_pct )) && target_pct=$min_perf_pct
-
+        
         local pct
         if (( last_pct < 1 )); then
             pct=$target_pct
@@ -490,20 +488,19 @@ start_monitoring_loop() {
         else
             pct=$last_pct
         fi
-
+        
         if (( pct != last_pct )); then
             printf '%s%(%F %T)T - CPU %d°C -> Clockspeed %d%%%s\n' "$CYAN" -1 "$temp_c" "$pct" "$RESET" >> "$LOG_FILE"
             set_max_perf_pct "$pct"
             last_pct=$pct
         fi
-
+        
         sleep "$CPU_POLL"
     done
-
+    
     echo "PowerControl stopped." | tee -a "$LOG_FILE"
     sudo rm -f "$PID_FILE"
 }
-
 
 show_status() {
     detect_cpu_type
