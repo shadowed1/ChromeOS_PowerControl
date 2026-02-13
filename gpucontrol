@@ -262,7 +262,7 @@ apply_gpu_settings() {
 clockspeed() {
     local GPU_DIR="${GPU_FREQ_PATH%/*}"
     local CUR_FREQ_FILE
-    CUR_FREQ_FILE=$(find "$GPU_DIR" -maxdepth 1 -name '*cur_freq*' -type f 2>/dev/null | head -n 1)
+    CUR_FREQ_FILE=$(ls "$GPU_DIR"/*cur_freq* 2>/dev/null | head -n 1)
 
     if [[ -z "$CUR_FREQ_FILE" || ! -f "$CUR_FREQ_FILE" ]]; then
         echo "No file matching '*cur_freq*' found in $GPU_DIR"
