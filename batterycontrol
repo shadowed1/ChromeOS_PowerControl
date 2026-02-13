@@ -223,15 +223,20 @@ start_monitoring_loop() {
                 echo "Failed to read $BATTERY_PATH" >&2
             fi
 
-            if grep -q '^STARTUP_BATTERYCONTROL=1' "$CONFIG_FILE"; then
-                if [[ ! -f "$CONF_TARGET" ]]; then
+            startup_enabled=0
+            while IFS='=' read -r k v; do
+                [[ $k == STARTUP_BATTERYCONTROL ]] && { [[ $v == 1 ]] && startup_enabled=1; break; }
+            done < "$CONFIG_FILE"
+    
+            if (( startup_enabled )); then
+                if [[ ! -f $CONF_TARGET ]]; then
                     sudo cp "$CONF_SOURCE" "$CONF_TARGET"
-                    echo "${GREEN}$(date '+%F %T') - BatteryControl Startup enabled${RESET}" >> "$LOG_FILE"
+                    printf '%(%F %T)T - BatteryControl Startup enabled\n' -1 >> "$LOG_FILE"
                 fi
             else
-                if [[ -f "$CONF_TARGET" ]]; then
+                if [[ -f $CONF_TARGET ]]; then
                     sudo rm -f "$CONF_TARGET"
-                    echo "${RED}$(date '+%F %T') - BatteryControl Startup disabled${RESET}" >> "$LOG_FILE"
+                    printf '%(%F %T)T - BatteryControl Startup disabled\n' -1 >> "$LOG_FILE"
                 fi
             fi
         fi
