@@ -1,3 +1,4 @@
+
 #!/bin/bash
 RED=$(tput setaf 1)
 GREEN=$(tput setaf 2)
@@ -44,7 +45,7 @@ wait_for_config() {
     echo "${RED}Error: Config file not available after 5 minutes${RESET}" | tee -a "$LOG_FILE"
     return 1
 }
-wait_for_config
+
 if [[ ! -f "$SUSPEND_APPLIED_FLAG" ]]; then
     INSTALL_DIR="$(dirname "$(readlink -f "$0")")"
     if [[ -f "$CONFIG_FILE" ]]; then
@@ -230,25 +231,23 @@ validate_config() {
 
 save_config() {
     validate_config
-    if [[ -f "$CONFIG_FILE" ]]; then
-        sed -i "s/^BATTERY_DELAY=.*/BATTERY_DELAY=$BATTERY_DELAY/" "$CONFIG_FILE" || echo "BATTERY_DELAY=$BATTERY_DELAY" >> "$CONFIG_FILE"
-        sed -i "s/^POWER_DELAY=.*/POWER_DELAY=$POWER_DELAY/" "$CONFIG_FILE" || echo "POWER_DELAY=$POWER_DELAY" >> "$CONFIG_FILE"
-        sed -i "s/^BATTERY_BACKLIGHT=.*/BATTERY_BACKLIGHT=$BATTERY_BACKLIGHT/" "$CONFIG_FILE" || echo "BATTERY_BACKLIGHT=$BATTERY_BACKLIGHT" >> "$CONFIG_FILE"
-        sed -i "s/^POWER_BACKLIGHT=.*/POWER_BACKLIGHT=$POWER_BACKLIGHT/" "$CONFIG_FILE" || echo "POWER_BACKLIGHT=$POWER_BACKLIGHT" >> "$CONFIG_FILE"
-        sed -i "s/^BATTERY_DIM_DELAY=.*/BATTERY_DIM_DELAY=$BATTERY_DIM_DELAY/" "$CONFIG_FILE" || echo "BATTERY_DIM_DELAY=$BATTERY_DIM_DELAY" >> "$CONFIG_FILE"
-        sed -i "s/^POWER_DIM_DELAY=.*/POWER_DIM_DELAY=$POWER_DIM_DELAY/" "$CONFIG_FILE" || echo "POWER_DIM_DELAY=$POWER_DIM_DELAY" >> "$CONFIG_FILE"
-        sed -i "s/^AUDIO_DETECTION_BATTERY=.*/AUDIO_DETECTION_BATTERY=$AUDIO_DETECTION_BATTERY/" "$CONFIG_FILE" || echo "AUDIO_DETECTION_BATTERY=$AUDIO_DETECTION_BATTERY" >> "$CONFIG_FILE"
-        sed -i "s/^AUDIO_DETECTION_POWER=.*/AUDIO_DETECTION_POWER=$AUDIO_DETECTION_POWER/" "$CONFIG_FILE" || echo "AUDIO_DETECTION_POWER=$AUDIO_DETECTION_POWER" >> "$CONFIG_FILE"
-        sed -i "s/^SUSPEND_MODE=.*/SUSPEND_MODE=$SUSPEND_MODE/" "$CONFIG_FILE" || echo "SUSPEND_MODE=$SUSPEND_MODE" >> "$CONFIG_FILE"
-        sed -i "s/^ORIGINAL_SUSPEND_MODE=.*/ORIGINAL_SUSPEND_MODE=$ORIGINAL_SUSPEND_MODE/" "$CONFIG_FILE" || echo "ORIGINAL_SUSPEND_MODE=$ORIGINAL_SUSPEND_MODE" >> "$CONFIG_FILE"
-        sed -i "s/^LIDSLEEP_BATTERY=.*/LIDSLEEP_BATTERY=$LIDSLEEP_BATTERY/" "$CONFIG_FILE" || echo "LIDSLEEP_BATTERY=$LIDSLEEP_BATTERY" >> "$CONFIG_FILE"
-        sed -i "s/^LIDSLEEP_POWER=.*/LIDSLEEP_POWER=$LIDSLEEP_POWER/" "$CONFIG_FILE" || echo "LIDSLEEP_POWER=$LIDSLEEP_POWER" >> "$CONFIG_FILE"
-    fi
+    sed -i "s/^BATTERY_DELAY=.*/BATTERY_DELAY=$BATTERY_DELAY/" "$CONFIG_FILE" || echo "BATTERY_DELAY=$BATTERY_DELAY" >> "$CONFIG_FILE"
+    sed -i "s/^POWER_DELAY=.*/POWER_DELAY=$POWER_DELAY/" "$CONFIG_FILE" || echo "POWER_DELAY=$POWER_DELAY" >> "$CONFIG_FILE"
+    sed -i "s/^BATTERY_BACKLIGHT=.*/BATTERY_BACKLIGHT=$BATTERY_BACKLIGHT/" "$CONFIG_FILE" || echo "BATTERY_BACKLIGHT=$BATTERY_BACKLIGHT" >> "$CONFIG_FILE"
+    sed -i "s/^POWER_BACKLIGHT=.*/POWER_BACKLIGHT=$POWER_BACKLIGHT/" "$CONFIG_FILE" || echo "POWER_BACKLIGHT=$POWER_BACKLIGHT" >> "$CONFIG_FILE"
+    sed -i "s/^BATTERY_DIM_DELAY=.*/BATTERY_DIM_DELAY=$BATTERY_DIM_DELAY/" "$CONFIG_FILE" || echo "BATTERY_DIM_DELAY=$BATTERY_DIM_DELAY" >> "$CONFIG_FILE"
+    sed -i "s/^POWER_DIM_DELAY=.*/POWER_DIM_DELAY=$POWER_DIM_DELAY/" "$CONFIG_FILE" || echo "POWER_DIM_DELAY=$POWER_DIM_DELAY" >> "$CONFIG_FILE"
+    sed -i "s/^AUDIO_DETECTION_BATTERY=.*/AUDIO_DETECTION_BATTERY=$AUDIO_DETECTION_BATTERY/" "$CONFIG_FILE" || echo "AUDIO_DETECTION_BATTERY=$AUDIO_DETECTION_BATTERY" >> "$CONFIG_FILE"
+    sed -i "s/^AUDIO_DETECTION_POWER=.*/AUDIO_DETECTION_POWER=$AUDIO_DETECTION_POWER/" "$CONFIG_FILE" || echo "AUDIO_DETECTION_POWER=$AUDIO_DETECTION_POWER" >> "$CONFIG_FILE"
+    sed -i "s/^SUSPEND_MODE=.*/SUSPEND_MODE=$SUSPEND_MODE/" "$CONFIG_FILE" || echo "SUSPEND_MODE=$SUSPEND_MODE" >> "$CONFIG_FILE"
+    sed -i "s/^ORIGINAL_SUSPEND_MODE=.*/ORIGINAL_SUSPEND_MODE=$ORIGINAL_SUSPEND_MODE/" "$CONFIG_FILE" || echo "ORIGINAL_SUSPEND_MODE=$ORIGINAL_SUSPEND_MODE" >> "$CONFIG_FILE"
+    sed -i "s/^LIDSLEEP_BATTERY=.*/LIDSLEEP_BATTERY=$LIDSLEEP_BATTERY/" "$CONFIG_FILE" || echo "LIDSLEEP_BATTERY=$LIDSLEEP_BATTERY" >> "$CONFIG_FILE"
+    sed -i "s/^LIDSLEEP_POWER=.*/LIDSLEEP_POWER=$LIDSLEEP_POWER/" "$CONFIG_FILE" || echo "LIDSLEEP_POWER=$LIDSLEEP_POWER" >> "$CONFIG_FILE"
 }
 
 show_help() {
 echo "${BLUE}"
-echo "╔══════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
+echo "╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
 echo "║                                                                                                                    ║"
 echo "║                                          SleepControl commands with examples:                                      ║"
 echo "║                                                                                                                    ║"
@@ -335,7 +334,6 @@ update_power_state_file() {
 idle_elapsed=0
 
 monitor_idle_activity() {
-    wait_for_config
     exec 200>"$PID_FILE.lock"
     flock -n 200 || {
         echo "${BLUE}"
@@ -446,6 +444,20 @@ send_fake_activity() {
 
         (( now - last_reload_time >= 5 )) && { load_config; last_reload_time=$now; }
 
+        if [[ "$STATUS" == "Discharging" ]]; then
+            AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_BATTERY
+        else
+            AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_POWER
+        fi
+
+        (( AUDIO_DETECTION_ENABLED == 0 )) && audio_active=0
+
+        if [[ "$STATUS" == "Discharging" ]]; then
+            LIDSLEEP_ENABLED=$LIDSLEEP_BATTERY
+        else
+            LIDSLEEP_ENABLED=$LIDSLEEP_POWER
+        fi
+
         startup_enabled=0
         while IFS='=' read -r k v; do
             [[ $k == STARTUP_SLEEPCONTROL ]] && { [[ $v == 1 ]] && startup_enabled=1; break; }
@@ -461,20 +473,6 @@ send_fake_activity() {
                 sudo rm -f "$CONF_TARGET"
                 printf '%(%F %T)T - SleepControl Startup disabled\n' -1 >> "$LOG_FILE"
             fi
-        fi
-
-        if [[ "$STATUS" == "Discharging" ]]; then
-            AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_BATTERY
-        else
-            AUDIO_DETECTION_ENABLED=$AUDIO_DETECTION_POWER
-        fi
-
-        (( AUDIO_DETECTION_ENABLED == 0 )) && audio_active=0
-
-        if [[ "$STATUS" == "Discharging" ]]; then
-            LIDSLEEP_ENABLED=$LIDSLEEP_BATTERY
-        else
-            LIDSLEEP_ENABLED=$LIDSLEEP_POWER
         fi
 
        (( LIDSLEEP_ENABLED == 0 )) && lid_closed=0
@@ -937,12 +935,12 @@ case "$1" in
             PID=$(cat "$PID_FILE")
             if ps -p "$PID" > /dev/null 2>&1; then
 echo "${BLUE}"
-echo "═════════════════════════════════════════════════════════════════════════════════════════════════════"
+echo "═════════════════════════════════════════════════════════════════════════════════════════════════"
 echo "                          SleepControl Status: RUNNING (PID $PID)                                  "                                 
 echo ""
             else
 echo "${RED}"
-echo "═════════════════════════════════════════════════════════════════════════════════════════════════════"
+echo "═════════════════════════════════════════════════════════════════════════════════════════════════"
 echo " SleepControl Status: RUN FLAG PRESENT, but process not yet running (120s delay on boot)"
 echo ""
 
@@ -950,12 +948,12 @@ echo ""
 
          else
 echo "${RED}"
-echo "═════════════════════════════════════════════════════════════════════════════════════════════════════"
+echo "═════════════════════════════════════════════════════════════════════════════════════════════════"
 echo "                              SleepControl Status: STOPPED                                       "
         fi
 echo "  Battery = Dim: $((BATTERY_DIM_DELAY)) min -> Display off: $((BATTERY_BACKLIGHT)) min -> Sleep: $((BATTERY_DELAY)) min | Audio Detection: $AUDIO_DETECTION_BATTERY | Lid Sleep: $LIDSLEEP_BATTERY "
 echo "  Power   = Dim: $((POWER_DIM_DELAY)) min -> Display off: $((POWER_BACKLIGHT)) min -> Sleep: $((POWER_DELAY)) min | Audio Detection: $AUDIO_DETECTION_POWER | Lid Sleep: $LIDSLEEP_POWER "
-echo "═════════════════════════════════════════════════════════════════════════════════════════════════════"
+echo "═════════════════════════════════════════════════════════════════════════════════════════════════"
 echo "${RESET}"
        
         ;;
