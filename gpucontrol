@@ -389,7 +389,7 @@ if [[ $# -eq 0 ]]; then
 
     if (( RUNNING )); then
         COLOR="$MAGENTA"
-        STATE_TEXT="GPUControl Status: RUNNING"
+        STATE_TEXT="GPUControl Status: RUNNING (PID $PID)"
     else
         COLOR="$RED"
         STATE_TEXT="GPUControl Status: STOPPED"
