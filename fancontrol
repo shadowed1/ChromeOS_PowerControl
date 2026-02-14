@@ -169,23 +169,23 @@ sudo ectool fanduty "$initial_duty"
         fi
 
         now=$(date +%s)
-        if (( now - last_reload_time >= 5 )); then
-            load_config
-            last_reload_time=$now
-            startup_enabled=0
-            if [[ -f "$CONFIG_FILE" ]]; then
-                while IFS='=' read -r k v; do
-                    [[ $k == STARTUP_FANCONTROL ]] && { [[ $v == 1 ]] && startup_enabled=1; break; }
-                done < "$CONFIG_FILE"
-            fi
-    
-            if (( startup_enabled )); then
-                if [[ ! -f $CONF_TARGET ]]; then
-                    sudo cp "$CONF_SOURCE" "$CONF_TARGET"
-                    printf '%s%(%F %T)T - FanControl Startup enabled%s\n' "$YELLOW" -1 "$RESET" >> "$LOG_FILE"
+        if [[ -f "$CONF_TARGET" ]]; then
+            if (( now - last_reload_time >= 5 )); then
+                load_config
+                last_reload_time=$now
+                startup_enabled=0
+                if [[ -f "$CONFIG_FILE" ]]; then
+                    while IFS='=' read -r k v; do
+                        [[ $k == STARTUP_FANCONTROL ]] && { [[ $v == 1 ]] && startup_enabled=1; break; }
+                    done < "$CONFIG_FILE"
                 fi
-            else
-                if [[ -f $CONF_TARGET ]]; then
+        
+                if (( startup_enabled )); then
+                    if [[ ! -f "$CONF_TARGET" ]]; then
+                        sudo cp "$CONF_SOURCE" "$CONF_TARGET"
+                        printf '%s%(%F %T)T - FanControl Startup enabled%s\n' "$YELLOW" -1 "$RESET" >> "$LOG_FILE"
+                    fi
+                else
                     sudo rm -f "$CONF_TARGET"
                     printf '%s%(%F %T)T - FanControl Startup disabled%s\n' "$RED" -1 "$RESET" >> "$LOG_FILE"
                 fi
