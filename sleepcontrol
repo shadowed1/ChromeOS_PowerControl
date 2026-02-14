@@ -74,22 +74,22 @@ get_battery_info() {
     local line last=""
     while IFS= read -r line; do
         case $line in
-            *"On battery at "*%|*"On AC"*|*"line_power connected"*|*"line_power online"*)
+            *"On battery at "*%|*"On AC"*|*"On USB"*|*"line_power connected"*|*"line_power online"*)
                 last=$line
                 ;;
         esac
     done < "$BATTERY_STATUS_PATH"
 
-    if [[ $last =~ On\ battery\ at\ ([0-9]+)% ]]; then
+    if [[ $last =~ "On battery at "([0-9]+)% ]]; then
         CHARGE=${BASH_REMATCH[1]}
         STATUS="Discharging"
 
-    elif [[ $last =~ On\ AC ]]; then
-        [[ $last =~ battery\ at\ ([0-9]+)% ]] && CHARGE=${BASH_REMATCH[1]} || CHARGE=""
+    elif [[ $last =~ "On AC" ]] || [[ $last =~ "On USB" ]]; then
+        [[ $last =~ "at "([0-9]+)% ]] && CHARGE=${BASH_REMATCH[1]} || CHARGE=""
         STATUS="Charging"
 
-    elif [[ $last == *"line_power connected"* || $last == *"line_power online"* ]]; then
-        [[ $last =~ at\ ([0-9]+)% ]] && CHARGE=${BASH_REMATCH[1]} || CHARGE=""
+    elif [[ $last == *"line_power connected"* ]] || [[ $last == *"line_power online"* ]]; then
+        [[ $last =~ "at "([0-9]+)% ]] && CHARGE=${BASH_REMATCH[1]} || CHARGE=""
         STATUS="Charging"
 
     else
@@ -566,6 +566,7 @@ send_fake_activity() {
             fi
             ;;
      *"On battery at"*|*"On AC"*|*"line_power connected"*|*"line_power online"*)
+            sleep 0.2
             get_battery_info
         
             if [[ -f "$LAST_POWER_STATE" ]]; then
