@@ -566,9 +566,10 @@ send_fake_activity() {
             fi
             ;;
      *"On battery at"*|*"On AC"*|*"line_power connected"*|*"line_power online"*)
-            sleep 0.2
             get_battery_info
-        
+            sleep 0.2
+            update_power_state_file
+            sleep 0.2
             if [[ -f "$LAST_POWER_STATE" ]]; then
                 prev_status=$(<"$LAST_POWER_STATE")
             else
