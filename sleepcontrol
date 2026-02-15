@@ -329,6 +329,7 @@ get_saved_brightness() {
 
 update_power_state_file() {
     printf '%s' "$STATUS" | sudo tee "$LAST_POWER_STATE" >/dev/null 2>&1
+    echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Saved Power State: ${RESET}${YELLOW}$STATUS ${RESET}" >> "$LOG_FILE"
 }
 
 idle_elapsed=0
