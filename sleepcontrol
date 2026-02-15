@@ -576,6 +576,7 @@ send_fake_activity() {
                 recalc_timers
                 last_ts=$now
                 printf '%s' "$STATUS" | sudo tee "$LAST_POWER_STATE" >/dev/null 2>&1
+                echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Saved Power State: ${RESET}${YELLOW}$STATUS ${RESET}" >> "$LOG_FILE"
                 
                 if [[ -n "$saved_display_brightness" && "$saved_display_brightness" -ge 0 ]]; then
                     set_display_brightness "$saved_display_brightness"
