@@ -292,7 +292,7 @@ save_current_brightness() {
                 else
                     printf '%s' "$brightness_val" | sudo tee "$SAVED_BRIGHTNESS_FILE" >/dev/null 2>&1
                     saved_display_brightness="$brightness_val"
-                    echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Saved brightness: ${RESET}${YELLOW}$brightness_val${RESET}" >> "$LOG_FILE"
+                    #echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Saved brightness: ${RESET}${YELLOW}$brightness_val${RESET}" >> "$LOG_FILE"
                 fi
             fi
         fi
@@ -539,6 +539,7 @@ send_fake_activity() {
                 echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Lid closed, lid sleep off!${RESET}" >> "$LOG_FILE"
                 monitor_idle=1
                 active=0
+                sleep 0.2
                 start_fake_activity
             fi
             ;;
