@@ -538,7 +538,7 @@ send_fake_activity() {
             else
                 echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Lid closed, lid sleep off!${RESET}" >> "$LOG_FILE"
                 monitor_idle=1
-                sleep 3
+                active=0
                 start_fake_activity
             fi
             ;;
