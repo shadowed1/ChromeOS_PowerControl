@@ -497,6 +497,7 @@ send_fake_activity() {
                 last_ts=$now
                 monitor_idle=1
                 active=0
+                echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Audio Activity Deteced - Resetting Timers. ${RESET}" >> "$LOG_FILE"
             fi
             ;;
         *"Audio activity stopped"*)
