@@ -565,26 +565,25 @@ send_fake_activity() {
                 fi
             fi
             ;;
-     *"On battery at"*|*"On AC"*|*"line_power connected"*|*"line_power online"*)
-            get_battery_info
-            sleep 0.2
-            update_power_state_file
-            sleep 0.2
+     *"On battery at"*|*"On AC"*|*"On USB"*|*"line_power connected"*|*"line_power online"*)
             if [[ -f "$LAST_POWER_STATE" ]]; then
                 prev_status=$(<"$LAST_POWER_STATE")
             else
                 prev_status=""
             fi
-        
+            
+            get_battery_info
+            
             if [[ "$STATUS" != "$prev_status" ]]; then
                 recalc_timers
                 last_ts=$now
                 printf '%s' "$STATUS" | sudo tee "$LAST_POWER_STATE" >/dev/null 2>&1
+                
                 if [[ -n "$saved_display_brightness" && "$saved_display_brightness" -ge 0 ]]; then
                     set_display_brightness "$saved_display_brightness"
                 fi
-
-                echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Saved power state: ${RESET}${GREEN}${STATUS}${RESET}" >> "$LOG_FILE"
+        
+                echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Power state changed: ${RESET}${YELLOW}${prev_status}${RESET}${BLUE} -> ${RESET}${GREEN}${STATUS}${RESET}" >> "$LOG_FILE"
                 
                 if (( lid_closed == 1 )); then
                     if [[ "$STATUS" == "Discharging" ]]; then
