@@ -10,14 +10,12 @@ import os
 from pathlib import Path
 
 def gpu_config_to_mhz(gpu_type: str, value: int) -> int:
-    """Convert raw config value to MHz for display"""
     if gpu_type in ("mali", "adreno"):
         if value >= 10000:
             return value // 1_000_000
     return value
 
 def gpu_mhz_to_config(gpu_type: str, mhz: int) -> int:
-    """Convert MHz from slider back to config value"""
     if gpu_type in ("mali", "adreno"):
         return mhz * 1_000_000
     return mhz
@@ -28,20 +26,17 @@ class ConfigEditor(Gtk.Window):
         settings.set_property("gtk-application-prefer-dark-theme", True)
         super().__init__(title="ChromeOS_PowerControl GUI")
         self.set_default_size(700, 600)
-
         headerbar = Gtk.HeaderBar()
         headerbar.set_show_close_button(True)
         headerbar.props.title = "ChromeOS_PowerControl GUI"
         headerbar.set_decoration_layout("menu:minimize,maximize,close")
         self.set_titlebar(headerbar)
-
         self.reload_btn = Gtk.Button()
         reload_icon = Gtk.Image.new_from_icon_name("view-refresh-symbolic", Gtk.IconSize.BUTTON)
         self.reload_btn.set_image(reload_icon)
         self.reload_btn.set_tooltip_text("Reload")
         self.reload_btn.connect("clicked", self.on_reload_clicked)
         headerbar.pack_end(self.reload_btn)
-
         self.config_path = self.find_config_file()
         self.config_data = {}
         self.widgets = {}
@@ -49,6 +44,7 @@ class ConfigEditor(Gtk.Window):
         self.gpu_type = None
         self.updating_constraints = False
         self.initial_load = True
+        self.focusable_widgets = []
 
         if not self.config_path:
             self.show_error_dialog(
@@ -65,10 +61,10 @@ class ConfigEditor(Gtk.Window):
         self.create_ui()
         self.load_config()
         self.setup_constraints()
+        self.setup_keyboard_navigation()
         self.initial_load = False
 
     def find_config_file(self):
-        """Find config file in possible locations"""
         possible_paths = [
             "/mnt/chromeos/MyFiles/Downloads/ChromeOS_PowerControl_Config/config",
             os.path.expanduser("~/user/MyFiles/Downloads/ChromeOS_PowerControl_Config/config"),
@@ -79,16 +75,41 @@ class ConfigEditor(Gtk.Window):
                 return path
         return None
 
+    def setup_keyboard_navigation(self):
+        self.connect("key-press-event", self.on_key_press)
+
+    def on_key_press(self, widget, event):
+        keyval = event.keyval
+        
+        if keyval == Gdk.KEY_Up or keyval == Gdk.KEY_Down:
+            current_focus = self.get_focus()
+            if current_focus is None:
+                if self.focusable_widgets:
+                    self.focusable_widgets[0].grab_focus()
+                return True
+            try:
+                current_index = self.focusable_widgets.index(current_focus)
+            except ValueError:
+                return False
+            if keyval == Gdk.KEY_Up:
+                next_index = current_index - 1
+                if next_index < 0:
+                    next_index = len(self.focusable_widgets) - 1
+            else:
+                next_index = current_index + 1
+                if next_index >= len(self.focusable_widgets):
+                    next_index = 0
+            self.focusable_widgets[next_index].grab_focus()
+            return True
+        return False
     def create_ui(self):
         main_vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
         main_vbox.set_border_width(10)
         self.add(main_vbox)
-
         scrolled = Gtk.ScrolledWindow()
         scrolled.set_vexpand(True)
         scrolled.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
         main_vbox.pack_start(scrolled, True, True, 0)
-
         self.grid = Gtk.Grid()
         self.grid.set_column_spacing(5)
         self.grid.set_row_spacing(5)
@@ -97,21 +118,18 @@ class ConfigEditor(Gtk.Window):
         self.grid.set_margin_top(10)
         self.grid.set_margin_bottom(10)
         scrolled.add(self.grid)
-
         self.create_config_sections()
-
         button_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
         button_box.set_halign(Gtk.Align.CENTER)
         main_vbox.pack_start(button_box, False, False, 0)
-
         self.save_btn = Gtk.Button(label="Apply")
         self.save_btn.connect("clicked", self.on_save_clicked)
         button_box.pack_start(self.save_btn, False, False, 0)
-
+        self.focusable_widgets.append(self.save_btn)
         exit_btn = Gtk.Button(label="Exit")
         exit_btn.connect("clicked", lambda x: self.destroy())
         button_box.pack_start(exit_btn, False, False, 0)
-
+        self.focusable_widgets.append(exit_btn)
     def create_slider(self, min_val, max_val, step=1):
         scale = Gtk.Scale.new_with_range(Gtk.Orientation.HORIZONTAL, min_val, max_val, step)
         scale.set_digits(0 if step >= 1 else 1)
@@ -119,7 +137,6 @@ class ConfigEditor(Gtk.Window):
         scale.set_hexpand(True)
         scale.set_size_request(400, -1)
         return scale
-
     def create_slider_with_spinbutton(self, min_val, max_val, step=1):
         box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
         scale = Gtk.Scale.new_with_range(Gtk.Orientation.HORIZONTAL, min_val, max_val, step)
@@ -129,14 +146,13 @@ class ConfigEditor(Gtk.Window):
         scale.set_size_request(100, -1)
         scale.set_draw_value(False)
         adjustment = Gtk.Adjustment(value=min_val, lower=min_val, upper=max_val, 
-                                   step_increment=step, page_increment=step*10)
+                                    step_increment=step, page_increment=step*10)
         spinbutton = Gtk.SpinButton(adjustment=adjustment, climb_rate=step, digits=0)
         spinbutton.set_width_chars(6)
 
         def on_scale_changed(s):
             if spinbutton.get_value() != s.get_value():
                 spinbutton.set_value(s.get_value())
-
         def on_spin_changed(s):
             if scale.get_value() != s.get_value():
                 scale.set_value(s.get_value())
@@ -146,18 +162,15 @@ class ConfigEditor(Gtk.Window):
         box.pack_start(scale, True, True, 0)
         box.pack_start(spinbutton, False, False, 0)
         return box, scale, spinbutton
-
     def create_switch(self):
         switch = Gtk.Switch()
         switch.set_halign(Gtk.Align.START)
         return switch
-
     def create_combo(self, options):
         combo = Gtk.ComboBoxText()
         for option in options:
             combo.append_text(option)
         return combo
-
     def create_config_sections(self):
         sections = {
             "PowerControl": [
@@ -244,26 +257,28 @@ class ConfigEditor(Gtk.Window):
                         display_min = max(100, int(display_max * 0.1))
                         max_val = display_max
                         min_val = display_min
-
                     if with_spinbutton:
                         box, scale, spinbutton = self.create_slider_with_spinbutton(min_val, max_val, step)
                         self.grid.attach(box, 1, row, 1, 1)
                         self.widgets[key] = scale
+                        self.focusable_widgets.append(scale)
                     else:
                         widget = self.create_slider(min_val, max_val, step)
                         self.grid.attach(widget, 1, row, 1, 1)
                         self.widgets[key] = widget
+                        self.focusable_widgets.append(widget)
                 elif widget_type == "switch":
                     widget = self.create_switch()
                     self.grid.attach(widget, 1, row, 1, 1)
                     self.widgets[key] = widget
+                    self.focusable_widgets.append(widget)
                 elif widget_type == "combo":
                     options = field[3]
                     widget = self.create_combo(options)
                     self.grid.attach(widget, 1, row, 1, 1)
                     self.widgets[key] = widget
+                    self.focusable_widgets.append(widget)
                 row += 1
-
     def setup_constraints(self):
         if all(k in self.widgets for k in ["MIN_TEMP", "HOTZONE", "MAX_TEMP"]):
             self.widgets["MIN_TEMP"].connect("value-changed", self.on_temp_constraint)
@@ -286,7 +301,6 @@ class ConfigEditor(Gtk.Window):
             self.widgets["POWER_DIM_DELAY"].connect("value-changed", self.on_power_sleep_constraint)
             self.widgets["POWER_BACKLIGHT"].connect("value-changed", self.on_power_sleep_constraint)
             self.widgets["POWER_DELAY"].connect("value-changed", self.on_power_sleep_constraint)
-
     def on_temp_constraint(self, scale):
         if self.updating_constraints:
             return
@@ -307,7 +321,6 @@ class ConfigEditor(Gtk.Window):
         if max_temp <= min_temp:
             self.widgets["MAX_TEMP"].set_value(min_temp + 2)
         self.updating_constraints = False
-
     def on_perf_constraint(self, scale):
         if self.updating_constraints:
             return
@@ -319,7 +332,6 @@ class ConfigEditor(Gtk.Window):
         if max_perf < min_perf:
             self.widgets["MIN_PERF_PCT"].set_value(max_perf)
         self.updating_constraints = False
-
     def on_fan_speed_constraint(self, scale):
         if self.updating_constraints:
             return
@@ -331,7 +343,6 @@ class ConfigEditor(Gtk.Window):
         if max_fan < min_fan:
             self.widgets["MIN_FAN"].set_value(max_fan)
         self.updating_constraints = False
-
     def on_fan_temp_constraint(self, scale):
         if self.updating_constraints:
             return
@@ -343,7 +354,6 @@ class ConfigEditor(Gtk.Window):
         if max_temp < min_temp:
             self.widgets["FAN_MIN_TEMP"].set_value(max_temp)
         self.updating_constraints = False
-
     def on_battery_sleep_constraint(self, scale):
         if self.updating_constraints or self.initial_load:
             return
@@ -356,7 +366,6 @@ class ConfigEditor(Gtk.Window):
         if backlight >= delay:
             self.widgets["BATTERY_BACKLIGHT"].set_value(delay - 1)
         self.updating_constraints = False
-
     def on_power_sleep_constraint(self, scale):
         if self.updating_constraints or self.initial_load:
             return
@@ -369,7 +378,6 @@ class ConfigEditor(Gtk.Window):
         if backlight >= delay:
             self.widgets["POWER_BACKLIGHT"].set_value(delay - 1)
         self.updating_constraints = False
-
     def load_config(self):
         if not os.path.exists(self.config_path):
             self.show_error_dialog("Error", f"Config file not found: {self.config_path}")
@@ -382,19 +390,13 @@ class ConfigEditor(Gtk.Window):
                     if line and not line.startswith('#') and '=' in line:
                         key, value = line.split('=', 1)
                         self.config_data[key.strip()] = value.strip()
-
             if "ORIGINAL_GPU_MAX_FREQ" in self.config_data:
                 self.original_gpu_max = int(self.config_data["ORIGINAL_GPU_MAX_FREQ"])
-                # read GPU_TYPE from config, default to "intel"
                 self.gpu_type = self.config_data.get("GPU_TYPE", "intel").lower()
-                
-                # update slider range if it exists
                 if "GPU_MAX_FREQ" in self.widgets:
                     display_max = gpu_config_to_mhz(self.gpu_type, self.original_gpu_max)
                     display_min = max(100, int(display_max * 0.1))
                     self.widgets["GPU_MAX_FREQ"].set_range(display_min, display_max)
-
-
             self.updating_constraints = True
             for key, widget in self.widgets.items():
                 if key in self.config_data:
@@ -457,16 +459,13 @@ class ConfigEditor(Gtk.Window):
                         new_lines.append(line)
                 else:
                     new_lines.append(line)
-
             with open(self.config_path, 'w') as f:
                 f.writelines(new_lines)
-
             self.show_save_success()
         except PermissionError:
             self.show_error_dialog("Permission Denied", "Cannot write to config file.\n\n")
         except Exception as e:
             self.show_error_dialog("Error", f"Failed to save config: {str(e)}")
-
     def show_save_success(self):
         original_label = self.save_btn.get_label()
         self.save_btn.set_label("Saved!")
@@ -474,33 +473,25 @@ class ConfigEditor(Gtk.Window):
         css_provider.load_from_data(b"button { background: #4caf50; color: white; }")
         context = self.save_btn.get_style_context()
         context.add_provider(css_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER)
-
         def reset_button():
             self.save_btn.set_label(original_label)
             context.remove_provider(css_provider)
             return False
-
         GLib.timeout_add(1500, reset_button)
-
     def show_reload_success(self):
         css_provider = Gtk.CssProvider()
         css_provider.load_from_data(b"button { background: #2196f3; color: white; }")
         context = self.reload_btn.get_style_context()
         context.add_provider(css_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER)
-
         def reset_button():
             context.remove_provider(css_provider)
             return False
-
         GLib.timeout_add(1000, reset_button)
-
     def on_reload_clicked(self, button):
         self.load_config()
         self.show_reload_success()
-
     def on_save_clicked(self, button):
         self.save_config()
-
     def on_reset_clicked(self, button):
         dialog = Gtk.MessageDialog(
             transient_for=self,
@@ -514,7 +505,6 @@ class ConfigEditor(Gtk.Window):
         dialog.destroy()
         if response == Gtk.ResponseType.YES:
             self.load_config()
-
     def show_error_dialog(self, title, message):
         dialog = Gtk.MessageDialog(
             transient_for=self,
@@ -526,7 +516,6 @@ class ConfigEditor(Gtk.Window):
         dialog.format_secondary_text(message)
         dialog.run()
         dialog.destroy()
-
     def show_info_dialog(self, title, message):
         dialog = Gtk.MessageDialog(
             transient_for=self,
@@ -538,7 +527,6 @@ class ConfigEditor(Gtk.Window):
         dialog.format_secondary_text(message)
         dialog.run()
         dialog.destroy()
-
 def main():
     os.environ['GDK_RENDERING'] = 'gl'
     os.environ['GSK_RENDERER'] = 'gl'
@@ -547,12 +535,10 @@ def main():
     settings.set_property("gtk-application-prefer-dark-theme", True)
     settings.set_property("gtk-theme-name", "Adwaita-dark")
     settings.set_property("gtk-decoration-layout", "menu:minimize,maximize,close")
-
     win = ConfigEditor()
     if win.config_path:
         win.connect("destroy", Gtk.main_quit)
         win.show_all()
         Gtk.main()
-
 if __name__ == "__main__":
     main()
