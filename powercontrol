@@ -41,7 +41,7 @@ wait_for_config() {
     echo "${RED}Error: Config file not available after 5 minutes${RESET}" | tee -a "$LOG_FILE"
     return 1
 }
-wait_for_config
+
 if ! ( [[ -z "$1" ]] || [[ "$1" == "--h" || "$1" == "-h" || "$1" == "help_all" || "$1" == "h" || "$1" == "--help" || "$1" == "-help" || "$1" == "all" || "$1" == "help" || "$1" == "monitor" || "$1" == "mon" || "$1" == "gui" || "$1" == "reinstall" || "$1" == "status" ]] ) && [[ "$(id -u)" -ne 0 ]]; then
     echo "${RED}PowerControl requires sudo to run.${RESET}"
     echo "  Try: sudo powercontrol $*  or  sudo $0 $*"
@@ -49,7 +49,7 @@ if ! ( [[ -z "$1" ]] || [[ "$1" == "--h" || "$1" == "-h" || "$1" == "help_all" |
 fi
 
 detect_cpu_type() {
-    CPU_VENDOR="unknown"
+    CPU_VENDOR=$(grep -m1 'vendor_id' /proc/cpuinfo | awk '{print $3}' || echo "unknown")
     IS_INTEL=0
     IS_AMD=0
     IS_ARM=0
@@ -57,36 +57,28 @@ detect_cpu_type() {
     PERF_PATHS=()
     TURBO_PATH=""
 
-    local vendor_line
-    vendor_line=$(grep -m1 'vendor_id' /proc/cpuinfo)
-    CPU_VENDOR=$(echo "$vendor_line" | awk -F': ' '{print $2}' | tr -d '[:space:]')
-
-    case $CPU_VENDOR in
+    case "$CPU_VENDOR" in
         GenuineIntel)
             IS_INTEL=1
-            p="/sys/devices/system/cpu/intel_pstate/max_perf_pct"
-            [[ -f $p ]] && PERF_PATH=$p
-            t="/sys/devices/system/cpu/intel_pstate/no_turbo"
-            [[ -f $t ]] && TURBO_PATH=$t
-            ;;
-
-        AuthenticAMD)
-            IS_AMD=1
-            p="/sys/devices/system/cpu/amd_pstate/max_perf_pct"
-            if [[ -f $p ]]; then
-                PERF_PATH=$p
-            else
-                mapfile -t PERF_PATHS < <(find /sys/devices/system/cpu/cpufreq -name 'scaling_max_freq' -type f 2>/dev/null)
+            if [ -f "/sys/devices/system/cpu/intel_pstate/max_perf_pct" ]; then
+                PERF_PATH="/sys/devices/system/cpu/intel_pstate/max_perf_pct"
+                TURBO_PATH="/sys/devices/system/cpu/intel_pstate/no_turbo"
             fi
             ;;
-
+        AuthenticAMD)
+            IS_AMD=1
+            if [ -f "/sys/devices/system/cpu/amd_pstate/max_perf_pct" ]; then
+                PERF_PATH="/sys/devices/system/cpu/amd_pstate/max_perf_pct"
+            else
+                mapfile -t PERF_PATHS < <(find /sys/devices/system/cpu/cpufreq/ -type f -name 'scaling_max_freq' 2>/dev/null)
+            fi
+            ;;
         *)
             IS_ARM=1
-            mapfile -t PERF_PATHS < <(find /sys/devices/system/cpu/cpufreq -name 'scaling_max_freq' -type f 2>/dev/null)
+            mapfile -t PERF_PATHS < <(find /sys/devices/system/cpu/cpufreq/ -type f -name 'scaling_max_freq' 2>/dev/null)
             ;;
     esac
 }
-
 
     DEFAULT_HOTZONE=79
     DEFAULT_MIN_TEMP=63
@@ -220,59 +212,73 @@ save_config() {
 detect_cpu_type
 load_config
 
-get_temp() {
+ get_temp() {
     local temp_celsius
-    if read -r temp_celsius 2>/dev/null < /sys/class/thermal/thermal_zone0/temp; then
+    if read -r temp_celsius < /sys/class/thermal/thermal_zone0/temp; then
         if (( temp_celsius >= 0 )); then
-            echo $(( temp_celsius / 1000 ))
+            temp_c=$(( temp_celsius / 1000 ))
+            echo "$temp_c"
             return 0
         fi
     fi
-    return 1
+    echo "Failed to get temperature." >&2
+    continue
+    sleep 1
 }
 
 
 set_max_perf_pct() {
     local pct=$1
+    detect_cpu_type
+    load_config
+
     (( pct > 100 )) && pct=100
     (( pct < 10 )) && pct=10
 
     if (( IS_INTEL == 1 )) && [[ "$PERF_PATH" == *intel_pstate/max_perf_pct ]] && [[ -f "$PERF_PATH" ]]; then
-        echo "$pct" > "$PERF_PATH" 2>/dev/null || {
+        if [ -w "$PERF_PATH" ]; then
+            echo "$pct" | sudo tee "$PERF_PATH" > /dev/null
+        else
             echo "${RED}Permission denied: Cannot write to $PERF_PATH${RESET}" >&2
             exit 1
-        }
+        fi
 
     elif (( IS_AMD == 1 || IS_ARM == 1 )) && [[ ${#PERF_PATHS[@]} -gt 0 ]]; then
         for path in "${PERF_PATHS[@]}"; do
             policy_dir=$(dirname "$path")
 
             if [[ -f "$policy_dir/cpuinfo_max_freq" && -f "$policy_dir/cpuinfo_min_freq" ]]; then
-                local max_freq min_freq
                 max_freq=$(<"$policy_dir/cpuinfo_max_freq")
                 min_freq=$(<"$policy_dir/cpuinfo_min_freq")
 
-                local target_freq=$(( min_freq + (max_freq - min_freq) * pct / 100 ))
-                local chosen_freq=""
+                target_freq=$(( min_freq + (max_freq - min_freq) * pct / 100 ))
+                chosen_freq=""
 
                 if [[ -f "$policy_dir/scaling_available_frequencies" ]]; then
-                    local -a available_freqs
-                    read -r -a available_freqs < "$policy_dir/scaling_available_frequencies"
-                    
-                    for freq in "${available_freqs[@]}"; do
-                        if (( freq >= target_freq )); then
-                            chosen_freq=$freq
-                            break
-                        fi
-                    done
-                    [[ -z "$chosen_freq" ]] && chosen_freq=${available_freqs[-1]}
-                    [[ -z "$chosen_freq" ]] && chosen_freq=$target_freq
-                    target_freq=$chosen_freq
+                    if read -r -a available_freqs < "$policy_dir/scaling_available_frequencies"; then
+                        for freq in "${available_freqs[@]}"; do
+                            if (( freq >= target_freq )); then
+                                chosen_freq=$freq
+                                break
+                            fi
+                        done
+                        [[ -z "$chosen_freq" ]] && chosen_freq=${available_freqs[-1]}
+                        [[ -z "$chosen_freq" ]] && chosen_freq=$target_freq
+                        target_freq=$chosen_freq
+                    fi
                 fi
 
-                echo "$target_freq" > "$path" 2>/dev/null
+                if [ -w "$path" ]; then
+                    echo "$target_freq" | sudo tee "$path" > /dev/null
+                else
+                    echo "${RED}Warning: Cannot write to $path; skipping.${RESET}" >&2
+                fi
+            else
+                echo "${RED}Warning: Missing cpuinfo_*_freq for $path; skipping.${RESET}" >&2
             fi
         done
+
+        save_config
 
     else
         echo "${RED}Unsupported CPU or PERF_PATH not set correctly.${RESET}" >&2
@@ -336,7 +342,7 @@ set_no_turbo() {
     fi
 
     if [ "$IS_INTEL" -eq 1 ] && [ -w "$TURBO_PATH" ]; then
-        echo "$value" > "$TURBO_PATH" 2>/dev/null
+        echo "$value" | sudo tee "$TURBO_PATH" > /dev/null
         if [ "$value" -eq 1 ]; then
             echo "Intel Turbo Boost ${CYAN}Disabled${RESET}" | tee -a "$LOG_FILE"
         else
@@ -371,12 +377,12 @@ save_default_cpu_state() {
 restore_default_cpu_state() {
     detect_cpu_type
     if (( IS_INTEL == 1 )); then
-        [[ -n "$DEFAULT_TURBO" && -w "$TURBO_PATH" ]] && echo "$DEFAULT_TURBO" > "$TURBO_PATH" 2>/dev/null
-        [[ -n "$DEFAULT_MAX_PERF" && -w "$PERF_PATH" ]] && echo "$DEFAULT_MAX_PERF" > "$PERF_PATH" 2>/dev/null
+        [[ -n "$DEFAULT_TURBO" && -w "$TURBO_PATH" ]] && echo "$DEFAULT_TURBO" | sudo tee "$TURBO_PATH" >/dev/null
+        [[ -n "$DEFAULT_MAX_PERF" && -w "$PERF_PATH" ]] && echo "$DEFAULT_MAX_PERF" | sudo tee "$PERF_PATH" >/dev/null
         echo "${BLUE}Turbo Boost and max_perf_pct restored.${RESET}" | tee -a "$LOG_FILE"
     elif (( IS_AMD == 1 || IS_ARM == 1 )); then
         for i in "${!PERF_PATHS[@]}"; do
-            [[ -w "${PERF_PATHS[$i]}" && -n "${DEFAULT_FREQS[$i]}" ]] && echo "${DEFAULT_FREQS[$i]}" > "${PERF_PATHS[$i]}" 2>/dev/null
+            [[ -w "${#PERF_PATHS[@]}=@" ]] && echo "${#DEFAULT_FREQS[@]}" | sudo tee "${#PERF_PATHS[@]}" >/dev/null
         done
         echo "${BLUE}CPU: scaling_max_freq restored.${RESET}" | tee -a "$LOG_FILE"
     fi
@@ -390,25 +396,16 @@ start_monitoring_loop() {
     load_config
     touch "$RUN_FLAG"
     echo $$ > "$PID_FILE"
-    local last_reload_time=0
-    local last_pct=0
-    local config_check_interval=5
-    local min_temp_c=$MIN_TEMP
-    local high_temp_c=$MAX_TEMP
-    local min_perf_pct=$MIN_PERF_PCT
-    local max_perf_pct=$MAX_PERF_PCT
-    local ramp_up=$RAMP_UP
-    local ramp_down=$RAMP_DOWN
-    local hotzone=$HOTZONE
-    local perf_span=$((max_perf_pct - min_perf_pct))
-    local half_span=$((perf_span / 2))
-    local hotzone_delta=$((hotzone - min_temp_c))
-    local max_delta=$((high_temp_c - hotzone))
+
+    last_reload_time=0
+    cooldown_mode=false
+    last_pct=0
+
+    while [ -f "$RUN_FLAG" ]; do
+        now=$EPOCHSECONDS
     
-    while [[ -f $RUN_FLAG ]]; do
-        local now=$EPOCHSECONDS
-        
-    if (( now - last_reload_time >= config_check_interval )); then
+        if (( now - last_reload_time >= 5 )); then
+            load_config
             validate_config
             min_temp_c=$MIN_TEMP
             high_temp_c=$MAX_TEMP
@@ -416,68 +413,56 @@ start_monitoring_loop() {
             max_perf_pct=$MAX_PERF_PCT
             ramp_up=$RAMP_UP
             ramp_down=$RAMP_DOWN
-            hotzone=$HOTZONE
-            perf_span=$((max_perf_pct - min_perf_pct))
-            half_span=$((perf_span / 2))
-            hotzone_delta=$((hotzone - min_temp_c))
-            max_delta=$((high_temp_c - hotzone))
             last_reload_time=$now
-            
-            if [[ -f "$CONFIG_FILE" ]]; then
-                startup_enabled=0
-                while IFS='=' read -r k v; do
-                    [[ $k == STARTUP_POWERCONTROL ]] && { [[ $v == 1 ]] && startup_enabled=1; break; }
-                done < "$CONFIG_FILE"
-                
-                if (( startup_enabled )); then
-                    if [[ ! -f $CONF_TARGET ]]; then
-                        sudo cp "$CONF_SOURCE" "$CONF_TARGET" 2>/dev/null
-                        printf '%s%(%F %T)T - PowerControl Startup enabled%s\n' "$CYAN" -1 "$RESET" >> "$LOG_FILE"
-                    fi
-                else
-                    if [[ -f $CONF_TARGET ]]; then
-                        sudo rm -f "$CONF_TARGET" 2>/dev/null
-                        printf '%s%(%F %T)T - PowerControl Startup disabled%s\n' "$RED" -1 "$RESET" >> "$LOG_FILE"
-                    fi
+            if grep -q '^STARTUP_POWERCONTROL=1' "$CONFIG_FILE"; then
+                if [[ ! -f "$CONF_TARGET" ]]; then
+                    sudo cp "$CONF_SOURCE" "$CONF_TARGET"
+                    echo "${CYAN}$(date '+%F %T') - PowerControl Startup enabled${RESET}" >> "$LOG_FILE"
+                fi
+            else
+                if [[ -f "$CONF_TARGET" ]]; then
+                    sudo rm -f "$CONF_TARGET"
+                    echo "${RED}$(date '+%F %T') - PowerControl Startup disabled${RESET}" >> "$LOG_FILE"
                 fi
             fi
         fi
 
-        
-        local temp_c
-        if ! temp_c=$(get_temp) || [[ -z $temp_c ]]; then
-            sleep "$CPU_POLL"
+        temp_c=$(get_temp)
+        if [ $? -ne 0 ] || [ -z "$temp_c" ]; then
+            echo "Failed to get temperature. Retrying..."
+            sleep 1
             continue
         fi
-        
-        local target_pct
-        
+
         if (( temp_c <= min_temp_c )); then
             target_pct=$max_perf_pct
-        elif (( temp_c < hotzone )); then
-            if (( hotzone_delta > 0 )); then
-                local temp_offset=$((temp_c - min_temp_c))
-                local reduction=$(( (perf_span * temp_offset) / (2 * hotzone_delta) ))
+        elif (( temp_c < HOTZONE )); then
+            delta_c=$((HOTZONE - min_temp_c))
+            temp_offset=$(( temp_c - min_temp_c ))
+            if (( delta_c > 0 && temp_offset > 0 )); then
+                reduction=$(( (max_perf_pct - min_perf_pct) * temp_offset / (2 * delta_c) ))
                 target_pct=$(( max_perf_pct - reduction ))
+                (( target_pct >= max_perf_pct )) && target_pct=$((max_perf_pct - 1))
+                (( target_pct < min_perf_pct )) && target_pct=$min_perf_pct
             else
                 target_pct=$((max_perf_pct - 1))
             fi
         elif (( temp_c < high_temp_c )); then
-            if (( max_delta > 0 )); then
-                local temp_offset=$((temp_c - hotzone))
-                local reduction=$(( half_span + (perf_span * temp_offset) / (2 * max_delta) ))
+            delta_c=$(( high_temp_c - HOTZONE ))
+            temp_offset=$(( temp_c - HOTZONE ))
+            if (( delta_c > 0 && temp_offset >= 0 )); then
+                reduction_hotzone=$(( (max_perf_pct - min_perf_pct) / 2 ))
+                reduction=$(( reduction_hotzone + ((max_perf_pct - min_perf_pct) * temp_offset / (2 * delta_c)) ))
                 target_pct=$(( max_perf_pct - reduction ))
+                (( target_pct >= max_perf_pct )) && target_pct=$((max_perf_pct - 1))
+                (( target_pct < min_perf_pct )) && target_pct=$min_perf_pct
             else
                 target_pct=$min_perf_pct
             fi
         else
             target_pct=$min_perf_pct
         fi
-        
-        (( target_pct > max_perf_pct )) && target_pct=$max_perf_pct
-        (( target_pct < min_perf_pct )) && target_pct=$min_perf_pct
-        
-        local pct
+
         if (( last_pct < 1 )); then
             pct=$target_pct
         elif (( target_pct > last_pct )); then
@@ -489,17 +474,19 @@ start_monitoring_loop() {
         else
             pct=$last_pct
         fi
-        
-        if (( pct != last_pct )); then
-            printf '%s%(%F %T)T - CPU %d°C -> Clockspeed %d%%%s\n' "$CYAN" -1 "$temp_c" "$pct" "$RESET" >> "$LOG_FILE"
-            set_max_perf_pct "$pct"
-            last_pct=$pct
+
+         if [[ "$last_pct" != "$pct" ]]; then
+            printf -v ts '%(%Y-%m-%d %H:%M:%S)T' -1
+            echo "${CYAN}${ts} - CPU ${temp_c}°C -> Clockspeed ${pct}%${RESET}" >> "$LOG_FILE"
         fi
         
+        set_max_perf_pct "$pct"
+        last_pct=$pct
+
         sleep "$CPU_POLL"
     done
-    
-    echo "PowerControl stopped." | tee -a "$LOG_FILE"
+
+    echo "${RED}PowerControl stopped.${RESET}" | tee -a "$LOG_FILE"
     sudo rm -f "$PID_FILE"
 }
 
@@ -581,9 +568,9 @@ stop_monitoring() {
         if ps -p "$PID" > /dev/null 2>&1; then
             restore_default_cpu_state
             kill -- -"$PID" 2>/dev/null
-            sleep 0.5
-            kill "$PID" 2>/dev/null || true
-            sleep 0.5
+            sleep 1
+            kill "$PID" 2>/dev/null 2>/dev/null || true
+            sleep 1
             kill -9 "$PID" 2>/dev/null || true
             echo "${RED}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - PowerControl stopped (PID $PID)${RESET}" | tee -a "$LOG_FILE"
         fi
