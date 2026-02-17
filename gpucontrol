@@ -493,7 +493,7 @@ case "$GPU_ARG" in
         fi
 
         echo ""
-        printf '%s\n' "$REQUESTED_FREQ" | sudo tee "$GPU_FREQ_PATH" > /dev/null 2>&1_
+        printf '%s\n' "$REQUESTED_FREQ" | sudo tee "$GPU_FREQ_PATH" > /dev/null 2>&1
         DISPLAY_FREQ="$REQUESTED_FREQ"
         echo "${MAGENTA}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) Intel GPU frequency set to $DISPLAY_FREQ MHz${RESET}" | tee -a "$LOG_FILE"
         echo ""
