@@ -678,6 +678,15 @@ send_fake_activity() {
                 fi
             fi
             ;;
+         *"Adaptive Charging ML predicts"*)
+            echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Adaptive Charging wakeup detected${RESET}" >> "$LOG_FILE"
+            if (( idle_elapsed >= suspend_delay )); then
+                echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Timers already elapsed, returning to sleep${RESET}" >> "$LOG_FILE"
+                stop_fake_activity
+                sleep 0.2
+                sudo "$INSTALL_DIR/deep_suspend.sh"
+            fi
+            ;;
         esac
 
         if (( monitor_idle == 1 )); then
