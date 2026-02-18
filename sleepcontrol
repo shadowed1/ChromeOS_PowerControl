@@ -685,6 +685,10 @@ send_fake_activity() {
                 echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Timers already elapsed, returning to sleep${RESET}" >> "$LOG_FILE"
                 sleep 0.2
                 sudo "$INSTALL_DIR/deep_suspend.sh"
+            else
+                monitor_idle=1
+                active=0
+                start_fake_activity
             fi
             ;;
         esac
