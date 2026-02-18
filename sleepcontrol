@@ -534,7 +534,7 @@ send_fake_activity() {
         
             if (( LIDSLEEP_ENABLED == 1 )); then
                 echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Lid closed, lid sleep on! ${RESET}" >> "$LOG_FILE"
-                stop_fake_activity
+                #stop_fake_activity
                 sleep 0.2
                 sudo "$INSTALL_DIR/deep_suspend.sh"
             else
@@ -595,7 +595,7 @@ send_fake_activity() {
                     
                     if (( LIDSLEEP_ENABLED == 1 )); then
                         echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Lid is closed - lid sleep enabled on ${STATUS}, going back to sleep!${RESET}" >> "$LOG_FILE"
-                        stop_fake_activity
+                        #stop_fake_activity
                         sleep 0.2
                         sudo "$INSTALL_DIR/deep_suspend.sh"
                     else
@@ -680,10 +680,9 @@ send_fake_activity() {
             fi
             ;;
          *"Adaptive Charging ML predicts"*)
-            echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Adaptive Charging wakeup detected${RESET}" >> "$LOG_FILE"
+            echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Adaptive Charging${RESET}" >> "$LOG_FILE"
             if (( idle_elapsed >= suspend_delay )); then
                 echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Timers already elapsed, returning to sleep${RESET}" >> "$LOG_FILE"
-                stop_fake_activity
                 sleep 0.2
                 sudo "$INSTALL_DIR/deep_suspend.sh"
             fi
@@ -744,8 +743,8 @@ send_fake_activity() {
                 elif (( audio_active == 1 )); then
                     (( sending_fake_activity == 0 )) && start_fake_activity
                 else
-                    stop_fake_activity
-                    sleep 0.2
+                    #stop_fake_activity
+                    #sleep 0.2
                     echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Sleep threshold elapsed; going to sleep!" >> "$LOG_FILE"
                     monitor_idle=0
                     idle_since=$now
