@@ -594,12 +594,15 @@ send_fake_activity() {
                     fi
                     
                     if (( LIDSLEEP_ENABLED == 1 )); then
-                        echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Lid is closed - lid sleep enabled on ${STATUS}, going back to sleep!${RESET}" >> "$LOG_FILE"
-                        #stop_fake_activity
+                        echo "Lid closed - lid sleep enabled on ${STATUS}, going back to sleep!" >> "$LOG_FILE"
+                        stop_fake_activity
                         sleep 0.2
                         sudo "$INSTALL_DIR/deep_suspend.sh"
                     else
-                        echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Lid is closed - lid sleep disabled on ${STATUS}${RESET}" >> "$LOG_FILE"
+                        echo "Lid closed - lid sleep disabled on ${STATUS} - Continuing simulated activity..." >> "$LOG_FILE"
+                        monitor_idle=1
+                        active=0
+                        start_fake_activity
                     fi
                 fi
             fi
