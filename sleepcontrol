@@ -553,7 +553,7 @@ send_fake_activity() {
             backlight_off=0
             was_dimmed=0
             stop_fake_activity
-            sleep 1
+            sleep 0.2
             echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Lid opened!${RESET}" >> "$LOG_FILE"
             
             if (( PRESENTATION_MODE == 0 )); then
