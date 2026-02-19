@@ -566,50 +566,48 @@ send_fake_activity() {
                 fi
             fi
             ;;
-     *"On battery at"*|*"On AC"*|*"On USB"*|*"line_power connected"*|*"line_power online"*)
-            if [[ -f "$LAST_POWER_STATE" ]]; then
-                prev_status=$(<"$LAST_POWER_STATE")
+    *"On battery at"*|*"On AC"*|*"On USB"*|*"line_power connected"*|*"line_power online"*)
+        if [[ -f "$LAST_POWER_STATE" ]]; then
+            prev_status=$(<"$LAST_POWER_STATE")
+        else
+            prev_status=""
+        fi
+        
+        get_battery_info
+        
+        if [[ "$STATUS" != "$prev_status" ]]; then
+            recalc_timers
+            printf '%s' "$STATUS" | sudo tee "$LAST_POWER_STATE" >/dev/null 2>&1
+            
+            echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Power state changed: ${RESET}${YELLOW}${prev_status}${RESET}${BLUE} -> ${RESET}${YELLOW}${STATUS}${RESET}" >> "$LOG_FILE"
+            
+            # Update LIDSLEEP_ENABLED based on new power state
+            if [[ "$STATUS" == "Discharging" ]]; then
+                LIDSLEEP_ENABLED=$LIDSLEEP_BATTERY
             else
-                prev_status=""
+                LIDSLEEP_ENABLED=$LIDSLEEP_POWER
             fi
             
-            get_battery_info
-            
-            if [[ "$STATUS" != "$prev_status" ]]; then
-                recalc_timers
-                if (( lid_closed == 0 || idle_elapsed < suspend_delay )); then
-                    last_ts=$now
+            if (( lid_closed == 1 )); then
+                if (( LIDSLEEP_ENABLED == 1 )); then
+                    echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Lid closed - lid sleep enabled on ${STATUS}, going to sleep!${RESET}" >> "$LOG_FILE"
+                    stop_fake_activity
+                    sleep 0.2
+                    sudo "$INSTALL_DIR/deep_suspend.sh"
+                else
+                    echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Lid closed - lid sleep disabled on ${STATUS}, continuing fake activity${RESET}" >> "$LOG_FILE"
+                    monitor_idle=1
+                    active=0
+                    start_fake_activity
                 fi
-    
-                printf '%s' "$STATUS" | sudo tee "$LAST_POWER_STATE" >/dev/null 2>&1
-                
+            else
+                last_ts=$now
                 if [[ -n "$saved_display_brightness" && "$saved_display_brightness" -ge 0 ]]; then
                     set_display_brightness "$saved_display_brightness"
                 fi
-        
-                echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Power state changed: ${RESET}${YELLOW}${prev_status}${RESET}${BLUE} -> ${RESET}${YELLOW}${STATUS}${RESET}" >> "$LOG_FILE"
-                
-                if (( lid_closed == 1 )); then
-                    if [[ "$STATUS" == "Discharging" ]]; then
-                        LIDSLEEP_ENABLED=$LIDSLEEP_BATTERY
-                    else
-                        LIDSLEEP_ENABLED=$LIDSLEEP_POWER
-                    fi
-                    
-                    if (( LIDSLEEP_ENABLED == 1 )); then
-                        echo "Lid closed - lid sleep enabled on ${STATUS}, going back to sleep!" >> "$LOG_FILE"
-                        stop_fake_activity
-                        sleep 0.2
-                        sudo "$INSTALL_DIR/deep_suspend.sh"
-                    else
-                        echo "Lid closed - lid sleep disabled on ${STATUS} - Continuing simulated activity..." >> "$LOG_FILE"
-                        monitor_idle=1
-                        active=0
-                        start_fake_activity
-                    fi
-                fi
             fi
-            ;;
+        fi
+        ;;
          *"Enabling wakeup for"*|*"User triggered wake"*|*"User activity ongoing"*)
             monitor_idle=0
             last_ts=$now
