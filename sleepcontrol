@@ -513,11 +513,8 @@ send_fake_activity() {
             if (( audio_active == 0 )) && (( now - last_ts > 5 )) && (( now - idle_since > 5 )); then
                 if (( LIDSLEEP_ENABLED == 1 && lid_closed == 1 )); then
                     echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Lid sleep enabled and lid closed, skipping fake activity${RESET}" >> "$LOG_FILE"
-                    sleep 0.2
+                    sleep 0.1
                     sudo "$INSTALL_DIR/deep_suspend.sh" 2>/dev/null
-                    idle_since=$EPOCHSECONDS
-                    last_ts=$EPOCHSECONDS
-                    idle_elapsed=0
                 else
                     monitor_idle=1
                     active=0
@@ -538,16 +535,13 @@ send_fake_activity() {
             if (( LIDSLEEP_ENABLED == 1 )); then
                 echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Lid closed, lid sleep on! ${RESET}" >> "$LOG_FILE"
                 #stop_fake_activity
-                sleep 0.5
+                sleep 0.1
                 sudo "$INSTALL_DIR/deep_suspend.sh"
-                idle_since=$EPOCHSECONDS
-                last_ts=$EPOCHSECONDS
-                idle_elapsed=0
             else
                 echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Lid closed, lid sleep off!${RESET}" >> "$LOG_FILE"
                 monitor_idle=1
                 active=0
-                sleep 0.5
+                sleep 0.1
                 start_fake_activity
             fi
             ;;
@@ -559,7 +553,7 @@ send_fake_activity() {
             backlight_off=0
             was_dimmed=0
             stop_fake_activity
-            sleep 0.5
+            sleep 0.1
             echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Lid opened!${RESET}" >> "$LOG_FILE"
             
             if (( PRESENTATION_MODE == 0 )); then
@@ -602,11 +596,8 @@ send_fake_activity() {
                     if (( LIDSLEEP_ENABLED == 1 )); then
                         echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Lid is closed - lid sleep enabled on ${STATUS}, going back to sleep!${RESET}" >> "$LOG_FILE"
                         #stop_fake_activity
-                        sleep 0.2
+                        sleep 0.1
                         sudo "$INSTALL_DIR/deep_suspend.sh"
-                        idle_since=$EPOCHSECONDS
-                        last_ts=$EPOCHSECONDS
-                        idle_elapsed=0
                     else
                         echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Lid is closed - lid sleep disabled on ${STATUS}${RESET}" >> "$LOG_FILE"
                     fi
@@ -692,11 +683,8 @@ send_fake_activity() {
             echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Adaptive Charging${RESET}" >> "$LOG_FILE"
             if (( idle_elapsed >= suspend_delay )); then
                 echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Timers already elapsed, returning to sleep${RESET}" >> "$LOG_FILE"
-                sleep 0.2
+                sleep 0.1
                 sudo "$INSTALL_DIR/deep_suspend.sh"
-                idle_since=$EPOCHSECONDS
-                last_ts=$EPOCHSECONDS
-                idle_elapsed=0
             else
                 monitor_idle=1
                 active=0
@@ -760,13 +748,13 @@ send_fake_activity() {
                     (( sending_fake_activity == 0 )) && start_fake_activity
                 else
                     #stop_fake_activity
-                    #sleep 0.2
+                    sleep 0.1
                     echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Sleep threshold elapsed; going to sleep!" >> "$LOG_FILE"
                     monitor_idle=0
-                    sudo "$INSTALL_DIR/deep_suspend.sh"
-                    idle_since=$EPOCHSECONDS
-                    last_ts=$EPOCHSECONDS
+                    idle_since=$now
+                    last_ts=$now
                     idle_elapsed=0
+                    sudo "$INSTALL_DIR/deep_suspend.sh"
                 fi
             fi
         fi
