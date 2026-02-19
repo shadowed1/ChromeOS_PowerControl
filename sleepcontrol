@@ -535,13 +535,13 @@ send_fake_activity() {
             if (( LIDSLEEP_ENABLED == 1 )); then
                 echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Lid closed, lid sleep on! ${RESET}" >> "$LOG_FILE"
                 #stop_fake_activity
-                sleep 0.2
+                sleep 0.5
                 sudo "$INSTALL_DIR/deep_suspend.sh"
             else
                 echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Lid closed, lid sleep off!${RESET}" >> "$LOG_FILE"
                 monitor_idle=1
                 active=0
-                sleep 0.2
+                sleep 0.5
                 start_fake_activity
             fi
             ;;
@@ -553,7 +553,7 @@ send_fake_activity() {
             backlight_off=0
             was_dimmed=0
             stop_fake_activity
-            sleep 0.2
+            sleep 0.5
             echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Lid opened!${RESET}" >> "$LOG_FILE"
             
             if (( PRESENTATION_MODE == 0 )); then
