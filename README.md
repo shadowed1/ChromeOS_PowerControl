@@ -1,4 +1,4 @@
- ### *A suite of lightweight shell scripts providing hardware control for ChromeOS.*
+ ### *A suite of lightweight programs providing hardware control for ChromeOS!*
  <br>
  <br>
  
@@ -28,7 +28,7 @@ Open Crosh (ctrl-alt-t), enter `shell`, copy paste, and run:
 </p>
 <br>
 
-### GUI app for Crostini (run in Linux):
+### GUI app for Crostini (copy paste this in Linux):
 ```
 sudo apt install gedit gnome-themes-extra gnome-icon-theme -y
 sudo curl -fsSL "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/gui.py" -o /bin/powercontrol-gui 2>/dev/null
@@ -55,7 +55,7 @@ sudo curl -Ls https://github.com/shadowed1/ChromeOS_PowerControl/blob/main/icons
 ```
 Share Downloads folder with Linux and then run `powercontrol-gui` in Crostini. 
 <br><br>
-### GUI app for Chard (run inside ChromeOS shell):
+### GUI app for Chard (copy paste inside ChromeOS shell):
 ```
 if [[ -n "${CHARD_ROOT:-}" ]]; then
     sudo -E curl -fsSL "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/gui.py" -o "$CHARD_ROOT/bin/powercontrol-gui" 2>/dev/null
@@ -63,13 +63,12 @@ if [[ -n "${CHARD_ROOT:-}" ]]; then
 fi
 ```
 <br><br>
-- Can use global commands for ease of use, has a unified config file, and the ability to change settings in real-time. 
+- Uses global commands for ease of use, unified config file, and the ability to change settings in real-time via shell or GUI app.
 - Supports an installer, uninstaller, and logs stored in /var/log/ for debugging.
 - Have BatteryControl, PowerControl, FanControl, GPUControl, and SleepControl start on boot if user has rootfs verification disabled.
 - Requires Developer Mode - Supports AMD, ARM, and Intel.
 - GUI app is available for Crostini and Chard.
-- Start on boot has a built-in 120-180s delay.
-
+- Uses native ChromeOS tools, no dependencies needed to install. 
 <br> <br> 
 
 
@@ -77,11 +76,10 @@ fi
 
   `/home/chronos/ChromeOS_PowerControl/ChromeOS_PowerControl_Installer.sh`
 
-- In *VT-2* or *crosh shell with sudo enabled* run:
+- In *VT-2* logged in as chronos or *crosh shell* with sudo enabled run:
 
- `sudo mkdir -p /usr/local/bin` <br>
- `sudo mv /home/chronos/ChromeOS_PowerControl_Installer.sh /usr/local/bin` <br>
- `sudo bash /usr/local/bin/ChromeOS_PowerControl_Installer.sh`
+`sudo mkdir -p /usr/local/bin` <br>
+`sudo bash ~/ChromeOS_PowerControl_Installer.sh` <br>
 <br>
 
  - To disable rootfs verification and enable sudo in crosh check out sudoCrosh by pasting this in crosh shell:
@@ -89,7 +87,7 @@ fi
 <br>
 
 - Installer has prompts to customize installation.
-- PowerControl, BatteryControl, FanControl, and SleepControl can run in the background and can be adjusted in real-time.
+- PowerControl, BatteryControl, FanControl, GPUControl, and SleepControl can run in the background and be adjusted in real-time.
 <br><br><br><br>
 
 __PowerControl commands with examples:__                                
@@ -181,7 +179,7 @@ __How It Works:__
 *PowerControl:*
 
 - Uses ARM, AMD, and Intel's max_perf_pct for easy user control.
-- Pairs user adjustable max_perf_pct and thermal0 temp sensor to create a user adjustable clockspeed-temperature curve. 
+- Pairs user adjustable max_perf_pct and thermal0 temp sensors to create a user adjustable clockspeed-temperature curve. 
 - If $min_temp threshold is below a certain point, the CPU will be able to reach max_perf_pct of its speed.
 - The closer the CPU approaches $max_temp, the closer it is to min_perf_pct.
 - PowerControl will always be stringent regarding thermals and performance versus native behavior.
@@ -196,7 +194,7 @@ __How It Works:__
 - Recommend turning off adatpive charging in ChromeOS to avoid notification spam.
 - Check's BAT0/capacity to measure when to toggle ectool's chargecontrol.
 - ChromeOS reports slightly higher values than what BatteryControl sets the charge limit to.
-- Charge limit is preserved during freeze sleep with SleepControl allowing to change sleep type. 
+- Charge limit is preserved when asleep using SleepControl!
 
 <br>
 
@@ -207,7 +205,6 @@ __How It Works:__
 - Uses hysteresis formula to attempt a better sounding and performing fan curve than the OEM provides. 
 - Uses a kickstart mechanism when fan leaves 0% to enable zero RPM mode for any fan type.
 - Default FanControl behavior has aggressive fan ramp-up behavior with a graceful decrease.
-
 
 <br>
 
@@ -227,7 +224,7 @@ __How It Works:__
 
 *SleepControl:*
 
-- By passively reading powerd.LATEST log, SleepControl monitors when the powerd daemon reports 'User activity stopped'.
+- By passively reading powerd.LATEST log, SleepControl monitors when the powerd daemon reports keywords like 'User activity stopped'.
 - Parsing strings like 'User activity started' or 'User activiting ongoing' tells SleepControl the user is active.
 - If 'User activity stopped' is parsed, SleepControl assumes the user is away and sleep timers begin.
 - Can turn on or off audio detection to customize sleep during multimedia playback.
