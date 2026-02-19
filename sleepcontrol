@@ -577,7 +577,10 @@ send_fake_activity() {
             
             if [[ "$STATUS" != "$prev_status" ]]; then
                 recalc_timers
-                last_ts=$now
+                if (( lid_closed == 0 || idle_elapsed < suspend_delay )); then
+                    last_ts=$now
+                fi
+    
                 printf '%s' "$STATUS" | sudo tee "$LAST_POWER_STATE" >/dev/null 2>&1
                 
                 if [[ -n "$saved_display_brightness" && "$saved_display_brightness" -ge 0 ]]; then
@@ -594,12 +597,15 @@ send_fake_activity() {
                     fi
                     
                     if (( LIDSLEEP_ENABLED == 1 )); then
-                        echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Lid is closed - lid sleep enabled on ${STATUS}, going back to sleep!${RESET}" >> "$LOG_FILE"
-                        #stop_fake_activity
+                        echo "Lid closed - lid sleep enabled on ${STATUS}, going back to sleep!" >> "$LOG_FILE"
+                        stop_fake_activity
                         sleep 0.2
                         sudo "$INSTALL_DIR/deep_suspend.sh"
                     else
-                        echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Lid is closed - lid sleep disabled on ${STATUS}${RESET}" >> "$LOG_FILE"
+                        echo "Lid closed - lid sleep disabled on ${STATUS} - Continuing simulated activity..." >> "$LOG_FILE"
+                        monitor_idle=1
+                        active=0
+                        start_fake_activity
                     fi
                 fi
             fi
@@ -956,25 +962,25 @@ case "$1" in
             PID=$(cat "$PID_FILE")
             if ps -p "$PID" > /dev/null 2>&1; then
 echo "${BLUE}"
-echo "═════════════════════════════════════════════════════════════════════════════════════════════════════"
+echo "══════════════════════════════════════════════════════════════════════════════════════════════════════"
 echo "                          SleepControl Status: RUNNING (PID $PID)                                  "                                 
 echo ""
             else
 echo "${RED}"
-echo "═════════════════════════════════════════════════════════════════════════════════════════════════════"
-echo " SleepControl Status: RUN FLAG PRESENT, but process not yet running (120s delay on boot)"
+echo "══════════════════════════════════════════════════════════════════════════════════════════════════════"
+echo " SleepControl Status: RUN FLAG PRESENT, but process not yet running"
 echo ""
 
             fi
 
          else
 echo "${RED}"
-echo "═════════════════════════════════════════════════════════════════════════════════════════════════════"
+echo "══════════════════════════════════════════════════════════════════════════════════════════════════════"
 echo "                              SleepControl Status: STOPPED                                       "
         fi
 echo "  Battery = Dim: $((BATTERY_DIM_DELAY)) min -> Display off: $((BATTERY_BACKLIGHT)) min -> Sleep: $((BATTERY_DELAY)) min | Audio Detection: $AUDIO_DETECTION_BATTERY | Lid Sleep: $LIDSLEEP_BATTERY "
 echo "  Power   = Dim: $((POWER_DIM_DELAY)) min -> Display off: $((POWER_BACKLIGHT)) min -> Sleep: $((POWER_DELAY)) min | Audio Detection: $AUDIO_DETECTION_POWER | Lid Sleep: $LIDSLEEP_POWER "
-echo "═════════════════════════════════════════════════════════════════════════════════════════════════════"
+echo "══════════════════════════════════════════════════════════════════════════════════════════════════════"
 echo "${RESET}"
        
         ;;
