@@ -514,6 +514,9 @@ send_fake_activity() {
                 if (( LIDSLEEP_ENABLED == 1 && lid_closed == 1 )); then
                     echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Lid sleep enabled and lid closed, skipping fake activity${RESET}" >> "$LOG_FILE"
                     sleep 0.2
+                    idle_since=$now
+                    last_ts=$now
+                    idle_elapsed=0
                     sudo "$INSTALL_DIR/deep_suspend.sh" 2>/dev/null
                 else
                     monitor_idle=1
@@ -536,6 +539,9 @@ send_fake_activity() {
                 echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Lid closed, lid sleep on! ${RESET}" >> "$LOG_FILE"
                 #stop_fake_activity
                 sleep 0.5
+                idle_since=$now
+                last_ts=$now
+                idle_elapsed=0
                 sudo "$INSTALL_DIR/deep_suspend.sh"
             else
                 echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Lid closed, lid sleep off!${RESET}" >> "$LOG_FILE"
@@ -597,6 +603,9 @@ send_fake_activity() {
                         echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Lid is closed - lid sleep enabled on ${STATUS}, going back to sleep!${RESET}" >> "$LOG_FILE"
                         #stop_fake_activity
                         sleep 0.2
+                        idle_since=$now
+                        last_ts=$now
+                        idle_elapsed=0
                         sudo "$INSTALL_DIR/deep_suspend.sh"
                     else
                         echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Lid is closed - lid sleep disabled on ${STATUS}${RESET}" >> "$LOG_FILE"
@@ -684,6 +693,9 @@ send_fake_activity() {
             if (( idle_elapsed >= suspend_delay )); then
                 echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Timers already elapsed, returning to sleep${RESET}" >> "$LOG_FILE"
                 sleep 0.2
+                idle_since=$now
+                last_ts=$now
+                idle_elapsed=0
                 sudo "$INSTALL_DIR/deep_suspend.sh"
             else
                 monitor_idle=1
