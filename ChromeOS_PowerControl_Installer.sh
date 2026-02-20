@@ -305,6 +305,34 @@ detect_suspend_mode
 detect_backlight_path
 detect_cpu_type
 
+for d in /sys/class/power_supply/*; do
+    [[ -f "$d/capacity" ]] || { continue; }
+    [[ -f "$d/status" ]] || { continue; }
+    [[ -f "$d/voltage_min_design" ]] || { continue; }
+
+    if [[ -f "$d/type" ]]; then
+        read -r type < "$d/type"
+        [[ "$type" == "Battery" ]] || { continue; }
+    fi
+
+    case "$d" in
+        *hid*|*HID*|*stylus*|*pen*)
+            continue
+            ;;
+    esac
+
+    read -r status < "$d/status"
+    [[ "$status" != "Unknown" ]] || { continue; }
+
+    capacity=$(cat "$d/capacity")
+    echo "${GREEN}"
+    echo "     INTERNAL BATTERY:"
+    echo "     Capacity path: $d/capacity"
+    echo "     Status path:   $d/status"
+    echo "     Current level: ${capacity}%"
+    echo "${RESET}"
+done
+
 if [ "$IS_INTEL" -eq 1 ]; then
     SHOW_POWERCONTROL_NOTICE=1
 fi
