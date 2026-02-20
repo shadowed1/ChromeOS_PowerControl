@@ -332,6 +332,7 @@ Removed deep sleep syntax support since that is no longer needed. Removed old sl
 GPUControl, Fancontrol, and SleepControl. Added check to skip on-boot startup prompts if rootfs verification is enabled. Cleaned up GPUControl status display.` <br><br>
 - 0.64: `Updated GUI app to support arrow keys and tab to navigate app. Fixed BatteryControl bug when charging and outputting display.` <br><br>
 - 0.65: `Fixed GPUControl having a stray _ at end of a line. Fixed PowerControl startup issue. Fixed SleepControl waking up from ML Adaptive Charging on specific device.` <br><br>
+- 0.66: `Fixed BatteryControl incorrectly detecting Stylus battery. For Chromebooks with built-in styli (styluses?)` <br><br>
 __Acknowledgements:__
 
 - Thanks to WesBosch for helping me learn to make an installer:
