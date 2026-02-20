@@ -43,23 +43,35 @@ fi
 
 DEFAULT_CHARGE_MAX=77
 CHARGE_MAX=
-detect_battery() {
-    for d in /sys/class/power_supply/*; do
-        if [ -f "$d/capacity" ] && [ -f "$d/status" ]; then
-            read -r status < "$d/status"
-            if [ "$status" != "Unknown" ]; then
-                BATTERY_PATH="$d/capacity"
-                STATUS_PATH="$d/status"
-                return 0
-            fi
-        fi
-    done
 
-    echo "${RED}No battery detected! ${RESET}"
+detect_battery() {
     BATTERY_PATH=""
     STATUS_PATH=""
-    continue
-    sleep 1
+
+    for d in /sys/class/power_supply/*; do
+        [[ -f "$d/capacity" ]] || continue
+        [[ -f "$d/status" ]] || continue
+        [[ -f "$d/voltage_min_design" ]] || continue
+
+        if [[ -f "$d/type" ]]; then
+            read -r type < "$d/type"
+            [[ "$type" == "Battery" ]] || continue
+        fi
+
+        case "$d" in
+            *hid*|*HID*|*stylus*|*pen*) continue ;;
+        esac
+
+        read -r status < "$d/status"
+        [[ "$status" != "Unknown" ]] || continue
+
+        BATTERY_PATH="$d/capacity"
+        STATUS_PATH="$d/status"
+        return 0
+    done
+
+    echo "${RED}No internal battery detected!${RESET}" | tee -a "$LOG_FILE"
+    return 1
 }
 
 load_config() {
