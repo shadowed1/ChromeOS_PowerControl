@@ -326,7 +326,7 @@ for d in /sys/class/power_supply/*; do
 
     capacity=$(cat "$d/capacity")
     echo "${GREEN}"
-    echo "     INTERNAL BATTERY:"
+    echo "     Battery:"
     echo "     Capacity path: $d/capacity"
     echo "     Status path:   $d/status"
     echo "     Current level: ${capacity}%"
