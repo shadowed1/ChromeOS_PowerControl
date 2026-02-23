@@ -655,6 +655,27 @@ echo "╚═══════════════════════�
 echo "${RESET}"
 }
 
+limits () {
+    sudo find /sys/devices -maxdepth 6 -type d -name power_limits 2>/dev/null | while read -r dir; do
+      echo
+      echo "${RESET}${CYAN}${dir}:"
+      echo
+      for f in "$dir"/*; do
+        [ -f "$f" ] || continue
+        v=$(cat "$f" 2>/dev/null)
+        base=$(basename "$f")
+    
+        if [[ $base == *_uw ]]; then
+          printf "  %s: %.2f W\n" "$base" "$(awk "BEGIN{print $v/1000000}")"
+        elif [[ $base == *_us ]]; then
+          printf "  %s: %.6f s\n" "$base" "$(awk "BEGIN{print $v/1000000}")"
+        else
+          echo "  $base: $v"
+        fi
+      done
+      echo "${RESET}"
+    done
+}
 gui() {
 echo "${RESET}${MAGENTA}${BOLD}"
 echo "GUI app for Crostini (run in Linux): ${RESET}${MAGENTA}"
@@ -942,6 +963,9 @@ case "$1" in
     ;;
     gui)
         gui
+    ;;
+    limits|limit)
+        limits
     ;;
     *)
         echo "Unknown command: $1"
