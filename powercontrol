@@ -668,7 +668,7 @@ limits () {
         if [[ $base == *_uw ]]; then
           printf "  %s: %.2f Watts\n" "$base" "$(awk "BEGIN{print $v/1000000}")"
         elif [[ $base == *_us ]]; then
-          printf "  %s: %.6f seconds\n" "$base" "$(awk "BEGIN{print $v/1000000}")"
+          printf "  %s: %.2f seconds\n" "$base" "$(awk "BEGIN{print $v/1000000}")"
         else
           echo "  $base: $v"
         fi
