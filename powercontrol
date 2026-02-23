@@ -932,7 +932,10 @@ case "$1" in
         sudo "$INSTALL_DIR/powercontrol" startup && sudo "$INSTALL_DIR/batterycontrol" startup && sudo "$INSTALL_DIR/fancontrol" startup && sudo "$INSTALL_DIR/gpucontrol" startup && sudo "$INSTALL_DIR/sleepcontrol" startup
     ;;
     start_all)
-        sudo "$INSTALL_DIR/powercontrol" start && sudo "$INSTALL_DIR/batterycontrol" start && sudo "$INSTALL_DIR/sleepcontrol" start && sudo "$INSTALL_DIR/fancontrol" start
+        sudo "$INSTALL_DIR/powercontrol" start && sudo "$INSTALL_DIR/batterycontrol" start && sudo "$INSTALL_DIR/sleepcontrol" start && sudo "$INSTALL_DIR/fancontrol" start && sudo "$INSTALL_DIR/gpucontrol" start
+    ;;
+    stop_all)
+        sudo "$INSTALL_DIR/powercontrol" stop && sudo "$INSTALL_DIR/batterycontrol" stop && sudo "$INSTALL_DIR/sleepcontrol" stop && sudo "$INSTALL_DIR/fancontrol" stop && sudo "$INSTALL_DIR/gpucontrol" stop
     ;;
     help_all)
         "$INSTALL_DIR/powercontrol" help && "$INSTALL_DIR/batterycontrol" help && "$INSTALL_DIR/fancontrol" help && "$INSTALL_DIR/gpucontrol" help && "$INSTALL_DIR/sleepcontrol" help
