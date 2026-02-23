@@ -946,9 +946,9 @@ echo "${GREEN}"
 sleep 0.01
 echo "╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
 sleep 0.01
-echo "║   ${RESET}${GREEN}${BOLD}BatteryControl Notice:${RESET}${GREEN}                                                                                           ║"
+echo "║  ${RESET}${GREEN}${BOLD}BatteryControl Notice:${RESET}${GREEN}                                                                                            ║"
 sleep 0.01
-echo "║   DISABLE Adaptive Charging in Settings → System Preferences → Power to avoid notification spam.                   ║"
+echo "║  DISABLE Adaptive Charging in Settings → System Preferences → Power to avoid notification spam.                    ║"
 sleep 0.01
 echo "╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝${RESET}"
 fi
