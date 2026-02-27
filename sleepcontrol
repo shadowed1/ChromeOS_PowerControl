@@ -515,6 +515,7 @@ send_fake_activity() {
                     echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Lid sleep enabled and lid closed, skipping fake activity${RESET}" >> "$LOG_FILE"
                     sleep 0.1
                     sudo "$INSTALL_DIR/deep_suspend.sh" 2>/dev/null
+                    stop_fake_activity
                 else
                     monitor_idle=1
                     active=0
@@ -537,6 +538,7 @@ send_fake_activity() {
                 #stop_fake_activity
                 sleep 0.1
                 sudo "$INSTALL_DIR/deep_suspend.sh"
+                stop_fake_activity
             else
                 echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Lid closed, lid sleep off!${RESET}" >> "$LOG_FILE"
                 monitor_idle=1
@@ -598,6 +600,7 @@ send_fake_activity() {
                         #stop_fake_activity
                         sleep 0.1
                         sudo "$INSTALL_DIR/deep_suspend.sh"
+                        stop_fake_activity
                     else
                         echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Lid is closed - lid sleep disabled on ${STATUS}${RESET}" >> "$LOG_FILE"
                     fi
@@ -688,6 +691,7 @@ send_fake_activity() {
                 echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Timers already elapsed, returning to sleep${RESET}" >> "$LOG_FILE"
                 sleep 0.1
                 sudo "$INSTALL_DIR/deep_suspend.sh"
+                stop_fake_activity
             else
                 monitor_idle=1
                 active=0
@@ -758,6 +762,7 @@ send_fake_activity() {
                     last_ts=$now
                     idle_elapsed=0
                     sudo "$INSTALL_DIR/deep_suspend.sh"
+                    stop_fake_activity
                 fi
             fi
         fi
