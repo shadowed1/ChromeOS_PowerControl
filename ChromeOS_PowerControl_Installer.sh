@@ -96,30 +96,35 @@ detect_gpu_freq() {
     GPU_FREQ_PATH=""
     GPU_MAX_FREQ=""
     GPU_TYPE="unknown"
-    
+
     # Intel Xe
     if [ -f /sys/class/drm/card0/gt_max_freq_mhz ]; then
         GPU_TYPE="intel"
         GPU_FREQ_PATH="/sys/class/drm/card0/gt_max_freq_mhz"
         GPU_MAX_FREQ=$(sudo cat "$GPU_FREQ_PATH" 2>/dev/null)
-    
+
     # AMD
     elif [ -f /sys/class/drm/card0/device/pp_od_clk_voltage ]; then
         GPU_TYPE="amd"
         PP_OD_FILE="/sys/class/drm/card0/device/pp_od_clk_voltage"
-    
         mapfile -t SCLK_LINES < <(sudo grep -i '^sclk' "$PP_OD_FILE" 2>/dev/null)
-    
         if [[ ${#SCLK_LINES[@]} -gt 0 ]]; then
             GPU_MAX_FREQ=$(printf '%s\n' "${SCLK_LINES[@]}" \
                 | sed -n 's/.*\([0-9]\{1,\}\)[Mm][Hh][Zz].*/\1/p' \
                 | sort -nr | head -n1)
         fi
-    
         GPU_FREQ_PATH="$PP_OD_FILE"
         GPU_MAX_FREQ=${GPU_MAX_FREQ:-0}
-    
-    # Mali
+
+    # AMD GCN
+    elif [ -f /sys/class/drm/card0/device/pp_dpm_sclk ]; then
+        GPU_TYPE="amd"
+        PP_DPM_SCLK="/sys/class/drm/card0/device/pp_dpm_sclk"
+        GPU_MAX_FREQ=$(grep -oi '[0-9]\+mhz' "$PP_DPM_SCLK" | grep -oi '[0-9]\+' | sort -nr | head -n1)
+        GPU_FREQ_PATH="$PP_DPM_SCLK"
+        GPU_MAX_FREQ=${GPU_MAX_FREQ:-0}
+
+    # Mali / Adreno
     else
         for d in /sys/class/devfreq/*; do
             if echo "$d" | grep -qiE 'mali|gpu'; then
@@ -136,8 +141,8 @@ detect_gpu_freq() {
                 fi
             fi
         done
-    
-        # Adreno
+
+        # Adreno Fallback
         if [ "$GPU_TYPE" = "unknown" ] && [ -d /sys/class/kgsl/kgsl-3d0 ]; then
             if [ -f /sys/class/kgsl/kgsl-3d0/max_gpuclk ]; then
                 GPU_TYPE="adreno"
