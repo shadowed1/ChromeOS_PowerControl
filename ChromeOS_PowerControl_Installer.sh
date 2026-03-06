@@ -842,6 +842,8 @@ echo "║  sudo fancontrol poll 2           # FanControl polling rate in seconds
 sleep 0.01
 echo "║  sudo fancontrol startup          # Copy or Remove fancontrol.conf at: /etc/init/                                  ║"
 sleep 0.01
+echo "║  sudo powercontrol limits         # See your CPU's boost limits in seconds and Watts (x86_64 only)                 ║"
+sleep 0. 01
 echo "║                                                                                                                    ║"
 sleep 0.01
 echo "╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝"
