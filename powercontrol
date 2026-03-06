@@ -644,6 +644,7 @@ echo "║  sudo powercontrol ramp_up 15    # % in steps CPU will increase in clo
 echo "║  sudo powercontrol ramp_down 20  # % in steps CPU will decrease in clockspeed per second            ║"
 echo "║  sudo powercontrol hotzone 78    # Temperature threshold for aggressive thermal management          ║"
 echo "║  sudo powercontrol poll 1        # PowerControl polling rate in seconds (0.1s - 5s)                 ║"
+echo "║  sudo powercontrol limits        # See your CPU's boost limits in seconds and Watts (x86_64 only)   ║"
 echo "║  sudo powercontrol startup       # Copy or Remove no_turbo.conf & powercontrol.conf at: /etc/init/  ║"
 echo "║  sudo powercontrol startup_all   # Copy or Remove all .conf files at: /etc/init/                    ║"
 echo "║  sudo powercontrol reinstall     # Redownload and reinstall ChromeOS_PowerControl from Github       ║"
@@ -655,26 +656,32 @@ echo "╚═══════════════════════�
 echo "${RESET}"
 }
 
-limits () {
-    sudo find /sys/devices -maxdepth 6 -type d -name power_limits 2>/dev/null | while read -r dir; do
-      echo
-      echo "${RESET}${CYAN}${dir}:"
-      echo
-      for f in "$dir"/*; do
-        [ -f "$f" ] || continue
-        v=$(cat "$f" 2>/dev/null)
-        base=$(basename "$f")
-    
-        if [[ $base == *_uw ]]; then
-          printf "  %s: %.2f Watts\n" "$base" "$(awk "BEGIN{print $v/1000000}")"
-        elif [[ $base == *_us ]]; then
-          printf "  %s: %.2f seconds\n" "$base" "$(awk "BEGIN{print $v/1000000}")"
-        else
-          echo "  $base: $v"
-        fi
-      done
-      echo "${RESET}"
-    done
+limits() {
+    ARCH=$(uname -m)
+    if [ "$ARCH" = "x86_64" ]; then
+        sudo find /sys/devices -maxdepth 6 -type d -name power_limits 2>/dev/null | while read -r dir; do
+            echo
+            echo "${RESET}${CYAN}${dir}:"
+            echo
+            for f in "$dir"/*; do
+                [ -f "$f" ] || continue
+                v=$(cat "$f" 2>/dev/null)
+                base=$(basename "$f")
+                if [[ $base == *_uw ]]; then
+                    printf "  %s: %.2f Watts\n" "$base" "$(awk "BEGIN{print $v/1000000}")"
+                elif [[ $base == *_us ]]; then
+                    printf "  %s: %.2f seconds\n" "$base" "$(awk "BEGIN{print $v/1000000}")"
+                else
+                    echo "  $base: $v"
+                fi
+            done
+            echo "${RESET}"
+        done
+    elif [[ "$ARCH" == "aarch64" || "$ARCH" == "arm64" ]]; then
+        echo "${GREEN}$ARCH detected. Skipping power limits (I could not find where they were). ${RESET}"
+    else
+        echo "${RED}Unsupported architecture: $ARCH${RESET}"
+    fi
 }
 
 gui() {
