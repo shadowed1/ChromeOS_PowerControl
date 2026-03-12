@@ -240,7 +240,7 @@ sudo ectool fanduty "$initial_duty"
         fi
 
         need_kickstart=0
-        if (( target_duty > 0 )); then
+        if (( target_duty > 0 && last_duty == 0 )); then
             actual_rpm=$(sudo ectool pwmgetfanrpm all 2>/dev/null | awk '{print $NF}' | head -1)
             if [[ "$actual_rpm" =~ ^[0-9]+$ ]] && (( actual_rpm == 0 )); then
                 need_kickstart=1
