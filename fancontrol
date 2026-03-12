@@ -264,19 +264,7 @@ sudo ectool fanduty "$initial_duty"
             done
         fi
         
-        if (( target_duty == 0 )); then
-            if (( last_duty > 0 )); then
-                echo "${YELLOW}Applying kickstart before stopping fan" >> "$LOG_FILE"
-                for duty in 4 8 12; do
-                    echo "  - Kickstart: ${duty}% ${RESET}" >> "$LOG_FILE"
-                    sudo ectool fanduty "$duty" | grep -v "Fan duty cycle set for all fans." >> "$LOG_FILE"
-                    sleep 0.5
-                done
-            fi
-            sudo ectool fanduty 0 | grep -v "Fan duty cycle set for all fans." >> "$LOG_FILE"
-        else
-            sudo ectool fanduty "$target_duty" | grep -v "Fan duty cycle set for all fans." >> "$LOG_FILE"
-        fi
+        sudo ectool fanduty "$target_duty" | grep -v "Fan duty cycle set for all fans." >> "$LOG_FILE"
 
         #if [[ -n "$prev_temp" ]]; then
         #    TEMP_C=$(((TEMP_C + prev_temp) / 2))
