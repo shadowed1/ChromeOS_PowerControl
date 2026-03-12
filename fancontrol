@@ -240,8 +240,11 @@ sudo ectool fanduty "$initial_duty"
         fi
 
         need_kickstart=0
-        if (( last_duty == 0 && target_duty > 0 )); then
-            need_kickstart=1
+        if (( target_duty > 0 )); then
+            actual_rpm=$(sudo ectool pwmgetfanrpm all 2>/dev/null | awk '{print $NF}' | head -1)
+            if [[ "$actual_rpm" =~ ^[0-9]+$ ]] && (( actual_rpm == 0 )); then
+                need_kickstart=1
+            fi
         fi
 
         echo "${YELLOW}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) CPU: ${TEMP_C}°C -> Fan: ${target_duty}%${RESET}" >> "$LOG_FILE"
