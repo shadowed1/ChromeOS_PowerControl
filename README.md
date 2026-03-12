@@ -107,8 +107,12 @@ __PowerControl commands with examples:__
   `sudo powercontrol ramp_down 20  # % in steps CPU will decrease in clockspeed per second`            
   `sudo powercontrol hotzone 78    # Temperature threshold for aggressive thermal management`          
   `sudo powercontrol poll 1        # PowerControl polling rate in seconds (0.1s - 5s)`                 
-  `sudo powercontrol monitor       # Toggle live temperature monitoring`                               
-  `sudo powercontrol startup       # Copy or Remove no_turbo.conf & powercontrol.conf at: /etc/init/`  
+  `sudo powercontrol monitor       # Toggle live temperature monitoring`
+  `sudo powercontrol limits        # Print x86_64 Power Limits`
+  `sudo powercontrol startup       # Copy or Remove no_turbo.conf & powercontrol.conf at: /etc/init/`
+  `sudo powercontrol startup_all   # Copy or remove all /etc/init/ .conf files for ChromeOS_PowerControl`
+  `sudo powercontrol start_all     # Start all modules for ChromeOS_PowerControl`
+  `sudo powercontrol stop_all      # Stop all modules for ChromeOS_PowerControl`
   `sudo powercontrol reinstall     # Redownload and reinstall ChromeOS_PowerControl from Github`       
   `sudo powercontrol uninstall     # Uninstall ChromeOS_PowerControl`                                  
   `sudo powercontrol version       # Check PowerControl version`                                                                                           
@@ -333,7 +337,7 @@ GPUControl, Fancontrol, and SleepControl. Added check to skip on-boot startup pr
 - 0.64: `Updated GUI app to support arrow keys and tab to navigate app. Fixed BatteryControl bug when charging and outputting display.` <br><br>
 - 0.65: `Fixed GPUControl having a stray _ at end of a line. Fixed PowerControl startup issue. Fixed SleepControl waking up from ML Adaptive Charging on specific device.` <br><br>
 - 0.66: `Fixed BatteryControl incorrectly detecting Stylus battery. For Chromebooks with built-in styli (styluses?). Fixed race condition causing SleepControl to turn off display when opening lid when asleep.` <br><br>
-- 0.67: `Added limits command for powercontrol. Fixed issue with FanControl kickstart duplicate logic.` <br><br>
+- 0.67: `Added limits command for powercontrol. Added stop_all command. Fixed issue with FanControl kickstart duplicate logic.` <br><br>
 __Acknowledgements:__
 
 - Thanks to WesBosch for helping me learn to make an installer:
