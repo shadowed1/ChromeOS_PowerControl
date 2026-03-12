@@ -107,12 +107,12 @@ __PowerControl commands with examples:__
   `sudo powercontrol ramp_down 20  # % in steps CPU will decrease in clockspeed per second`            
   `sudo powercontrol hotzone 78    # Temperature threshold for aggressive thermal management`          
   `sudo powercontrol poll 1        # PowerControl polling rate in seconds (0.1s - 5s)`                 
-  `sudo powercontrol monitor       # Toggle live temperature monitoring`
-  `sudo powercontrol limits        # Print x86_64 Power Limits`
-  `sudo powercontrol startup       # Copy or Remove no_turbo.conf & powercontrol.conf at: /etc/init/`
-  `sudo powercontrol startup_all   # Copy or remove all /etc/init/ .conf files for ChromeOS_PowerControl`
-  `sudo powercontrol start_all     # Start all modules for ChromeOS_PowerControl`
-  `sudo powercontrol stop_all      # Stop all modules for ChromeOS_PowerControl`
+  `sudo powercontrol monitor       # Toggle live temperature monitoring`        
+  `sudo powercontrol limits        # Print x86_64 Power Limits`         
+  `sudo powercontrol startup       # Copy or Remove no_turbo.conf & powercontrol.conf at: /etc/init/`          
+  `sudo powercontrol startup_all   # Copy or remove all /etc/init/ .conf files for ChromeOS_PowerControl`     
+  `sudo powercontrol start_all     # Start all modules for ChromeOS_PowerControl`      
+  `sudo powercontrol stop_all      # Stop all modules for ChromeOS_PowerControl`       
   `sudo powercontrol reinstall     # Redownload and reinstall ChromeOS_PowerControl from Github`       
   `sudo powercontrol uninstall     # Uninstall ChromeOS_PowerControl`                                  
   `sudo powercontrol version       # Check PowerControl version`                                                                                           
@@ -125,10 +125,10 @@ __PowerControl commands with examples:__
   `batterycontrol help          # Help menu`                                          
   `sudo batterycontrol start    # Start BatteryControl`                               
   `sudo batterycontrol stop     # Stop BatteryControl`                                
-  `sudo batterycontrol 77       # Charge limit set to 77% - Minimum allowed is 14%`
-  `sudo batterycontrol usage    # See power consumption in real-time.`
-  `sudo batterycontrol monitor  # Toggle on/off live monitoring in terminal.` 
-  `sudo batterycontrol startup  # Copy or Remove batterycontrol.conf at: /etc/init/`
+  `sudo batterycontrol 77       # Charge limit set to 77% - Minimum allowed is 14%`      
+  `sudo batterycontrol usage    # See power consumption in real-time.`         
+  `sudo batterycontrol monitor  # Toggle on/off live monitoring in terminal.`       
+  `sudo batterycontrol startup  # Copy or Remove batterycontrol.conf at: /etc/init/`       
 
 <br>
 <br>
@@ -147,17 +147,17 @@ __PowerControl commands with examples:__
   `sudo fancontrol step_down 1  # Fan step-down %`                                
   `sudo fancontrol poll 2       # FanControl polling rate in seconds (1 to 10s)`  
   `sudo fancontrol monitor      # Toggle on/off live monitoring in terminal`      
-  `sudo fancontrol startup      # Copy or Remove fancontrol.conf at: /etc/init/`
+  `sudo fancontrol startup      # Copy or Remove fancontrol.conf at: /etc/init/`    
   <br><br>
                                                                                                                   
   __GPUControl commands with examples:__                                       
                                                                                                                   
   `gpucontrol                     # Show current GPU info and frequency`                                            
-  `gpucontrol help                # Show this help menu`
-  `gpucontrol monitor             # Monitor GPU clockspeed in real-time.`
-  `sudo gpucontrol restore        # Restore GPU max frequency to original value`                                    
-  `sudo gpucontrol 800            # Set GPU max frequency to 800 MHz`
-  `sudo gpucontrol startup        # Enable or disable GPUControl on startup`
+  `gpucontrol help                # Show this help menu`         
+  `gpucontrol monitor             # Monitor GPU clockspeed in real-time.`        
+  `sudo gpucontrol restore        # Restore GPU max frequency to original value`                                         
+  `sudo gpucontrol 800            # Set GPU max frequency to 800 MHz`            
+  `sudo gpucontrol startup        # Enable or disable GPUControl on startup`        
   <br><br>
                                                                                                                     
   __SleepControl commands with examples:__                                      
@@ -171,8 +171,8 @@ __PowerControl commands with examples:__
   `sudo sleepcontrol battery 3 7 12   # When idle, display dims in 3m -> timeout in 7m -> sleeps in 12m on battery`   
   `sudo sleepcontrol power 5 15 30    # When idle, display dims in 5m -> timeout -> 15m -> sleeps in 30m on power`  
   `sudo sleepcontrol battery audio 0  # Disable audio detection on battery; sleep can occur during media playback`   
-  `sudo sleepcontrol power audio 1    # Enable audio detection on power; delaying sleep until audio is stopped`
-  `sudo sleepcontrol startup          # Copy or Remove sleepcontrol.conf at: /etc/init/`     
+  `sudo sleepcontrol power audio 1    # Enable audio detection on power; delaying sleep until audio is stopped`       
+  `sudo sleepcontrol startup          # Copy or Remove sleepcontrol.conf at: /etc/init/`      
 
 <br><br><br><br>
 
