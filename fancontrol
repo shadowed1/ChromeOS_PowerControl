@@ -269,13 +269,14 @@ sudo ectool fanduty "$initial_duty"
         #if [[ -n "$prev_temp" ]]; then
         #    TEMP_C=$(((TEMP_C + prev_temp) / 2))
         #fi
+
         prev_temp=$TEMP_C
 
-        if (( DUTY < MIN_FAN )); then
-            DUTY=$MIN_FAN
-        elif (( DUTY > MAX_FAN )); then
-            DUTY=$MAX_FAN
-        fi
+        #if (( DUTY < MIN_FAN )); then
+        #    DUTY=$MIN_FAN
+        #elif (( DUTY > MAX_FAN )); then
+        #    DUTY=$MAX_FAN
+        #fi
 
         last_duty=$target_duty
 
