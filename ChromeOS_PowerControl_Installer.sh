@@ -422,7 +422,7 @@ declare -A categories=(
 )
 
 if [[ -z "${ORIGINAL_GPU_MAX_FREQ}" ]]; then ORIGINAL_GPU_MAX_FREQ=$GPU_MAX_FREQ; fi
-if [[ -z "${MAX_TEMP}" ]]; then MAX_TEMP=86; fi
+if [[ -z "${MAX_TEMP}" ]]; then MAX_TEMP=90; fi
 if [[ -z "${MIN_TEMP}" ]]; then MIN_TEMP=63; fi
 if [[ -z "${MAX_PERF_PCT}" ]]; then MAX_PERF_PCT=100; fi
 if [[ -z "${MIN_PERF_PCT}" ]]; then MIN_PERF_PCT=10; fi
@@ -434,7 +434,7 @@ if [[ -z "${CHARGE_MAX}" ]]; then CHARGE_MAX=77; fi
 if [[ -z "${MIN_FAN}" ]]; then MIN_FAN=0; fi
 if [[ -z "${MAX_FAN}" ]]; then MAX_FAN=100; fi
 if [[ -z "${FAN_MIN_TEMP}" ]]; then FAN_MIN_TEMP=46; fi
-if [[ -z "${FAN_MAX_TEMP}" ]]; then FAN_MAX_TEMP=85; fi
+if [[ -z "${FAN_MAX_TEMP}" ]]; then FAN_MAX_TEMP=89; fi
 if [[ -z "${STEP_UP}" ]]; then STEP_UP=4; fi
 if [[ -z "${STEP_DOWN}" ]]; then STEP_DOWN=1; fi
 if [[ -z "${FAN_POLL}" ]]; then FAN_POLL=4; fi
