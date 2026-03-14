@@ -41,7 +41,7 @@ if ! ( [[ -z "$1" ]] || [[ "$1" == "--h" || "$1" == "-h" || "$1" == "h" || "$1" 
 fi
 
 DEFAULT_FAN_MIN_TEMP=46
-DEFAULT_FAN_MAX_TEMP=85
+DEFAULT_FAN_MAX_TEMP=89
 DEFAULT_MIN_FAN=0
 DEFAULT_MAX_FAN=100  
 DEFAULT_FAN_POLL=4
@@ -363,7 +363,7 @@ fan_min_temp() {
 }
 
 fan_max_temp() {
-    if [[ "$2" =~ ^[0-9]+$ ]] && (( $2 <= 90 )); then
+    if [[ "$2" =~ ^[0-9]+$ ]] && (( $2 <= 94 )); then
         load_config
         FAN_MAX_TEMP=$2
         save_config
@@ -371,7 +371,7 @@ fan_max_temp() {
         echo "$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Max temp set to $FAN_MAX_TEMP°C" | tee -a "$LOG_FILE"
         echo "${RESET}"
     else
-        echo "Usage: $0 fan_max_temp <number (<=90)>"
+        echo "Usage: $0 fan_max_temp <number (<=94)>"
     fi
 }
 
