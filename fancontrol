@@ -249,7 +249,7 @@ sudo ectool fanduty "$initial_duty"
 
         echo "${YELLOW}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) CPU: ${TEMP_C}°C -> Fan: ${target_duty}%${RESET}" >> "$LOG_FILE"
 
-        if (( target_duty < MIN_FAN && TEMP_C <= FAN_MIN_TEMP )); then
+        if (( MIN_FAN == 0 && TEMP_C <= FAN_MIN_TEMP )); then
             target_duty=0
         elif (( target_duty < MIN_FAN )); then
             target_duty=$MIN_FAN
