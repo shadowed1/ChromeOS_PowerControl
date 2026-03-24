@@ -338,7 +338,8 @@ GPUControl, Fancontrol, and SleepControl. Added check to skip on-boot startup pr
 - 0.65: `Fixed GPUControl having a stray _ at end of a line. Fixed PowerControl startup issue. Fixed SleepControl waking up from ML Adaptive Charging on specific device.` <br><br>
 - 0.66: `Fixed BatteryControl incorrectly detecting Stylus battery. For Chromebooks with built-in styli (styluses?). Fixed race condition causing SleepControl to turn off display when opening lid when asleep.` <br><br>
 - 0.67: `Added limits command for powercontrol. Added stop_all command. Fixed issue with FanControl kickstart duplicate logic.` <br><br>
-- 0.68: `Fixed bug with FanControl entering zero RPM mode too early.`
+- 0.68: `Fixed bug with FanControl entering zero RPM mode too early.` <br><br>
+
 __Acknowledgements:__
 
 - Thanks to WesBosch for helping me learn to make an installer:
