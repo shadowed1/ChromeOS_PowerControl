@@ -715,6 +715,24 @@ echo
 echo "if [[ -n "${CHARD_ROOT:-}" ]]; then"
 echo "    sudo -E curl -fsSL "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/gui.py" -o "$CHARD_ROOT/bin/powercontrol-gui" 2>/dev/null"
 echo "    sudo chmod +x "$CHARD_ROOT/bin/powercontrol-gui" 2>/dev/null"
+echo
+echo "    sudo mkdir -p $CHARD_ROOT/usr/share/applications/ $CHARD_ROOT/usr/share/icons/hicolor/48x48/apps/"
+echo
+echo "    cat <<'EOF' | sudo tee $CHARD_ROOT/usr/share/applications/powercontrol-gui.desktop > /dev/null"
+echo "[Desktop Entry]"
+echo "Version=1.0"
+echo "Type=Application"
+echo "Name=PowerControl"
+echo "Comment=Get the power to control your CPU, Battery, Fan Curve, GPU, and Sleep for ChromeOS! "
+echo "Exec=/bin/powercontrol-gui"
+echo "Icon=powercontrol"
+echo "Terminal=false"
+echo "Categories=Utility;System; "
+echo "StartupNotify=true"
+echo "EOF"
+echo
+echo "    sudo curl -Ls https://github.com/shadowed1/ChromeOS_PowerControl/blob/main/icons/powercontrol_200p.png?raw=true -o $CHARD_ROOT/usr/share/icons/hicolor/48x48/apps/powercontrol.png"
+echo "${RESET}"
 echo "fi"
 echo "${RESET}"
 }
