@@ -732,7 +732,6 @@ echo "StartupNotify=true"
 echo "EOF"
 echo
 echo "    sudo curl -Ls https://github.com/shadowed1/ChromeOS_PowerControl/blob/main/icons/powercontrol_200p.png?raw=true -o $CHARD_ROOT/usr/share/icons/hicolor/48x48/apps/powercontrol.png"
-echo "${RESET}"
 echo "fi"
 echo "${RESET}"
 }
