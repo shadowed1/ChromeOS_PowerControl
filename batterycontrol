@@ -237,8 +237,8 @@ start_monitoring_loop() {
                     echo "Failed to read $BATTERY_PATH" >&2
                 fi
                 
-                if [ -f "$LOG_FILE" ] && [ "$(stat -c%s "$LOG_FILE")" -gt 131072 ]; then
-                echo "${GREEN}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Truncated log file (exceeded 128KB)${RESET}" > "$LOG_FILE"
+                if [ -f "$LOG_FILE" ] && [ "$(stat -c%s "$LOG_FILE")" -gt 1048576 ]; then
+                echo "${GREEN}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Truncated log file (exceeded 1MB)${RESET}" > "$LOG_FILE"
                 fi
         
                 startup_enabled=0
