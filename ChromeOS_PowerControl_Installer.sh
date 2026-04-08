@@ -12,8 +12,8 @@ SHOW_BATTERYCONTROL_NOTICE=0
 SHOW_SLEEPCONTROL_NOTICE=0
 SHOW_GPUCONTROL_NOTICE=0
 TEST_FILE="/etc/init/.boot_test"
-echo
-echo "${MAGENTA}${BOLD}noexec warning can be safely ignored. ${RESET}"
+echo "${MAGENTA}"
+echo "${BOLD}noexec warning can be safely ignored. ${RESET}"
 echo
 detect_backlight_path() {
     BACKLIGHT_BASE="/sys/class/backlight"
@@ -344,7 +344,7 @@ for d in /sys/class/power_supply/*; do
     [[ "$status" != "Unknown" ]] || { continue; }
 
     capacity=$(cat "$d/capacity")
-    echo "${GREEN}"
+    echo "${RESET}${GREEN}"
     echo "Battery: ${BOLD}${capacity}%"
     echo "${RESET}"
 done
@@ -353,7 +353,7 @@ if [ "$IS_INTEL" -eq 1 ]; then
     SHOW_POWERCONTROL_NOTICE=1
 fi
 echo ""
-echo "${RESET}${GREEN}$BACKLIGHT_NAME"
+echo "${RESET}${BLUE}$BACKLIGHT_NAME"
 echo "$BRIGHTNESS_PATH"
 echo "$MAX_BRIGHTNESS_PATH${RESET}"
 echo ""
