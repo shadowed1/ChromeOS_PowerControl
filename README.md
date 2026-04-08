@@ -339,7 +339,7 @@ GPUControl, Fancontrol, and SleepControl. Added check to skip on-boot startup pr
 - 0.66: `Fixed BatteryControl incorrectly detecting Stylus battery. For Chromebooks with built-in styli (styluses?). Fixed race condition causing SleepControl to turn off display when opening lid when asleep.` <br><br>
 - 0.67: `Added limits command for powercontrol. Added stop_all command. Fixed issue with FanControl kickstart duplicate logic.` <br><br>
 - 0.68: `Fixed bug with FanControl entering zero RPM mode too early.` <br><br>
-- 0.69: `Increased log sizes and moved truncate logic into main loop.` <br><br>
+- 0.69: `Increased log sizes and moved truncate logic into main loop. Removed deprecated code.` <br><br>
 
 __Acknowledgements:__
 
