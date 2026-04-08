@@ -157,14 +157,14 @@ detect_gpu_freq() {
     fi
 }
 
-detect_suspend_mode() {
-    if [ -f /usr/share/power_manager/suspend_mode ]; then
-        SUSPEND_MODE=$(cat /usr/share/power_manager/suspend_mode) 2>/dev/null
-    else
-        SUSPEND_MODE="deep"
-    fi
-    echo "${BLUE}Detected suspend mode: $SUSPEND_MODE ${RESET}"
-}
+#detect_suspend_mode() {
+#    if [ -f /usr/share/power_manager/suspend_mode ]; then
+#        SUSPEND_MODE=$(cat /usr/share/power_manager/suspend_mode) 2>/dev/null
+#    else
+#        SUSPEND_MODE="deep"
+#    fi
+#    echo "${BLUE}Detected suspend mode: $SUSPEND_MODE ${RESET}"
+#}
 
 INSTALL_DIR="/usr/local/bin/ChromeOS_PowerControl"
 echo ""
@@ -326,7 +326,7 @@ else
     SKIP_FANCONTROL=false
 fi
 
-detect_suspend_mode
+#detect_suspend_mode
 detect_backlight_path
 detect_cpu_type
 
