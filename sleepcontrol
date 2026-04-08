@@ -47,28 +47,27 @@ wait_for_config() {
 
 wait_for_config
 
-if [[ ! -f "$SUSPEND_APPLIED_FLAG" ]]; then
-    INSTALL_DIR="$(dirname "$(readlink -f "$0")")"
-    if [[ -f "$CONFIG_FILE" ]]; then
-        SUSPEND_MODE=$(grep "^SUSPEND_MODE=" "$CONFIG_FILE" | cut -d'=' -f2)
-        if [[ "$SUSPEND_MODE" == "freeze" || "$SUSPEND_MODE" == "deep" ]]; then
-            echo "$SUSPEND_MODE" | sudo tee /usr/share/power_manager/suspend_mode >/dev/null 2>&1
-            echo "$SUSPEND_MODE" | sudo tee /var/run/power_manager/power/initial_suspend_mode >/dev/null 2>&1
-            sudo restart powerd >/dev/null
+#if [[ ! -f "$SUSPEND_APPLIED_FLAG" ]]; then
+#    INSTALL_DIR="$(dirname "$(readlink -f "$0")")"
+#    if [[ -f "$CONFIG_FILE" ]]; then
+#        SUSPEND_MODE=$(grep "^SUSPEND_MODE=" "$CONFIG_FILE" | cut -d'=' -f2)
+#       if [[ "$SUSPEND_MODE" == "freeze" || "$SUSPEND_MODE" == "deep" ]]; then
+#           echo "$SUSPEND_MODE" | sudo tee /usr/share/power_manager/suspend_mode >/dev/null 2>&1
+#           echo "$SUSPEND_MODE" | sudo tee /var/run/power_manager/power/initial_suspend_mode >/dev/null 2>&1
+#            sudo restart powerd >/dev/null
 
-            if [[ "$SUSPEND_MODE" == "freeze" ]]; then
-                echo "$CHROME_MILESTONE" | sudo tee "$CHARD_ROOT/.chard_chrome" > /dev/null
-                echo "s2idle" | sudo tee /sys/power/mem_sleep >/dev/null 2>&1
-                echo "s2idle" | sudo tee /var/run/power_manager/power/initial_suspend_mode >/dev/null 2>&1
-            else
-                echo "deep" | sudo tee /sys/power/mem_sleep >/dev/null 2>&1
-                echo "deep" | sudo tee /var/run/power_manager/power/initial_suspend_mode >/dev/null 2>&1
-            fi
-
-            touch "$SUSPEND_APPLIED_FLAG"
-        fi
-    fi
-fi
+#            if [[ "$SUSPEND_MODE" == "freeze" ]]; then
+#                echo "$CHROME_MILESTONE" | sudo tee "$CHARD_ROOT/.chard_chrome" > /dev/null
+#                echo "s2idle" | sudo tee /sys/power/mem_sleep >/dev/null 2>&1
+#                echo "s2idle" | sudo tee /var/run/power_manager/power/initial_suspend_mode >/dev/null 2>&1
+#            else
+#                echo "deep" | sudo tee /sys/power/mem_sleep >/dev/null 2>&1
+#                echo "deep" | sudo tee /var/run/power_manager/power/initial_suspend_mode >/dev/null 2>&1
+#            fi
+#            touch "$SUSPEND_APPLIED_FLAG"
+#        fi
+#    fi
+#fi
 
 get_battery_info() {
     local line last=""
@@ -106,7 +105,7 @@ DEFAULT_BATTERY_DIM_DELAY=7
 DEFAULT_POWER_DELAY=24
 DEFAULT_POWER_BACKLIGHT=18
 DEFAULT_POWER_DIM_DELAY=12
-DEFAULT_SUSPEND_MODE=deep
+#DEFAULT_SUSPEND_MODE=deep
 DEFAULT_AUDIO_DETECTION_BATTERY=0
 DEFAULT_AUDIO_DETECTION_POWER=1
 DEFAULT_LIDSLEEP_BATTERY=1
@@ -121,8 +120,8 @@ BATTERY_DIM_DELAY=
 POWER_DELAY=
 POWER_BACKLIGHT=
 POWER_DIM_DELAY=
-SUSPEND_MODE=
-ORIGINAL_SUSPEND_MODE=
+#SUSPEND_MODE=
+#ORIGINAL_SUSPEND_MODE=
 LIDSLEEP_BATTERY=
 LIDSLEEP_POWER=
 audio_active=0
@@ -135,8 +134,8 @@ BATTERY_BACKLIGHT=$DEFAULT_BATTERY_BACKLIGHT
 POWER_BACKLIGHT=$DEFAULT_POWER_BACKLIGHT
 BATTERY_DIM_DELAY=$DEFAULT_BATTERY_DIM_DELAY
 POWER_DIM_DELAY=$DEFAULT_POWER_DIM_DELAY
-SUSPEND_MODE=$DEFAULT_SUSPEND_MODE
-ORIGINAL_SUSPEND_MODE=$ORIGINAL_SUSPEND_MODE
+#SUSPEND_MODE=$DEFAULT_SUSPEND_MODE
+#ORIGINAL_SUSPEND_MODE=$ORIGINAL_SUSPEND_MODE
 
 load_config() {
     if [ -f "$CONFIG_FILE" ]; then
@@ -145,8 +144,7 @@ load_config() {
             [[ -z "$key" ]] && continue
             case "$key" in
                 BATTERY_DELAY|POWER_DELAY|BATTERY_BACKLIGHT|POWER_BACKLIGHT|\
-                BATTERY_DIM_DELAY|POWER_DIM_DELAY|AUDIO_DETECTION_BATTERY|\
-                AUDIO_DETECTION_POWER|SUSPEND_MODE|ORIGINAL_SUSPEND_MODE|\
+                BATTERY_DIM_DELAY|POWER_DIM_DELAY|AUDIO_DETECTION_BATTERY|AUDIO_DETECTION_POWER|\
                 LIDSLEEP_BATTERY|LIDSLEEP_POWER|BRIGHTNESS_PATH|MAX_BRIGHTNESS_PATH)
                     eval "$key=\"$value\""
                     ;;
@@ -211,16 +209,16 @@ validate_config() {
     fi
 
 
-    if [[ -z "$SUSPEND_MODE" || ( "$SUSPEND_MODE" != "freeze" && "$SUSPEND_MODE" != "deep" ) ]]; then
-        if [[ -f "/usr/share/power_manager/suspend_mode" ]]; then
-            SUSPEND_MODE=$(cat /usr/share/power_manager/suspend_mode)
-            if [[ "$SUSPEND_MODE" != "freeze" && "$SUSPEND_MODE" != "deep" ]]; then
-                SUSPEND_MODE="freeze"
-            fi
-        else
-            SUSPEND_MODE="freeze"
-        fi
-    fi
+    #if [[ -z "$SUSPEND_MODE" || ( "$SUSPEND_MODE" != "freeze" && "$SUSPEND_MODE" != "deep" ) ]]; then
+    #    if [[ -f "/usr/share/power_manager/suspend_mode" ]]; then
+    #        SUSPEND_MODE=$(cat /usr/share/power_manager/suspend_mode)
+    #        if [[ "$SUSPEND_MODE" != "freeze" && "$SUSPEND_MODE" != "deep" ]]; then
+    #            SUSPEND_MODE="freeze"
+    #        fi
+    #    else
+    #        SUSPEND_MODE="freeze"
+    #    fi
+    #fi
 }
 
 
@@ -235,8 +233,8 @@ save_config() {
         sed -i "s/^POWER_DIM_DELAY=.*/POWER_DIM_DELAY=$POWER_DIM_DELAY/" "$CONFIG_FILE" || echo "POWER_DIM_DELAY=$POWER_DIM_DELAY" >> "$CONFIG_FILE"
         sed -i "s/^AUDIO_DETECTION_BATTERY=.*/AUDIO_DETECTION_BATTERY=$AUDIO_DETECTION_BATTERY/" "$CONFIG_FILE" || echo "AUDIO_DETECTION_BATTERY=$AUDIO_DETECTION_BATTERY" >> "$CONFIG_FILE"
         sed -i "s/^AUDIO_DETECTION_POWER=.*/AUDIO_DETECTION_POWER=$AUDIO_DETECTION_POWER/" "$CONFIG_FILE" || echo "AUDIO_DETECTION_POWER=$AUDIO_DETECTION_POWER" >> "$CONFIG_FILE"
-        sed -i "s/^SUSPEND_MODE=.*/SUSPEND_MODE=$SUSPEND_MODE/" "$CONFIG_FILE" || echo "SUSPEND_MODE=$SUSPEND_MODE" >> "$CONFIG_FILE"
-        sed -i "s/^ORIGINAL_SUSPEND_MODE=.*/ORIGINAL_SUSPEND_MODE=$ORIGINAL_SUSPEND_MODE/" "$CONFIG_FILE" || echo "ORIGINAL_SUSPEND_MODE=$ORIGINAL_SUSPEND_MODE" >> "$CONFIG_FILE"
+        #sed -i "s/^SUSPEND_MODE=.*/SUSPEND_MODE=$SUSPEND_MODE/" "$CONFIG_FILE" || echo "SUSPEND_MODE=$SUSPEND_MODE" >> "$CONFIG_FILE"
+        #sed -i "s/^ORIGINAL_SUSPEND_MODE=.*/ORIGINAL_SUSPEND_MODE=$ORIGINAL_SUSPEND_MODE/" "$CONFIG_FILE" || echo "ORIGINAL_SUSPEND_MODE=$ORIGINAL_SUSPEND_MODE" >> "$CONFIG_FILE"
         sed -i "s/^LIDSLEEP_BATTERY=.*/LIDSLEEP_BATTERY=$LIDSLEEP_BATTERY/" "$CONFIG_FILE" || echo "LIDSLEEP_BATTERY=$LIDSLEEP_BATTERY" >> "$CONFIG_FILE"
         sed -i "s/^LIDSLEEP_POWER=.*/LIDSLEEP_POWER=$LIDSLEEP_POWER/" "$CONFIG_FILE" || echo "LIDSLEEP_POWER=$LIDSLEEP_POWER" >> "$CONFIG_FILE"
     fi
