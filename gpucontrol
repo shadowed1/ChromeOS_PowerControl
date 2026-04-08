@@ -197,6 +197,10 @@ start_monitoring_loop() {
                         echo "${YELLOW}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Waiting for valid GPU configuration...${RESET}" >> "$LOG_FILE"
                     fi
                 fi
+
+                if [[ -f "$LOG_FILE" ]] && [[ $(stat -c%s "$LOG_FILE") -gt 1048576 ]]; then
+                    echo "${MAGENTA}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Log truncated - Exceeded 1MB ${RESET}" > "$LOG_FILE"
+                fi
             else
                 if (( config_loaded == 0 )); then
                     echo "${YELLOW}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Waiting for config file: $CONFIG_FILE${RESET}" >> "$LOG_FILE"
@@ -330,10 +334,6 @@ __gpucontrol_monitor__)
     start)
         stop_monitoring >/dev/null 2>&1
         echo "${MAGENTA}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Starting GPUControl - Output is logged to $LOG_FILE${RESET}" | tee -a "$LOG_FILE"
-        if [[ -f "$LOG_FILE" ]] && [[ $(stat -c%s "$LOG_FILE") -gt 32768 ]]; then
-            echo "$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Log truncated" > "$LOG_FILE"
-        fi
-    
         nohup "$0" __gpucontrol_monitor__ >> "$LOG_FILE" 2>&1 &
         exit 0
         ;;
