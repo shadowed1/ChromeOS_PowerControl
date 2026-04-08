@@ -351,7 +351,7 @@ for d in /sys/class/power_supply/*; do
 
     capacity=$(cat "$d/capacity")
     echo "${GREEN}"
-    echo "Battery: ${capacity}%"
+    echo "Battery: ${BOLD}${capacity}%"
     echo "${RESET}"
 done
 
