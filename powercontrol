@@ -437,6 +437,10 @@ start_monitoring_loop() {
                         printf '%s%(%F %T)T - PowerControl Startup disabled%s\n' "$RED" -1 "$RESET" >> "$LOG_FILE"
                     fi
                 fi
+
+                if [ -f "$LOG_FILE" ] && [ "$(stat -c%s "$LOG_FILE")" -gt 1048576 ]; then
+                    echo "${CYAN}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Truncated log file (exceeded 1MB) ${RESET}" > "$LOG_FILE"
+                fi
             fi
         fi
 
@@ -800,13 +804,7 @@ case "$1" in
         fi
     
         stop_monitoring >/dev/null 2>&1
-    
-        LOG_FILE="/var/log/powercontrol.log"
-    
-        if [ -f "$LOG_FILE" ] && [ "$(stat -c%s "$LOG_FILE")" -gt 32768 ]; then
-            echo "$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Truncated log file (exceeded 32KB)" > "$LOG_FILE"
-        fi
-    
+        
         if pgrep -f "$0 __powercontrol_monitor__" >/dev/null; then
             echo "${YELLOW}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - PowerControl is already running.${RESET}" | tee -a "$LOG_FILE"
         else
