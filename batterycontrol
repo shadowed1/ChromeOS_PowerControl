@@ -236,6 +236,10 @@ start_monitoring_loop() {
                 else
                     echo "Failed to read $BATTERY_PATH" >&2
                 fi
+                
+                if [ -f "$LOG_FILE" ] && [ "$(stat -c%s "$LOG_FILE")" -gt 131072 ]; then
+                echo "${GREEN}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Truncated log file (exceeded 128KB)${RESET}" > "$LOG_FILE"
+                fi
         
                 startup_enabled=0
                 if [[ -f "$CONFIG_FILE" ]]; then
@@ -297,13 +301,25 @@ stop_monitoring() {
     if [ -f "$PID_FILE" ]; then
         PID=$(cat "$PID_FILE")
         if ps -p "$PID" > /dev/null 2>&1; then
+            echo "$(date '+%F %T') - Stopping BatteryControl (PID $PID)" | tee -a "$LOG_FILE"
             kill "$PID"
-            echo "${RED}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - BatteryControl Stopped (PID $PID)${RESET}" | tee -a "$LOG_FILE"
+            for i in {1..30}; do
+                if ! ps -p "$PID" > /dev/null 2>&1; then
+                    break
+                fi
+                sleep 0.1
+            done
+            if ps -p "$PID" > /dev/null 2>&1; then
+                kill -9 "$PID"
+            fi
+            while ps -p "$PID" > /dev/null 2>&1; do
+                sleep 0.1
+            done
+            echo "$(date '+%F %T') - BatteryControl Stopped (PID $PID)" | tee -a "$LOG_FILE"
         fi
-        sudo rm -f "$PID_FILE"
+        rm -f "$PID_FILE"
     fi
-
-    sudo rm -f "$RUN_FLAG"
+    rm -f "$RUN_FLAG"
 }
 
 usage() {
@@ -354,13 +370,6 @@ case "$1" in
         ;;
     start)
         stop_monitoring >/dev/null 2>&1
-        LOG_FILE="/var/log/batterycontrol.log"
-
-        if [ -f "$LOG_FILE" ] && [ "$(stat -c%s "$LOG_FILE")" -gt 131072 ]; then
-            echo "$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Truncated log file (exceeded 128KB)" > "$LOG_FILE"
-        fi
-
-
         nohup "$0" __batterycontrol_monitor__ >> "$LOG_FILE" 2>&1 &
         echo "${GREEN}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Starting BatteryControl - Output is logged to $LOG_FILE${RESET}" | tee -a "$LOG_FILE"
         ;;
@@ -373,7 +382,6 @@ case "$1" in
     startup)
         CONF_SOURCE="$INSTALL_DIR/batterycontrol.conf"
         CONF_TARGET="/etc/init/batterycontrol.conf"
-
         read -p "Do you want BatteryControl to startup automatically? (y/n): " choice
         if [[ "$choice" =~ ^[Yy]$ ]]; then
             if [ -f "$CONF_SOURCE" ]; then
