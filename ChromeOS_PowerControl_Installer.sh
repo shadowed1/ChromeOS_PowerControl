@@ -286,12 +286,6 @@ EOF
     sudo curl -Ls https://github.com/shadowed1/ChromeOS_PowerControl/blob/main/icons/powercontrol_200p.png?raw=true -o "$CHARD_ROOT/usr/share/icons/hicolor/48x48/apps/powercontrol.png"
 fi
 
-echo "if [[ -n "${CHARD_ROOT:-}" ]]; then"
-echo "    sudo -E curl -fsSL "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/gui.py" -o "$CHARD_ROOT/bin/powercontrol-gui" 2>/dev/null"
-echo "    sudo chmod +x "$CHARD_ROOT/bin/powercontrol-gui" 2>/dev/null"
-echo
-echo
-
 mkdir -p "$CONFIG_DIR"
 sudo cp $INSTALL_DIR/config.sh $INSTALL_DIR/config.sh.bak 2>/dev/null
 if [[ -f "$OLD_CONFIG_PATH" ]]; then
