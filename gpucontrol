@@ -161,7 +161,7 @@ start_monitoring_loop() {
     touch "$RUN_FLAG"
     echo $$ > "$PID_FILE"
 
-    echo "${MAGENTA}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - GPUControl started (PID $$)${RESET}" >> "$LOG_FILE"
+    echo "${MAGENTA}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - GPUControl started (PID $$)${RESET}" | tee -a "$LOG_FILE"
 
     local last_reload=0
     local config_loaded=0
@@ -170,7 +170,7 @@ start_monitoring_loop() {
 
     while true; do
         [[ ! -f "$RUN_FLAG" ]] && {
-            echo "${RED}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - GPUControl stopped${RESET}" >> "$LOG_FILE"
+            echo "${RED}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - GPUControl stopped${RESET}" | tee -a "$LOG_FILE"
             sudo rm -f "$PID_FILE"
             exit 0
         }
@@ -184,7 +184,7 @@ start_monitoring_loop() {
                 
                 if [[ "$ORIGINAL_GPU_MAX_FREQ" =~ ^[0-9]+$ ]] && [[ -n "$GPU_TYPE" ]]; then
                     if (( config_loaded == 0 )); then
-                        echo "${MAGENTA}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Configuration loaded successfully${RESET}" >> "$LOG_FILE"
+                        echo "${MAGENTA}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Configuration loaded successfully${RESET}" | tee -a "$LOG_FILE"
                         config_loaded=1
                     fi
                     
@@ -194,12 +194,12 @@ start_monitoring_loop() {
                     fi
                 else
                     if (( config_loaded == 0 )); then
-                        echo "${YELLOW}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Waiting for valid GPU configuration...${RESET}" >> "$LOG_FILE"
+                        echo "${YELLOW}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Waiting for valid GPU configuration...${RESET}" | tee -a "$LOG_FILE"
                     fi
                 fi
 
                 if [[ -f "$LOG_FILE" ]] && [[ $(stat -c%s "$LOG_FILE") -gt 1048576 ]]; then
-                    echo "${MAGENTA}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Log truncated - Exceeded 1MB ${RESET}" > "$LOG_FILE"
+                    echo "${MAGENTA}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Log truncated - Exceeded 1MB ${RESET}" | tee -a "$LOG_FILE"
                 fi
             else
                 if (( config_loaded == 0 )); then
@@ -218,12 +218,12 @@ start_monitoring_loop() {
                 if (( startup_enabled )); then
                     [[ ! -f "$CONF_TARGET" ]] && {
                         sudo cp "$CONF_SOURCE" "$CONF_TARGET" 2>/dev/null
-                        printf '%s%(%F %T)T - GPUControl Startup enabled%s\n' "$MAGENTA" -1 "$RESET" >> "$LOG_FILE"
+                        printf '%s%(%F %T)T - GPUControl Startup enabled%s\n' "$MAGENTA" -1 "$RESET" | tee -a "$LOG_FILE"
                     }
                 else
                     [[ -f "$CONF_TARGET" ]] && {
                         sudo rm -f "$CONF_TARGET" 2>/dev/null
-                        printf '%s%(%F %T)T - GPUControl Startup disabled%s\n' "$RED" -1 "$RESET" >> "$LOG_FILE"
+                        printf '%s%(%F %T)T - GPUControl Startup disabled%s\n' "$RED" -1 "$RESET" | tee -a "$LOG_FILE"
                     }
                 fi
             fi
@@ -339,7 +339,7 @@ __gpucontrol_monitor__)
         ;;
     stop)
         stop_monitoring
-        echo "${RED}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - GPUControl stopped${RESET}" >> "$LOG_FILE"
+        echo "${RED}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - GPUControl stopped${RESET}" | tee -a "$LOG_FILE"
         exit 0
         ;;
     restore)
@@ -518,7 +518,7 @@ case "$GPU_ARG" in
         echo ""
         printf '%s\n' "$freq_hz" | sudo tee "$GPU_FREQ_PATH" > /dev/null 2>&1
         DISPLAY_FREQ=$((freq_hz / 1000000))
-        echo "${MAGENTA}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) $GPU_ARG GPU frequency set to $DISPLAY_FREQ MHz${RESET}" >> "$LOG_FILE"
+        echo "${MAGENTA}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) $GPU_ARG GPU frequency set to $DISPLAY_FREQ MHz${RESET}" | tee -a "$LOG_FILE"
         GPU_MAX_FREQ="$freq_hz"
         echo ""
         save_config
@@ -532,7 +532,7 @@ case "$GPU_ARG" in
         fi
 
         amd_set_max_freq "$REQUESTED_FREQ"
-        echo "${MAGENTA}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) AMD GPU frequency set to $REQUESTED_FREQ MHz${RESET}" >> "$LOG_FILE"
+        echo "${MAGENTA}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) AMD GPU frequency set to $REQUESTED_FREQ MHz${RESET}" | tee -a "$LOG_FILE"
         echo ""
         ;;
     *)
