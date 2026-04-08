@@ -464,7 +464,7 @@ send_fake_activity() {
                 fi
 
                 if [ -f "$LOG_FILE" ] && [ "$(stat -c%s "$LOG_FILE")" -gt 1048576 ]; then
-                    echo "$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Truncated log file (exceeded 1MB)" | tee -a "$LOG_FILE"
+                    echo "${MAGENTA}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Truncated log file (exceeded 1MB) ${RESET}" | tee -a "$LOG_FILE"
                 fi
             fi
         fi
