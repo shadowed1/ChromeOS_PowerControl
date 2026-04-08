@@ -301,7 +301,6 @@ stop_monitoring() {
     if [ -f "$PID_FILE" ]; then
         PID=$(cat "$PID_FILE")
         if ps -p "$PID" > /dev/null 2>&1; then
-            echo "$(date '+%F %T') - Stopping BatteryControl (PID $PID)" | tee -a "$LOG_FILE"
             kill "$PID"
             for i in {1..30}; do
                 if ! ps -p "$PID" > /dev/null 2>&1; then
@@ -315,7 +314,7 @@ stop_monitoring() {
             while ps -p "$PID" > /dev/null 2>&1; do
                 sleep 0.1
             done
-            echo "$(date '+%F %T') - BatteryControl Stopped (PID $PID)" | tee -a "$LOG_FILE"
+            echo "${RED}$(date '+%F %T') - BatteryControl Stopped (PID $PID)${RESET}" | tee -a "$LOG_FILE"
         fi
         rm -f "$PID_FILE"
     fi
