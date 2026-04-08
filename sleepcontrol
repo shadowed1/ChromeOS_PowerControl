@@ -462,6 +462,10 @@ send_fake_activity() {
                         printf '%s%(%F %T)T - SleepControl Startup disabled%s\n' "$RED" -1 "$RESET" >> "$LOG_FILE"
                     fi
                 fi
+
+                if [ -f "$LOG_FILE" ] && [ "$(stat -c%s "$LOG_FILE")" -gt 1048576 ]; then
+                    echo "$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Truncated log file (exceeded 1MB)" | tee -a "$LOG_FILE"
+                fi
             fi
         fi
     
@@ -814,10 +818,6 @@ case "$1" in
         fi
 
         stop_monitoring >/dev/null 2>&1
-
-        if [ -f "$LOG_FILE" ] && [ "$(stat -c%s "$LOG_FILE")" -gt 131072 ]; then
-            echo "$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Truncated log file (exceeded 128KB)" | tee -a "$LOG_FILE"
-        fi
 
         setsid "$0" __sleepcontrol_monitor__ >> "$LOG_FILE" 2>&1 &
         echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - SleepControl Started. Output is logged to $LOG_FILE${RESET}" | tee -a "$LOG_FILE"
