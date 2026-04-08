@@ -169,7 +169,7 @@ sudo ectool fanduty "$initial_duty"
         fi
 
         now=$(date +%s)
-        if (( now - last_reload_time >= 5 )); then
+        if (( now - last_reload_time >= 7 )); then
             load_config
             last_reload_time=$now
             
@@ -189,6 +189,10 @@ sudo ectool fanduty "$initial_duty"
                         sudo rm -f "$CONF_TARGET"
                         printf '%s%(%F %T)T - FanControl Startup disabled%s\n' "$RED" -1 "$RESET" >> "$LOG_FILE"
                     fi
+                fi
+
+                if [ -f "$LOG_FILE" ] && [ "$(stat -c%s "$LOG_FILE")" -gt 1048576 ]; then
+                    echo "${YELLOW}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Truncated log file (exceeded 1MB)${RESET}" > "$LOG_FILE"
                 fi
             fi
         fi
@@ -286,18 +290,12 @@ sudo ectool fanduty "$initial_duty"
 
 start() {
     "$0" stop >/dev/null 2>&1
-
     FAN_COUNT=$(sudo ectool pwmgetnumfans | awk -F= '{print $2}' | sed -e 's/ //g')
     if [[ "$FAN_COUNT" =~ ^[0-9]+$ ]] && (( FAN_COUNT == 0 )); then
         echo ""
         echo "${RED}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - No fans detected (FAN_COUNT=0). Stopping.${RESET}" | tee -a "$LOG_FILE"
         echo ""
         exit 1
-    fi
-
-    LOG_FILE="/var/log/fancontrol.log"
-    if [ -f "$LOG_FILE" ] && [ "$(stat -c%s "$LOG_FILE")" -gt 32768 ]; then
-        echo "$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Truncated log file (exceeded 32KB)" > "$LOG_FILE"
     fi
 
     if pgrep -f "[f]ancontrol __fancontrol_monitor__" >/dev/null; then
