@@ -1,4 +1,4 @@
-#!/bin/bash
+0#!/bin/bash
 RED=$(tput setaf 1)
 GREEN=$(tput setaf 2)
 YELLOW=$(tput setaf 3)
@@ -692,6 +692,7 @@ gui() {
 echo "${RESET}${MAGENTA}${BOLD}"
 echo "GUI app for Crostini (run in Linux): ${RESET}${MAGENTA}"
 echo
+echo "sudo apt update"
 echo "sudo apt install gedit gnome-themes-extra gnome-icon-theme -y"
 echo "sudo curl -fsSL "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/gui.py" -o /bin/powercontrol-gui 2>/dev/null"
 echo "sudo chmod +x /bin/powercontrol-gui 2>/dev/null"
