@@ -91,7 +91,8 @@ while true; do
   if [ "${actual_sleep_time}" -lt "${lower_bound}" ] || [ "${actual_sleep_time}" -gt "${upper_bound}" ]; then
     echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Ending Suspend Loop${RESET}" >> "$LOG_FILE"
     cras_test_client --suspend 0 >/dev/null 2>&1
-    sleep 10.0
+    sleep 0.5
+    sleep 0.5
     break
   fi
   sleep 15
