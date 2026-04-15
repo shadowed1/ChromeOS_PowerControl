@@ -344,6 +344,7 @@ monitor_idle_activity() {
     last_reload_time=$EPOCHSECONDS
     last_ts=$EPOCHSECONDS
     local last_log_ts=0
+    local wake_grace_end=0
 
     if pgrep -f "$0 __sleepcontrol_monitor__" | grep -v "^$$\$" > /dev/null; then
         exit 0
@@ -375,21 +376,31 @@ monitor_idle_activity() {
     save_current_brightness
     last_power_check_time=0
     
-send_fake_activity() {
-    now=$EPOCHSECONDS
+    send_fake_activity() {
+        now=$EPOCHSECONDS
+    
+        if (( monitor_idle == 1 || audio_active == 1 )); then
+            dbus-send --system --type=method_call \
+                --dest=org.chromium.PowerManager \
+                /org/chromium/PowerManager \
+                org.chromium.PowerManager.HandleUserActivity int32:0 int32:0
+    
+            printf '%s' "$now" | sudo tee "$LAST_FAKE_ACTIVITY_FILE" >/dev/null 2>&1
+            echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Simulated user activity${RESET}" >> "$LOG_FILE"
+        fi
+    }
 
-    if (( monitor_idle == 1 || audio_active == 1 )); then
-        dbus-send --system --type=method_call \
-            --dest=org.chromium.PowerManager \
-            /org/chromium/PowerManager \
-            org.chromium.PowerManager.HandleUserActivity int32:0 int32:0
-
-        printf '%s' "$now" | sudo tee "$LAST_FAKE_ACTIVITY_FILE" >/dev/null 2>&1
-        echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Simulated user activity${RESET}" >> "$LOG_FILE"
-    fi
+    post_suspend_reset() {
+    last_ts=$EPOCHSECONDS
+    idle_since=$EPOCHSECONDS
+    monitor_idle=0
+    active=1
+    idle_elapsed=0
+    backlight_off=0
+    was_dimmed=0
+    wake_grace_end=$(( EPOCHSECONDS + 8 ))
+    printf '%s%(%F %T)T - Post-wake state reset%s\n' "$BLUE" -1 "$RESET" >> "$LOG_FILE"
 }
-
-
     start_fake_activity() {
         if (( sending_fake_activity == 0 )); then
             
@@ -517,6 +528,7 @@ send_fake_activity() {
                     echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Lid sleep enabled and lid closed, skipping fake activity${RESET}" >> "$LOG_FILE"
                     sleep 0.1
                     sudo "$INSTALL_DIR/deep_suspend.sh" 2>/dev/null
+                    post_suspend_reset
                     stop_fake_activity
                 else
                     monitor_idle=1
@@ -540,6 +552,7 @@ send_fake_activity() {
                 #stop_fake_activity
                 sleep 0.1
                 sudo "$INSTALL_DIR/deep_suspend.sh"
+                post_suspend_reset
                 stop_fake_activity
             else
                 echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Lid closed, lid sleep off!${RESET}" >> "$LOG_FILE"
@@ -602,6 +615,7 @@ send_fake_activity() {
                         #stop_fake_activity
                         sleep 0.1
                         sudo "$INSTALL_DIR/deep_suspend.sh"
+                        post_suspend_reset
                         stop_fake_activity
                     else
                         echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Lid is closed - lid sleep disabled on ${STATUS}${RESET}" >> "$LOG_FILE"
@@ -693,6 +707,7 @@ send_fake_activity() {
                 echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Timers already elapsed, returning to sleep${RESET}" >> "$LOG_FILE"
                 sleep 0.1
                 sudo "$INSTALL_DIR/deep_suspend.sh"
+                post_suspend_reset
                 stop_fake_activity
             else
                 monitor_idle=1
@@ -764,6 +779,7 @@ send_fake_activity() {
                     last_ts=$now
                     idle_elapsed=0
                     sudo "$INSTALL_DIR/deep_suspend.sh"
+                    post_suspend_reset
                     stop_fake_activity
                 fi
             fi
