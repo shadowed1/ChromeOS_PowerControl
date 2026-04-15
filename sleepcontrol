@@ -398,7 +398,7 @@ monitor_idle_activity() {
     idle_elapsed=0
     backlight_off=0
     was_dimmed=0
-    wake_grace_end=$(( EPOCHSECONDS + 8 ))
+    wake_grace_end=$(( EPOCHSECONDS + 3 ))
     printf '%s%(%F %T)T - Post-wake state reset%s\n' "$BLUE" -1 "$RESET" >> "$LOG_FILE"
 }
     start_fake_activity() {
