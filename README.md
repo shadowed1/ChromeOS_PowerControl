@@ -340,7 +340,7 @@ GPUControl, Fancontrol, and SleepControl. Added check to skip on-boot startup pr
 - 0.67: `Added limits command for powercontrol. Added stop_all command. Fixed issue with FanControl kickstart duplicate logic.` <br><br>
 - 0.68: `Fixed bug with FanControl entering zero RPM mode too early.` <br><br>
 - 0.69: `Increased log sizes and moved truncate logic into main loop. Removed deprecated code.` <br><br>
-- 0.70: `Changed "min" to "minutes" on GUI app for SleepControl to be more clear. Cleaned up FanControl's gettemp loop.` <br><br>
+- 0.70 (in progress): `Changed "min" to "minutes" on GUI app for SleepControl to be more clear. Cleaned up FanControl's gettemp loop.` <br><br>
 __Acknowledgements:__
 
 - Thanks to WesBosch for helping me learn to make an installer:
