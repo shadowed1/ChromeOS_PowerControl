@@ -1,4 +1,4 @@
- ### *A suite of lightweight programs providing hardware control for ChromeOS!*
+ ### *A suite of lightweight programs providing hardware control for Linux and ChromeOS!*
  <br>
  <br>
  
