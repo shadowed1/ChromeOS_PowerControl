@@ -234,7 +234,7 @@ declare -a files=(
   "sleepcontrol" "deep_suspend.sh"
   "Uninstall_ChromeOS_PowerControl.sh"
   "Reinstall_ChromeOS_PowerControl.sh"
-  "LICENSE" "README.md" "version" "arc.sh"
+  "LICENSE" "version" "arc.sh"
   "no_turbo.conf" "batterycontrol.conf"
   "powercontrol.conf" "fancontrol.conf"
   "gpucontrol.conf" "sleepcontrol.conf"
