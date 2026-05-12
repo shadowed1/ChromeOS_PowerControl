@@ -258,8 +258,11 @@ done
 OLD_CONFIG_PATH="$INSTALL_DIR/config.sh"
 if [ -d "/home/chronos/user/MyFiles/Downloads" ]; then
     CONFIG_DIR="/home/chronos/user/MyFiles/Downloads/ChromeOS_PowerControl_Config"
+    mkdir -p "$CONFIG_DIR"
 else
     CONFIG_DIR="/usr/local/bin/ChromeOS_PowerControl_Config"
+    sudo mkdir -p "$CONFIG_DIR"
+    sudo chown -R 1000:1000 "$CONFIG_DIR"
 fi
 NEW_CONFIG_PATH="$CONFIG_DIR/config"
 CONFIG_URL="https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/config.sh"
@@ -294,7 +297,6 @@ EOF
     sudo curl -Ls https://github.com/shadowed1/ChromeOS_PowerControl/blob/main/icons/powercontrol_200p.png?raw=true -o "$CHARD_ROOT/usr/share/icons/hicolor/48x48/apps/powercontrol.png"
 fi
 
-sudo -E mkdir -p "$CONFIG_DIR"
 sudo cp $INSTALL_DIR/config.sh $INSTALL_DIR/config.sh.bak 2>/dev/null
 if [[ -f "$OLD_CONFIG_PATH" ]]; then
     echo "${YELLOW}Found legacy config.sh — migrating to fixed location${RESET}"
@@ -711,7 +713,6 @@ else
 fi
 start_component_now "GPUControl" "$INSTALL_DIR/gpucontrol"
 start_component_now "SleepControl" "$INSTALL_DIR/sleepcontrol"
-sudo -E chown -R $USER:$USER $CONFIG_DIR 2>/dev/null
 sleep 0.2
 echo ""
 sleep 0.01
