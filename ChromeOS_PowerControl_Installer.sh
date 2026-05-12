@@ -256,7 +256,11 @@ for file in "${files[@]}"; do
 done
 
 OLD_CONFIG_PATH="$INSTALL_DIR/config.sh"
-CONFIG_DIR="/home/chronos/user/MyFiles/Downloads/ChromeOS_PowerControl_Config"
+if [ -d "/home/chronos/user/MyFiles/Downloads" ]; then
+    CONFIG_DIR="/home/chronos/user/MyFiles/Downloads/"
+else
+    CONFIG_DIR="$HOME/Downloads/ChromeOS_PowerControl_Config"
+fi
 NEW_CONFIG_PATH="$CONFIG_DIR/config"
 CONFIG_URL="https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/config.sh"
 BASHRC="/home/chronos/user/.bashrc"
@@ -703,7 +707,7 @@ else
 fi
 start_component_now "GPUControl" "$INSTALL_DIR/gpucontrol"
 start_component_now "SleepControl" "$INSTALL_DIR/sleepcontrol"
-sudo chown chronos:chronos /home/chronos/user/MyFiles/Downloads/ChromeOS_PowerControl_Config/config
+chown -R $USER:$USER $CONFIG_DIR 2>/dev/null
 sleep 0.2
 echo ""
 sleep 0.01
