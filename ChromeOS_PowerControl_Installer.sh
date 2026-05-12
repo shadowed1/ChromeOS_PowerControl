@@ -525,7 +525,7 @@ for category in "${ordered_categories[@]}"; do
   echo "# --- ${category} ---" >> "$CONFIG_FILE"
   for key in ${categories[$category]}; do
     if [ -n "${!key+x}" ]; then
-      if declare -p "$key" 2>/dev/null | grep -q 'declare \-a'; then
+      if declare -p "$key" 2>/dev/null | grep -q 'declare -a'; then
         eval "arr=(\"\${${key}[@]}\")"
         printf '%s=(' "$key" >> "$CONFIG_FILE"
         for elem in "${arr[@]}"; do
