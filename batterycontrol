@@ -8,8 +8,11 @@ CYAN=$(tput setaf 6)
 BOLD=$(tput bold)
 RESET=$(tput sgr0)
 INSTALL_DIR="@INSTALL_DIR@"
-CONFIG_FILE="/home/chronos/user/MyFiles/Downloads/ChromeOS_PowerControl_Config/config"
-BATTERY_PATH=""
+if [ -d "/home/chronos/user/MyFiles/Downloads" ]; then
+    CONFIG_FILE="/home/chronos/user/MyFiles/Downloads/ChromeOS_PowerControl_Config/config"
+else
+    CONFIG_FILE="/usr/local/bin/ChromeOS_PowerControl_Config/config"
+fiBATTERY_PATH=""
 STATUS_PATH=""
 RUN_FLAG="$INSTALL_DIR/.batterycontrol_enabled"
 PID_FILE="$INSTALL_DIR/.batterycontrol_pid"
