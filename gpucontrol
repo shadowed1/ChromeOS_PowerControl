@@ -13,7 +13,8 @@ if [ -d "/home/chronos/user/MyFiles/Downloads" ]; then
     CONFIG_FILE="/home/chronos/user/MyFiles/Downloads/ChromeOS_PowerControl_Config/config"
 else
     CONFIG_FILE="/usr/local/bin/ChromeOS_PowerControl_Config/config"
-fiGPU_MAX_FREQ=
+fi
+GPU_MAX_FREQ=
 ORIGINAL_GPU_MAX_FREQ=
 timestamp=$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1)
 RUN_FLAG="$INSTALL_DIR/.gpucontrol_enabled"
