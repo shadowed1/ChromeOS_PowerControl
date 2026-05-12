@@ -263,7 +263,25 @@ else
     CONFIG_DIR="/usr/local/bin/ChromeOS_PowerControl_Config"
     sudo mkdir -p "$CONFIG_DIR"
     sudo chown -R 1000:1000 "$CONFIG_DIR"
+    sudo curl -fsSL https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/gui.py -o /bin/powercontrol-gui 2>/dev/null
+    sudo chmod +x /bin/powercontrol-gui 2>/dev/null
+    alias powercontrol-gui='sudo -E powercontrol-gui' 
+    sudo mkdir -p /usr/share/applications/ /usr/share/icons/hicolor/48x48/apps/
+    cat <<'EOF' | sudo tee /usr/share/applications/powercontrol-gui.desktop > /dev/null
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=PowerControl
+Comment=Get the power to control your CPU, Battery, Fan Curve, GPU, and Sleep for ChromeOS! 
+Exec=/bin/powercontrol-gui
+Icon=powercontrol
+Terminal=false
+Categories=Utility;System; 
+StartupNotify=true
+EOF
+    sudo curl -Ls https://github.com/shadowed1/ChromeOS_PowerControl/blob/main/icons/powercontrol_200p.png?raw=true -o /usr/share/icons/hicolor/48x48/apps/powercontrol.png 2>/dev/null
 fi
+
 NEW_CONFIG_PATH="$CONFIG_DIR/config"
 CONFIG_URL="https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/config.sh"
 if [ -f "/home/chronos/user/.bashrc" ]; then
