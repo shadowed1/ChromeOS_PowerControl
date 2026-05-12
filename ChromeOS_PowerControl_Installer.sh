@@ -263,7 +263,11 @@ else
 fi
 NEW_CONFIG_PATH="$CONFIG_DIR/config"
 CONFIG_URL="https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/config.sh"
-BASHRC="/home/chronos/user/.bashrc"
+if [ -f "/home/chronos/user/.bashrc" ]; then
+    BASHRC="/home/chronos/user/.bashrc"
+else
+    BASHRC="$HOME/.bashrc"
+fi
 
 chard_line=$(grep -F 'source' "$BASHRC" | grep -F '.chardrc')
 if [[ -n "$chard_line" ]]; then
