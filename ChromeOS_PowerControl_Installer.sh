@@ -273,9 +273,9 @@ Version=1.0
 Type=Application
 Name=PowerControl
 Comment=Get the power to control your CPU, Battery, Fan Curve, GPU, and Sleep for ChromeOS! 
-Exec=/bin/powercontrol-gui
+Exec=sudo -E /bin/powercontrol-gui
 Icon=powercontrol
-Terminal=false
+Terminal=true
 Categories=Utility;System; 
 StartupNotify=true
 EOF
