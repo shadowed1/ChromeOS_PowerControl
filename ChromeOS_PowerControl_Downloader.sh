@@ -50,8 +50,8 @@ echo "╚═══════════════════════�
 echo "${RESET}${CYAN}"
 echo ""
 echo ""
-rm -f /home/chronos/user/ChromeOS_PowerControl_Installer.sh 2>/dev/null
-curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/ChromeOS_PowerControl_Installer.sh -o /home/chronos/user/ChromeOS_PowerControl_Installer.sh
+rm -f ~/ChromeOS_PowerControl_Installer.sh 2>/dev/null
+curl -L https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/ChromeOS_PowerControl_Installer.sh -o ~/ChromeOS_PowerControl_Installer.sh
 echo "╔════════════════════════════════════════════════════════════════════╗${RESET}${GREEN}"
 echo "║  Downloading to: /home/chronos/ChromeOS_PowerControl_Installer.sh  ║${RESET}${YELLOW}"
 echo "║  Run the installer with VT-2 or enable sudo in crosh.              ║${RESET}${MAGENTA}"
