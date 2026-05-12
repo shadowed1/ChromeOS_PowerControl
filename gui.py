@@ -52,7 +52,7 @@ class ConfigEditor(Gtk.Window):
                 "Could not find config file at:\n"
                 "/mnt/chromeos/MyFiles/Downloads/ChromeOS_PowerControl_Config/config\n"
                 "/mnt/shared/MyFiles/Downloads/ChromeOS_PowerControl_Config/config\n"
-                "~/Downloads/ChromeOS_PowerControl_Config/config\n"
+                "/usr/local/bin//ChromeOS_PowerControl_Config/config\n"
                 "~/user/MyFiles/Downloads/ChromeOS_PowerControl_Config/config\n\n"
                 "Please ensure the folder is shared to Crostini/Chard."
             )
@@ -68,8 +68,8 @@ class ConfigEditor(Gtk.Window):
     def find_config_file(self):
         possible_paths = [
             "/mnt/chromeos/MyFiles/Downloads/ChromeOS_PowerControl_Config/config",
+            "/usr/local/bin/ChromeOS_PowerControl_Config/config",
             os.path.expanduser("~/user/MyFiles/Downloads/ChromeOS_PowerControl_Config/config"),
-            os.path.expanduser("~/Downloads/ChromeOS_PowerControl_Config/config"),
             "/mnt/shared/MyFiles/Downloads/ChromeOS_PowerControl_Config/config"
         ]
         for path in possible_paths:
