@@ -31,6 +31,12 @@ SUSPEND_APPLIED_FLAG="/tmp/.sleepcontrol_suspend_applied"
 CONF_SOURCE="$INSTALL_DIR/sleepcontrol.conf"
 CONF_TARGET="/etc/init/sleepcontrol.conf"
 
+if [ ! -f /bin/ectool ]; then
+    echo "${RED}ectool not found. Exiting.${RESET}"
+    sleep 3
+    exit 1
+fi
+
 wait_for_config() {
     local config_dir="/home/chronos/user/MyFiles/Downloads/ChromeOS_PowerControl_Config"
     local max_wait=300
