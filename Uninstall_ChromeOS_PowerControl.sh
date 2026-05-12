@@ -115,6 +115,7 @@ case "$choice" in
         sudo rm -f "$CHARD_ROOT/bin/powercontrol-gui" 2>/dev/null
         sudo rm -f "/usr/local/bin/.ChromeOS_PowerControl.install_dir" 2>/dev/null
         sudo rm -f "/usr/local/bin/fancontrol_conf.sh" 2>/dev/null
+        sudo rm -f "/usr/local/bin/ChromeOS_PowerControl_Config" 2>/dev/null
         sudo rm -f "/usr/local/bin/powercontrol_conf.sh" 2>/dev/null
         sudo rm -f "/usr/local/bin/sleepcontrol_conf.sh" 2>/dev/null
         sudo rm -f "/usr/local/bin/batterycontrol_conf.sh" 2>/dev/null
