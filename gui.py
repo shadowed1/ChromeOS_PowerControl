@@ -47,17 +47,17 @@ class ConfigEditor(Gtk.Window):
         self.focusable_widgets = []
 
         if not self.config_path:
-        self.show_error_dialog(
-            "Config File Not Found",
-            "Could not find config file at:\n"
-            "/mnt/chromeos/MyFiles/Downloads/ChromeOS_PowerControl_Config/config\n"
-            "/mnt/shared/MyFiles/Downloads/ChromeOS_PowerControl_Config/config\n"
-            "/home/chronos/user/MyFiles/Downloads/ChromeOS_PowerControl_Config/config\n"
-            "~/Downloads/ChromeOS_PowerControl_Config/config\n\n"
-            "Please ensure the folder is shared to Crostini/Chard."
-        )
-        self.destroy()
-        return
+            self.show_error_dialog(
+                "Config File Not Found",
+                "Could not find config file at:\n"
+                "/mnt/chromeos/MyFiles/Downloads/ChromeOS_PowerControl_Config/config\n"
+                "/mnt/shared/MyFiles/Downloads/ChromeOS_PowerControl_Config/config\n"
+                "~/Downloads/ChromeOS_PowerControl_Config/config\n"
+                "~/user/MyFiles/Downloads/ChromeOS_PowerControl_Config/config\n\n"
+                "Please ensure the folder is shared to Crostini/Chard."
+            )
+            self.destroy()
+            return
 
         self.create_ui()
         self.load_config()
@@ -68,15 +68,13 @@ class ConfigEditor(Gtk.Window):
     def find_config_file(self):
         possible_paths = [
             "/mnt/chromeos/MyFiles/Downloads/ChromeOS_PowerControl_Config/config",
-            "/mnt/shared/MyFiles/Downloads/ChromeOS_PowerControl_Config/config",
-            "/home/chronos/user/MyFiles/Downloads/ChromeOS_PowerControl_Config/config",
-            os.path.expanduser("~/Downloads/ChromeOS_PowerControl_Config/config")
+            os.path.expanduser("~/user/MyFiles/Downloads/ChromeOS_PowerControl_Config/config"),
+            os.path.expanduser("~/Downloads/ChromeOS_PowerControl_Config/config"),
+            "/mnt/shared/MyFiles/Downloads/ChromeOS_PowerControl_Config/config"
         ]
-    
         for path in possible_paths:
             if os.path.exists(path):
                 return path
-    
         return None
 
     def setup_keyboard_navigation(self):
