@@ -52,8 +52,8 @@ class ConfigEditor(Gtk.Window):
                 "Could not find config file at:\n"
                 "/mnt/chromeos/MyFiles/Downloads/ChromeOS_PowerControl_Config/config\n"
                 "/mnt/shared/MyFiles/Downloads/ChromeOS_PowerControl_Config/config\n"
-                "/usr/local/bin/ChromeOS_PowerControl_Config/config\n"
-                "~/user/MyFiles/Downloads/ChromeOS_PowerControl_Config/config\n\n"
+                "/usr/local/bin//ChromeOS_PowerControl_Config/config\n"
+                "/home/chronos/user/MyFiles/Downloads/ChromeOS_PowerControl_Config/config\n\n"
                 "Please ensure the folder is shared to Crostini/Chard."
             )
             self.destroy()
@@ -69,7 +69,7 @@ class ConfigEditor(Gtk.Window):
         possible_paths = [
             "/mnt/chromeos/MyFiles/Downloads/ChromeOS_PowerControl_Config/config",
             "/usr/local/bin/ChromeOS_PowerControl_Config/config",
-            os.path.expanduser("~/user/MyFiles/Downloads/ChromeOS_PowerControl_Config/config"),
+            os.path.expanduser("/home/chronos/user/MyFiles/Downloads/ChromeOS_PowerControl_Config/config"),
             "/mnt/shared/MyFiles/Downloads/ChromeOS_PowerControl_Config/config"
         ]
         for path in possible_paths:
@@ -380,6 +380,7 @@ class ConfigEditor(Gtk.Window):
         if backlight >= delay:
             self.widgets["POWER_BACKLIGHT"].set_value(delay - 1)
         self.updating_constraints = False
+    
     def load_config(self):
         if not os.path.exists(self.config_path):
             self.show_error_dialog("Error", f"Config file not found: {self.config_path}")
@@ -393,12 +394,14 @@ class ConfigEditor(Gtk.Window):
                         key, value = line.split('=', 1)
                         self.config_data[key.strip()] = value.strip()
             if "ORIGINAL_GPU_MAX_FREQ" in self.config_data:
-                self.original_gpu_max = int(self.config_data["ORIGINAL_GPU_MAX_FREQ"])
-                self.gpu_type = self.config_data.get("GPU_TYPE", "intel").lower()
-                if "GPU_MAX_FREQ" in self.widgets:
-                    display_max = gpu_config_to_mhz(self.gpu_type, self.original_gpu_max)
-                    display_min = max(100, int(display_max * 0.1))
-                    self.widgets["GPU_MAX_FREQ"].set_range(display_min, display_max)
+                raw = self.config_data["ORIGINAL_GPU_MAX_FREQ"]
+                if raw:
+                    self.original_gpu_max = int(raw)
+                    self.gpu_type = self.config_data.get("GPU_TYPE", "intel").lower()
+                    if "GPU_MAX_FREQ" in self.widgets:
+                        display_max = gpu_config_to_mhz(self.gpu_type, self.original_gpu_max)
+                        display_min = max(100, int(display_max * 0.1))
+                        self.widgets["GPU_MAX_FREQ"].set_range(display_min, display_max)
             self.updating_constraints = True
             for key, widget in self.widgets.items():
                 if key in self.config_data:
@@ -406,7 +409,8 @@ class ConfigEditor(Gtk.Window):
                     if isinstance(widget, Gtk.Scale):
                         try:
                             if key == "GPU_MAX_FREQ":
-                                widget.set_value(gpu_config_to_mhz(self.gpu_type, int(value)))
+                                if value:
+                                    widget.set_value(gpu_config_to_mhz(self.gpu_type, int(value)))
                             else:
                                 widget.set_value(float(value))
                         except ValueError:
@@ -425,7 +429,7 @@ class ConfigEditor(Gtk.Window):
         except Exception as e:
             self.updating_constraints = False
             self.show_error_dialog("Error", f"Failed to load config: {str(e)}")
-
+        
     def save_config(self):
         try:
             with open(self.config_path, 'r') as f:
