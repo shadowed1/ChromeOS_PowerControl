@@ -12,7 +12,8 @@ if [ -d "/home/chronos/user/MyFiles/Downloads" ]; then
     CONFIG_FILE="/home/chronos/user/MyFiles/Downloads/ChromeOS_PowerControl_Config/config"
 else
     CONFIG_FILE="/usr/local/bin/ChromeOS_PowerControl_Config/config"
-fiBATTERY_PATH=""
+fi
+BATTERY_PATH=""
 STATUS_PATH=""
 RUN_FLAG="$INSTALL_DIR/.batterycontrol_enabled"
 PID_FILE="$INSTALL_DIR/.batterycontrol_pid"
