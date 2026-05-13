@@ -22,7 +22,7 @@ timestamp=$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1)
 CONF_SOURCE="$INSTALL_DIR/fancontrol.conf"
 CONF_TARGET="/etc/init/fancontrol.conf"
 
-if [ ! -f /bin/ectool ]; then
+if [ ! -f /usr/sbin/ectool ]; then
     echo "${RED}ectool not found. Exiting.${RESET}"
     sleep 3
     exit 1
