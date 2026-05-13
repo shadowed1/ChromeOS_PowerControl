@@ -31,7 +31,7 @@ SUSPEND_APPLIED_FLAG="/tmp/.sleepcontrol_suspend_applied"
 CONF_SOURCE="$INSTALL_DIR/sleepcontrol.conf"
 CONF_TARGET="/etc/init/sleepcontrol.conf"
 
-if [ ! -f /bin/ectool ]; then
+if [ ! -f /usr/sbin/ectool ]; then
     echo "${RED}ectool not found. Exiting.${RESET}"
     sleep 3
     exit 1
