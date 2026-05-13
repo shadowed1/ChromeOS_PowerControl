@@ -250,8 +250,8 @@ OLD_CONFIG_PATH="$INSTALL_DIR/config.sh"
 if [ -d "/home/chronos/user/MyFiles/Downloads" ]; then
     CONFIG_DIR="/home/chronos/user/MyFiles/Downloads/ChromeOS_PowerControl_Config"
     mkdir -p "$CONFIG_DIR"
-else
-    CONFIG_DIR="/usr/local/bin/ChromeOS_PowerControl_Config"
+    else
+        CONFIG_DIR="/usr/local/bin/ChromeOS_PowerControl_Config"
     sudo mkdir -p "$CONFIG_DIR"
     sudo chown -R 1000:1000 "$CONFIG_DIR"
     sudo curl -fsSL https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/gui.py -o /bin/powercontrol-gui 2>/dev/null
@@ -570,7 +570,7 @@ echo ""
     sudo ln -sf "$INSTALL_DIR/arc.sh" /usr/local/bin/arc
 
     echo ""
-    
+sudo chown 1000:1000 "$CONFIG_DIR/config"
 enable_component_on_boot() {
     local COLOR
     local component="$1"
