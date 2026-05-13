@@ -535,7 +535,7 @@ show_status() {
 
     temp_c=$(get_temp)
     echo ""
-    echo "  CPU Temp: $temp_c°C"
+    echo "  Current Temp: $temp_c°C"
     echo "  Max Temp: $MAX_TEMP°C"
     echo "  Hotzone: $HOTZONE°C"
     echo "  Min Temp: $MIN_TEMP°C"
