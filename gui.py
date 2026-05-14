@@ -3,6 +3,18 @@
 ChromeOS_PowerControl GUI
 """
 
+def find_available_theme(*candidates):
+    theme_dirs = [
+        Path("/usr/share/themes"),
+        Path.home() / ".local/share/themes",
+        Path.home() / ".themes",
+    ]
+    for name in candidates:
+        for d in theme_dirs:
+            if (d / name).exists():
+                return name
+    return candidates[-1]
+
 import gi
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, Gdk, GLib
@@ -539,7 +551,8 @@ def main():
     os.environ['GDK_GL'] = '1'
     settings = Gtk.Settings.get_default()
     settings.set_property("gtk-application-prefer-dark-theme", True)
-    settings.set_property("gtk-theme-name", "Adwaita-dark")
+    theme = find_available_theme("Breeze-Dark", "Adwaita-dark")  # ← changed
+    settings.set_property("gtk-theme-name", theme)
     settings.set_property("gtk-decoration-layout", "menu:minimize,maximize,close")
     win = ConfigEditor()
     if win.config_path:
