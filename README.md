@@ -8,6 +8,11 @@
  
 <br>
 
+### Linux version for all ARM64 and x86_64 CPUs:
+https://github.com/shadowed1/PowerControl
+
+<br>
+
 ### How to Install:
 Open Crosh (ctrl-alt-t), enter `shell`, copy paste, and run: 
 
