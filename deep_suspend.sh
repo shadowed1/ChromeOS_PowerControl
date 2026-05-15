@@ -160,7 +160,7 @@ while true; do
   echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Consecutive deep suspends: ${consecutive_deep_suspends}${RESET}" >> "$LOG_FILE"
 
   if [ "${consecutive_deep_suspends}" -ge 3 ]; then
-      if [[ -n "$current_capacity" && "$current_capacity" -le 3 ]]; then
+      if [[ -n "$current_capacity" && "$current_capacity" -le 4 ]]; then
           if [ "$current_status" == "Discharging" ]; then
               echo "${RED}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Battery Discharging (Critical ${current_capacity}%), initiating shutdown${RESET}" >> "$LOG_FILE"
               sudo shutdown -h now >> "$LOG_FILE" 2>&1
