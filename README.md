@@ -13,7 +13,7 @@ https://github.com/shadowed1/PowerControl
 
 <br>
 
-### How to Install:
+### How to Install for ChromeOS:
 Open Crosh (ctrl-alt-t), enter `shell`, copy paste, and run: 
 
  <pre>bash <(curl -s "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/ChromeOS_PowerControl_Downloader.sh?$(date +%s)")</pre>
