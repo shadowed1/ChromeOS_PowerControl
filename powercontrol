@@ -719,15 +719,15 @@ echo "EOF"
 echo
 echo "sudo curl -Ls https://github.com/shadowed1/ChromeOS_PowerControl/blob/main/icons/powercontrol_200p.png?raw=true -o /usr/share/icons/hicolor/48x48/apps/powercontrol.png"
 echo "${RESET}"
-echo "${GREEN}${BOLD}GUI app for Chard (run inside ChromeOS shell): ${RESET}${GREEN}"
+echo "${GREEN}${BOLD}GUI app for Chard (run inside Chard's Xfce4-terminal): ${RESET}${GREEN}"
 echo
-echo "if [[ -n "${CHARD_ROOT:-}" ]]; then"
-echo "    sudo -E curl -fsSL "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/gui.py" -o "$CHARD_ROOT/bin/powercontrol-gui" 2>/dev/null"
-echo "    sudo chmod +x "$CHARD_ROOT/bin/powercontrol-gui" 2>/dev/null"
+echo "yay -S --noconfirm python-cairo"
+echo "sudo -E curl -fsSL "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/gui.py" -o "/bin/powercontrol-gui" 2>/dev/null"
+echo "sudo chmod +x "$CHARD_ROOT/bin/powercontrol-gui" 2>/dev/null"
 echo
-echo "    sudo mkdir -p $CHARD_ROOT/usr/share/applications/ $CHARD_ROOT/usr/share/icons/hicolor/48x48/apps/"
+echo "sudo mkdir -p /usr/share/applications/ $CHARD_ROOT/usr/share/icons/hicolor/48x48/apps/"
 echo
-echo "    cat <<'EOF' | sudo tee $CHARD_ROOT/usr/share/applications/powercontrol-gui.desktop > /dev/null"
+echo "cat <<'EOF' | sudo tee /usr/share/applications/powercontrol-gui.desktop > /dev/null"
 echo "[Desktop Entry]"
 echo "Version=1.0"
 echo "Type=Application"
@@ -740,8 +740,7 @@ echo "Categories=Utility;System; "
 echo "StartupNotify=true"
 echo "EOF"
 echo
-echo "    sudo curl -Ls https://github.com/shadowed1/ChromeOS_PowerControl/blob/main/icons/powercontrol_200p.png?raw=true -o $CHARD_ROOT/usr/share/icons/hicolor/48x48/apps/powercontrol.png"
-echo "fi"
+echo "sudo curl -Ls https://github.com/shadowed1/ChromeOS_PowerControl/blob/main/icons/powercontrol_200p.png?raw=true -o $CHARD_ROOT/usr/share/icons/hicolor/48x48/apps/powercontrol.png"
 echo "${RESET}"
 }
 
