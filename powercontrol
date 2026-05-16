@@ -814,7 +814,7 @@ case "$1" in
         else
             nohup "$0" __powercontrol_monitor__ >> "$LOG_FILE" 2>&1 &
             echo $! > "$PID_FILE"
-            echo "${CYAN}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Starting PowerControl - Output is logged to $LOG_FILE${RESET}"
+            echo "${CYAN}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Starting PowerControl - Output is logged to $LOG_FILE${RESET}" | tee -a "$LOG_FILE"
         fi
     ;;
 
