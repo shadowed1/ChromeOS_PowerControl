@@ -538,13 +538,6 @@ monitor_idle_activity() {
                     echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Lid sleep enabled and lid closed, skipping fake activity${RESET}" >> "$LOG_FILE"
                     sleep 0.1
                     sudo "$INSTALL_DIR/deep_suspend.sh" 2>/dev/null
-                    while IFS= read -r -t 0 _l <&3; do [[ "$_l" == *"Lid opened"* ]] && lid_closed=0; done
-                    while (( lid_closed == 1 && LIDSLEEP_ENABLED == 1 )); do
-                        echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Lid still closed after early wake, going back to sleep${RESET}" >> "$LOG_FILE"
-                        sleep 0.5
-                        sudo "$INSTALL_DIR/deep_suspend.sh" 2>/dev/null
-                        while IFS= read -r -t 0 _l <&3; do [[ "$_l" == *"Lid opened"* ]] && lid_closed=0; done
-                    done
                     post_suspend_reset
                     stop_fake_activity
                 else
@@ -569,13 +562,6 @@ monitor_idle_activity() {
                 #stop_fake_activity
                 sleep 0.1
                 sudo "$INSTALL_DIR/deep_suspend.sh"
-                while IFS= read -r -t 0 _l <&3; do [[ "$_l" == *"Lid opened"* ]] && lid_closed=0; done
-                while (( lid_closed == 1 && LIDSLEEP_ENABLED == 1 )); do
-                    echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Lid still closed after early wake, going back to sleep${RESET}" >> "$LOG_FILE"
-                    sleep 0.5
-                    sudo "$INSTALL_DIR/deep_suspend.sh"
-                    while IFS= read -r -t 0 _l <&3; do [[ "$_l" == *"Lid opened"* ]] && lid_closed=0; done
-                done
                 post_suspend_reset
                 stop_fake_activity
             else
