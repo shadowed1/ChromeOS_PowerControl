@@ -698,6 +698,7 @@ echo "GUI app for Crostini (run in Linux): ${RESET}${MAGENTA}"
 echo
 echo "sudo apt update"
 echo "sudo apt install gedit gnome-themes-extra gnome-icon-theme -y"
+echo "sudo apt install python3-gi gir1.2-gtk-3.0 python3-gi-cairo -y"
 echo "sudo curl -fsSL "https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/gui.py" -o /bin/powercontrol-gui 2>/dev/null"
 echo "sudo chmod +x /bin/powercontrol-gui 2>/dev/null"
 echo "alias powercontrol-gui='sudo -E powercontrol-gui' "
