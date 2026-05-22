@@ -222,7 +222,7 @@ start_monitoring_loop() {
     wait_for_config
     detect_battery
     touch "$RUN_FLAG"
-    echo $$ > "$PID_FILE"
+    echo "$BASHPID" > "$PID_FILE"
 
     echo "${GREEN}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - BatteryControl started. (PID $$).${RESET}"
 
