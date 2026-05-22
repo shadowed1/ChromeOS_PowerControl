@@ -233,7 +233,7 @@ load_config
     fi
     echo "Failed to get temperature." >&2
     continue
-    sleep 1
+    sleep "$CPU_POLL"
 }
 
 
