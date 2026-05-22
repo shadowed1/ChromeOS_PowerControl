@@ -47,6 +47,11 @@ wait_for_config() {
 }
 
 wait_for_config
+
+if [[ "$1" != "__powercontrol_monitor__" ]]; then
+    wait_for_config
+fi
+
 if ! ( [[ -z "$1" ]] || [[ "$1" == "--h" || "$1" == "-h" || "$1" == "help_all" || "$1" == "h" || "$1" == "--help" || "$1" == "-help" || "$1" == "all" || "$1" == "help" || "$1" == "monitor" || "$1" == "mon" || "$1" == "gui" || "$1" == "reinstall" || "$1" == "status" ]] ) && [[ "$(id -u)" -ne 0 ]]; then
     echo "${RED}PowerControl requires sudo to run.${RESET}"
     echo "  Try: sudo powercontrol $*  or  sudo $0 $*"
@@ -395,6 +400,15 @@ restore_default_cpu_state() {
 
 
 start_monitoring_loop() {
+    local stale_pids
+    stale_pids=$(pgrep -f '__powercontrol_monitor__' 2>/dev/null | grep -v "^$$\$")
+    if [[ -n "$stale_pids" ]]; then
+        kill    $stale_pids 2>/dev/null || true
+        sleep 1
+        kill -9 $stale_pids 2>/dev/null || true
+    fi
+    rm -f "$RUN_FLAG" "$PID_FILE"
+
     wait_for_config
     save_default_cpu_state
     detect_cpu_type
