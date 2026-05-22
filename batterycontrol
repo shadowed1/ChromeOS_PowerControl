@@ -343,7 +343,7 @@ stop_monitoring() {
     fi
     rm -f "$RUN_FLAG"
     if (( killed == 0 )); then
-        echo "${YELLOW}$(date '+%F %T') - BatteryControl was not running." | tee -a "$LOG_FILE"
+        echo "${YELLOW}$(date '+%F %T') - BatteryControl is not running." | tee -a "$LOG_FILE"
     fi
 }
 
