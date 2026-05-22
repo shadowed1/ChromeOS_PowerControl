@@ -335,7 +335,7 @@ stop_monitoring() {
     local orphan_pids
     orphan_pids=$(pgrep -f '__batterycontrol_monitor__' 2>/dev/null)
     if [[ -n "$orphan_pids" ]]; then
-        echo "${RED}$(date '+%F %T') - Killing orphaned BatteryControl processes: $orphan_pids${RESET}" | tee -a "$LOG_FILE"
+        echo "${RED}$(date '+%F %T') - Ending BatteryControl processes: $orphan_pids${RESET}" | tee -a "$LOG_FILE"
         kill    $orphan_pids 2>/dev/null || true
         sleep 1
         kill -9 $orphan_pids 2>/dev/null || true
