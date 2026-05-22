@@ -617,7 +617,7 @@ stop_monitoring() {
     local orphan_pids
     orphan_pids=$(pgrep -f '__powercontrol_monitor__' 2>/dev/null)
     if [[ -n "$orphan_pids" ]]; then
-        echo "${RED}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Killing orphaned monitor processes: $orphan_pids${RESET}" | tee -a "$LOG_FILE"
+        echo "${RED}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Ending PowerControl processes: $orphan_pids${RESET}" | tee -a "$LOG_FILE"
         kill    $orphan_pids 2>/dev/null || true
         sleep 1
         kill -9 $orphan_pids 2>/dev/null || true
