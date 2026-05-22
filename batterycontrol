@@ -219,6 +219,9 @@ echo "${RESET}"
 }
 
 start_monitoring_loop() {
+    trap 'echo "$(date) - SIGTERM received" >> "$LOG_FILE"' TERM
+    trap 'echo "$(date) - SIGINT received" >> "$LOG_FILE"' INT
+    trap 'echo "$(date) - EXIT trap fired ($?)" >> "$LOG_FILE"' EXIT
     wait_for_config
     detect_battery
     touch "$RUN_FLAG"
