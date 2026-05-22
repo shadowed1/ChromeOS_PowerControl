@@ -309,9 +309,10 @@ start_monitoring_loop() {
 }
 
 stop_monitoring() {
-    if [ -f "$PID_FILE" ]; then
-        PID=$(cat "$PID_FILE")
-        if ps -p "$PID" > /dev/null 2>&1; then
+    local killed=0
+    if [[ -f "$PID_FILE" ]]; then
+        PID=$(<"$PID_FILE")
+        if [[ -n "$PID" ]] && ps -p "$PID" > /dev/null 2>&1; then
             kill "$PID"
             for i in {1..30}; do
                 if ! ps -p "$PID" > /dev/null 2>&1; then
@@ -326,10 +327,24 @@ stop_monitoring() {
                 sleep 0.1
             done
             echo "${RED}$(date '+%F %T') - BatteryControl Stopped (PID $PID)${RESET}" | tee -a "$LOG_FILE"
+            killed=1
         fi
         rm -f "$PID_FILE"
     fi
+
+    local orphan_pids
+    orphan_pids=$(pgrep -f '__batterycontrol_monitor__' 2>/dev/null)
+    if [[ -n "$orphan_pids" ]]; then
+        echo "${RED}$(date '+%F %T') - Killing orphaned BatteryControl processes: $orphan_pids${RESET}" | tee -a "$LOG_FILE"
+        kill    $orphan_pids 2>/dev/null || true
+        sleep 1
+        kill -9 $orphan_pids 2>/dev/null || true
+        killed=1
+    fi
     rm -f "$RUN_FLAG"
+    if (( killed == 0 )); then
+        echo "${YELLOW}$(date '+%F %T') - BatteryControl was not running." | tee -a "$LOG_FILE"
+    fi
 }
 
 usage() {
