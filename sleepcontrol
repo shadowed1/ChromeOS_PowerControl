@@ -457,22 +457,22 @@ monitor_idle_activity() {
     last_ts=$EPOCHSECONDS
 
     while true; do
-    if ! IFS= read -r line <&3; then
-        echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - powerd pipe died, restarting${RESET}" >> "$LOG_FILE"
-
-        exec 3<&-
-        sleep 0.2
-
-        exec 3< <(
-            tail -Fn0 /var/log/power_manager/powerd.LATEST |
-            while IFS= read -r line; do
-                sleep 0.04
-                printf '%s\n' "$line"
-            done
-        )
-
-        sleep 0.2
-        continue
+    if ! IFS= read -r -t 5 line <&3; then
+        if [[ $? -gt 128 ]]; then
+            line=""
+        else
+            exec 3<&-
+            sleep 0.2
+            exec 3< <(
+                tail -Fn0 /var/log/power_manager/powerd.LATEST |
+                while IFS= read -r line; do
+                    sleep 0.04
+                    printf '%s\n' "$line"
+                done
+            )
+            sleep 0.2
+            continue
+        fi
     fi
 
     now=$EPOCHSECONDS
