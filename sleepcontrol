@@ -841,14 +841,6 @@ stop_monitoring() {
 
 case "$1" in
     start)
-        exec 200>"$PID_FILE.lock"
-        flock -n 200 || {
-            echo "${BLUE}"
-            echo "SleepControl is already running."
-            echo "${RESET}"
-            exit 1
-        }
-
         if pgrep -f "$0 __sleepcontrol_monitor__" > /dev/null; then
             echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - SleepControl is already running. ${RESET}" | tee -a "$LOG_FILE"
             exit 0
