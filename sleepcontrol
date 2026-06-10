@@ -821,16 +821,22 @@ stop_monitoring() {
     if [ -f "$PID_FILE" ]; then
         PID=$(cat "$PID_FILE")
         if ps -p "$PID" > /dev/null 2>&1; then
-            echo "Stopping SleepControl (PGID: $PID)..."
+            echo "Stopping SleepControl (PID: $PID)..."
             kill -- -"$PID" 2>/dev/null
-            sleep 1
             kill "$PID" 2>/dev/null
+            local waited=0
+            while ps -p "$PID" > /dev/null 2>&1 && (( waited < 50 )); do
+                sleep 0.1
+                (( waited++ ))
+            done
+            if ps -p "$PID" > /dev/null 2>&1; then
+                kill -9 "$PID" 2>/dev/null
+            fi
             echo "${RED}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - SleepControl Stopped (PID $PID)${RESET}"
         fi
     fi
     sudo rm -f "$RUN_FLAG"
     sudo rm -f "$PID_FILE"
-    sudo rm -f "$PID_FILE.lock"
 }
 
 case "$1" in
