@@ -444,13 +444,25 @@ monitor_idle_activity() {
 
 
 
-    exec 3< <(
-        tail -Fn0 /var/log/power_manager/powerd.LATEST |
-        while IFS= read -r line; do
-            sleep 0.04
-            printf '%s\n' "$line"
-        done
-    )
+    _open_powerd_pipeline() {
+        exec 3< <(
+            tail -Fn0 /var/log/power_manager/powerd.LATEST |
+            while IFS= read -r line; do
+                sleep 0.04
+                printf '%s\n' "$line"
+            done
+        )
+        pipeline_pid=$!
+    }
+
+    pipeline_pid=0
+    _open_powerd_pipeline
+
+    trap '
+            [[ $pipeline_pid -gt 0 ]] && kill "$pipeline_pid" 2>/dev/null
+            exec 3<&- 2>/dev/null
+            sudo rm -f "$RUN_FLAG" "$PID_FILE"
+        ' EXIT INT TERM
 
     load_config
     last_reload_time=$EPOCHSECONDS
@@ -461,15 +473,10 @@ monitor_idle_activity() {
         if [[ $? -gt 128 ]]; then
             line=""
         else
+            [[ $pipeline_pid -gt 0 ]] && kill "$pipeline_pid" 2>/dev/null
             exec 3<&-
             sleep 0.2
-            exec 3< <(
-                tail -Fn0 /var/log/power_manager/powerd.LATEST |
-                while IFS= read -r line; do
-                    sleep 0.04
-                    printf '%s\n' "$line"
-                done
-            )
+            _open_powerd_pipeline
             sleep 0.2
             continue
         fi
