@@ -356,10 +356,6 @@ monitor_idle_activity() {
     local last_log_ts=0
     local wake_grace_end=0
 
-    if pgrep -f "$0 __sleepcontrol_monitor__" | grep -v "^$$\$" > /dev/null; then
-        exit 0
-    fi
-
     echo "$BASHPID" > "$PID_FILE"
     touch "$RUN_FLAG"
     echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - SleepControl started (PID $$)${RESET}" > "$LOG_FILE"
@@ -533,9 +529,11 @@ monitor_idle_activity() {
         *"Chrome is using presentation display mode"*)
             PRESENTATION_MODE=1
             echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Presentation mode/External display detected${RESET}" >> "$LOG_FILE"
+            monitor_idle=0
+            active=1
+            last_ts=$now
             stop_fake_activity
             lid_closed=0
-            ;;
         *"Chrome is using normal display mode"*)
             PRESENTATION_MODE=0
             ;;
@@ -826,24 +824,37 @@ monitor_idle_activity() {
 
 stop_monitoring() {
     if [ -f "$PID_FILE" ]; then
-        PID=$(cat "$PID_FILE")
-        if ps -p "$PID" > /dev/null 2>&1; then
+        PID=$(cat "$PID_FILE" 2>/dev/null)
+        if [[ -n "$PID" ]] && ps -p "$PID" > /dev/null 2>&1; then
             echo "Stopping SleepControl (PID: $PID)..."
             kill -- -"$PID" 2>/dev/null
             kill "$PID" 2>/dev/null
-            local waited=0
-            while ps -p "$PID" > /dev/null 2>&1 && (( waited < 50 )); do
-                sleep 0.1
-                (( waited++ ))
-            done
-            if ps -p "$PID" > /dev/null 2>&1; then
-                kill -9 "$PID" 2>/dev/null
-            fi
-            echo "${RED}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - SleepControl Stopped (PID $PID)${RESET}"
         fi
     fi
+
+    local stray_pids
+    stray_pids=$(pgrep -f "$0 __sleepcontrol_monitor__" 2>/dev/null)
+    if [[ -n "$stray_pids" ]]; then
+        echo "Stopping stray monitor PIDs: $stray_pids"
+        kill $stray_pids 2>/dev/null
+    fi
+
+    local waited=0
+    while pgrep -f "$0 __sleepcontrol_monitor__" > /dev/null 2>&1 && (( waited < 50 )); do
+        sleep 0.1
+        (( waited++ ))
+    done
+
+    stray_pids=$(pgrep -f "$0 __sleepcontrol_monitor__" 2>/dev/null)
+    if [[ -n "$stray_pids" ]]; then
+        kill -9 $stray_pids 2>/dev/null
+        sleep 0.1
+    fi
+
+    local stopped_pid=${PID:-"unknown"}
     sudo rm -f "$RUN_FLAG"
     sudo rm -f "$PID_FILE"
+    echo "${RED}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - SleepControl Stopped (PID $stopped_pid)${RESET}"
 }
 
 case "$1" in
