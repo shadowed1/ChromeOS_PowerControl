@@ -534,6 +534,7 @@ monitor_idle_activity() {
             last_ts=$now
             stop_fake_activity
             lid_closed=0
+            ;;
         *"Chrome is using normal display mode"*)
             PRESENTATION_MODE=0
             ;;
