@@ -519,8 +519,8 @@ _TOOLTIPS = {
     "MIN_TEMP":      "Below this temperature, CPU runs at maximum performance.",
     "MAX_PERF_PCT":  "Highest CPU performance - applied when CPU is below minimum temp.",
     "MIN_PERF_PCT":  "Lowest CPU performance - applied when temperature exceeds maximum temp.",
-    "RAMP_UP":       "How quickly performance increases when the CPU cools down (% per poll cycle).",
-    "RAMP_DOWN":     "How quickly performance decreases when the CPU heats up (% per poll cycle).",
+    "RAMP_UP":       "How quickly performance increases when the CPU cools down (% per poll).",
+    "RAMP_DOWN":     "How quickly performance decreases when the CPU heats up (% per poll).",
     "CPU_POLL":      "How often PowerControl polls CPU temperature and adjusts performance (seconds).",
 
 
@@ -531,8 +531,8 @@ _TOOLTIPS = {
     "MAX_FAN":       "Maximum fan speed the controller will target at peak temperatures.",
     "FAN_MIN_TEMP":  "Temperature below which the fan stays at its minimum speed.",
     "FAN_MAX_TEMP":  "Temperature at which the fan reaches its maximum speed.",
-    "STEP_UP":       "How many % points the fan speed increases each poll cycle when heating up.",
-    "STEP_DOWN":     "How many % points the fan speed decreases each poll cycle when cooling down.",
+    "STEP_UP":       "How many % points the fan speed increases each poll when heating up.",
+    "STEP_DOWN":     "How many % points the fan speed decreases each poll when cooling down.",
     "FAN_POLL":      "How often FanControl polls temperature and adjusts fan speed (seconds).",
 
     "CHARGE_MAX":    "Maximum battery charge level. Keeping this below 100% reduces long-term battery wear.",
