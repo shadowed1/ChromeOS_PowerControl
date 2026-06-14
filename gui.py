@@ -168,9 +168,7 @@ class BaseGraph(Gtk.DrawingArea):
         self.queue_draw()
 
 class CPUCurveGraph(BaseGraph):
-    """
-    PowerControl Curve
-    """
+    """PowerControl Curve"""
     def __init__(self, get_val):
         super().__init__("PowerControl Curve")
         self.get_val = get_val
@@ -192,7 +190,6 @@ class CPUCurveGraph(BaseGraph):
 
         d1 = hot_t - min_t
         d2 = max_t - hot_t
-
         hot_perf = (2 * d2 * max_p + d1 * min_p) / (2 * d2 + d1) if (2*d2 + d1) != 0 else (max_p + min_p) / 2
 
         x1, _ = s(hot_t, 0);  x2, _ = s(max_t, 0)
@@ -202,7 +199,7 @@ class CPUCurveGraph(BaseGraph):
         x3 = px + pw
         cr.set_source_rgba(1.0, 0.30, 0.30, 0.12)
         cr.rectangle(x2, py, x3 - x2, ph);  cr.fill()
-        
+
         points = [
             (xr[0], max_p),
             (min_t,  max_p),
@@ -229,9 +226,7 @@ class CPUCurveGraph(BaseGraph):
             cr.set_dash([])
 
 class FanCurveGraph(BaseGraph):
-    """
-    FanControl Curve
-    """
+    """FanControl Curve"""
     def __init__(self, get_val):
         super().__init__("FanControl Curve")
         self.get_val = get_val
@@ -275,9 +270,7 @@ class FanCurveGraph(BaseGraph):
 
 
 class SleepTimelineGraph(Gtk.DrawingArea):
-    """
-    SleepControl Bars
-    """
+    """SleepControl Bars"""
     PAD = dict(left=90, right=18, top=36, bottom=12)
     ROW_H = 32
     ROW_GAP = 14
@@ -287,12 +280,12 @@ class SleepTimelineGraph(Gtk.DrawingArea):
         (0.12, 0.30, 0.65),
         (0.06, 0.12, 0.35),
     ]
-    _SEG_LABELS = ["Dim Display ➜", "Display Off ➜", "Sleep ➜"]
+    _SEG_LABELS = ["Dim ->", "Off ->", "Sleep ->"]
 
     def __init__(self, get_val):
         super().__init__()
         self.get_val = get_val
-        self.set_size_request(760, 148)
+        self.set_size_request(360, 148)
         self.connect("draw", self._on_draw)
 
     def _draw_row(self, cr, W, label, dim, backlight, delay, y0):
@@ -418,7 +411,6 @@ class GaugeGraph(Gtk.DrawingArea):
         self.connect("draw", self._on_draw)
 
     def _fraction(self):
-        """Override return"""
         return 0.5, 1.0
 
     def _on_draw(self, widget, cr):
@@ -450,7 +442,6 @@ class GaugeGraph(Gtk.DrawingArea):
         fill_w = pw * frac
         if fill_w > 1 and CAIRO_AVAILABLE:
             pat = cairo.LinearGradient(px, 0, px + fill_w, 0)
-            
             if self.key == "CHARGE_MAX":
                 pat.add_color_stop_rgb(0.0, 0.00, 0.22, 0.00)
                 pat.add_color_stop_rgb(0.5, 0.08, 0.50, 0.08)
@@ -460,11 +451,10 @@ class GaugeGraph(Gtk.DrawingArea):
                 pat.add_color_stop_rgb(0.0, r * 0.15, g * 0.45, b * 0.45)
                 pat.add_color_stop_rgb(0.8, r, g, b)
                 pat.add_color_stop_rgb(1.0, min(r + 0.1, 1), min(g + 0.1, 1), min(b + 0.1, 1))
-                
             cr.set_source(pat)
         else:
             cr.set_source_rgb(*self.color)
-            
+
         cr.rectangle(px, py, fill_w, ph)
         cr.fill()
 
@@ -490,8 +480,6 @@ class GaugeGraph(Gtk.DrawingArea):
     def refresh(self):
         self.queue_draw()
 
-
-
 class BatteryGauge(GaugeGraph):
     def __init__(self, get_val):
         super().__init__("BatteryControl", get_val, "CHARGE_MAX", _BAT_C,
@@ -500,7 +488,6 @@ class BatteryGauge(GaugeGraph):
     def _fraction(self):
         v = self.get_val("CHARGE_MAX", 80)
         return v, 100
-
 
 class GPUGauge(GaugeGraph):
     def __init__(self, get_val, get_gpu_max_fn):
@@ -513,53 +500,74 @@ class GPUGauge(GaugeGraph):
         mx  = self.get_gpu_max()
         return cur, max(mx, 1)
 
+class GraphPanel:
+    """Not a widget — just holds graph widget references so refresh_all() works."""
+    def __init__(self):
+        self._graphs = []
 
-class GraphPanel(Gtk.ScrolledWindow):
-    def __init__(self, get_val, get_gpu_max_fn):
-        super().__init__()
-        self.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
-
-        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
-        vbox.set_border_width(12)
-        self.add(vbox)
-
-        row1 = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
-        vbox.pack_start(row1, False, False, 0)
-
-        self.cpu_graph = CPUCurveGraph(get_val)
-        row1.pack_start(self.cpu_graph, True, True, 0)
-
-        self.fan_graph = FanCurveGraph(get_val)
-        row1.pack_start(self.fan_graph, True, True, 0)
-
-        row3 = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
-        vbox.pack_start(row3, False, False, 0)
-
-        self.bat_gauge = BatteryGauge(get_val)
-        row3.pack_start(self.bat_gauge, True, True, 0)
-
-        self.gpu_gauge = GPUGauge(get_val, get_gpu_max_fn)
-        row3.pack_start(self.gpu_gauge, True, True, 0)
-        
-        self.sleep_graph = SleepTimelineGraph(get_val)
-        vbox.pack_start(self.sleep_graph, False, False, 0)
-
-        self._graphs = [
-            self.cpu_graph, self.fan_graph,
-            self.sleep_graph,
-            self.bat_gauge, self.gpu_gauge,
-        ]
+    def register(self, graph):
+        self._graphs.append(graph)
 
     def refresh_all(self):
         for g in self._graphs:
             g.refresh()
 
+_TOOLTIPS = {
+
+    "MAX_TEMP":      "Hard ceiling temperature. CPU performance is throttled to its minimum above this point.",
+    "HOTZONE":       "Temperature at which throttling begins ramping down. Acts as the curve's inflection point.",
+    "MIN_TEMP":      "Below this temperature the CPU runs at maximum performance with no throttling.",
+    "MAX_PERF_PCT":  "Highest allowed CPU performance percentage — applied when the CPU is below the minimum temp threshold.",
+    "MIN_PERF_PCT":  "Lowest allowed CPU performance percentage — floor hit when temperature exceeds the maximum temp threshold.",
+    "RAMP_UP":       "How quickly performance increases when the CPU cools down (% per poll cycle).",
+    "RAMP_DOWN":     "How quickly performance decreases when the CPU heats up (% per poll cycle).",
+    "CPU_POLL":      "How often PowerControl samples CPU temperature and adjusts performance (seconds).",
+
+
+
+    "GPU_MAX_FREQ":  "Maximum GPU clock frequency allowed. Lowering this reduces GPU heat and power draw.",
+
+    "MIN_FAN":       "Minimum fan speed when temperature is below the fan threshold. 0 = fan can be fully off.",
+    "MAX_FAN":       "Maximum fan speed the controller will target at peak temperatures.",
+    "FAN_MIN_TEMP":  "Temperature below which the fan stays at its minimum speed.",
+    "FAN_MAX_TEMP":  "Temperature at which the fan reaches its maximum speed.",
+    "STEP_UP":       "How many percentage points the fan speed increases per poll cycle when heating up.",
+    "STEP_DOWN":     "How many percentage points the fan speed decreases per poll cycle when cooling down.",
+    "FAN_POLL":      "How often FanControl samples temperature and adjusts fan speed (seconds).",
+
+    "CHARGE_MAX":    "Maximum battery charge level. Keeping this below 100% reduces long-term battery wear.",
+
+
+
+    "BATTERY_DIM_DELAY":        "Minutes of inactivity on battery before the display dims.",
+    "BATTERY_BACKLIGHT":        "Minutes of inactivity on battery before the display turns off entirely.",
+    "BATTERY_DELAY":            "Minutes of inactivity on battery before the system suspends.",
+    "AUDIO_DETECTION_BATTERY":  "When enabled, active audio playback prevents sleep on battery.",
+    "LIDSLEEP_BATTERY":         "When enabled, closing the lid immediately suspends the system on battery.",
+    "POWER_DIM_DELAY":          "Minutes of inactivity on AC power before the display dims.",
+    "POWER_BACKLIGHT":          "Minutes of inactivity on AC power before the display turns off entirely.",
+    "POWER_DELAY":              "Minutes of inactivity on AC power before the system suspends.",
+    "AUDIO_DETECTION_POWER":    "When enabled, active audio playback prevents sleep on AC power.",
+    "LIDSLEEP_POWER":           "When enabled, closing the lid immediately suspends the system on AC power.",
+
+
+
+    "STARTUP_BATTERYCONTROL":   "Start BatteryControl automatically on boot.",
+    "STARTUP_POWERCONTROL":     "Start PowerControl (CPU throttling) automatically on boot.",
+    "STARTUP_FANCONTROL":       "Start FanControl automatically on boot.",
+    "STARTUP_GPUCONTROL":       "Start GPUControl (GPU frequency cap) automatically on boot.",
+    "STARTUP_SLEEPCONTROL":     "Start SleepControl (idle sleep timers) automatically on boot.",
+}
+
+
 class ConfigEditor(Gtk.Window):
     def __init__(self):
         settings = Gtk.Settings.get_default()
         settings.set_property("gtk-application-prefer-dark-theme", True)
+        settings.set_property("gtk-tooltip-timeout",        667)
+        settings.set_property("gtk-tooltip-browse-timeout", 300)
         super().__init__(title="ChromeOS_PowerControl GUI")
-        self.set_default_size(820, 680)
+        self.set_default_size(1000, 600)
 
         headerbar = Gtk.HeaderBar()
         headerbar.set_show_close_button(True)
@@ -575,14 +583,14 @@ class ConfigEditor(Gtk.Window):
         self.reload_btn.connect("clicked", self.on_reload_clicked)
         headerbar.pack_end(self.reload_btn)
 
-        self.config_path      = self.find_config_file()
-        self.config_data      = {}
-        self.widgets          = {}
-        self.original_gpu_max = None
-        self.gpu_type         = None
+        self.config_path          = self.find_config_file()
+        self.config_data          = {}
+        self.widgets              = {}
+        self.original_gpu_max     = None
+        self.gpu_type             = None
         self.updating_constraints = False
-        self.initial_load     = True
-        self.focusable_widgets = []
+        self.initial_load         = True
+        self.focusable_widgets    = []
 
         if not self.config_path:
             self.show_error_dialog(
@@ -674,35 +682,28 @@ class ConfigEditor(Gtk.Window):
         return False
 
     def create_ui(self):
-        main_vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
-        self.add(main_vbox)
-
-        notebook = Gtk.Notebook()
-        notebook.set_tab_pos(Gtk.PositionType.TOP)
-        main_vbox.pack_start(notebook, True, True, 0)
-
-        settings_vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
-        settings_vbox.set_border_width(10)
-
-        scrolled = Gtk.ScrolledWindow()
-        scrolled.set_vexpand(True)
-        scrolled.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
-        settings_vbox.pack_start(scrolled, True, True, 0)
-
+        outer_vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
+        self.add(outer_vbox)
+        main_scroll = Gtk.ScrolledWindow()
+        main_scroll.set_vexpand(True)
+        main_scroll.set_hexpand(True)
+        main_scroll.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
+        outer_vbox.pack_start(main_scroll, True, True, 0)
+        self.graph_panel = GraphPanel()
         self.grid = Gtk.Grid()
-        self.grid.set_column_spacing(5)
+        self.grid.set_column_spacing(12)
         self.grid.set_row_spacing(5)
         self.grid.set_margin_start(10)
         self.grid.set_margin_end(10)
         self.grid.set_margin_top(10)
         self.grid.set_margin_bottom(10)
-        scrolled.add(self.grid)
+        main_scroll.add(self.grid)
         self.create_config_sections()
 
         button_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
         button_box.set_halign(Gtk.Align.CENTER)
         button_box.set_border_width(8)
-        settings_vbox.pack_start(button_box, False, False, 0)
+        outer_vbox.pack_start(button_box, False, False, 0)
 
         self.save_btn = Gtk.Button(label="Apply")
         self.save_btn.connect("clicked", self.on_save_clicked)
@@ -714,30 +715,13 @@ class ConfigEditor(Gtk.Window):
         button_box.pack_start(exit_btn, False, False, 0)
         self.focusable_widgets.append(exit_btn)
 
-        tab1_label = Gtk.Label(label="⚙  Settings")
-        notebook.append_page(settings_vbox, tab1_label)
-
-        if CAIRO_AVAILABLE:
-            self.graph_panel = GraphPanel(self.get_widget_value, self.get_gpu_max)
-            tab2_label = Gtk.Label(label="◫  Live Graphs")
-            notebook.append_page(self.graph_panel, tab2_label)
-            notebook.connect("switch-page", self._on_tab_switch)
-        else:
-            no_cairo = Gtk.Label(label="pycairo not available — install python3-gi-cairo")
-            tab2_label = Gtk.Label(label="◫  Live Graphs")
-            notebook.append_page(no_cairo, tab2_label)
-
-    def _on_tab_switch(self, notebook, page, page_num):
-        if page_num == 1:
-            GLib.idle_add(self.graph_panel.refresh_all)
-
     def create_slider(self, min_val, max_val, step=1):
         scale = Gtk.Scale.new_with_range(
             Gtk.Orientation.HORIZONTAL, min_val, max_val, step)
         scale.set_digits(0 if step >= 1 else 1)
         scale.set_value_pos(Gtk.PositionType.RIGHT)
         scale.set_hexpand(True)
-        scale.set_size_request(400, -1)
+        scale.set_size_request(300, -1)
         return scale
 
     def create_slider_with_spinbutton(self, min_val, max_val, step=1):
@@ -781,58 +765,99 @@ class ConfigEditor(Gtk.Window):
             combo.append_text(option)
         return combo
 
+    def _apply_tooltip(self, widget, key, container=None):
+        """Apply tooltip text from _TOOLTIPS to a widget (and optionally its container)."""
+        tip = _TOOLTIPS.get(key)
+        if not tip:
+            return
+        widget.set_tooltip_text(tip)
+        if container is not None:
+            container.set_tooltip_text(tip)
+
     def create_config_sections(self):
-        sections = {
-            "PowerControl": [
-                ("MAX_TEMP",      "Maximum Temperature (°C)",  "slider", 30, 95,   1,   False),
-                ("HOTZONE",       "Hotzone Temperature (°C)",  "slider", 30, 90,   1,   False),
-                ("MIN_TEMP",      "Minimum Temperature (°C)",  "slider", 30, 90,   1,   False),
-                ("MAX_PERF_PCT",  "Maximum Performance (%)",   "slider", 10, 100,  1,   False),
-                ("MIN_PERF_PCT",  "Minimum Performance (%)",   "slider", 10, 100,  1,   False),
-                ("RAMP_UP",       "Ramp Up Speed (%)",         "slider",  1, 50,   1,   False),
-                ("RAMP_DOWN",     "Ramp Down Speed (%)",       "slider",  1, 50,   1,   False),
-                ("CPU_POLL",      "CPU Poll Interval (s)",     "slider", 0.1, 5.0, 0.1, False),
-            ],
-            "GPUControl": [
-                ("GPU_MAX_FREQ",  "GPU Max Frequency (MHz)",   "slider", 100, 2000, 10, False),
-            ],
-            "FanControl": [
-                ("MIN_FAN",       "Minimum Fan Speed (%)",     "slider",  0, 100,  1,   False),
-                ("MAX_FAN",       "Maximum Fan Speed (%)",     "slider",  0, 100,  1,   False),
-                ("FAN_MIN_TEMP",  "Fan Minimum Temp (°C)",     "slider", 30,  70,  1,   False),
-                ("FAN_MAX_TEMP",  "Fan Maximum Temp (°C)",     "slider", 30,  94,  1,   False),
-                ("STEP_UP",       "Fan Step Up (%)",           "slider",  1,  20,  1,   False),
-                ("STEP_DOWN",     "Fan Step Down (%)",         "slider",  1,  20,  1,   False),
-                ("FAN_POLL",      "Fan Poll Interval (s)",     "slider",  1,  10,  1,   False),
-            ],
-            "BatteryControl": [
-                ("CHARGE_MAX",    "Maximum Charge (%)",        "slider", 20, 100,  1,   False),
-            ],
-            "SleepControl - Battery": [
+        sections = [
+            ("PowerControl", [
+                ("MAX_TEMP",      "Maximum Temperature (°C)",  "slider", 30, 95,   1,   True),
+                ("HOTZONE",       "Hotzone Temperature (°C)",  "slider", 30, 90,   1,   True),
+                ("MIN_TEMP",      "Minimum Temperature (°C)",  "slider", 30, 90,   1,   True),
+                ("MAX_PERF_PCT",  "Maximum Performance (%)",   "slider", 10, 100,  1,   True),
+                ("MIN_PERF_PCT",  "Minimum Performance (%)",   "slider", 10, 100,  1,   True),
+                ("RAMP_UP",       "Ramp Up Speed (%)",         "slider",  1, 50,   1,   True),
+                ("RAMP_DOWN",     "Ramp Down Speed (%)",       "slider",  1, 50,   1,   True),
+                ("CPU_POLL",      "CPU Poll Interval (s)",     "slider", 0.1, 5.0, 0.1, True),
+            ], "cpu"),
+            ("GPUControl", [
+                ("GPU_MAX_FREQ",  "GPU Max Frequency (MHz)",   "slider", 100, 2000, 10, True),
+            ], "gpu"),
+            ("FanControl", [
+                ("MIN_FAN",       "Minimum Fan Speed (%)",     "slider",  0, 100,  1,   True),
+                ("MAX_FAN",       "Maximum Fan Speed (%)",     "slider",  0, 100,  1,   True),
+                ("FAN_MIN_TEMP",  "Fan Minimum Temp (°C)",     "slider", 30,  70,  1,   True),
+                ("FAN_MAX_TEMP",  "Fan Maximum Temp (°C)",     "slider", 30,  94,  1,   True),
+                ("STEP_UP",       "Fan Step Up (%)",           "slider",  1,  20,  1,   True),
+                ("STEP_DOWN",     "Fan Step Down (%)",         "slider",  1,  20,  1,   True),
+                ("FAN_POLL",      "Fan Poll Interval (s)",     "slider",  1,  10,  1,   True),
+            ], "fan"),
+            ("BatteryControl", [
+                ("CHARGE_MAX",    "Maximum Charge (%)",        "slider", 20, 100,  1,   True),
+            ], "bat"),
+            ("SleepControl - Battery", [
                 ("BATTERY_DIM_DELAY", "Dim Delay (minutes)",     "slider", 1, 1440, 1, True),
                 ("BATTERY_BACKLIGHT", "Display Off (minutes)",   "slider", 1, 1440, 1, True),
                 ("BATTERY_DELAY",     "Sleep Delay (minutes)",   "slider", 1, 1440, 1, True),
-                ("AUDIO_DETECTION_BATTERY", "Audio Detection",   "switch", None, None, None, False),
-                ("LIDSLEEP_BATTERY",        "Lid Sleep",         "switch", None, None, None, False),
-            ],
-            "SleepControl - AC Power": [
+                ("AUDIO_DETECTION_BATTERY", "Audio Detection",   "switch", None, None, None, True),
+                ("LIDSLEEP_BATTERY",        "Lid Sleep",         "switch", None, None, None, True),
+            ], "sleep"),
+            ("SleepControl - AC Power", [
                 ("POWER_DIM_DELAY", "Dim Delay (minutes)",       "slider", 1, 4320, 1, True),
                 ("POWER_BACKLIGHT", "Display Off (minutes)",     "slider", 1, 4320, 1, True),
                 ("POWER_DELAY",     "Sleep Delay (minutes)",     "slider", 1, 4320, 1, True),
-                ("AUDIO_DETECTION_POWER", "Audio Detection",     "switch", None, None, None, False),
-                ("LIDSLEEP_POWER",        "Lid Sleep",           "switch", None, None, None, False),
-            ],
-            "Start on Boot": [
+                ("AUDIO_DETECTION_POWER", "Audio Detection",     "switch", None, None, None, True),
+                ("LIDSLEEP_POWER",        "Lid Sleep",           "switch", None, None, None, True),
+            ], "sleep"),
+            ("Start on Boot", [
                 ("STARTUP_BATTERYCONTROL", "BatteryControl",     "switch", None, None, None, False),
                 ("STARTUP_POWERCONTROL",   "PowerControl",       "switch", None, None, None, False),
                 ("STARTUP_FANCONTROL",     "FanControl",         "switch", None, None, None, False),
                 ("STARTUP_GPUCONTROL",     "GPUControl",         "switch", None, None, None, False),
                 ("STARTUP_SLEEPCONTROL",   "SleepControl",       "switch", None, None, None, False),
-            ],
-        }
+            ], None),
+        ]
+
+        def _make_graph(graph_id):
+            if graph_id == "cpu":
+                g = CPUCurveGraph(self.get_widget_value)
+                g.set_vexpand(False)
+                g.set_valign(Gtk.Align.CENTER)
+                return g
+            if graph_id == "gpu":
+                g = GPUGauge(self.get_widget_value, self.get_gpu_max)
+                g.set_vexpand(False)
+                g.set_valign(Gtk.Align.CENTER)
+                return g
+            if graph_id == "fan":
+                g = FanCurveGraph(self.get_widget_value)
+                g.set_vexpand(False)
+                g.set_valign(Gtk.Align.CENTER)
+                return g
+            if graph_id == "bat":
+                g = BatteryGauge(self.get_widget_value)
+                g.set_vexpand(False)
+                g.set_valign(Gtk.Align.CENTER)
+                return g
+            if graph_id == "sleep":
+                g = SleepTimelineGraph(self.get_widget_value)
+                g.set_vexpand(False)
+                g.set_valign(Gtk.Align.CENTER)
+                return g
+            return None
+
+        graph_cache = {}
 
         row = 0
-        for section_name, fields in sections.items():
+        for section_name, fields, graph_id in sections:
+            section_start = row
+
             header = Gtk.Label()
             header.set_markup(f"<b><big>{section_name}</big></b>")
             header.set_halign(Gtk.Align.START)
@@ -861,6 +886,8 @@ class ConfigEditor(Gtk.Window):
                 lbl.set_halign(Gtk.Align.END)
                 lbl.set_margin_start(10)
                 lbl.set_size_request(100, -1)
+                if key in _TOOLTIPS:
+                    lbl.set_tooltip_text(_TOOLTIPS[key])
                 self.grid.attach(lbl, 0, row, 1, 1)
 
                 if widget_type == "slider":
@@ -874,17 +901,21 @@ class ConfigEditor(Gtk.Window):
                     if with_spinbutton:
                         box, scale, spinbutton = self.create_slider_with_spinbutton(
                             min_val, max_val, step)
+                        self._apply_tooltip(scale, key, container=box)
+                        spinbutton.set_tooltip_text(_TOOLTIPS.get(key, ""))
                         self.grid.attach(box, 1, row, 1, 1)
                         self.widgets[key] = scale
                         self.focusable_widgets.append(scale)
                     else:
                         widget = self.create_slider(min_val, max_val, step)
+                        self._apply_tooltip(widget, key)
                         self.grid.attach(widget, 1, row, 1, 1)
                         self.widgets[key] = widget
                         self.focusable_widgets.append(widget)
 
                 elif widget_type == "switch":
                     widget = self.create_switch()
+                    self._apply_tooltip(widget, key)
                     self.grid.attach(widget, 1, row, 1, 1)
                     self.widgets[key] = widget
                     self.focusable_widgets.append(widget)
@@ -892,11 +923,29 @@ class ConfigEditor(Gtk.Window):
                 elif widget_type == "combo":
                     options = field[3]
                     widget  = self.create_combo(options)
+                    self._apply_tooltip(widget, key)
                     self.grid.attach(widget, 1, row, 1, 1)
                     self.widgets[key] = widget
                     self.focusable_widgets.append(widget)
 
                 row += 1
+
+            section_end = row
+
+            if graph_id and CAIRO_AVAILABLE:
+                if graph_id not in graph_cache:
+                    g = _make_graph(graph_id)
+                    if g is not None:
+                        span = section_end - section_start
+                        self.grid.attach(g, 2, section_start, 1, span)
+                        self.graph_panel.register(g)
+                        graph_cache[graph_id] = (g, section_start, section_end)
+                else:
+                    g, orig_start, _ = graph_cache[graph_id]
+                    self.grid.remove(g)
+                    combined_span = section_end - orig_start
+                    self.grid.attach(g, 2, orig_start, 1, combined_span)
+                    graph_cache[graph_id] = (g, orig_start, section_end)
 
     def setup_constraints(self):
         pairs = [
@@ -925,18 +974,24 @@ class ConfigEditor(Gtk.Window):
         min_t = self.widgets["MIN_TEMP"].get_value()
         hot   = self.widgets["HOTZONE"].get_value()
         max_t = self.widgets["MAX_TEMP"].get_value()
-        if min_t >= hot:
-            self.widgets["MIN_TEMP"].set_value(hot - 1)
-        if min_t >= max_t:
-            self.widgets["MIN_TEMP"].set_value(max_t - 2)
-        if hot <= min_t:
-            self.widgets["HOTZONE"].set_value(min_t + 1)
-        if hot >= max_t:
-            self.widgets["HOTZONE"].set_value(max_t - 1)
-        if max_t <= hot:
-            self.widgets["MAX_TEMP"].set_value(hot + 1)
-        if max_t <= min_t:
-            self.widgets["MAX_TEMP"].set_value(min_t + 2)
+        if min_t >= hot - 8:
+            self.widgets["MIN_TEMP"].set_value(hot - 8)
+        
+        if min_t >= max_t - 16:
+            self.widgets["MIN_TEMP"].set_value(max_t - 16)
+        
+        if hot <= min_t + 8:
+            self.widgets["HOTZONE"].set_value(min_t + 8)
+        
+        if hot >= max_t - 8:
+            self.widgets["HOTZONE"].set_value(max_t - 8)
+        
+        if max_t <= hot + 8:
+            self.widgets["MAX_TEMP"].set_value(hot + 8)
+        
+        if max_t <= min_t + 16:
+            self.widgets["MAX_TEMP"].set_value(min_t + 16)
+        
         self.updating_constraints = False
 
     def on_perf_constraint(self, scale):
@@ -979,9 +1034,9 @@ class ConfigEditor(Gtk.Window):
         if self.updating_constraints or self.initial_load:
             return
         self.updating_constraints = True
-        dim      = self.widgets["BATTERY_DIM_DELAY"].get_value()
+        dim       = self.widgets["BATTERY_DIM_DELAY"].get_value()
         backlight = self.widgets["BATTERY_BACKLIGHT"].get_value()
-        delay    = self.widgets["BATTERY_DELAY"].get_value()
+        delay     = self.widgets["BATTERY_DELAY"].get_value()
         if dim >= backlight:
             self.widgets["BATTERY_DIM_DELAY"].set_value(backlight - 1)
         if backlight >= delay:
@@ -992,9 +1047,9 @@ class ConfigEditor(Gtk.Window):
         if self.updating_constraints or self.initial_load:
             return
         self.updating_constraints = True
-        dim      = self.widgets["POWER_DIM_DELAY"].get_value()
+        dim       = self.widgets["POWER_DIM_DELAY"].get_value()
         backlight = self.widgets["POWER_BACKLIGHT"].get_value()
-        delay    = self.widgets["POWER_DELAY"].get_value()
+        delay     = self.widgets["POWER_DELAY"].get_value()
         if dim >= backlight:
             self.widgets["POWER_DIM_DELAY"].set_value(backlight - 1)
         if backlight >= delay:
@@ -1152,6 +1207,7 @@ class ConfigEditor(Gtk.Window):
         dialog.format_secondary_text(message)
         dialog.run()
         dialog.destroy()
+
 
 def main():
     os.environ['GDK_RENDERING'] = 'gl'
