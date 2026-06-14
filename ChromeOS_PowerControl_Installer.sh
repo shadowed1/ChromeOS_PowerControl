@@ -997,4 +997,5 @@ echo "                                      ${MAGENTA}╚═══════�
 sleep 0.01
 
 echo ""
+echo "${CYAN}Run ${BOLD}powercontrol gui${RESET} on how to install and run the GUI app! ${RESET}"
 echo ""
