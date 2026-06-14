@@ -514,26 +514,26 @@ class GraphPanel:
 
 _TOOLTIPS = {
 
-    "MAX_TEMP":      "Hard ceiling temperature. CPU performance is throttled to its minimum above this point.",
-    "HOTZONE":       "Temperature at which throttling begins ramping down. Acts as the curve's inflection point.",
-    "MIN_TEMP":      "Below this temperature the CPU runs at maximum performance with no throttling.",
+    "MAX_TEMP":      "Maximum temperature ceiling. CPU performance is throttled to its minimum above this point.",
+    "HOTZONE":       "Temperature at which throttling begins. Acts as the curve's inflection point.",
+    "MIN_TEMP":      "Below this temperature, CPU runs at maximum performance.",
     "MAX_PERF_PCT":  "Highest CPU performance - applied when CPU is below minimum temp.",
     "MIN_PERF_PCT":  "Lowest CPU performance - applied when temperature exceeds maximum temp.",
     "RAMP_UP":       "How quickly performance increases when the CPU cools down (% per poll cycle).",
     "RAMP_DOWN":     "How quickly performance decreases when the CPU heats up (% per poll cycle).",
-    "CPU_POLL":      "How often PowerControl samples CPU temperature and adjusts performance (seconds).",
+    "CPU_POLL":      "How often PowerControl polls CPU temperature and adjusts performance (seconds).",
 
 
 
     "GPU_MAX_FREQ":  "Maximum GPU clock frequency allowed. Lowering this reduces GPU heat and power draw.",
 
-    "MIN_FAN":       "Minimum fan speed when temperature is below the fan threshold. 0 = fan can be fully off.",
+    "MIN_FAN":       "Minimum fan speed when temperature is below the fan threshold. 0 = Zero RPM.",
     "MAX_FAN":       "Maximum fan speed the controller will target at peak temperatures.",
     "FAN_MIN_TEMP":  "Temperature below which the fan stays at its minimum speed.",
     "FAN_MAX_TEMP":  "Temperature at which the fan reaches its maximum speed.",
-    "STEP_UP":       "How many percentage points the fan speed increases per poll cycle when heating up.",
-    "STEP_DOWN":     "How many percentage points the fan speed decreases per poll cycle when cooling down.",
-    "FAN_POLL":      "How often FanControl samples temperature and adjusts fan speed (seconds).",
+    "STEP_UP":       "How many % points the fan speed increases each poll cycle when heating up.",
+    "STEP_DOWN":     "How many % points the fan speed decreases each poll cycle when cooling down.",
+    "FAN_POLL":      "How often FanControl polls temperature and adjusts fan speed (seconds).",
 
     "CHARGE_MAX":    "Maximum battery charge level. Keeping this below 100% reduces long-term battery wear.",
 
@@ -542,21 +542,21 @@ _TOOLTIPS = {
     "BATTERY_DIM_DELAY":        "Minutes of inactivity on battery before the display dims.",
     "BATTERY_BACKLIGHT":        "Minutes of inactivity on battery before the display turns off entirely.",
     "BATTERY_DELAY":            "Minutes of inactivity on battery before the system suspends.",
-    "AUDIO_DETECTION_BATTERY":  "When enabled, active audio playback prevents sleep on battery.",
+    "AUDIO_DETECTION_BATTERY":  "When enabled, detected active audio playback prevents sleep on battery.",
     "LIDSLEEP_BATTERY":         "When enabled, closing the lid immediately suspends the system on battery.",
     "POWER_DIM_DELAY":          "Minutes of inactivity on AC power before the display dims.",
     "POWER_BACKLIGHT":          "Minutes of inactivity on AC power before the display turns off entirely.",
     "POWER_DELAY":              "Minutes of inactivity on AC power before the system suspends.",
-    "AUDIO_DETECTION_POWER":    "When enabled, active audio playback prevents sleep on AC power.",
+    "AUDIO_DETECTION_POWER":    "When enabled, detected active audio playback prevents sleep on AC power.",
     "LIDSLEEP_POWER":           "When enabled, closing the lid immediately suspends the system on AC power.",
 
 
 
     "STARTUP_BATTERYCONTROL":   "Start BatteryControl automatically on boot.",
-    "STARTUP_POWERCONTROL":     "Start PowerControl (CPU throttling) automatically on boot.",
+    "STARTUP_POWERCONTROL":     "Start PowerControl automatically on boot.",
     "STARTUP_FANCONTROL":       "Start FanControl automatically on boot.",
-    "STARTUP_GPUCONTROL":       "Start GPUControl (GPU frequency cap) automatically on boot.",
-    "STARTUP_SLEEPCONTROL":     "Start SleepControl (idle sleep timers) automatically on boot.",
+    "STARTUP_GPUCONTROL":       "Start GPUControl automatically on boot.",
+    "STARTUP_SLEEPCONTROL":     "Start SleepControl automatically on boot.",
 }
 
 
