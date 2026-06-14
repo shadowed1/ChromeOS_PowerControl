@@ -501,7 +501,7 @@ class GPUGauge(GaugeGraph):
         return cur, max(mx, 1)
 
 class GraphPanel:
-    """Not a widget — just holds graph widget references so refresh_all() works."""
+    """Not a widget - just holds graph widget references so refresh_all() works."""
     def __init__(self):
         self._graphs = []
 
@@ -517,8 +517,8 @@ _TOOLTIPS = {
     "MAX_TEMP":      "Hard ceiling temperature. CPU performance is throttled to its minimum above this point.",
     "HOTZONE":       "Temperature at which throttling begins ramping down. Acts as the curve's inflection point.",
     "MIN_TEMP":      "Below this temperature the CPU runs at maximum performance with no throttling.",
-    "MAX_PERF_PCT":  "Highest allowed CPU performance percentage — applied when the CPU is below the minimum temp threshold.",
-    "MIN_PERF_PCT":  "Lowest allowed CPU performance percentage — floor hit when temperature exceeds the maximum temp threshold.",
+    "MAX_PERF_PCT":  "Highest CPU performance - applied when CPU is below minimum temp.",
+    "MIN_PERF_PCT":  "Lowest CPU performance - applied when temperature exceeds maximum temp.",
     "RAMP_UP":       "How quickly performance increases when the CPU cools down (% per poll cycle).",
     "RAMP_DOWN":     "How quickly performance decreases when the CPU heats up (% per poll cycle).",
     "CPU_POLL":      "How often PowerControl samples CPU temperature and adjusts performance (seconds).",
