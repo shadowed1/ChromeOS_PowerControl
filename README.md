@@ -350,6 +350,9 @@ GPUControl, Fancontrol, and SleepControl. Added check to skip on-boot startup pr
 - 0.72: `Added short sleep on startup to allow budget ChromeOS devices to support startup` <br><br>
 - 0.73: `Fixed Sleepcontrol tail process duplication. Updated GUI app.` <br><br>
 - 0.74: `Fixed BatteryControl not handling multiple chargers simultaneously.` <br><br>
+
+<br>
+
 __Acknowledgements:__
 
 - Thanks to WesBosch for helping me learn to make an installer:
