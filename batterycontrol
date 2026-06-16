@@ -23,7 +23,7 @@ CONF_SOURCE="$INSTALL_DIR/batterycontrol.conf"
 CONF_TARGET="/etc/init/batterycontrol.conf"
 
 if [ ! -f /usr/sbin/ectool ]; then
-    echo "${RED}ectool not found. Exiting.${RESET}"
+    echo "${RED}Please run as sudo or ectool is not found. Exiting.${RESET}"
     sleep 3
     exit 1
 fi
@@ -302,8 +302,17 @@ start_monitoring_loop() {
         if [ "$AC_ON" -eq 1 ]; then
             if (( CHARGE >= CHARGE_MAX )); then
                 sudo ectool chargecontrol idle >/dev/null 2>&1
+                CHARGE_STATE="idle"
             elif (( CHARGE <= CHARGE_MIN )); then
                 sudo ectool chargecontrol normal >/dev/null 2>&1
+                CHARGE_STATE="normal"
+            else
+                sudo ectool chargecontrol "${CHARGE_STATE:-idle}" >/dev/null 2>&1
+            fi
+        else
+            if [[ "${CHARGE_STATE}" == "idle" ]]; then
+                sudo ectool chargecontrol normal >/dev/null 2>&1
+                CHARGE_STATE="normal"
             fi
         fi
 
