@@ -569,7 +569,7 @@ case "$1" in
         ;;
     start)
         stop_monitoring >/dev/null 2>&1
-        nohup "$0" __batterycontrol_monitor__ >> "$LOG_FILE" 2>&1 &
+        nohup "$0" __batterycontrol_monitor__ >> "$LOG_FILE" 2>/dev/null &
         echo "${GREEN}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Starting BatteryControl - Output is logged to $LOG_FILE${RESET}" | tee -a "$LOG_FILE"
         ;;
     stop)
