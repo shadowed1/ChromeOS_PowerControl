@@ -338,7 +338,7 @@ __gpucontrol_monitor__)
     start)
         stop_monitoring >/dev/null 2>&1
         echo "${MAGENTA}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Starting GPUControl - Output is logged to $LOG_FILE${RESET}" | tee -a "$LOG_FILE"
-        nohup "$0" __gpucontrol_monitor__ >> "$LOG_FILE" 2>&1 &
+        nohup "$0" __gpucontrol_monitor__ >> "$LOG_FILE" 2>/dev/null &
         exit 0
         ;;
     stop)
