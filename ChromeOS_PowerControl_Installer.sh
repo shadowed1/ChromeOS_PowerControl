@@ -15,6 +15,40 @@ TEST_FILE="/etc/init/.boot_test"
 echo "${MAGENTA}"
 echo "${BOLD}noexec warning can be safely ignored. ${RESET}"
 echo
+
+LSB_RELEASE_FILE="/etc/lsb-release"
+
+CHROMEOS_BOARD="$(
+    grep '^CHROMEOS_RELEASE_BOARD=' "$LSB_RELEASE_FILE" 2>/dev/null \
+    | cut -d= -f2
+)"
+
+CHROMEOS_DEVTYPE="$(
+    grep '^DEVICETYPE=' "$LSB_RELEASE_FILE" 2>/dev/null \
+    | cut -d= -f2
+)"
+
+if [[ "$CHROMEOS_BOARD" == reven* ]]; then
+    CHROMEOS_OS_TYPE="flex"
+else
+    CHROMEOS_OS_TYPE="chromeos"
+fi
+
+IS_FLEX=0
+IS_CHROMEBOOK=0
+
+if [[ "$CHROMEOS_OS_TYPE" == "flex" ]]; then
+    IS_FLEX=1
+else
+    IS_CHROMEBOOK=1
+fi
+
+echo "${BLUE}"
+echo "Board:        $CHROMEOS_BOARD"
+echo "Device type:  $CHROMEOS_DEVTYPE"
+echo "OS type:      $CHROMEOS_OS_TYPE"
+echo "${RESET}"
+
 detect_backlight_path() {
     BACKLIGHT_BASE="/sys/class/backlight"
     BRIGHTNESS_PATH=""
