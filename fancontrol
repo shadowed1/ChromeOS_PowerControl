@@ -298,7 +298,7 @@ start() {
         echo "${YELLOW}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - FanControl already running.${RESET}" | tee -a "$LOG_FILE"
         echo ""
     else
-        nohup "$0" __fancontrol_monitor__ >> "$LOG_FILE" 2>&1 &
+        nohup "$0" __fancontrol_monitor__ >> "$LOG_FILE" 2>/dev/null &
         echo $! > "$MONITOR_PID_FILE"
         echo "${YELLOW}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Starting FanControl - Output is logged to $LOG_FILE${RESET}" | tee -a "$LOG_FILE"
     fi
