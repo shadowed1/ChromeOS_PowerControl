@@ -587,7 +587,7 @@ monitor_idle_activity() {
                 monitor_idle=1
                 active=0
                 sleep 0.1
-                start_fake_activity
+                #start_fake_activity
             fi
             ;;
         *"Lid opened"*)
