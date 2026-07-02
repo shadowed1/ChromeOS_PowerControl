@@ -454,8 +454,11 @@ monitor_idle_activity() {
     last_ts=$EPOCHSECONDS
 
     while true; do
-    if ! IFS= read -r -t 5 line <&3; then
-        if [[ $? -gt 128 ]]; then
+    IFS= read -r -t 5 line <&3
+    read_status=$?
+
+    if (( read_status != 0 )); then
+        if (( read_status > 128 )); then
             line=""
         else
             exec 3<&-
