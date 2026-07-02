@@ -712,7 +712,7 @@ monitor_idle_activity() {
             stop_fake_activity
             backlight_off=0
         
-            line=$(grep "Setting brightness to" /var/log/power_manager/powerd.LATEST | tail -n1)
+            line=$(tail -n 200 /var/log/power_manager/powerd.LATEST | grep "Setting brightness to" | tail -n1)
             brightness_value=$(echo "$line" | sed -n 's/.*Setting brightness to \([0-9]\+\) (.*/\1/p')
         
             if [[ -n "$brightness_value" && "$brightness_value" -gt 0 && $lid_closed -eq 0 && $backlight_off -eq 0 && $was_dimmed -eq 0 ]]; then
