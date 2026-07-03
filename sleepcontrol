@@ -14,6 +14,7 @@ if [ -d "/home/chronos/user/MyFiles/Downloads" ]; then
 else
     CONFIG_FILE="/usr/local/bin/ChromeOS_PowerControl_Config/config"
 fi
+SELF="$(readlink -f "$0")"
 PID_FILE="$INSTALL_DIR/.sleepcontrol_pid"
 RUN_FLAG="$INSTALL_DIR/.sleepcontrol_enabled"
 LOG_FILE="/var/log/sleepcontrol.log"
@@ -831,19 +832,19 @@ stop_monitoring() {
     fi
 
     local stray_pids
-    stray_pids=$(pgrep -f "$0 __sleepcontrol_monitor__" 2>/dev/null)
+    stray_pids=$(pgrep -f "$SELF __sleepcontrol_monitor__" 2>/dev/null)
     if [[ -n "$stray_pids" ]]; then
         echo "Stopping stray monitor PIDs: $stray_pids"
         kill $stray_pids 2>/dev/null
     fi
 
     local waited=0
-    while pgrep -f "$0 __sleepcontrol_monitor__" > /dev/null 2>&1 && (( waited < 50 )); do
+    while pgrep -f "$SELF __sleepcontrol_monitor__" > /dev/null 2>&1 && (( waited < 50 )); do
         sleep 0.1
         (( waited++ ))
     done
 
-    stray_pids=$(pgrep -f "$0 __sleepcontrol_monitor__" 2>/dev/null)
+    stray_pids=$(pgrep -f "$SELF __sleepcontrol_monitor__" 2>/dev/null)
     if [[ -n "$stray_pids" ]]; then
         kill -9 $stray_pids 2>/dev/null
         sleep 0.1
@@ -857,7 +858,7 @@ stop_monitoring() {
 
 case "$1" in
     start)
-        if pgrep -f "$0 __sleepcontrol_monitor__" > /dev/null; then
+        if pgrep -f "$SELF __sleepcontrol_monitor__" > /dev/null; then
             echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - SleepControl is already running. ${RESET}" | tee -a "$LOG_FILE"
             exit 0
         fi
