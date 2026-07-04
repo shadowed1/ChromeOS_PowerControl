@@ -45,10 +45,9 @@ end_time="$(cat /sys/class/rtc/rtc0/since_epoch 2>/dev/null)"
 
 if [[ -n "$start_time" && -n "$end_time" ]]; then
     actual_sleep_time=$(( end_time - start_time ))
-    echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Battery suspend: slept ${RESET}${YELLOW}${actual_sleep_time}s${RESET}${BLUE} (no wake-loop, single-shot)${RESET}" >> "$LOG_FILE"
+    echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Battery suspend: slept ${RESET}${YELLOW}${actual_sleep_time}s${RESET}" >> "$LOG_FILE"
 fi
 
 sudo start tlsdated >/dev/null 2>&1
 cras_test_client --suspend 0 >/dev/null 2>&1
-
 exit 0
