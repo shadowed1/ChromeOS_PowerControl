@@ -1,11 +1,5 @@
 #!/bin/bash
 # deep_suspend_battery.sh
-#
-# Battery counterpart to deep_suspend.sh. Unlike deep_suspend.sh, this does
-# NOT set an RTC wakealarm and does NOT loop waking every N minutes to poll
-# charge state — on battery that periodic wake-up is pure wasted power. This
-# script suspends exactly once and relies on a real wake source (lid open,
-# power button, USB-PD/EC event, etc.) to bring the system back, then exits.
 
 LOG_FILE="/var/log/sleepcontrol.log"
 RED=$'\033[31m'
