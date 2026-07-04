@@ -1,4 +1,5 @@
 #!/bin/bash
+# deep_suspend.sh
 . "/usr/share/misc/shflags"
 LOG_FILE="/var/log/sleepcontrol.log"
 RED=$'\033[31m'
