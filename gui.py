@@ -560,6 +560,7 @@ _TOOLTIPS = {
 }
 
 
+
 class ConfigEditor(Gtk.Window):
     def __init__(self):
         settings = Gtk.Settings.get_default()
@@ -584,6 +585,7 @@ class ConfigEditor(Gtk.Window):
         headerbar.pack_end(self.reload_btn)
 
         self.config_path          = self.find_config_file()
+        self.spinbuttons          = {}
         self.config_data          = {}
         self.widgets              = {}
         self.original_gpu_max     = None
@@ -604,7 +606,8 @@ class ConfigEditor(Gtk.Window):
             )
             self.destroy()
             return
-
+                
+        self.preload_gpu_range()
         self.create_ui()
         self.load_config()
         self.setup_constraints()
@@ -624,6 +627,26 @@ class ConfigEditor(Gtk.Window):
             if os.path.exists(path):
                 return path
         return None
+
+    def preload_gpu_range(self):
+            """Read ORIGINAL_GPU_MAX_FREQ/GPU_TYPE before building the UI so the
+            GPU slider is created with the correct range immediately."""
+            if not self.config_path or not os.path.exists(self.config_path):
+                return
+            try:
+                data = {}
+                with open(self.config_path, 'r') as f:
+                    for line in f:
+                        line = line.strip()
+                        if line and not line.startswith('#') and '=' in line:
+                            k, v = line.split('=', 1)
+                            data[k.strip()] = v.strip()
+                raw = data.get("ORIGINAL_GPU_MAX_FREQ")
+                if raw:
+                    self.original_gpu_max = int(raw)
+                    self.gpu_type = data.get("GPU_TYPE", "intel").lower()
+            except Exception:
+                pass
 
     def get_widget_value(self, key, default=0.0):
         if key in self.widgets:
@@ -905,6 +928,7 @@ class ConfigEditor(Gtk.Window):
                         spinbutton.set_tooltip_text(_TOOLTIPS.get(key, ""))
                         self.grid.attach(box, 1, row, 1, 1)
                         self.widgets[key] = scale
+                        self.spinbuttons[key] = spinbutton
                         self.focusable_widgets.append(scale)
                     else:
                         widget = self.create_slider(min_val, max_val, step)
@@ -1079,6 +1103,10 @@ class ConfigEditor(Gtk.Window):
                         display_max = gpu_config_to_mhz(self.gpu_type, self.original_gpu_max)
                         display_min = max(100, int(display_max * 0.1))
                         self.widgets["GPU_MAX_FREQ"].set_range(display_min, display_max)
+                        if "GPU_MAX_FREQ" in self.spinbuttons:
+                            adj = self.spinbuttons["GPU_MAX_FREQ"].get_adjustment()
+                            adj.set_lower(display_min)
+                            adj.set_upper(display_max)
 
             self.updating_constraints = True
             for key, widget in self.widgets.items():
