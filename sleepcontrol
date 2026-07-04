@@ -32,6 +32,16 @@ SAVED_BRIGHTNESS_FILE="$INSTALL_DIR/.saved_brightness"
 SUSPEND_APPLIED_FLAG="/tmp/.sleepcontrol_suspend_applied"
 CONF_SOURCE="$INSTALL_DIR/sleepcontrol.conf"
 CONF_TARGET="/etc/init/sleepcontrol.conf"
+DEEP_SUSPEND="$INSTALL_DIR/deep_suspend.sh"
+DEEP_SUSPEND_BATTERY="$INSTALL_DIR/deep_suspend_battery.sh"
+
+run_deep_suspend() {
+    if [[ "$STATUS" == "Discharging" ]]; then
+        sudo "$DEEP_SUSPEND_BATTERY" "$@"
+    else
+        sudo "$DEEP_SUSPEND" "$@"
+    fi
+}
 
 if [ ! -f /usr/sbin/ectool ]; then
     echo "${RED}ectool not found. Exiting.${RESET}"
@@ -559,7 +569,7 @@ monitor_idle_activity() {
                 if (( LIDSLEEP_ENABLED == 1 && lid_closed == 1 )); then
                     echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Lid sleep enabled and lid closed, skipping fake activity${RESET}" >> "$LOG_FILE"
                     sleep 0.1
-                    sudo "$INSTALL_DIR/deep_suspend.sh" 2>/dev/null
+                    run_deep_suspend 2>/dev/null
                     post_suspend_reset
                     stop_fake_activity
                 else
@@ -583,7 +593,7 @@ monitor_idle_activity() {
                 echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Lid closed, lid sleep on! ${RESET}" >> "$LOG_FILE"
                 #stop_fake_activity
                 sleep 0.1
-                sudo "$INSTALL_DIR/deep_suspend.sh"
+                run_deep_suspend
                 post_suspend_reset
                 stop_fake_activity
             else
@@ -646,7 +656,7 @@ monitor_idle_activity() {
                         echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Lid is closed - lid sleep enabled on ${STATUS}, going back to sleep!${RESET}" >> "$LOG_FILE"
                         #stop_fake_activity
                         sleep 0.1
-                        sudo "$INSTALL_DIR/deep_suspend.sh"
+                        run_deep_suspend
                         post_suspend_reset
                         stop_fake_activity
                     else
@@ -738,7 +748,7 @@ monitor_idle_activity() {
             if (( idle_elapsed >= suspend_delay )); then
                 echo "${BLUE}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Timers already elapsed, returning to sleep${RESET}" >> "$LOG_FILE"
                 sleep 0.1
-                sudo "$INSTALL_DIR/deep_suspend.sh"
+                run_deep_suspend
                 post_suspend_reset
                 stop_fake_activity
             else
@@ -810,7 +820,7 @@ monitor_idle_activity() {
                     idle_since=$now
                     last_ts=$now
                     idle_elapsed=0
-                    sudo "$INSTALL_DIR/deep_suspend.sh"
+                    run_deep_suspend
                     post_suspend_reset
                     stop_fake_activity
                 fi
