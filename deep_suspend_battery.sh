@@ -50,4 +50,3 @@ fi
 
 sudo start tlsdated >/dev/null 2>&1
 cras_test_client --suspend 0 >/dev/null 2>&1
-exit 0
