@@ -146,12 +146,17 @@ detect_gpu_freq() {
     fi
 
     # Intel
-    if [ "$GPU_TYPE" = "intel" ] || { [ "$GPU_TYPE" = "unknown" ] && [ -f "/sys/class/drm/card0/gt_max_freq_mhz" ]; }; then
-        GPU_FREQ_PATH="/sys/class/drm/card0/gt_max_freq_mhz"
-        GPU_MAX_FREQ=$(cat "$GPU_FREQ_PATH")
-        GPU_TYPE="intel"
-        echo "[*] Detected Intel GPU: max freq ${GPU_MAX_FREQ} MHz"
-        return
+    if [ "$GPU_TYPE" = "intel" ] || [ "$GPU_TYPE" = "unknown" ]; then
+        for f in /sys/class/drm/card*/gt_max_freq_mhz; do
+            [ -f "$f" ] || continue
+    
+            GPU_FREQ_PATH="$f"
+            GPU_MAX_FREQ=$(cat "$GPU_FREQ_PATH")
+            GPU_TYPE="intel"
+    
+            echo "${BLUE}[*] Detected Intel GPU: max freq ${BOLD}${GPU_MAX_FREQ}${RESET}${BLUE} MHz${RESET}"
+            return
+        done
     fi
     # NVIDIA / Nouveau
     if [ "$GPU_TYPE" = "nvidia" ]; then
@@ -163,7 +168,7 @@ detect_gpu_freq() {
             GPU_FREQ_PATH="/sys/class/drm/card0/gt_max_freq_mhz"
             GPU_MAX_FREQ=$(cat "$GPU_FREQ_PATH")
         fi
-        echo "[*] Detected NVIDIA GPU: max freq ${GPU_MAX_FREQ:-unknown} MHz"
+        echo "${GREEN}[*] Detected NVIDIA GPU: max freq ${BOLD}${GPU_MAX_FREQ:-unknown}${RESET}${GREEN} MHz"
         return
     fi
 
@@ -186,7 +191,7 @@ detect_gpu_freq() {
         GPU_MAX_FREQ="$MAX_MHZ"
         GPU_FREQ_PATH="$f"
 
-        echo "[*] Detected AMD GPU: max freq ${GPU_MAX_FREQ} MHz"
+        echo "${RED}[*] Detected AMD GPU: max freq ${BOLD}${GPU_MAX_FREQ}${RESET}${RED} MHz"
         return
     fi
 done
@@ -198,7 +203,7 @@ done
         PP_DPM_SCLK="/sys/class/drm/card0/device/pp_dpm_sclk"
         GPU_MAX_FREQ=$(grep -oi '[0-9]\+mhz' "$PP_DPM_SCLK" | grep -oi '[0-9]\+' | sort -nr | head -n1)
         GPU_FREQ_PATH="$PP_DPM_SCLK"
-        echo "[*] Detected AMD GPU (pp_dpm): max freq ${GPU_MAX_FREQ} MHz"
+        echo "${RED}[*] Detected AMD GPU (pp_dpm): max freq ${BOLD}${GPU_MAX_FREQ}${RESET}${RED} MHz"
         return
     fi
 
@@ -206,19 +211,19 @@ done
     if [[ -d /sys/class/drm ]]; then
         if grep -qi "mediatek" /sys/class/drm/*/device/uevent 2>/dev/null; then
             GPU_TYPE="mediatek"
-            echo "[*] Detected MediaTek GPU"
+            echo "${YELLOW}[*] Detected MediaTek GPU${RESET}"
             return
         elif grep -qi "vivante" /sys/class/drm/*/device/uevent 2>/dev/null; then
             GPU_TYPE="vivante"
-            echo "[*] Detected Vivante GPU"
+            echo "${MAGENTA}[*] Detected Vivante GPU${RESET}"
             return
         elif grep -qi "asahi" /sys/class/drm/*/device/uevent 2>/dev/null; then
             GPU_TYPE="asahi"
-            echo "[*] Detected Asahi GPU"
+            echo "${CYAN}[*] Detected Apple GPU${RESET}"
             return
         elif grep -qi "panfrost" /sys/class/drm/*/device/uevent 2>/dev/null; then
             GPU_TYPE="mali"
-            echo "[*] Detected Mali/Panfrost GPU"
+            echo "${GREEN}[*] Detected Mali/Panfrost GPU${RESET}"
             return
         fi
     fi
@@ -230,13 +235,13 @@ done
                 GPU_FREQ_PATH="$d/max_freq"
                 GPU_MAX_FREQ=$(cat "$GPU_FREQ_PATH")
                 GPU_TYPE="mali"
-                echo "[*] Detected Mali GPU via devfreq: max freq ${GPU_MAX_FREQ} Hz"
+                echo "${GREEN}[*] Detected Mali GPU via devfreq: max freq ${BOLD}${GPU_MAX_FREQ} ${RESET}${GREEN}Hz"
                 return
             elif [ -f "$d/available_frequencies" ]; then
                 GPU_FREQ_PATH="$d/available_frequencies"
                 GPU_MAX_FREQ=$(tr ' ' '\n' < "$GPU_FREQ_PATH" | sort -nr | head -n1)
                 GPU_TYPE="mali"
-                echo "[*] Detected Mali GPU via devfreq: max freq ${GPU_MAX_FREQ} Hz"
+                echo "${GREEN}[*] Detected Mali GPU via devfreq: max freq ${BOLD}${GPU_MAX_FREQ}${RESET}${GREEN} Hz"
                 return
             fi
         fi
@@ -248,21 +253,20 @@ done
             GPU_FREQ_PATH="/sys/class/kgsl/kgsl-3d0/max_gpuclk"
             GPU_MAX_FREQ=$(cat "$GPU_FREQ_PATH")
             GPU_TYPE="adreno"
-            echo "[*] Detected Adreno GPU: max freq ${GPU_MAX_FREQ} Hz"
+            echo "${CYAN}[*] Detected Adreno GPU: max freq ${BOLD}${GPU_MAX_FREQ}${RESET}${CYAN} Hz"
             return
         elif [ -f "/sys/class/kgsl/kgsl-3d0/gpuclk" ]; then
             GPU_FREQ_PATH="/sys/class/kgsl/kgsl-3d0/gpuclk"
             GPU_MAX_FREQ=$(cat "$GPU_FREQ_PATH")
             GPU_TYPE="adreno"
-            echo "[*] Detected Adreno GPU: max freq ${GPU_MAX_FREQ} Hz"
+            echo "${BLUE}[*] Detected Adreno GPU: max freq ${BOLD}${GPU_MAX_FREQ}${RESET}${BLUE} Hz"
             return
         fi
     fi
 
     GPU_TYPE="unknown"
-    echo "[!] GPU type unknown"
+    echo "${RED}[!] GPU type ${BOLD}unknown${RESET}"
 }
-
 INSTALL_DIR="/usr/local/bin/ChromeOS_PowerControl"
 echo ""
 echo "${RESET}${RED}╔${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}═${RESET}${YELLOW}═${RESET}${RED}╗"
