@@ -220,6 +220,13 @@ save_config() {
     fi
 }
 
+update_status() {
+    local val="$1"
+    if [[ -f "$CONFIG_FILE" ]]; then
+        sed -i "s/^BATTERYCONTROL_STATUS=.*/BATTERYCONTROL_STATUS=$val/" "$CONFIG_FILE"
+    fi
+}
+
 detect_cpu_type
 load_config
 
@@ -416,7 +423,7 @@ start_monitoring_loop() {
     load_config
     touch "$RUN_FLAG"
     echo $$ > "$PID_FILE"
-
+    update_status 1
     last_reload_time=0
     cooldown_mode=false
     last_pct=0
@@ -612,6 +619,7 @@ stop_monitoring() {
             kill -9 "$PID" 2>/dev/null || true
             echo "${RED}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - PowerControl stopped (PID $PID)${RESET}" | tee -a "$LOG_FILE"
             killed=1
+            update_status 0
         fi
     fi
 
