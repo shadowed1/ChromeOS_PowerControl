@@ -254,7 +254,7 @@ stop_monitoring() {
         fi
         sudo rm -f "$PID_FILE"
     fi
-    update status 0
+    update_status 0
     sudo rm -f "$RUN_FLAG"
 }
 
