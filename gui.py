@@ -730,7 +730,7 @@ class ConfigEditor(Gtk.Window):
 
             for status_key, label_id in status_map.items():
                 status = data.get(status_key, "0")
-                text = "Running" if status == "1" else "Stopped"
+                text = "[ON]" if status == "1" else "[OFF]"
                 color = "green" if status == "1" else "red"
                 dot = "  ●" if status == "1" else "  ○"
 
