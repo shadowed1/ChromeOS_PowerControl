@@ -125,6 +125,13 @@ save_config() {
     fi
 }
 
+update_status() {
+    local val="$1"
+    if [[ -f "$CONFIG_FILE" ]]; then
+        sed -i "s/^BATTERYCONTROL_STATUS=.*/BATTERYCONTROL_STATUS=$val/" "$CONFIG_FILE"
+    fi
+}
+
 wait_for_config
 load_config
 
@@ -332,11 +339,12 @@ start_monitoring_loop() {
     trap 'echo "$(date) - SIGTERM received" >> "$LOG_FILE"' TERM
     trap 'echo "$(date) - SIGINT received" >> "$LOG_FILE"' INT
     trap 'echo "$(date) - EXIT trap fired ($?)" >> "$LOG_FILE"' EXIT
+    trap 'echo "$(date) - EXIT trap fired ($?)" >> "$LOG_FILE"; update_status 0' EXIT
     wait_for_config
     detect_battery
     touch "$RUN_FLAG"
     echo "$BASHPID" > "$PID_FILE"
-
+    update_status 1
     echo "${GREEN}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - BatteryControl started. (PID $$).${RESET}"
 
     local last_reload_time=0
@@ -465,6 +473,7 @@ stop_monitoring() {
         killed=1
     fi
     rm -f "$RUN_FLAG"
+    update_status 0
     if (( killed == 0 )); then
         echo "${YELLOW}$(date '+%F %T') - BatteryControl is not running." | tee -a "$LOG_FILE"
     fi
