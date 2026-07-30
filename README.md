@@ -352,7 +352,7 @@ GPUControl, Fancontrol, and SleepControl. Added check to skip on-boot startup pr
 - 0.74: `Fixed BatteryControl not handling multiple chargers simultaneously.` <br><br>
 - 0.75: `Added ChromeOS Flex support.` <br><br>
 - 0.76: `Fixed sleepcontrol pid management. Enabled native sleep power efficiency when asleep on battery. Fixed GPU frequency gui issue. Enhanced GPU detection wrapper.` <br><br>
-- 0.77: `GUI app now displays run status of each module` <br><br>
+- 0.77: `GUI app now displays run status of each module.` <br><br>
 <br>
 
 __Acknowledgements:__
