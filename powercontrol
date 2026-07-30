@@ -223,7 +223,7 @@ save_config() {
 update_status() {
     local val="$1"
     if [[ -f "$CONFIG_FILE" ]]; then
-        sed -i "s/^BATTERYCONTROL_STATUS=.*/BATTERYCONTROL_STATUS=$val/" "$CONFIG_FILE"
+        sed -i "s/^POWERCONTROL_STATUS=.*/POWERCONTROL_STATUS=$val/" "$CONFIG_FILE"
     fi
 }
 
