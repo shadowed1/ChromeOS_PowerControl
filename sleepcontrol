@@ -262,6 +262,13 @@ save_config() {
     fi
 }
 
+update_status() {
+    local val="$1"
+    if [[ -f "$CONFIG_FILE" ]]; then
+        sed -i "s/^SLEEPCONTROL_STATUS=.*/SLEEPCONTROL_STATUS=$val/" "$CONFIG_FILE"
+    fi
+}
+
 show_help() {
 echo "${BLUE}"
 echo "╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
@@ -358,7 +365,7 @@ monitor_idle_activity() {
         echo "${RESET}"
         exit 1
     }
-
+    update_status 1
     wait_for_config
     load_config
     saved_display_brightness=$(get_saved_brightness) 2>/dev/null
@@ -862,6 +869,7 @@ stop_monitoring() {
     local stopped_pid=${PID:-"unknown"}
     sudo rm -f "$RUN_FLAG"
     sudo rm -f "$PID_FILE"
+    update_status 0
     echo "${RED}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - SleepControl Stopped (PID $stopped_pid)${RESET}"
 }
 
