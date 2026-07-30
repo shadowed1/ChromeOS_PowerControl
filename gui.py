@@ -588,6 +588,7 @@ class ConfigEditor(Gtk.Window):
         self.spinbuttons          = {}
         self.config_data          = {}
         self.widgets              = {}
+        self.status_labels        = {}
         self.original_gpu_max     = None
         self.gpu_type             = None
         self.updating_constraints = False
@@ -614,6 +615,8 @@ class ConfigEditor(Gtk.Window):
         self.connect_graph_signals()
         self.setup_keyboard_navigation()
         self.initial_load = False
+
+        GLib.timeout_add(5000, self.update_status_lights)
 
     def find_config_file(self):
         possible_paths = [
@@ -703,6 +706,46 @@ class ConfigEditor(Gtk.Window):
             self.focusable_widgets[idx].grab_focus()
             return True
         return False
+
+    def update_status_lights(self):
+        """Polls config file every 5s to check if modules are running."""
+        if not self.config_path or not os.path.exists(self.config_path):
+            return True
+        try:
+            data = {}
+            with open(self.config_path, 'r') as f:
+                for line in f:
+                    line = line.strip()
+                    if line and '=' in line:
+                        k, v = line.split('=', 1)
+                        data[k.strip()] = v.strip()
+
+            status_map = {
+                "POWERCONTROL_STATUS": "cpu",
+                "GPUCONTROL_STATUS": "gpu",
+                "FANCONTROL_STATUS": "fan",
+                "BATTERYCONTROL_STATUS": "bat",
+                "SLEEPCONTROL_STATUS": "sleep"
+            }
+
+            for status_key, label_id in status_map.items():
+                status = data.get(status_key, "0")
+                text = "Running" if status == "1" else "Stopped"
+                color = "green" if status == "1" else "red"
+                dot = "  ●" if status == "1" else "  ○"
+
+                if label_id == "sleep":
+                    for lbl in self.status_labels.get("sleep", []):
+                        markup = f"<b><big>{lbl.orig_text}</big></b> <span foreground='{color}'>{dot} {text}</span>"
+                        lbl.set_markup(markup)
+                elif label_id in self.status_labels:
+                   lbl = self.status_labels[label_id]
+                   markup = f"<b><big>{lbl.orig_text}</big></b> <span foreground='{color}'>{dot} {text}</span>"
+                   lbl.set_markup(markup)
+
+        except Exception as e:
+            print(f"Status Poll Error: {e}")
+        return True
 
     def create_ui(self):
         outer_vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
@@ -887,8 +930,21 @@ class ConfigEditor(Gtk.Window):
             header.set_margin_start(20)
             header.set_margin_top(15)
             header.set_margin_bottom(5)
+            header.orig_text = section_name
             self.grid.attach(header, 0, row, 2, 1)
             row += 1
+
+            if graph_id:
+                if graph_id not in self.status_labels:
+                    self.status_labels[graph_id] = []
+                self.status_labels[graph_id].append(header) if isinstance(self.status_labels.get(graph_id), list) else None
+                if graph_id == "sleep":
+                    if not isinstance(self.status_labels[graph_id], list):
+                         self.status_labels[graph_id] = [header]
+                    else:
+                         self.status_labels[graph_id].append(header)
+                else:
+                    self.status_labels[graph_id] = header
 
             separator = Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL)
             separator.set_margin_bottom(5)
@@ -1158,7 +1214,7 @@ class ConfigEditor(Gtk.Window):
                             value = widget.get_value()
                             if key in sleep_keys:
                                 new_value = str(int(value))
-                            elif key == "CPU_POLL":
+                            elif key == "_POLL":
                                 new_value = f"{value:.1f}"
                             elif key == "GPU_MAX_FREQ":
                                 new_value = str(gpu_mhz_to_config(self.gpu_type, int(value)))
