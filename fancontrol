@@ -140,6 +140,13 @@ save_config() {
     fi
 }
 
+update_status() {
+    local val="$1"
+    if [[ -f "$CONFIG_FILE" ]]; then
+        sed -i "s/^FANCONTROL_STATUS=.*/FANCONTROL_STATUS=$val/" "$CONFIG_FILE"
+    fi
+}
+
 cleanup() {
     echo "${YELLOW} $(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - Restoring automatic fan control..." | tee -a "$LOG_FILE"
     sudo ectool autofanctrl 2>/dev/null
@@ -168,7 +175,7 @@ run_loop() {
         OFFSET=$((TEMP_C - FAN_MIN_TEMP))
         initial_duty=$((MIN_FAN + (OFFSET * (MAX_FAN - MIN_FAN) / RANGE)))
     fi
-
+    update_status 1
     sudo ectool fanduty "$initial_duty"
         prev_temp=$TEMP_C
         local last_duty=-1
@@ -319,6 +326,7 @@ stop() {
         sudo rm -f "$PID_FILE"
     fi
     sudo rm -f "$RUN_FLAG"
+    update_status 0
     sudo ectool autofanctrl
 }
 
