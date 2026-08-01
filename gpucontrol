@@ -143,7 +143,7 @@ amd_set_max_freq() {
 
 get_current_freq() {
     case "$1" in
-        intel|mali|adreno)
+        intel|mali|adreno|mediatek)
             if [[ -f "$GPU_FREQ_PATH" ]]; then
                 read -r freq 2>/dev/null < "$GPU_FREQ_PATH" && echo "$freq" || echo "Unavailable"
             else
@@ -267,7 +267,7 @@ apply_gpu_settings() {
         intel)
             [[ -w "$GPU_FREQ_PATH" ]] && printf '%s\n' "$GPU_MAX_FREQ" | sudo tee "$GPU_FREQ_PATH" > /dev/null 2>&1
             ;;
-        mali|adreno)
+        mali|adreno|mediatek)
             printf '%s\n' "$GPU_MAX_FREQ" | sudo tee "$GPU_FREQ_PATH" > /dev/null 2>&1
             ;;
         amd)
@@ -357,7 +357,7 @@ __gpucontrol_monitor__)
     restore)
         echo "${MAGENTA}Restoring GPU to original max frequency...${RESET}"
         case "$GPU_TYPE" in
-            intel|adreno|mali)
+            intel|adreno|mali|mediatek)
                 [[ -w "$GPU_FREQ_PATH" ]] && printf '%s\n' "$ORIGINAL_GPU_MAX_FREQ" | sudo tee "$GPU_FREQ_PATH" > /dev/null 2>&1
                 ;;
             amd)
@@ -417,7 +417,7 @@ if [[ $# -eq 0 ]]; then
         intel)
             printf '%s\n' "$GPU_MAX_FREQ" | sudo tee "$GPU_FREQ_PATH" > /dev/null 2>&1
             ;;
-        mali|adreno)
+        mali|adreno|mediatek)
             printf '%s\n' "$GPU_MAX_FREQ" | sudo tee "$GPU_FREQ_PATH" > /dev/null 2>&1
             ;;
     esac
@@ -429,7 +429,7 @@ if [[ $# -eq 0 ]]; then
             intel|amd)
                 DISPLAY_FREQ="$CURRENT_FREQ"
                 ;;
-            mali|adreno)
+            mali|adreno|mediatek)
                 DISPLAY_FREQ=$((CURRENT_FREQ / 1000000))
                 ;;
             *)
@@ -512,7 +512,7 @@ case "$GPU_ARG" in
         GPU_MAX_FREQ="$REQUESTED_FREQ"
         save_config
         ;;
-    mali|adreno)
+    mali|adreno|mediatek)
         freq_hz=
         if (( REQUESTED_FREQ < 10000 )); then
             freq_hz=$((REQUESTED_FREQ * 1000000))
