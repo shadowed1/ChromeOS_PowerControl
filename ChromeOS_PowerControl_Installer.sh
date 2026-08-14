@@ -1094,7 +1094,7 @@ fi
 #echo "║  As a precaution GPUControl has a 2 minute delay before applying custom clockspeed on boot.                        ║"
 #echo "╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝${RESET}"
 #fi
-sleep 0.2
+sleep 0.1
 if [[ "$SHOW_SLEEPCONTROL_NOTICE" -eq 1 ]]; then
 echo "${BLUE}╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗"
 sleep 0.01
