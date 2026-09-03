@@ -121,7 +121,7 @@ case "$choice" in
         sudo rm -f "/usr/local/bin/batterycontrol_conf.sh" 2>/dev/null
         sudo rm -f "/usr/local/bin/gpucontrol_conf.sh" 2>/dev/null
         sudo rm -f "$INSTALL_DIR/.saved_brightness" 2>/dev/null
-        rm -rf /home/chronos/user/MyFiles/Downloads/ChromeOS_PowerControl_Config 2>/dev/null
+        rm -rf /home/chronos/user/MyFiles/Downloads/.config/shadowed1/ChromeOS_PowerControl_Config 2>/dev/null
         remove_file_with_message "$INSTALL_DIR/powercontrol"
         remove_file_with_message "$INSTALL_DIR/fancontrol"
         remove_file_with_message "$INSTALL_DIR/batterycontrol"

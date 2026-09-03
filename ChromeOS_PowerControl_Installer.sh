@@ -368,7 +368,7 @@ done
 
 OLD_CONFIG_PATH="$INSTALL_DIR/config.sh"
 if [ -d "/home/chronos/user/MyFiles/Downloads" ]; then
-    CONFIG_DIR="/home/chronos/user/MyFiles/Downloads/ChromeOS_PowerControl_Config"
+    CONFIG_DIR="/home/chronos/user/MyFiles/Downloads/.config/shadowed1/ChromeOS_PowerControl_Config"
     mkdir -p "$CONFIG_DIR"
     else
         CONFIG_DIR="/usr/local/bin/ChromeOS_PowerControl_Config"

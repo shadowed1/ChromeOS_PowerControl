@@ -599,10 +599,10 @@ class ConfigEditor(Gtk.Window):
             self.show_error_dialog(
                 "Config File Not Found",
                 "Could not find config file at:\n"
-                "/mnt/chromeos/MyFiles/Downloads/ChromeOS_PowerControl_Config/config\n"
-                "/mnt/shared/MyFiles/Downloads/ChromeOS_PowerControl_Config/config\n"
+                "/mnt/chromeos/MyFiles/Downloads/.config/shadowed1/ChromeOS_PowerControl_Config/config\n"
+                "/mnt/shared/MyFiles/Downloads/.config/shadowed1/ChromeOS_PowerControl_Config/config\n"
                 "/usr/local/bin/ChromeOS_PowerControl_Config/config\n"
-                "/home/chronos/user/MyFiles/Downloads/ChromeOS_PowerControl_Config/config\n\n"
+                "/home/chronos/user/MyFiles/Downloads/.config/shadowed1/ChromeOS_PowerControl_Config/config\n\n"
                 "Please ensure the folder is shared to Crostini/Chard."
             )
             self.destroy()
@@ -620,11 +620,11 @@ class ConfigEditor(Gtk.Window):
 
     def find_config_file(self):
         possible_paths = [
-            "/mnt/chromeos/MyFiles/Downloads/ChromeOS_PowerControl_Config/config",
+            "/mnt/chromeos/MyFiles/Downloads/.config/shadowed1/ChromeOS_PowerControl_Config/config",
             "/usr/local/bin/ChromeOS_PowerControl_Config/config",
             os.path.expanduser(
-                "/home/chronos/user/MyFiles/Downloads/ChromeOS_PowerControl_Config/config"),
-            "/mnt/shared/MyFiles/Downloads/ChromeOS_PowerControl_Config/config",
+                "/home/chronos/user/MyFiles/Downloads/.config/shadowed1/ChromeOS_PowerControl_Config/config"),
+            "/mnt/shared/MyFiles/Downloads/.config/shadowed1/ChromeOS_PowerControl_Config/config",
         ]
         for path in possible_paths:
             if os.path.exists(path):
