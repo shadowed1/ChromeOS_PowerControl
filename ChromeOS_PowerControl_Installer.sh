@@ -368,16 +368,18 @@ done
 
 OLD_CONFIG_PATH="$INSTALL_DIR/config.sh"
 if [ -d "/home/chronos/user/MyFiles/Downloads" ]; then
+    mv "/home/chronos/user/MyFiles/Downloads/.ChromeOS_PowerControl_Config" "/home/chronos/user/MyFiles/Downloads/.ChromeOS_PowerControl_Config" 2>/dev/null
     CONFIG_DIR="/home/chronos/user/MyFiles/Downloads/ChromeOS_PowerControl_Config"
     mkdir -p "$CONFIG_DIR"
     else
-        CONFIG_DIR="/usr/local/bin/ChromeOS_PowerControl_Config"
-    sudo mkdir -p "$CONFIG_DIR"
-    sudo chown -R 1000:1000 "$CONFIG_DIR"
-    sudo curl -fsSL https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/gui.py -o /bin/powercontrol-gui 2>/dev/null
-    sudo chmod +x /bin/powercontrol-gui 2>/dev/null
-    alias powercontrol-gui='sudo -E powercontrol-gui' 
-    sudo mkdir -p /usr/share/applications/ /usr/share/icons/hicolor/48x48/apps/
+        mv "/usr/local/bin/ChromeOS_PowerControl_Config" "/usr/local/bin/.ChromeOS_PowerControl_Config" 2>/dev/null
+        CONFIG_DIR="/usr/local/bin/.ChromeOS_PowerControl_Config"
+        sudo mkdir -p "$CONFIG_DIR"
+        sudo chown -R 1000:1000 "$CONFIG_DIR"
+        sudo curl -fsSL https://raw.githubusercontent.com/shadowed1/ChromeOS_PowerControl/main/gui.py -o /bin/powercontrol-gui 2>/dev/null
+        sudo chmod +x /bin/powercontrol-gui 2>/dev/null
+        alias powercontrol-gui='sudo -E powercontrol-gui' 
+        sudo mkdir -p /usr/share/applications/ /usr/share/icons/hicolor/48x48/apps/
     cat <<'EOF' | sudo tee /usr/share/applications/powercontrol-gui.desktop > /dev/null
 [Desktop Entry]
 Version=1.0
