@@ -322,32 +322,37 @@ done
 
 echo "${BLUE}Stopping any existing components of ChromeOS_PowerControl (in case of reinstall)${RESET}"
 sudo ectool backlight 1 >/dev/null 2>&1
-sleep 0.1
+
+echo ""
 sudo pkill -f "$INSTALL_DIR/powercontrol" 2>/dev/null
-sleep 0.1
 sudo pkill -f "/usr/local/bin/powercontrol" 2>/dev/null
-#sudo bash "$INSTALL_DIR/powercontrol" stop 2>/dev/null
+sudo bash "$INSTALL_DIR/powercontrol" stop 2>/dev/null
+sleep 0.1
+
 echo ""
 sudo pkill -f "$INSTALL_DIR/batterycontrol" 2>/dev/null
-sleep 0.1
 sudo pkill -f "/usr/local/bin/batterycontrol" 2>/dev/null
-#sudo bash "$INSTALL_DIR/batterycontrol" stop 2>/dev/null
+sudo bash "$INSTALL_DIR/batterycontrol" stop 2>/dev/null
+sleep 0.1
+
 echo ""
 sudo pkill -f "/usr/local/bin/fancontrol" 2>/dev/null
 sudo pkill -f "$INSTALL_DIR/fancontrol" 2>/dev/null
+sudo bash "$INSTALL_DIR/fancontrol" stop 2>/dev/null
 sleep 0.1
-#sudo bash "$INSTALL_DIR/fancontrol" stop 2>/dev/null
+
 echo ""
 sudo pkill -f "/usr/local/bin/sleepcontrol" 2>/dev/null
 sudo pkill -f "$INSTALL_DIR/sleepcontrol" 2>/dev/null
+sudo bash "$INSTALL_DIR/sleepcontrol" stop 2>/dev/null
 sleep 0.1
-#sudo bash "$INSTALL_DIR/sleepcontrol" stop 2>/dev/null
+
 echo ""
 sudo pkill -f "/usr/local/bin/gpucontrol" 2>/dev/null
 sudo pkill -f "$INSTALL_DIR/gpucontrol" 2>/dev/null
+sudo bash "$INSTALL_DIR/gpucontrol" stop 2>/dev/null
 sleep 0.1
-#sudo bash "$INSTALL_DIR/gpucontrol" stop 2>/dev/null
-sleep 0.1
+
 #sudo pkill -f "/usr/local/bin/gpucontrol" >/dev/null 2>&1
 #sudo pkill -f "/usr/local/bin/fancontrol" >/dev/null 2>&1
 #sudo pkill -f "/usr/local/bin/sleepcontrol" >/dev/null 2>&1
