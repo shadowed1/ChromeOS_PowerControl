@@ -372,7 +372,7 @@ if [ -d "/home/chronos/user/MyFiles/Downloads" ]; then
     CONFIG_DIR="/home/chronos/user/MyFiles/Downloads/ChromeOS_PowerControl_Config"
     mkdir -p "$CONFIG_DIR"
     else
-        mv "/usr/local/bin/ChromeOS_PowerControl_Config" "/usr/local/bin/.ChromeOS_PowerControl_Config" 2>/dev/null
+        sudo mv "/usr/local/bin/ChromeOS_PowerControl_Config" "/usr/local/bin/.ChromeOS_PowerControl_Config" 2>/dev/null
         CONFIG_DIR="/usr/local/bin/.ChromeOS_PowerControl_Config"
         sudo mkdir -p "$CONFIG_DIR"
         sudo chown -R 1000:1000 "$CONFIG_DIR"
