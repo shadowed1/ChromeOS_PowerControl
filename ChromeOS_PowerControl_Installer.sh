@@ -383,8 +383,8 @@ done
 
 OLD_CONFIG_PATH="$INSTALL_DIR/config.sh"
 if [ -d "/home/chronos/user/MyFiles/Downloads" ]; then
-    mv "/home/chronos/user/MyFiles/Downloads/.ChromeOS_PowerControl_Config" "/home/chronos/user/MyFiles/Downloads/.ChromeOS_PowerControl_Config" 2>/dev/null
-    CONFIG_DIR="/home/chronos/user/MyFiles/Downloads/ChromeOS_PowerControl_Config"
+    mv "/home/chronos/user/MyFiles/Downloads/ChromeOS_PowerControl_Config" "/home/chronos/user/MyFiles/Downloads/.ChromeOS_PowerControl_Config" 2>/dev/null
+    CONFIG_DIR="/home/chronos/user/MyFiles/Downloads/.ChromeOS_PowerControl_Config"
     mkdir -p "$CONFIG_DIR"
     else
         sudo mv "/usr/local/bin/ChromeOS_PowerControl_Config" "/usr/local/bin/.ChromeOS_PowerControl_Config" 2>/dev/null
