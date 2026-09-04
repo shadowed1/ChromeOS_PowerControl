@@ -636,7 +636,7 @@ stop_monitoring() {
     rm -f "$RUN_FLAG" "$PID_FILE"
 
     if (( killed == 0 )); then
-        echo "$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - PowerControl was not running." | tee -a "$LOG_FILE"
+        echo "${CYAN}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - PowerControl was not running. ${RESET}" | tee -a "$LOG_FILE"
     fi
 }
 
