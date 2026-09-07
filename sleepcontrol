@@ -133,7 +133,6 @@ DEFAULT_AUDIO_DETECTION_POWER=1
 DEFAULT_LIDSLEEP_BATTERY=1
 DEFAULT_LIDSLEEP_POWER=1
 
-
 AUDIO_DETECTION_BATTERY=
 AUDIO_DETECTION_POWER=
 BATTERY_DELAY=
@@ -423,16 +422,13 @@ monitor_idle_activity() {
             wait "$tail_pid" 2>/dev/null
         fi
     
-        exec 3<&-
-        local fifo="${INSTALL_DIR}/.sleepcontrol_tail_fifo"
-        rm -f "$fifo"
-        mkfifo "$fifo"
-    
-        tail -Fn0 /var/log/power_manager/powerd.LATEST > "$fifo" &
-        tail_pid=$!
-    
-        exec 3< "$fifo"
-        rm -f "$fifo"
+        exec 3< <(
+        tail -Fn0 /var/log/power_manager/powerd.LATEST |
+        while IFS= read -r line; do
+            sleep 0.04
+            printf '%s\n' "$line"
+        done
+    )
     }
 
     post_suspend_reset() {
@@ -444,7 +440,6 @@ monitor_idle_activity() {
     backlight_off=0
     was_dimmed=0
     wake_grace_end=$(( EPOCHSECONDS + 3 ))
-    refresh_tail
 }
     start_fake_activity() {
         if (( sending_fake_activity == 0 )); then
@@ -479,13 +474,7 @@ monitor_idle_activity() {
 
 
 
-    exec 3< <(
-        tail -Fn0 /var/log/power_manager/powerd.LATEST |
-        while IFS= read -r line; do
-            sleep 0.04
-            printf '%s\n' "$line"
-        done
-    )
+    refresh_tail
 
     load_config
     last_reload_time=$EPOCHSECONDS
@@ -499,15 +488,7 @@ monitor_idle_activity() {
         if (( read_status > 128 )); then
             line=""
         else
-            exec 3<&-
-            sleep 0.2
-            exec 3< <(
-                tail -Fn0 /var/log/power_manager/powerd.LATEST |
-                while IFS= read -r line; do
-                    sleep 0.04
-                    printf '%s\n' "$line"
-                done
-            )
+            refresh_tail
             sleep 0.2
             continue
         fi
