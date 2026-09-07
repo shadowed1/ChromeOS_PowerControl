@@ -358,12 +358,12 @@ idle_elapsed=0
 
 monitor_idle_activity() {
     exec 200>"$PID_FILE.lock"
-    flock -n 200 || {
+    if ! flock -n 200; then
         echo "${BLUE}"
         echo " SleepControl is already running."
         echo "${RESET}"
-        exit 1
-    }
+        return 0
+    fi
     tail_pid=""
     refresh_tail
     update_status 1
