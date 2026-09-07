@@ -365,6 +365,8 @@ monitor_idle_activity() {
         echo "${RESET}"
         exit 1
     }
+    tail_pid=""
+    refresh_tail
     update_status 1
     wait_for_config
     load_config
