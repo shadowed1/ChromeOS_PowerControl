@@ -415,7 +415,7 @@ monitor_idle_activity() {
         fi
     }
 
-    post_suspend_reset() {
+post_suspend_reset() {
     last_ts=$EPOCHSECONDS
     idle_since=$EPOCHSECONDS
     monitor_idle=0
@@ -424,6 +424,15 @@ monitor_idle_activity() {
     backlight_off=0
     was_dimmed=0
     wake_grace_end=$(( EPOCHSECONDS + 3 ))
+
+    exec 3<&- 2>/dev/null
+    exec 3< <(
+        tail -Fn0 /var/log/power_manager/powerd.LATEST |
+        while IFS= read -r line; do
+            sleep 0.04
+            printf '%s\n' "$line"
+        done
+    )
 }
     start_fake_activity() {
         if (( sending_fake_activity == 0 )); then
