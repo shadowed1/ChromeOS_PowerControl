@@ -329,18 +329,22 @@ sleep 0.1
 
 echo ""
 sudo bash "$INSTALL_DIR/batterycontrol" stop 2>/dev/null
+sudo pkill -f "/usr/local/bin/batterycontrol" 2>/dev/null
 sleep 0.1
 
 echo ""
 sudo bash "$INSTALL_DIR/fancontrol" stop 2>/dev/null
-sleep 0.1
-
-echo ""
-sudo bash "$INSTALL_DIR/sleepcontrol" stop 2>/dev/null
+sudo pkill -f "/usr/local/bin/fancontrol" 2>/dev/null
 sleep 0.1
 
 echo ""
 sudo bash "$INSTALL_DIR/gpucontrol" stop 2>/dev/null
+sudo pkill -f "/usr/local/bin/gpucontrol" 2>/dev/null
+sleep 0.1
+
+echo ""
+sudo bash "$INSTALL_DIR/sleepcontrol" stop 2>/dev/null
+sudo pkill -f "/usr/local/bin/sleepcontrol" 2>/dev/null
 sleep 0.1
 
 echo "$INSTALL_DIR" | sudo tee "$INSTALL_DIR/.install_path" >/dev/null
