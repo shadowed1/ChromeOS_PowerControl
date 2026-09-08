@@ -347,6 +347,8 @@ sudo bash "$INSTALL_DIR/sleepcontrol" stop 2>/dev/null
 sudo pkill -f "/usr/local/bin/sleepcontrol" 2>/dev/null
 sleep 0.1
 
+echo
+
 echo "$INSTALL_DIR" | sudo tee "$INSTALL_DIR/.install_path" >/dev/null
 
 declare -a files=(
@@ -374,6 +376,8 @@ for file in "${files[@]}"; do
     fi
     sleep 0.1
 done
+
+echo
 
 OLD_CONFIG_PATH="$INSTALL_DIR/config.sh"
 if [ -d "/home/chronos/user/MyFiles/Downloads" ]; then
