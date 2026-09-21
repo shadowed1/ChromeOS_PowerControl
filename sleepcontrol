@@ -14,6 +14,7 @@ if [ -d "/home/chronos/user/MyFiles/Downloads" ]; then
 else
     CONFIG_FILE="/usr/local/bin/.ChromeOS_PowerControl_Config/config"
 fi
+
 SELF="$(readlink -f "$0")"
 PID_FILE="$INSTALL_DIR/.sleepcontrol_pid"
 RUN_FLAG="$INSTALL_DIR/.sleepcontrol_enabled"
@@ -92,15 +93,9 @@ wait_for_config
 #fi
 
 get_battery_info() {
-    local line last=""
-    while IFS= read -r line; do
-        case $line in
-            *"On battery at"*|*"On AC"*|*"line_power"*)
-                last=$line
-                ;;
-        esac
-    done < "$BATTERY_STATUS_PATH"
-    
+    local last
+    last=$(grep -E 'On battery at|On AC|On USB|line_power' "$BATTERY_STATUS_PATH" 2>/dev/null | tail -n1)
+
     if [[ $last =~ On\ battery\ at\ ([0-9]+)% ]]; then
         CHARGE=${BASH_REMATCH[1]}
         STATUS="Discharging"
@@ -113,6 +108,20 @@ get_battery_info() {
     else
         CHARGE=""
         STATUS="Unknown"
+    fi
+
+    if [[ "$STATUS" == "Unknown" ]]; then
+        local ps bat_status
+        for ps in /sys/class/power_supply/*/; do
+            [[ "$(cat "${ps}type" 2>/dev/null)" == "Battery" ]] || continue
+            bat_status=$(cat "${ps}status" 2>/dev/null)
+            CHARGE=$(cat "${ps}capacity" 2>/dev/null)
+            case "$bat_status" in
+                Discharging)                  STATUS="Discharging" ;;
+                Charging|Full|"Not charging") STATUS="Charging" ;;
+            esac
+            break
+        done
     fi
 }
 
@@ -189,6 +198,7 @@ load_config() {
         done < "$CONFIG_FILE"
     fi
     validate_config
+    get_battery_info
     recalc_timers
 }
 
