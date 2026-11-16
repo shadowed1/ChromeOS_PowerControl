@@ -1020,9 +1020,9 @@ case "$1" in
     else
         load_config
        if [[ "$MODE" == "battery" ]]; then
-            echo "${BLUE}Battery = Dim: $((BATTERY_DIM_DELAY)) min -> Display off: $((BATTERY_BACKLIGHT)) min -> Idle: $((BATTERY_DELAY)) min | Audio Detection: $AUDIO_DETECTION_BATTERY Lid Sleep: $LIDSLEEP_POWER ${RESET}"
+            echo "${BLUE}Battery = Dim: $((BATTERY_DIM_DELAY)) min -> Display off: $((BATTERY_BACKLIGHT)) min -> Idle: $((BATTERY_DELAY)) min | Audio Detection: $AUDIO_DETECTION_BATTERY Lid Sleep: $LIDSLEEP_BATTERY ${RESET}"
         else
-            echo "${BLUE}Power = Dim: $((POWER_DIM_DELAY)) min -> Display off: $((POWER_BACKLIGHT)) min -> Idle: $((POWER_DELAY)) min | Audio Detection: $AUDIO_DETECTION_POWER | Lid Sleep: $LIDSLEEP_BATTERY ${RESET}"
+            echo "${BLUE}Power = Dim: $((POWER_DIM_DELAY)) min -> Display off: $((POWER_BACKLIGHT)) min -> Idle: $((POWER_DELAY)) min | Audio Detection: $AUDIO_DETECTION_POWER | Lid Sleep: $LIDSLEEP_POWER ${RESET}"
         fi
     fi
         ;;
