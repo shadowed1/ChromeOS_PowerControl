@@ -344,6 +344,7 @@ sleep 0.1
 
 echo ""
 sudo bash "$INSTALL_DIR/sleepcontrol" stop 2>/dev/null
+sudo bash "$INSTALL_DIR/sleepcontrol" stop 2>/dev/null
 sudo pkill -f "/usr/local/bin/sleepcontrol" 2>/dev/null
 sleep 0.1
 
