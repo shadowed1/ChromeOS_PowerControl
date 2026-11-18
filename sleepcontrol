@@ -921,6 +921,8 @@ case "$1" in
         fi
 
         stop_monitoring >/dev/null 2>&1
+        sleep 0.2
+        stop_monitoring >/dev/null 2>&1
         echo "${RED}$(printf '%(%Y-%m-%d %H:%M:%S)T\n' -1) - SleepControl Stopped (PID $PID)${RESET}"
         ;;
     battery|power)
