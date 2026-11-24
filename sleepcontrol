@@ -856,6 +856,7 @@ stop_monitoring() {
             echo "Stopping SleepControl (PID: $PID)..."
             kill -- -"$PID" 2>/dev/null
             kill "$PID" 2>/dev/null
+            sudo rm -f "$PID_FILE.lock" 2>/dev/null
         fi
     fi
 
